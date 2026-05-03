@@ -1,153 +1,197 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
-?><!DOCTYPE html>
+?>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PT Abadi Bersama Cerah</title>
 
-  <link rel="apple-touch-icon" sizes="180x180" href="<?= base_url('assets/img/apple-touch-icon.png'); ?>">
-  <link rel="icon" type="image/png" sizes="32x32" href="<?= base_url('assets/img/favicon-32x32.png'); ?>">
-  <link rel="icon" type="image/png" sizes="16x16" href="<?= base_url('assets/img/favicon-16x16.png'); ?>">
-  <!-- <link rel="icon" href="<?= base_url('assets/img/apja-icon.png'); ?>" type="image/png"> -->
-  <link rel="manifest" href="<?= base_url('assets/img/site.webmanifest'); ?>">
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
 
-  <title>PT. Artha Pratama Jaya Abadi</title>
-  <style>
-    :root{
-      --bg: #ffffff;
-      --primary: #15358f; /* warna biru logo, bisa disesuaikan */
-      --text: #16326b;
-      --btn-bg: transparent;
-      --btn-border: rgba(22,50,107,0.12);
-      --btn-hover-bg: rgba(22,50,107,0.06);
-      --max-logo-width: 720px;
+:root{
+    --abc-red:#E50414;
+    --abc-blue:#0285D1;
+    --abc-dark:#0f172a;
+    --abc-gray:#64748b;
+}
+
+html,body{
+    width:100%;
+    height:100%;
+}
+
+body{
+    font-family:Arial, Helvetica, sans-serif;
+    min-height:100vh;
+    position:relative;
+    overflow:hidden;
+    background:linear-gradient(
+        135deg,
+        #ffffff 0%,
+        #eef7ff 45%,
+        #e0f2fe 100%
+    );
+}
+
+/* background */
+/* body::before{
+    content:"";
+    position:absolute;
+    width:45vw;
+    height:45vw;
+    min-width:250px;
+    min-height:250px;
+    max-width:500px;
+    max-height:500px;
+    border-radius:50%;
+    top:-15%;
+    left:-10%;
+    background:rgba(2,133,209,.08);
+    filter:blur(60px);
+}
+
+body::after{
+    content:"";
+    position:absolute;
+    width:35vw;
+    height:35vw;
+    min-width:220px;
+    min-height:220px;
+    max-width:420px;
+    max-height:420px;
+    border-radius:50%;
+    right:-10%;
+    bottom:-10%;
+    background:rgba(229,4,20,.06);
+    filter:blur(60px);
+} */
+
+/* sign in */
+.signin-btn{
+    position:absolute;
+    top:24px;
+    right:24px;
+    z-index:100;
+    text-decoration:none;
+    color:#fff;
+    padding:12px 24px;
+    border-radius:12px;
+    font-size:14px;
+    font-weight:600;
+    background:linear-gradient(
+        135deg,
+        var(--abc-blue),
+        #0ea5e9
+    );
+    box-shadow:0 10px 30px rgba(2,133,209,.25);
+    transition:.3s;
+}
+
+.signin-btn:hover{
+    background:linear-gradient(
+        135deg,
+        var(--abc-blue),
+        var(--abc-red)
+    );
+    transform:translateY(-2px);
+}
+
+/* center content */
+.wrapper{
+    position:absolute;
+    inset:0;
+    z-index:2;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    width:100%;
+    padding:20px;
+}
+
+.logo{
+    width:min(220px,45vw);
+    height:auto;
+    margin-bottom:24px;
+}
+
+h1{
+    font-size:clamp(24px,4vw,40px);
+    color:var(--abc-dark);
+    margin-bottom:12px;
+    font-weight:700;
+}
+
+p{
+    font-size:clamp(14px,2vw,18px);
+    color:var(--abc-gray);
+}
+
+.accent{
+    width:90px;
+    height:4px;
+    border-radius:999px;
+    margin-top:20px;
+    background:linear-gradient(
+        90deg,
+        var(--abc-red),
+        var(--abc-blue)
+    );
+}
+
+/* mobile */
+@media (max-width:768px){
+
+    .signin-btn{
+        top:18px;
+        right:18px;
+        padding:10px 18px;
+        font-size:13px;
     }
 
-    /* Reset sederhana */
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%}
-    body{
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background: var(--bg);
-      color: var(--text);
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-    }
-
-    /* Layout: full-screen center */
-    .stage{
-      min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:40px 20px;
-      position:relative;
-      text-align:center;
-    }
-
-    /* Login button top-right */
-    .login-btn{
-      position:absolute;
-      top:20px;
-      right:20px;
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:10px 16px;
-      border-radius:8px;
-      border:1px solid var(--btn-border);
-      background:var(--btn-bg);
-      color:var(--text);
-      text-decoration:none;
-      font-weight:600;
-      font-size:14px;
-      transition:all .18s ease;
-      backdrop-filter: blur(4px);
-    }
-    .login-btn:focus{
-      outline:3px solid rgba(21,53,143,0.12);
-      outline-offset:2px;
-    }
-    .login-btn:hover{
-      transform:translateY(-2px);
-      background:var(--btn-hover-bg);
-      box-shadow: 0 6px 18px rgba(21,53,143,0.06);
-    }
-
-    /* Content center block */
-    .center-block{
-      max-width:1200px;
-      width:100%;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:22px;
-    }
-
-    /* Logo */
-    .logo-wrap{
-      width:100%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
     .logo{
-      width: min(66vw, var(--max-logo-width));
-      max-height: 48vh;
-      object-fit: contain;
-      display:block;
-      filter: none;
-      -webkit-filter: none;
+        width:min(170px,42vw);
+        margin-bottom:18px;
     }
 
-    /* Company name under logo */
-    .company-name{
-      font-size: clamp(14px, 2vw, 24px);
-      letter-spacing: 1px;
-      font-weight:700;
-      color:var(--primary);
+    h1{
+        font-size:28px;
     }
 
-    /* Small caption (opsional) */
-    .subtitle{
-      font-size:14px;
-      color: #5b6b95;
-      opacity:0.9;
+    p{
+        font-size:15px;
     }
 
-    /* Responsive tweaks */
-    @media (max-width:520px){
-      .login-btn{ top:12px; right:12px; padding:8px 12px; font-size:13px }
-      .center-block{ gap:14px }
-      .logo{ width: min(78vw, 420px); max-height:38vh }
+    .accent{
+        width:70px;
+        margin-top:16px;
     }
+}
 
-    @media (min-width:1600px){
-      /* buat logo lebih besar di layar sangat lebar */
-      :root{ --max-logo-width: 1100px; }
-    }
-  </style>
+</style>
 </head>
 <body>
-  <div class="stage">
-    <a class="login-btn" href="<?= base_url('login'); ?>" aria-label="Login ke sistem">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-        <path d="M10 17L15 12L10 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M15 12H3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M21 19V5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      LOGIN
-    </a>
 
-    <div class="center-block" role="main">
-      <div class="logo-wrap" aria-hidden="false">
-        <img class="logo" src="<?= base_url('assets/img/apja-logo.png'); ?>" alt="Logo PT. Artha Pratama Jaya Abadi" />
-      </div>
+<a href="<?= base_url('login'); ?>" class="signin-btn">
+    Sign In
+</a>
 
-      <div class="company-name">WEBSITE DALAM TAHAP PENGEMBANGAN</div>
-      <div class="subtitle">FRESH • HALAL • SEHAT</div>
-    </div>
-  </div>
+<div class="wrapper">
+    <img src="<?= base_url('assets/img/abc-trans.png'); ?>" class="logo">
+
+    <h1>PT. Abadi Bersama Cerah</h1>
+    <p>Website Dalam Tahap Pengembangan</p>
+
+    <div class="accent"></div>
+</div>
+
 </body>
 </html>
