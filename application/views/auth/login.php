@@ -5,31 +5,36 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="apple-touch-icon" sizes="180x180" href="<?= base_url('assets/img/apple-touch-icon.png'); ?>">
-    <link rel="icon" type="image/png" sizes="32x32" href="<?= base_url('assets/img/favicon-32x32.png'); ?>">
-    <link rel="icon" type="image/png" sizes="16x16" href="<?= base_url('assets/img/favicon-16x16.png'); ?>">
-    <link rel="manifest" href="<?= base_url('assets/img/site.webmanifest'); ?>">
+    <link rel="icon" type="image/png" href="<?= base_url('assets/img/favicon-96x96.png'); ?>" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="<?= base_url('assets/img/favicon.svg'); ?>" />
+    <link rel="shortcut icon" href="<?= base_url('assets/img/favicon.ico'); ?>" />
+    <link rel="apple-touch-icon" sizes="180x180" href="<?= base_url('assets/img/apple-touch-icon.png'); ?>" />
+    <link rel="manifest" href="<?= base_url('assets/img/site.webmanifest'); ?>" />
 
-    <title>PT. Artha Pratama Jaya Abadi</title>
+    <title>PT. Abadi Bersama Cerah</title>
 
     <link rel="stylesheet" href="<?= base_url('assets/css/styles.min.css'); ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <style>
-        html,
-        body{
+        html, body{
             margin:0;
             padding:0;
             width:100%;
-            height:100%;
-            overflow:hidden;
+            min-height:100vh;
+            min-height:100dvh;
             font-family: Inter, sans-serif;
         }
 
         body{
             background:
-                linear-gradient(135deg, rgba(11,71,154,.95), rgba(30,120,255,.90)),
-                url('<?= base_url('assets/img/bg-login.jpg'); ?>') center center/cover no-repeat;
+                linear-gradient(
+                    135deg,
+                    rgba(19,135,212,.92) 0%,
+                    rgba(10,74,145,.90) 45%,
+                    rgba(227,6,19,.82) 100%
+                ),
+                url('<?= base_url('assets/img/bg-login.jpg'); ?>') center/cover no-repeat;
         }
 
         .login-wrapper{
@@ -44,59 +49,71 @@
 
         .login-container{
             width:100%;
-            height:calc(100vh - 48px);
-            height:calc(100dvh - 48px);
             max-width:1400px;
-            border-radius:28px;
-            overflow:hidden;
+            min-height:calc(100vh - 48px);
+            min-height:calc(100dvh - 48px);
             display:flex;
+            overflow:hidden;
+            border-radius:28px;
             background:rgba(255,255,255,.08);
-            backdrop-filter:blur(18px);
-            -webkit-backdrop-filter:blur(18px);
-            box-shadow:0 25px 80px rgba(0,0,0,.18);
+            border:1px solid rgba(255,255,255,.18);
+            backdrop-filter:blur(20px);
+            -webkit-backdrop-filter:blur(20px);
+            box-shadow:0 30px 80px rgba(0,0,0,.25);
         }
 
         .left-panel{
             flex:1;
-            color:white;
             padding:clamp(30px,5vw,80px);
             display:flex;
             flex-direction:column;
             justify-content:center;
+            position:relative;
+            color:white;
         }
 
-        .left-panel h1{
-            font-size:clamp(34px,5vw,64px);
-            font-weight:800;
-            line-height:1.1;
-            margin-bottom:20px;
-        }
-
-        .left-panel p{
-            font-size:clamp(14px,1.2vw,18px);
-            max-width:520px;
-            line-height:1.8;
-            opacity:.95;
+        .left-panel::before{
+            content:'';
+            position:absolute;
+            width:380px;
+            height:380px;
+            background:rgba(255,255,255,.08);
+            border-radius:50%;
+            top:-120px;
+            right:-100px;
+            filter:blur(5px);
         }
 
         .badge-company{
-            display:inline-block;
             width:fit-content;
-            padding:10px 18px;
+            padding:12px 22px;
             border-radius:999px;
             background:rgba(255,255,255,.15);
-            margin-bottom:25px;
-            font-size:14px;
+            border:1px solid rgba(255,255,255,.25);
+            margin-bottom:28px;
             font-weight:600;
         }
 
+        .left-panel h1{
+            font-size:clamp(42px,5vw,72px);
+            font-weight:800;
+            line-height:1.05;
+            margin-bottom:15px;
+        }
+
+        .left-panel p{
+            max-width:540px;
+            line-height:1.9;
+            opacity:.95;
+        }
+
         .right-panel{
-            width:min(480px,100%);
-            background:white;
-            padding:clamp(24px,4vw,60px);
+            width:min(500px,100%);
+            background:rgba(255,255,255,.96);
             display:flex;
             align-items:center;
             justify-content:center;
+            padding:clamp(25px,4vw,60px);
         }
 
         .login-box{
@@ -106,25 +123,26 @@
 
         .logo{
             text-align:center;
-            margin-bottom:20px;
+            margin-bottom:18px;
         }
 
         .logo img{
-            width:clamp(120px,18vw,180px);
-            height:auto;
+            width:clamp(130px,18vw,190px);
+            filter:drop-shadow(0 10px 20px rgba(0,0,0,.15));
         }
 
         .company-name{
             text-align:center;
-            color:#6b7280;
-            margin-bottom:32px;
+            color:#64748B;
+            margin-bottom:35px;
             font-size:14px;
+            font-weight:500;
         }
 
         .form-label{
-            font-weight:600;
+            font-weight:700;
             margin-bottom:10px;
-            color:#111827;
+            color:#0F172A;
         }
 
         .input-group-custom{
@@ -137,86 +155,64 @@
             top:50%;
             left:18px;
             transform:translateY(-50%);
-            color:#9ca3af;
+            color:#94A3B8;
             z-index:2;
         }
 
         .form-control{
-            height:56px;
             width:100%;
-            border-radius:14px;
-            border:1px solid #e5e7eb;
-            padding-left:48px;
+            height:56px;
+            border-radius:15px;
+            border:1px solid #E2E8F0;
+            padding-left:50px;
             font-size:15px;
             transition:.3s;
+            background:#fff;
         }
 
         .form-control:focus{
-            border-color:#0d6efd;
-            box-shadow:0 0 0 4px rgba(13,110,253,.12);
+            border-color:#1387D4;
+            box-shadow:0 0 0 4px rgba(19,135,212,.15);
         }
 
         .btn-login{
             width:100%;
             height:56px;
             border:none;
-            border-radius:14px;
-            background:linear-gradient(135deg,#0d6efd,#0056d6);
-            color:white;
+            border-radius:15px;
             font-weight:700;
+            color:white;
+            background:linear-gradient(
+                135deg,
+                #E30613,
+                #C5000D
+            );
             transition:.3s;
         }
 
         .btn-login:hover{
             transform:translateY(-2px);
-            box-shadow:0 12px 30px rgba(13,110,253,.28);
+            box-shadow:0 16px 30px rgba(227,6,19,.30);
         }
 
         .error-box{
-            background:#fff1f2;
-            border:1px solid #fecdd3;
-            color:#be123c;
+            background:#FFF1F2;
+            border:1px solid #FECDD3;
+            color:#BE123C;
             padding:14px 18px;
             border-radius:14px;
             margin-bottom:20px;
-            font-size:14px;
         }
 
-        /* tablet */
-        @media (max-width: 992px){
-            .login-wrapper{
-                padding:16px;
-            }
-
-            .login-container{
-                height:calc(100vh - 32px);
-                height:calc(100dvh - 32px);
-            }
-
-            .left-panel{
-                flex:.8;
-            }
-
-            .right-panel{
-                width:420px;
-            }
-        }
-
-        /* mobile */
-        @media (max-width: 768px){
-            body{
-                overflow:auto;
-            }
-
+        @media(max-width:768px){
             .login-wrapper{
                 padding:0;
             }
 
             .login-container{
-                height:100vh;
-                height:100dvh;
                 border-radius:0;
-                display:block;
+                min-height:100vh;
+                min-height:100dvh;
             }
 
             .left-panel{
@@ -225,24 +221,6 @@
 
             .right-panel{
                 width:100%;
-                height:100%;
-                padding:30px;
-            }
-
-            .login-box{
-                max-width:100%;
-            }
-        }
-
-        /* very small phone */
-        @media (max-width: 420px){
-            .right-panel{
-                padding:22px;
-            }
-
-            .form-control,
-            .btn-login{
-                height:52px;
             }
         }
     </style>
@@ -254,24 +232,24 @@
     <div class="login-container">
 
         <div class="left-panel">
-            <span class="badge-company">Corporate Information System</span>
-            <h1>Welcome Back</h1>
-            <p>
+            <span class="badge-company">ABC System</span>
+            <h1 style="color: #fff">Welcome..</h1>
+            <!-- <p>
                 Access your integrated corporate platform securely.
                 Manage data, monitor operations, and streamline your workflow
                 in one centralized system.
-            </p>
+            </p> -->
         </div>
 
         <div class="right-panel">
             <div class="login-box">
 
                 <div class="logo">
-                    <img src="<?= base_url('assets/img/icon.png'); ?>" alt="">
+                    <img src="<?= base_url('assets/img/abc-trans.png'); ?>" alt="">
                 </div>
 
                 <div class="company-name">
-                    PT. Artha Pratama Jaya Abadi
+                    PT. Abadi Bersama Cerah
                 </div>
 
                 <?php if ($this->session->flashdata('error')): ?>
