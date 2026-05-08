@@ -58,14 +58,19 @@
             <div class="modal-body">
                 <!-- HEADER -->
                 <div class="row g-2 mb-3">
-                    <div class="col-md-12">
+                    <div class="col-md-6">
+                        <label class="form-label">Plant *</label>
+                        <select id="plantAdd" class="form-control" required></select>
+                        <input type="hidden" name="PLANT" id="hiddenPlantAdd">
+                    </div>
+                    <div class="col-md-6">
                         <label class="form-label">PO (Auto Generate)</label>
                         <input name="PO" id="PO_ADD_AUTO" class="form-control" placeholder="Auto Generate" readonly style="background:#efefef">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Plant *</label>
-                        <select id="plantAdd" class="form-control" required></select>
-                        <input type="hidden" name="PLANT" id="hiddenPlantAdd">
+                        <label class="form-label">PO Type *</label>
+                        <select id="typeAdd" class="form-control" required></select>
+                        <input type="hidden" name="TYPE" id="hiddenTypeAdd">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Tanggal *</label>
@@ -91,6 +96,7 @@
                 <table class="table table-bordered" id="poDetailTableAdd">
                     <thead>
                         <tr>
+                            <th style="text-align:center; vertical-align:middle;">Customer</th>
                             <th style="text-align: center; vertical-align: middle;">Material</th>
                             <th style="text-align: center; vertical-align: middle;">Jumlah</th>
                             <th style="text-align: center; vertical-align: middle;">Berat</th>
@@ -125,12 +131,7 @@
             <div class="modal-body">
                 <!-- HEADER -->
                 <div class="row g-2 mb-3">
-                    <div class="col-md-12">
-                        <label class="form-label">PO</label>
-                        <input name="PO" id="PO_EDIT_AUTO" class="form-control" readonly style=" background: #efefef">
-                        <input type="hidden" name="orig_po" id="orig_po">
-                    </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <label class="form-label">Plant</label>
                         <input type="text"
                             id="PLANT_NAME_EDIT"
@@ -138,6 +139,17 @@
                             readonly
                             style="background:#efefef">
                         <input type="hidden" name="PLANT" id="PLANT_EDIT">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">PO</label>
+                        <input name="PO" id="PO_EDIT_AUTO" class="form-control" readonly style=" background: #efefef">
+                        <input type="hidden" name="orig_po" id="orig_po">
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label class="form-label">PO Type *</label>
+                        <select id="typeEdit" class="form-control" required></select>
+                        <input type="hidden" id="hiddenTypeEdit" name="TYPE">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Tanggal *</label>
@@ -163,6 +175,7 @@
                 <table class="table table-bordered" id="poDetailTableEdit">
                     <thead>
                         <tr>
+                            <th style="text-align: center; vertical-align: middle;">Customer</th>
                             <th style="text-align: center; vertical-align: middle;">Material</th>
                             <th style="text-align: center; vertical-align: middle;">Jumlah</th>
                             <th style="text-align: center; vertical-align: middle;">Berat</th>
@@ -226,27 +239,114 @@
 
     function initPlantSelect2(selector, modalId){
         $(selector).select2({
-            placeholder: "Pilih PLANT",
+            placeholder: "-- PILIH PLANT --",
+            allowClear: true,
             dropdownParent: $(modalId),
             width: "100%",
             ajax: {
-                url: "<?= base_url('po/get_plant_by_user'); ?>",
+                url: "<?= base_url('po/get_plant'); ?>",
                 dataType: "json",
                 delay: 250,
-                processResults: function (data) {
-                    return { results: data };
+                processResults: function(data){
+                    return {
+                        results: data
+                    };
                 }
             }
-        }).on('select2:select', function(e){
+        });
+
+        $(selector).on('select2:select', function(e){
             $('#hiddenPlantAdd').val(e.params.data.id);
-            if (!$('#hiddenPlantAdd').val()) {
-                alert('Plant wajib dipilih');
-                return;
+        });
+
+        $(selector).on('select2:clear', function(){
+            $('#hiddenPlantAdd').val('');
+        });
+    }
+
+    function setDefaultPlant(selector){
+        $.ajax({
+            url: "<?= base_url('po/get_plant'); ?>",
+            dataType: "json",
+            success: function(data){
+
+                if(data.length > 0){
+
+                    let first = data[0];
+
+                    $(selector).empty();
+
+                    let option = new Option(
+                        first.text,
+                        first.id,
+                        true,
+                        true
+                    );
+
+                    $(selector)
+                        .append(option)
+                        .trigger('change');
+
+                    $('#hiddenPlantAdd').val(first.id);
+                }
             }
         });
     }
 
-    
+    function initTypeSelect2(selector, modalId, hiddenInput){
+        $(selector).select2({
+            placeholder: "-- PILIH PO TYPE --",
+            allowClear: true,
+            dropdownParent: $(modalId),
+            width: "100%",
+            ajax: {
+                url: "<?= base_url('po/get_po_type'); ?>",
+                dataType: "json",
+                delay: 250,
+                data: function(params){
+                    return { q: params.term };
+                },
+                processResults: function(data){
+                    return { results: data };
+                }
+            }
+        });
+
+        $(selector).on('select2:select', function(e){
+            $(hiddenInput).val(e.params.data.id);
+        });
+
+        $(selector).on('select2:clear', function(){
+            $(hiddenInput).val('');
+        });
+    }
+
+    function setDefaultType(selector, hiddenInput){
+        $.ajax({
+            url: "<?= base_url('po/get_po_type'); ?>",
+            dataType: "json",
+            success: function(data){
+                if(data.length > 0){
+                    let first = data[0];
+
+                    $(selector).empty();
+
+                    let option = new Option(
+                        first.text,
+                        first.id,
+                        true,
+                        true
+                    );
+
+                    $(selector)
+                        .append(option)
+                        .trigger('change');
+
+                    $(hiddenInput).val(first.id);
+                }
+            }
+        });
+    }
 
     // Load table
     function loadPage(page = 1) {
@@ -299,33 +399,55 @@
     // Inisialisasi select2 supplier
     function initSupplierSelect2(selector, modalId, hiddenInput){
         $(selector).select2({
-            placeholder: "Pilih SUPPLIER",
+            placeholder: "-- PILIH SUPPLIER --",
+            allowClear: true,
             dropdownParent: $(modalId),
             width: "100%",
             ajax: {
                 url: "<?= base_url('po/get_supplier'); ?>",
                 dataType: "json",
                 delay: 250,
-                data: function(params){ return { q: params.term }; },
-                processResults: function(data){ return { results: data }; }
+                data: function(params){
+                    return {
+                        q: params.term
+                    };
+                },
+                processResults: function(data){
+                    return {
+                        results: data
+                    };
+                }
             }
-        }).on('select2:select', function(e){
+        });
+
+        $(selector).on('select2:select', function(e){
             $(hiddenInput).val(e.params.data.id);
+        });
+
+        $(selector).on('select2:clear', function(){
+            $(hiddenInput).val('');
         });
     }
 
-    function setDefaultSupplier(selector, custId){
-        $.ajax({
-            url: "<?= base_url('po/get_supplier'); ?>",
-            dataType: "json",
-            success: function(data){
-                let found = data.find(item => item.id === custId);
-                if(found){
-                    let option = new Option(found.text, found.id, true, true);
-                    $(selector).append(option).trigger('change');
-
-                    // set hidden input
-                    $('#hiddensupplierAdd').val(found.id);
+    function initCustomerSelect2(el, parentModal){
+        $(el).select2({
+            placeholder: "-- PILIH CUSTOMER --",
+            allowClear: true,
+            width: "100%",
+            dropdownParent: $(parentModal),
+            ajax: {
+                url: "<?= base_url('po/get_customer'); ?>",
+                dataType: "json",
+                delay: 250,
+                data: function(params){
+                    return {
+                        q: params.term
+                    };
+                },
+                processResults: function(data){
+                    return {
+                        results: data
+                    };
                 }
             }
         });
@@ -384,6 +506,15 @@
             });
     }
 
+    function formatMoneyID(value){
+        if(value === null || value === '' || isNaN(value)) return '';
+
+        return parseFloat(value).toLocaleString('id-ID',{
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
     function parseDecimalID(value) {
         if (!value) return 0;
         return parseFloat(
@@ -394,16 +525,28 @@
     // Tambah row detail
     function addDetailRow(tableId, modalId, data=null){
 
-        var material = data?.MATERIAL ?? '';
-        var materialText = material && data?.MATERIAL_NAME
-            ? material + ' - ' + data.MATERIAL_NAME
+        let customer = data?.CUSTOMER ?? '';
+        let customerText = customer && data?.CUSTOMER_NAME
+            ? customer + ' - ' + data.CUSTOMER_NAME
             : '';
 
-        var row = `<tr>
+        let material = data?.MATERIAL ?? '';
+        let materialText = material
+            ? material + (data?.MATERIAL_NAME ? ' - ' + data.MATERIAL_NAME : '')
+            : '';
+
+        let row = `
+        <tr>
             <input type="hidden" class="detail-id" value="${data?.ID ?? ''}">
 
-            <td style="text-align:center; vertical-align:middle; width:30%">
-                <select class="form-control materialSelect" name="DETAIL[][MATERIAL]"></select>
+            <td style="width:25%">
+                <select class="form-control customerSelect"
+                    name="DETAIL[][CUSTOMER]"></select>
+            </td>
+
+            <td style="width:25%">
+                <select class="form-control materialSelect"
+                    name="DETAIL[][MATERIAL]"></select>
             </td>
 
             <td>
@@ -429,32 +572,45 @@
                     class="form-control harga"
                     name="DETAIL[][HARGA]"
                     style="text-align:right"
-                    value="${data ? formatRupiah(data.HARGA) : ''}"
-                    oninput="this.value=formatRupiah(this.value); calcRow(this)" placeholder="0">
+                    value="${data ? formatMoneyID(data.HARGA) : ''}"
+                    oninput="calcRow(this)"
+                    placeholder="0">
             </td>
 
             <td>
                 <input type="text"
                     class="form-control total"
                     name="DETAIL[][TOTAL]"
-                    style="text-align:right; background:#efefef"
-                    value="${data ? formatRupiah(data.TOTAL) : ''}"
-                    readonly placeholder="0">
+                    style="text-align:right;background:#efefef"
+                    value="${data ? formatMoneyID(data.TOTAL) : ''}
+                    readonly
+                    placeholder="0">
             </td>
 
             <td style="text-align:center">
-                <button type="button" class="btn btn-sm btn-danger removeRow">x</button>
+                <button type="button"
+                    class="btn btn-sm btn-danger removeRow">x</button>
             </td>
         </tr>`;
 
         $(tableId + ' tbody').append(row);
 
-        var $select = $(tableId + ' tbody tr:last .materialSelect');
-        initMaterialSelect2($select, modalId);
+        let $last = $(tableId + ' tbody tr:last');
+
+        let $customer = $last.find('.customerSelect');
+        let $material = $last.find('.materialSelect');
+
+        initCustomerSelect2($customer, modalId);
+        initMaterialSelect2($material, modalId);
+
+        if(customer){
+            let opt = new Option(customerText, customer, true, true);
+            $customer.append(opt).trigger('change');
+        }
 
         if(material){
-            var opt = new Option(materialText, material, true, true);
-            $select.append(opt).trigger('change');
+            let opt = new Option(materialText, material, true, true);
+            $material.append(opt).trigger('change');
         }
     }
 
@@ -506,7 +662,7 @@
 
         let total = jumlah * harga;
 
-        row.find('.total').val(formatRupiah(total.toString()));
+        row.find('.total').val(formatMoneyID(total));
     }
 
     $(function(){
@@ -514,12 +670,19 @@
 
         // Inisialisasi select2 add
         initPlantSelect2('#plantAdd', '#poAdd');
-        initSupplierSelect2('#supplierAdd', '#poAdd');
-        setDefaultSupplier('#supplierAdd', 'CS000001');
+        setDefaultPlant('#plantAdd');
+        initSupplierSelect2('#supplierAdd', '#poAdd', '#hiddensupplierAdd');
+        initTypeSelect2('#typeAdd', '#poAdd', '#hiddenTypeAdd');
+        initTypeSelect2('#typeEdit', '#poEdit', '#hiddenTypeEdit');
+        setDefaultType('#typeAdd', '#hiddenTypeAdd');
         $('#addDetailRowAdd').click(function(){ addDetailRow('#poDetailTableAdd','#poAdd'); });
 
         // Inisialisasi select2 edit
-        initSupplierSelect2('#supplierEdit', '#poEdit');
+        initSupplierSelect2(
+            '#supplierEdit',
+            '#poEdit',
+            '#hiddensupplierEdit'
+        );
         $('#addDetailRowEdit').click(function(){ addDetailRow('#poDetailTableEdit','#poEdit'); });
 
         // Remove row
@@ -534,15 +697,17 @@
             var DETAIL = [];
             $('#poDetailTableAdd tbody tr').each(function(){
                 DETAIL.push({
-                    MATERIAL: $(this).find('select').val(),
-                    JUMLAH: parseDecimalID($(this).find('.jumlah').val()),
-                    BERAT: parseDecimalID($(this).find('.berat').val()),
-                    HARGA: cleanRupiah($(this).find('.harga').val()),
-                    TOTAL: cleanRupiah($(this).find('.total').val())
+                    CUSTOMER : $(this).find('.customerSelect').val(),
+                    MATERIAL : $(this).find('.materialSelect').val(),
+                    JUMLAH   : parseDecimalID($(this).find('.jumlah').val()),
+                    BERAT    : parseDecimalID($(this).find('.berat').val()),
+                    HARGA    : parseDecimalID($(this).find('.harga').val()),
+                    TOTAL    : parseDecimalID($(this).find('.total').val())
                 });
             });
             $.post('<?= base_url("po/create"); ?>',{
                 PLANT   : $('#hiddenPlantAdd').val(),
+                TYPE     : $('#hiddenTypeAdd').val(),
                 PO_DATE: $('input[name="PO_DATE"]').val(),
                 SUPPLIER: $('#hiddensupplierAdd').val(),
                 REMARK: $('input[name="REMARK"]').val(),
@@ -599,6 +764,16 @@
                 $('#supplierEdit').empty().append(opt).trigger('change');
                 $('#hiddensupplierEdit').val(h.SUPPLIER);
 
+                let optType = new Option(
+                    h.PO_TYPE_NAME,
+                    h.PO_TYPE,
+                    true,
+                    true
+                );
+
+                $('#typeEdit').empty().append(optType).trigger('change');
+                $('#hiddenTypeEdit').val(h.PO_TYPE);
+
                 // Detail
                 $('#poDetailTableEdit tbody').empty();
                 resp.detail.forEach(row => {
@@ -623,18 +798,20 @@
 
             $('#poDetailTableEdit tbody tr').each(function(){
                 DETAIL.push({
-                    ID      : $(this).find('.detail-id').val(),
-                    MATERIAL: $(this).find('select').val(),
+                    ID       : $(this).find('.detail-id').val(),
+                    CUSTOMER : $(this).find('.customerSelect').val(),
+                    MATERIAL : $(this).find('.materialSelect').val(),
                     JUMLAH  : parseDecimalID($(this).find('.jumlah').val()),
                     BERAT   : parseDecimalID($(this).find('.berat').val()),
-                    HARGA   : cleanRupiah($(this).find('.harga').val()),
-                    TOTAL   : cleanRupiah($(this).find('.total').val())
+                    HARGA : parseDecimalID($(this).find('.harga').val()),
+                    TOTAL : parseDecimalID($(this).find('.total').val())
                 });
             });
 
             $.post('<?= base_url("po/update"); ?>',{
                 orig_po : $('#orig_po').val(),
                 PLANT   : $('#PLANT_EDIT').val(),
+                TYPE    : $('#hiddenTypeEdit').val(),
                 PO_DATE : $('#poEdit input[name="PO_DATE"]').val(),
                 SUPPLIER: $('#hiddensupplierEdit').val(),
                 REMARK  : $('#poEdit input[name="REMARK"]').val(),

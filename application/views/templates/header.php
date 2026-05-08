@@ -6,11 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= isset($title) ? $title : 'Dashboard'; ?></title>
   
-  <link rel="apple-touch-icon" sizes="180x180" href="<?= base_url('assets/img/apple-touch-icon.png'); ?>">
-  <link rel="icon" type="image/png" sizes="32x32" href="<?= base_url('assets/img/favicon-32x32.png'); ?>">
-  <link rel="icon" type="image/png" sizes="16x16" href="<?= base_url('assets/img/favicon-16x16.png'); ?>">
-  <!-- <link rel="icon" href="<?= base_url('assets/img/apja-icon.png'); ?>" type="image/png"> -->
-  <link rel="manifest" href="<?= base_url('assets/img/site.webmanifest'); ?>">
+  <link rel="icon" type="image/png" href="<?= base_url('assets/img/favicon-96x96.png'); ?>" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="<?= base_url('assets/img/favicon.svg'); ?>" />
+    <link rel="shortcut icon" href="<?= base_url('assets/img/favicon.ico'); ?>" />
+    <link rel="apple-touch-icon" sizes="180x180" href="<?= base_url('assets/img/apple-touch-icon.png'); ?>" />
+    <link rel="manifest" href="<?= base_url('assets/img/site.webmanifest'); ?>" />
   
   <link rel="stylesheet" href="<?= base_url('assets/css/styles.min.css'); ?>" />
   <script src="<?= base_url('assets/libs/jquery/dist/jquery.min.js'); ?>"></script>

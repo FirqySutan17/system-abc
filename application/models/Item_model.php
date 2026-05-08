@@ -3,7 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Item_model extends CI_Model {
 
-    protected $table = 'cd_item';
+    protected $table = 'abc_cd_item';
     protected $primary = ['item']; // composite PK
 
     public function __construct()

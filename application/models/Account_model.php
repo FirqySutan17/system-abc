@@ -3,7 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Account_model extends CI_Model {
 
-    private $table = 'cd_account';
+    private $table = 'abc_cd_account';
     private $pk    = 'ACCOUNT';
 
     public function get_data($limit, $offset, $search, $order, $dir)

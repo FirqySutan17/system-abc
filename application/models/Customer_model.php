@@ -1,7 +1,7 @@
 <?php
 class Customer_model extends CI_Model {
 
-    private $table = "cd_customer";
+    private $table = "abc_cd_customer";
 
     public function get_data($limit, $offset, $search, $order, $dir) {
         if ($search) {
@@ -41,7 +41,7 @@ class Customer_model extends CI_Model {
         $this->db->like('CUST', $prefix, 'after');
         $this->db->order_by('CUST', 'DESC');
         $this->db->limit(1);
-        $q = $this->db->get('cd_customer'); // ganti nama tabel
+        $q = $this->db->get('abc_cd_customer'); // ganti nama tabel
 
         if ($q->num_rows() > 0) {
             $last = $q->row()->CUST;

@@ -32,7 +32,7 @@ class Receive_model extends CI_Model {
             CODE as id,
             CONCAT(CODE, ' - ', CODE_NAME) as text
         ");
-        $this->db->from('cd_code');
+        $this->db->from('abc_cd_code');
         $this->db->where('HEAD_CODE', 'AJ');
         $this->db->where_in('CODE', $plants);
         $this->db->order_by('CODE', 'ASC');
@@ -64,17 +64,17 @@ class Receive_model extends CI_Model {
             r.SLIP_NO,
             cd.CODE_NAME AS AJ_NAME
         ');
-        $this->db->from('mst_receive r');
+        $this->db->from('abc_mst_receive r');
 
         $this->db->join(
-            'cd_customer c',
+            'abc_cd_customer c',
             'r.SUPPLIER COLLATE utf8mb4_unicode_ci = c.CUST COLLATE utf8mb4_unicode_ci',
             'left',
             false
         );
 
         $this->db->join(
-            'cd_code cd',
+            'abc_cd_code cd',
             "cd.CODE COLLATE utf8mb4_unicode_ci = r.PLANT COLLATE utf8mb4_unicode_ci
              AND cd.HEAD_CODE = 'AJ'",
             'left',
@@ -115,12 +115,12 @@ class Receive_model extends CI_Model {
     {
         $role_id = (int)$role_id;
 
-        $this->db->from('mst_receive r');
-        $this->db->join('cd_customer c',
+        $this->db->from('abc_mst_receive r');
+        $this->db->join('abc_cd_customer c',
             'r.SUPPLIER COLLATE utf8mb4_unicode_ci = c.CUST COLLATE utf8mb4_unicode_ci',
             'left', false
         );
-        $this->db->join('cd_code cd',
+        $this->db->join('abc_cd_code cd',
             "cd.CODE COLLATE utf8mb4_unicode_ci = r.PLANT COLLATE utf8mb4_unicode_ci
              AND cd.HEAD_CODE = 'AJ'",
             'left', false
@@ -151,6 +151,19 @@ class Receive_model extends CI_Model {
         return $this->db->count_all_results();
     }
 
+    public function get_plant_select2()
+    {
+        return $this->db
+            ->select('CODE as id, CODE_NAME as text')
+            ->from('abc_cd_code')
+            ->where('HEAD_CODE', 'PLANT')
+            ->where('CODE <>', '*')
+            ->where('USE_YN', 'Y')
+            ->order_by('CODE_NAME', 'ASC')
+            ->get()
+            ->result_array();
+    }
+
     /* 🔑 DIPAKAI CONTROLLER */
     public function user_has_plant($username, $plant)
     {
@@ -170,7 +183,7 @@ class Receive_model extends CI_Model {
         $this->db->like('PO', $prefix, 'after');
         $this->db->order_by('PO', 'DESC');
         $this->db->limit(1);
-        $row = $this->db->get('mst_po')->row();
+        $row = $this->db->get('abc_mst_po')->row();
 
         $seq = $row ? ((int)substr($row->PO, -4) + 1) : 1;
         return $prefix . str_pad($seq, 4, '0', STR_PAD_LEFT);
@@ -185,7 +198,7 @@ class Receive_model extends CI_Model {
         $this->db->where('PLANT', $plant); // 🔑 filter PLANT
         $this->db->order_by('RECEIVE', 'DESC');
         $this->db->limit(1);
-        $row = $this->db->get('mst_receive')->row();
+        $row = $this->db->get('abc_mst_receive')->row();
 
         $seq = $row ? ((int)substr($row->RECEIVE, -4) + 1) : 1;
         return $prefix . str_pad($seq, 4, '0', STR_PAD_LEFT);
@@ -204,7 +217,7 @@ class Receive_model extends CI_Model {
         $this->db->like('SLIP_NO', $prefix, 'after');
         $this->db->order_by('SLIP_NO', 'DESC');
         $this->db->limit(1);
-        $row = $this->db->get('mst_receive')->row();
+        $row = $this->db->get('abc_mst_receive')->row();
 
         $seq = $row ? ((int)substr($row->SLIP_NO, -4) + 1) : 1;
         return $prefix . str_pad($seq, 4, '0', STR_PAD_LEFT);
@@ -246,13 +259,13 @@ class Receive_model extends CI_Model {
 
     public function insert_po($data)
     {
-        return $this->db->insert('mst_po', $data);
+        return $this->db->insert('abc_mst_po', $data);
     }
 
     public function insert_po_detail_batch($rows)
     {
         if(empty($rows)) return false;
-        return $this->db->insert_batch('mst_po_detail', $rows);
+        return $this->db->insert_batch('abc_mst_po_detail', $rows);
     }
 
     public function get_po_header($po, $plant)
@@ -260,23 +273,35 @@ class Receive_model extends CI_Model {
         return $this->db
             ->where('PO', $po)
             ->where('PLANT', $plant)
-            ->get('mst_po')
+            ->get('abc_mst_po')
             ->row_array();
     }
 
     public function get_po_detail($po, $plant)
     {
         return $this->db
-            ->select('d.*, m.MATERIAL_NAME')
-            ->from('mst_po_detail d')
-            ->join('cd_material m',
+            ->select("
+                d.*,
+                m.MATERIAL_NAME,
+                c.FULL_NAME AS CUSTOMER_NAME
+            ")
+            ->from('abc_mst_po_detail d')
+            ->join(
+                'abc_cd_material m',
                 'm.MATERIAL COLLATE utf8mb4_unicode_ci = d.MATERIAL COLLATE utf8mb4_unicode_ci',
-                'left', false
+                'left',
+                false
+            )
+            ->join(
+                'abc_cd_customer c',
+                'c.CUST = d.CUSTOMER',
+                'left'
             )
             ->where('d.PO', $po)
             ->where('d.PLANT', $plant)
-            ->order_by('d.ID', 'ASC')
-            ->get()->result_array();
+            ->order_by('d.SEQ_NO', 'ASC')
+            ->get()
+            ->result_array();
     }
 
     public function search_po($role_id, $plant, $q = null, $limit = 20)
@@ -288,17 +313,17 @@ class Receive_model extends CI_Model {
             c.FULL_NAME AS SUPPLIER_NAME,
             cd.CODE_NAME AS PLANT_NAME
         ');
-        $this->db->from('mst_po r');
+        $this->db->from('abc_mst_po r');
 
         $this->db->join(
-            'cd_customer c',
+            'abc_cd_customer c',
             'r.SUPPLIER = c.CUST',
             'left'
         );
 
         $this->db->join(
-            'cd_code cd',
-            "cd.CODE = r.PLANT AND cd.HEAD_CODE = 'AJ'",
+            'abc_cd_code cd',
+            "cd.CODE = r.PLANT AND cd.HEAD_CODE = 'PLANT'",
             'left',
             false
         );
@@ -338,12 +363,12 @@ class Receive_model extends CI_Model {
 
     public function insert_receive_header($data)
     {
-        return $this->db->insert('mst_receive', $data);
+        return $this->db->insert('abc_mst_receive', $data);
     }
 
     public function insert_receive_detail_batch($rows)
     {
-        return empty($rows) ? false : $this->db->insert_batch('mst_receive_detail', $rows);
+        return empty($rows) ? false : $this->db->insert_batch('abc_mst_receive_detail', $rows);
     }
 
     public function set_po_received($po, $plant, $username)
@@ -351,7 +376,7 @@ class Receive_model extends CI_Model {
         return $this->db
             ->where('PO', $po)
             ->where('PLANT', $plant)
-            ->update('mst_po', [
+            ->update('abc_mst_po', [
                 'STATUS'      => 'Y',
                 'UPDATED_AT'  => date('Y-m-d H:i:s'),
                 'UPDATED_BY'  => $username
@@ -363,7 +388,7 @@ class Receive_model extends CI_Model {
         return $this->db
             ->where('PO', $po)
             ->where('PLANT', $plant)
-            ->update('mst_po', [
+            ->update('abc_mst_po', [
                 'STATUS'     => null,
                 'UPDATED_AT'=> date('Y-m-d H:i:s')
             ]);
@@ -377,9 +402,9 @@ class Receive_model extends CI_Model {
             c.FULL_NAME AS SUPPLIER_NAME,
             cd.CODE_NAME AS PLANT_NAME
         ')
-        ->from('mst_receive r')
-        ->join('cd_customer c', 'r.SUPPLIER = c.CUST', 'left')
-        ->join('cd_code cd', "cd.CODE = r.PLANT AND cd.HEAD_CODE = 'AJ'", 'left')
+        ->from('abc_mst_receive r')
+        ->join('abc_cd_customer c', 'r.SUPPLIER = c.CUST', 'left')
+        ->join('abc_cd_code cd', "cd.CODE = r.PLANT AND cd.HEAD_CODE = 'AJ'", 'left')
         ->where('r.PLANT', $plant)
         ->where('r.RECEIVE', $receive)
         ->get()->row_array();
@@ -389,8 +414,8 @@ class Receive_model extends CI_Model {
     {
         return $this->db
             ->select('d.*, m.MATERIAL_NAME')
-            ->from('mst_receive_detail d')
-            ->join('cd_material m',
+            ->from('abc_mst_receive_detail d')
+            ->join('abc_cd_material m',
                 'm.MATERIAL COLLATE utf8mb4_unicode_ci = d.MATERIAL COLLATE utf8mb4_unicode_ci',
                 'left', false
             )
@@ -405,7 +430,7 @@ class Receive_model extends CI_Model {
         return $this->db
             ->where('PO', $po)
             ->where('PLANT', $plant)
-            ->update('mst_po', [
+            ->update('abc_mst_po', [
                 'STATUS'     => $status,
                 'UPDATED_AT' => date('Y-m-d H:i:s')
             ]);
@@ -417,27 +442,27 @@ class Receive_model extends CI_Model {
         if ($plant !== null) {
             $this->db->where('PLANT', $plant);
         }
-        return $this->db->update('mst_receive', $data);
+        return $this->db->update('abc_mst_receive', $data);
     }
 
     public function delete_receive_detail_by_receive($receive, $plant = null)
     {
         $this->db->where('RECEIVE', $receive);
         if ($plant !== null) $this->db->where('PLANT', $plant);
-        return $this->db->delete('mst_receive_detail');
+        return $this->db->delete('abc_mst_receive_detail');
     }
 
     public function delete_receive_header_by_receive($receive)
     {
         return $this->db->where('RECEIVE', $receive)
-                        ->delete('mst_receive');
+                        ->delete('abc_mst_receive');
     }
 
     public function delete_receive_header_by_receive_and_plant($receive, $plant)
     {
         return $this->db->where('RECEIVE', $receive)
                         ->where('PLANT', $plant)
-                        ->delete('mst_receive');
+                        ->delete('abc_mst_receive');
     }
 
     public function get_max_seq_no($plant, $receive)
@@ -446,7 +471,7 @@ class Receive_model extends CI_Model {
             ->select_max('SEQ_NO')
             ->where('PLANT', $plant)
             ->where('RECEIVE', $receive)
-            ->get('mst_receive_detail')
+            ->get('abc_mst_receive_detail')
             ->row();
 
         return (int) ($row->SEQ_NO ?? 0);
@@ -460,7 +485,7 @@ class Receive_model extends CI_Model {
             ->where('PLANT', $plant)
             ->where('RECEIVE', $receive)
             ->where_not_in('SEQ_NO', $seqs)
-            ->delete('mst_receive_detail');
+            ->delete('abc_mst_receive_detail');
     }
 
     /* ---------------------------------------------------------
@@ -470,7 +495,7 @@ class Receive_model extends CI_Model {
     public function search_supplier($q = null, $limit = 20)
     {
         $this->db->select('CUST as id, FULL_NAME as name');
-        $this->db->from('cd_customer');
+        $this->db->from('abc_cd_customer');
         $this->db->where('CUST_KIND', 'SUPPLIER');
         $this->db->where('CUST_CLASS', 'SUPPLIER');
         $this->db->where('STATUS', 'N');
@@ -499,7 +524,7 @@ class Receive_model extends CI_Model {
     public function search_material($q = null, $limit = 20)
     {
         $this->db->select('MATERIAL as id, MATERIAL_NAME');
-        $this->db->from('cd_material');
+        $this->db->from('abc_cd_material');
 
         if ($q) {
             $this->db->group_start();
@@ -526,6 +551,6 @@ class Receive_model extends CI_Model {
 
     public function get_all_receives()
     {
-        return $this->db->get('mst_receive')->result_array();
+        return $this->db->get('abc_mst_receive')->result_array();
     }
 }

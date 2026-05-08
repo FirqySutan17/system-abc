@@ -1,7 +1,7 @@
 <?php
 class Material_model extends CI_Model {
 
-    private $table = "cd_material";
+    private $table = "abc_cd_material";
 
     public function get_data($limit, $offset, $search, $order, $dir)
     {
@@ -9,7 +9,7 @@ class Material_model extends CI_Model {
             m.*,
             c.CODE_NAME AS material_class_name
         ');
-        $this->db->from('cd_material m');
+        $this->db->from('abc_cd_material m');
 
         // JOIN ke cd_code berdasarkan material_class
         $this->db->join('cd_code c', 'c.CODE = m.material_class AND c.HEAD_CODE = "AE"', 'left');
@@ -41,7 +41,7 @@ class Material_model extends CI_Model {
 
     public function count_data($search)
     {
-        $this->db->from('cd_material m');
+        $this->db->from('abc_cd_material m');
         $this->db->join('cd_code c', 'c.CODE = m.material_class AND c.HEAD_CODE = "AE"', 'left');
 
         if ($search) {

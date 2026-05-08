@@ -48,123 +48,195 @@
 <!-- MODAL ADD RECEIVE -->
 <div class="modal fade" id="receiveAdd" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl">
-        <form id="freceiveAdd">
+        <form id="freceiveAdd" enctype="multipart/form-data">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">RECEIVE - TAMBAH</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
+
                 <div class="modal-body">
+
                     <!-- HEADER -->
                     <div class="row g-2 mb-3">
+
                         <div class="col-md-4">
                             <label class="form-label">Plant *</label>
                             <select id="plantAdd" class="form-control" required></select>
                             <input type="hidden" name="PLANT" id="hiddenPlantAdd">
                         </div>
+
                         <div class="col-md-4">
                             <label class="form-label">No. Receive</label>
-                            <input class="form-control" placeholder="Auto Generate" readonly style="background: #efefef">
+                            <input id="RECEIVE_NO_ADD"
+                                class="form-control"
+                                placeholder="Auto Generate"
+                                readonly
+                                style="background:#efefef">
                         </div>
+
                         <div class="col-md-4">
                             <label class="form-label">Slip No</label>
-                            <input class="form-control" placeholder="Auto Generate" readonly style="background: #efefef">
+                            <input id="SLIP_NO_ADD"
+                                class="form-control"
+                                placeholder="Auto Generate"
+                                readonly
+                                style="background:#efefef">
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label">PO (Opsional)</label>
-                            <select id="poAdd" class="form-control" style="width:100%"></select>
-                            <div class="form-text">*Kosongkan jika RECEIVE tidak dengan PO</div>
+                            <label class="form-label">PO *</label>
+                            <select id="poAdd"
+                                class="form-control"
+                                required
+                                style="width:100%"></select>
+
+                            <input type="hidden" name="PO" id="hiddenPoAdd">
                         </div>
 
                         <div class="col-md-2">
                             <label class="form-label">Tanggal Receive *</label>
-                            <input id="RECEIVE_DATE" name="RECEIVE_DATE" type="date" class="form-control" required>
+                            <input id="RECEIVE_DATE"
+                                name="RECEIVE_DATE"
+                                type="date"
+                                class="form-control"
+                                value="<?= date('Y-m-d'); ?>"
+                                required>
                         </div>
 
                         <div class="col-md-2">
                             <label class="form-label d-block">Pembayaran</label>
-                            <div style="padding: 0px 10px">
+                            <div style="padding:0 10px">
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="PEMBAYARAN" id="pay_cash" value="CASH" required checked>
-                                    <label class="form-check-label" for="pay_cash">CASH</label>
+                                    <input class="form-check-input"
+                                        type="radio"
+                                        name="PEMBAYARAN"
+                                        value="CASH"
+                                        checked>
+                                    <label class="form-check-label">CASH</label>
                                 </div>
 
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="PEMBAYARAN" id="pay_transfer" value="TRANSFER" required>
-                                    <label class="form-check-label" for="pay_transfer">TRANSFER</label>
+                                    <input class="form-check-input"
+                                        type="radio"
+                                        name="PEMBAYARAN"
+                                        value="TRANSFER">
+                                    <label class="form-check-label">TRANSFER</label>
                                 </div>
                             </div>
                         </div>
+
                         <div class="col-md-2">
                             <label class="form-label d-block">Jenis Pembayaran</label>
-                            <div style="padding: 0px 10px">
+                            <div style="padding:0 10px">
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="JENIS_PAY" id="pay_lunas" value="LUNAS" required checked>
-                                    <label class="form-check-label" for="pay_lunas">LUNAS</label>
+                                    <input class="form-check-input"
+                                        type="radio"
+                                        name="JENIS_PAY"
+                                        value="LUNAS"
+                                        checked>
+                                    <label class="form-check-label">LUNAS</label>
                                 </div>
 
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="JENIS_PAY" id="pay_tempo" value="TEMPO" required>
-                                    <label class="form-check-label" for="pay_transfer">TEMPO</label>
+                                    <input class="form-check-input"
+                                        type="radio"
+                                        name="JENIS_PAY"
+                                        value="TEMPO">
+                                    <label class="form-check-label">TEMPO</label>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- AUTO FROM PO -->
                         <div class="col-md-4">
                             <label class="form-label">Supplier *</label>
-                            <select id="supplierAdd" class="form-control" required></select>
-                            <input type="hidden" id="hiddensupplierAdd" name="SUPPLIER">
+
+                            <input type="text"
+                                id="supplierAddText"
+                                class="form-control"
+                                readonly
+                                style="background:#efefef"
+                                placeholder="Otomatis dari PO">
+
+                            <input type="hidden"
+                                id="hiddensupplierAdd"
+                                name="SUPPLIER">
                         </div>
+
                         <div class="col-md-4">
                             <label class="form-label">No. Nota</label>
-                            <input class="form-control" placeholder="No. Nota..." name="NOTA">
+                            <input class="form-control"
+                                placeholder="No. Nota..."
+                                name="NOTA">
                         </div>
+
                         <div class="col-md-4">
                             <label class="form-label">No. Referensi</label>
-                            <input name="NO_REF" class="form-control" placeholder="No DO / Invoice / dll...">
+                            <input name="NO_REF"
+                                class="form-control"
+                                placeholder="No DO / Invoice / dll...">
                         </div>
+
                         <div class="col-md-6">
                             <label class="form-label">Attachment (Opsional)</label>
-                            <input type="file" name="ATTACHMENT" id="ATTACHMENT_ADD"
+                            <input type="file"
+                                name="ATTACHMENT"
+                                id="ATTACHMENT_ADD"
                                 class="form-control"
                                 accept=".jpg,.jpeg,.png,.pdf,.xlsx,.docx">
+
                             <div class="form-text">
                                 Format: jpg, png, pdf, xlsx, docx (max 10MB)
                             </div>
                         </div>
+
                         <div class="col-md-6 mt-2">
                             <label class="form-label">Remark</label>
-                            <input name="REMARK" class="form-control" placeholder="Input disini..">
+                            <input name="REMARK"
+                                class="form-control"
+                                placeholder="Input disini..">
                         </div>
+
                     </div>
 
                     <!-- DETAIL -->
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 style="margin-bottom: 0px">Material</h5>
-                        <div>
-                            <button type="button" class="btn btn-success btn-sm" id="addDetailRowAdd">Tambah Material</button>
-                            <button type="button" class="btn btn-secondary btn-sm" id="pastePoDetail">Ambil PO Detail</button>
-                        </div>
+                    <div class="mb-2">
+                        <h5 style="margin-bottom:0">Material</h5>
                     </div>
 
-                    <table class="table table-bordered" id="receiveDetailTableAdd">
-                        <thead>
-                            <tr>
-                                <th style="text-align:center;">Material</th>
-                                <th style="text-align:center;">Berat</th>
-                                <th style="text-align:center;">Qty</th>
-                                <th style="text-align:center;">Harga</th>
-                                <th style="text-align:center;">Total</th>
-                                <th style="text-align:center; width:40px;">#</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="receiveDetailTableAdd">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:center">Customer</th>
+                                    <th style="text-align:center">Material</th>
+                                    <th style="text-align:center">Jumlah</th>
+                                    <th style="text-align:center">Berat</th>
+                                    <th style="text-align:center">Harga</th>
+                                    <th style="text-align:center">Total</th>
+                                    <th style="text-align:center">Susut Jumlah</th>
+                                    <th style="text-align:center">Susut Berat</th>
+                                    <th style="text-align:center">Keterangan</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
 
                 </div>
+
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
+                    <button type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                        Tutup
+                    </button>
+
+                    <button type="submit"
+                        class="btn btn-primary">
+                        Simpan
+                    </button>
                 </div>
             </div>
         </form>
@@ -329,25 +401,61 @@
 
     function initPlantSelect2(selector, modalId){
         $(selector).select2({
-            placeholder: "Pilih PLANT",
+            placeholder: "-- PILIH PLANT --",
             dropdownParent: $(modalId),
             width: "100%",
             ajax: {
-                url: "<?= base_url('receive/get_plant_by_user'); ?>",
+                url: "<?= base_url('receive/get_plant'); ?>",
                 dataType: "json",
                 delay: 250,
-                processResults: function (data) {
+                processResults: function(data){
                     return { results: data };
                 }
             }
-        }).on('select2:select', function(e){
+        })
+        .on('select2:select', function(e){
+
             $('#hiddenPlantAdd').val(e.params.data.id);
 
-            $('#poAdd').val(null).trigger('change');
+            // reset PO
+            $('#poAdd').empty().trigger('change');
+            $('#hiddenPoAdd').val('');
+
+            // reset supplier
+            $('#supplierAddText').val('');
+            $('#hiddensupplierAdd').val('');
+
+            // reset detail
             $('#receiveDetailTableAdd tbody').empty();
         });
     }
 
+    function setDefaultPlant(selector){
+        $.ajax({
+            url: "<?= base_url('receive/get_plant'); ?>",
+            dataType: "json",
+            success: function(data){
+
+                if(data.length > 0){
+
+                    let first = data[0];
+
+                    let option = new Option(
+                        first.text,
+                        first.id,
+                        true,
+                        true
+                    );
+
+                    $(selector)
+                        .append(option)
+                        .trigger('change');
+
+                    $('#hiddenPlantAdd').val(first.id);
+                }
+            }
+        });
+    }
 
     function formatDate(dateString) {
         if (!dateString) return '-';
@@ -473,13 +581,22 @@
         });
     }
 
-    // PO select2 (only for ADD)
+    function formatMoneyID(value){
+        if(value === null || value === '' || isNaN(value)) return '';
+
+        return parseFloat(value).toLocaleString('id-ID',{
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
     function initPOSelect2(selector, modalId){
+
         $(selector).select2({
-            placeholder: "Pilih PO (opsional)",
+            placeholder: "-- PILIH PO --",
             dropdownParent: $(modalId),
             width: "100%",
-            allowClear: true,
+            allowClear: false,
             ajax: {
                 url: "<?= base_url('receive/get_po'); ?>",
                 dataType: "json",
@@ -487,39 +604,26 @@
                 data: function(params){
                     return {
                         q: params.term,
-                        plant: $('#hiddenPlantAdd').val() // 🔑 FILTER PO BY PLANT
+                        plant: $('#hiddenPlantAdd').val()
                     };
                 },
-                processResults: data => ({ results: data })
+                processResults: function(data){
+                    return { results: data };
+                }
             }
         })
         .on('select2:select', function(e){
-            let data  = e.params.data;
-            let plantSelected = $('#hiddenPlantAdd').val();
 
-            // 🚨 VALIDASI HARD
-            if (data.plant !== plantSelected) {
-                alert('PO tidak sesuai dengan Plant yang dipilih');
-                $(this).val(null).trigger('change');
-                return;
-            }
+            let data = e.params.data;
 
-            if (data.supplier) {
-                setSupplier('#supplierAdd', data.supplier, data.supplier_text);
-            }
+            $('#hiddenPoAdd').val(data.id);
 
-            $('#addDetailRowAdd').prop('disabled', true);
-            $('#pastePoDetail').prop('disabled', false);
+            // auto supplier
+            $('#supplierAddText').val(data.supplier_text);
+            $('#hiddensupplierAdd').val(data.supplier);
 
+            // load detail
             loadPoDetailToTable(data.id, data.plant);
-        })
-        .on('select2:clear', function(){
-            setDefaultSupplier('#supplierAdd');
-            $('#addDetailRowAdd').prop('disabled', false);
-            $('#pastePoDetail').prop('disabled', true);
-
-            $('#receiveDetailTableAdd tbody').empty();
-            addDetailRow(null, '#receiveDetailTableAdd');
         });
     }
 
@@ -679,32 +783,102 @@
     Load PO detail into table
     ------------------------- */
     function loadPoDetailToTable(po, plant){
-        $.get('<?= base_url("receive/load_po_detail"); ?>', {
+
+        $.get("<?= base_url('receive/load_po_detail'); ?>", {
             po: po,
             plant: plant
         }, function(resp){
-            console.log(resp);
-            resp = typeof resp === 'string' ? JSON.parse(resp) : resp;
+
+            resp = typeof resp === 'string'
+                ? JSON.parse(resp)
+                : resp;
 
             if(!resp.status){
-                alert(resp.message || 'Gagal load PO detail');
+                alert(resp.message);
                 return;
             }
 
-            const tbody = "#receiveDetailTableAdd";
-            $(tbody + " tbody").empty();
+            let tbody = $('#receiveDetailTableAdd tbody');
+            tbody.empty();
 
-            resp.detail.forEach(row => {
-                addDetailRow({
-                    material: row.MATERIAL,
-                    material_text: row.MATERIAL_NAME,
-                    jumlah: row.JUMLAH,
-                    berat: row.BERAT,
-                    harga: row.HARGA,
-                    total: row.TOTAL
-                }, tbody, true, true);
+            resp.detail.forEach(function(row){
+
+                tbody.append(`
+                    <tr data-po-seq="${row.SEQ_NO}">
+                        <td>
+                            <input type="hidden" class="customer-code" value="${row.CUSTOMER ?? ''}">
+                            <input type="text"
+                                class="form-control"
+                                value="${row.CUSTOMER ?? ''} - ${row.CUSTOMER_NAME ?? ''}"
+                                readonly
+                                style="background:#efefef">
+                        </td>
+
+                        <td>
+                            <input type="hidden" class="material-code" value="${row.MATERIAL}">
+                            <input type="text"
+                                class="form-control"
+                                value="${row.MATERIAL} - ${row.MATERIAL_NAME ?? ''}"
+                                readonly
+                                style="background:#efefef">
+                        </td>
+
+                        <td>
+                            <input type="text"
+                                class="form-control jumlah"
+                                value="${formatDecimalID(row.JUMLAH)}"
+                                readonly
+                                style="background:#efefef;text-align:right">
+                        </td>
+
+                        <td>
+                            <input type="text"
+                                class="form-control berat"
+                                value="${formatDecimalID(row.BERAT)}"
+                                readonly
+                                style="background:#efefef;text-align:right">
+                        </td>
+
+                        <td>
+                            <input type="text"
+                                class="form-control harga"
+                                value="${formatMoneyID(row.HARGA)}"
+                                readonly
+                                style="background:#efefef;text-align:right">
+                        </td>
+
+                        <td>
+                            <input type="text"
+                                class="form-control total"
+                                value="${formatMoneyID(row.TOTAL)}"
+                                readonly
+                                style="background:#efefef;text-align:right">
+                        </td>
+
+                        <td>
+                            <input type="text"
+                                class="form-control susut-jumlah decimal-input"
+                                placeholder="0,00"
+                                style="text-align:right">
+                        </td>
+
+                        <td>
+                            <input type="text"
+                                class="form-control susut-berat decimal-input"
+                                placeholder="0,00"
+                                style="text-align:right">
+                        </td>
+
+                        <td>
+                            <input type="text"
+                                class="form-control keterangan"
+                                placeholder="Input keterangan">
+                        </td>
+                    </tr>
+                `);
             });
-        });
+
+        }, 'json');
     }
 
     /* -------------------------
@@ -715,6 +889,7 @@
 
         // init select2 supplier & PO
         initPlantSelect2('#plantAdd', '#receiveAdd');
+        setDefaultPlant('#plantAdd');
         initSupplierSelect2('#supplierAdd', '#receiveAdd');
         initSupplierSelect2('#supplierEdit', '#receiveEdit');
 
@@ -746,42 +921,40 @@
         $('#freceiveAdd').submit(function(e){
             e.preventDefault();
 
-            let $btn = $(this).find('button[type=submit]');
-            $btn.prop('disabled', true);
+            let btn = $(this).find('button[type=submit]');
+            btn.prop('disabled', true);
 
             let formData = new FormData();
 
-            // header
             formData.append('PLANT', $('#hiddenPlantAdd').val());
-            let poVal = $('#poAdd').val();
-            formData.append('PO', poVal ? poVal : '');
-            formData.append('RECEIVE_DATE', $('input[name="RECEIVE_DATE"]').val());
+            formData.append('PO', $('#hiddenPoAdd').val());
+            formData.append('RECEIVE_DATE', $('#RECEIVE_DATE').val());
             formData.append('PEMBAYARAN', $('input[name="PEMBAYARAN"]:checked').val());
             formData.append('JENIS_PAY', $('input[name="JENIS_PAY"]:checked').val());
             formData.append('NOTA', $('input[name="NOTA"]').val());
             formData.append('NO_REF', $('input[name="NO_REF"]').val());
-            formData.append('SUPPLIER', $('#hiddensupplierAdd').val());
             formData.append('REMARK', $('input[name="REMARK"]').val());
 
-            // attachment
             let file = $('#ATTACHMENT_ADD')[0].files[0];
-            if (file) {
+            if(file){
                 formData.append('ATTACHMENT', file);
             }
 
-            // detail
             let DETAIL = [];
+
             $('#receiveDetailTableAdd tbody tr').each(function(){
-                let material = $(this).find('select').val();
-                if (!material) return;
 
                 DETAIL.push({
-                    MATERIAL: material,
-                    JUMLAH: cleanNumber($(this).find('.jumlah').val()),
-                    BERAT: cleanNumber($(this).find('.berat').val()),
-                    HARGA: cleanNumber($(this).find('.harga').val()),
-                    TOTAL: cleanNumber($(this).find('.total').val()),
-                    PO_SEQ: null   // 🔥 WAJIB
+                    PO_SEQ       : $(this).data('po-seq'),
+                    CUSTOMER     : $(this).find('.customer-code').val(),
+                    MATERIAL     : $(this).find('.material-code').val(),
+                    JUMLAH       : parseDecimalID($(this).find('.jumlah').val()),
+                    BERAT        : parseDecimalID($(this).find('.berat').val()),
+                    HARGA        : parseDecimalID($(this).find('.harga').val()),
+                    TOTAL        : parseDecimalID($(this).find('.total').val()),
+                    SUSUT_JUMLAH : parseDecimalID($(this).find('.susut-jumlah').val() || 0),
+                    SUSUT_BERAT  : parseDecimalID($(this).find('.susut-berat').val() || 0),
+                    KETERANGAN   : $(this).find('.keterangan').val()
                 });
             });
 
@@ -793,32 +966,27 @@
                 data: formData,
                 processData: false,
                 contentType: false,
-                dataType: 'json',
+                dataType: "json",
                 success: function(resp){
-                    resp = typeof resp === 'string' ? JSON.parse(resp) : resp;
-                    alert(resp.message);
-                    if (resp.status) {
-                        $('#receiveAdd').modal('hide');
 
+                    alert(resp.message);
+
+                    if(resp.status){
+                        $('#receiveAdd').modal('hide');
                         $('#freceiveAdd')[0].reset();
 
-                        $('#plantAdd').val(null).trigger('change');
-                        $('#poAdd').val(null).trigger('change');
-                        $('#supplierAdd').val(null).trigger('change');
-
-                        $('#hiddenPlantAdd').val('');
+                        $('#poAdd').empty().trigger('change');
+                        $('#receiveDetailTableAdd tbody').empty();
+                        $('#supplierAddText').val('');
                         $('#hiddensupplierAdd').val('');
 
-                        $('#receiveDetailTableAdd tbody').empty();
+                        setDefaultPlant('#plantAdd');
 
                         loadPage(state.page);
                     }
                 },
                 complete: function(){
-                    $btn.prop('disabled', false);
-                },
-                error: function(){
-                    alert('Gagal upload receive');
+                    btn.prop('disabled', false);
                 }
             });
         });
@@ -1014,5 +1182,4 @@
             dateInput.value = today; // hari ini
             dateInput.min = today;   // tidak bisa backdate
         });
-
 </script>

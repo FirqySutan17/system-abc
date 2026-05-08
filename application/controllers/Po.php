@@ -94,10 +94,10 @@ class Po extends MY_Controller {
         $term = $this->input->get('q');
 
         $this->db->select('CUST, FULL_NAME')
-                ->from('cd_customer')
+                ->from('abc_cd_customer')
                 ->where('CUST_KIND', 'SUPPLIER')
                 ->where('CUST_CLASS', 'SUPPLIER')
-                ->where('STATUS', 'N');
+                ->where('STATUS', 'Y');
 
         if (!empty($term)) {
             $this->db->group_start();
@@ -141,6 +141,39 @@ class Po extends MY_Controller {
         }
     }
 
+    public function get_customer()
+    {
+        $term = $this->input->get('q');
+
+        $this->db->select('CUST, FULL_NAME')
+            ->from('abc_cd_customer')
+            ->where('CUST_KIND', 'CUSTOMER')
+            ->where('CUST_CLASS', 'CUSTOMER')
+            ->where('STATUS', 'Y');
+
+        if (!empty($term)) {
+            $this->db->group_start();
+            $this->db->like('CUST', $term);
+            $this->db->or_like('FULL_NAME', $term);
+            $this->db->group_end();
+        }
+
+        $this->db->order_by('CUST', 'ASC');
+
+        $rows = $this->db->get()->result();
+
+        $data = [];
+
+        foreach ($rows as $row) {
+            $data[] = [
+                'id'   => $row->CUST,
+                'text' => $row->CUST . ' - ' . $row->FULL_NAME
+            ];
+        }
+
+        echo json_encode($data);
+    }
+
     public function get_plant_by_user()
     {
         $username = $this->session->userdata('username');
@@ -150,12 +183,18 @@ class Po extends MY_Controller {
         echo json_encode($data);
     }
 
+    public function get_plant()
+    {
+        $data = $this->Po_model->get_plant_select2();
+        echo json_encode($data);
+    }
+
     public function get_material()
     {
         $term = $this->input->get('q');
 
         $this->db->select('material, material_name')
-                ->from('cd_material');
+                ->from('abc_cd_material');
 
         if (!empty($term)) {
             $this->db->group_start();
@@ -178,88 +217,176 @@ class Po extends MY_Controller {
         echo json_encode($data);
     }
 
+    public function get_po_type()
+    {
+        $term = $this->input->get('q');
+
+        $this->db->select('CODE, CODE_NAME')
+            ->from('abc_cd_code')
+            ->where('HEAD_CODE', 'PO')
+            ->where('CODE <>', '*')
+            ->where('USE_YN', 'Y');
+
+        if (!empty($term)) {
+            $this->db->group_start();
+            $this->db->like('CODE', $term);
+            $this->db->or_like('CODE_NAME', $term);
+            $this->db->group_end();
+        }
+
+        $this->db->order_by('HEAD_CODE', 'ASC');
+
+        $rows = $this->db->get()->result();
+
+        $data = [];
+
+        foreach ($rows as $row) {
+            $data[] = [
+                'id'   => $row->CODE,
+                'text' => $row->CODE_NAME
+            ];
+        }
+
+        echo json_encode($data);
+    }
+
     public function create()
     {
-        $data = $this->input->post(NULL, TRUE);
+        $data     = $this->input->post(NULL, TRUE);
         $username = $this->session->userdata('username');
 
-        // VALIDASI INPUT WAJIB
-        if (empty($data['PLANT']) || empty($data['PO_DATE']) || empty($data['SUPPLIER'])) {
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDASI HEADER
+        |--------------------------------------------------------------------------
+        */
+        if (
+            empty($data['PLANT']) ||
+            empty($data['TYPE']) ||
+            empty($data['PO_DATE']) ||
+            empty($data['SUPPLIER'])
+        ) {
             echo json_encode([
-                'status' => false,
-                'message'=> 'PLANT, PO DATE, dan SUPPLIER wajib diisi'
+                'status'  => false,
+                'message' => 'Plant, PO Type, Tanggal, dan Supplier wajib diisi'
+            ]);
+            return;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDASI DETAIL
+        |--------------------------------------------------------------------------
+        */
+        if (empty($data['DETAIL']) || !is_array($data['DETAIL'])) {
+            echo json_encode([
+                'status'  => false,
+                'message' => 'Minimal 1 material harus diisi'
+            ]);
+            return;
+        }
+
+        $validDetail = array_filter($data['DETAIL'], function($row){
+            return !empty($row['MATERIAL']);
+        });
+
+        if (empty($validDetail)) {
+            echo json_encode([
+                'status'  => false,
+                'message' => 'Minimal 1 material harus diisi'
             ]);
             return;
         }
 
         $plant = $data['PLANT'];
 
-        // 🔐 VALIDASI PLANT MILIK USER
-        if (!$this->Po_model->user_has_plant($username, $plant)) {
-            echo json_encode([
-                'status' => false,
-                'message'=> 'Plant tidak diizinkan'
-            ]);
-            return;
-        }
-
-        // GENERATE PO OTOMATIS BERDASARKAN PLANT
+        /*
+        |--------------------------------------------------------------------------
+        | GENERATE PO
+        |--------------------------------------------------------------------------
+        */
         $newPO = $this->Po_model->generate_auto_po($plant);
 
+        /*
+        |--------------------------------------------------------------------------
+        | HEADER
+        |--------------------------------------------------------------------------
+        */
         $header = [
             'PLANT'      => $plant,
             'PO'         => $newPO,
             'PO_DATE'    => $data['PO_DATE'],
+            'PO_TYPE'    => $data['TYPE'],
             'SUPPLIER'   => $data['SUPPLIER'],
             'REMARK'     => $data['REMARK'] ?? null,
             'CREATED_AT' => date('Y-m-d H:i:s'),
             'CREATED_BY' => $username
         ];
 
-        $this->db->trans_start();
+        /*
+        |--------------------------------------------------------------------------
+        | TRANSACTION
+        |--------------------------------------------------------------------------
+        */
+        $this->db->trans_begin();
 
-        // INSERT HEADER
-        $this->Po_model->insert_header($header);
+        try {
 
-        // INSERT DETAIL
-        if (!empty($data['DETAIL']) && is_array($data['DETAIL'])) {
+            // insert header
+            $this->Po_model->insert_header($header);
 
+            // detail batch
+            $detailRows = [];
             $seq = 1;
 
-           foreach ($data['DETAIL'] as $row) {
-                if (empty($row['MATERIAL'])) continue;
+            foreach ($validDetail as $row) {
 
-                $jumlah = (float) $row['JUMLAH'];
-                $berat  = (float) $row['BERAT'];
-                $harga  = $this->normalize_number($row['HARGA']);
+                $jumlah = (float) ($row['JUMLAH'] ?? 0);
+                $berat  = (float) ($row['BERAT'] ?? 0);
+                $harga  = (float) $this->normalize_number($row['HARGA'] ?? 0);
                 $total  = $jumlah * $harga;
 
-                $this->db->insert('mst_po_detail', [
+                $detailRows[] = [
                     'PLANT'      => $plant,
                     'PO'         => $newPO,
                     'SEQ_NO'     => $seq,
+                    'CUSTOMER'   => $row['CUSTOMER'] ?? null,
                     'MATERIAL'   => $row['MATERIAL'],
                     'JUMLAH'     => $jumlah,
                     'BERAT'      => $berat,
                     'HARGA'      => $harga,
                     'TOTAL'      => $total,
-                    'CREATED_AT'=> date('Y-m-d H:i:s'),
-                    'CREATED_BY'=> $username
-                ]);
+                    'CREATED_AT' => date('Y-m-d H:i:s'),
+                    'CREATED_BY' => $username
+                ];
 
                 $seq++;
             }
+
+            // insert batch detail
+            $this->Po_model->insert_detail($detailRows);
+
+            if ($this->db->trans_status() === FALSE) {
+                throw new Exception('Gagal menyimpan data');
+            }
+
+            $this->db->trans_commit();
+
+            echo json_encode([
+                'status'  => true,
+                'po'      => $newPO,
+                'message' => 'PO berhasil ditambahkan'
+            ]);
+
+        } catch (Exception $e) {
+
+            $this->db->trans_rollback();
+
+            echo json_encode([
+                'status'  => false,
+                'message' => $e->getMessage()
+            ]);
         }
-
-        $this->db->trans_complete();
-
-        echo json_encode([
-            'status' => $this->db->trans_status(),
-            'po'     => $newPO,
-            'message'=> $this->db->trans_status()
-                ? 'PO berhasil ditambahkan'
-                : 'Gagal menambah PO'
-        ]);
     }
 
     public function edit()
@@ -342,6 +469,7 @@ class Po extends MY_Controller {
         // ================= HEADER =================
         $header = [
             'PO_DATE'    => $data['PO_DATE'] ?? null,
+            'PO_TYPE'    => $data['TYPE'] ?? null,
             'SUPPLIER'   => $data['SUPPLIER'] ?? null,
             'REMARK'     => $data['REMARK'] ?? null,
             'UPDATED_AT' => date('Y-m-d H:i:s'),
@@ -436,7 +564,7 @@ class Po extends MY_Controller {
                 s.FULL_NAME AS SUPPLIER_NAME,
                 p.REMARK
             ')
-            ->from('mst_po p')
+            ->from('abc_mst_po p')
             ->join('cd_code aj', "aj.CODE = p.PLANT AND aj.HEAD_CODE = 'AJ'", 'left')
             ->join('cd_customer s', 's.CUST = p.SUPPLIER', 'left')
             ->where('p.PO', $po)
@@ -459,8 +587,8 @@ class Po extends MY_Controller {
                 d.HARGA,
                 d.TOTAL
             ')
-            ->from('mst_po_detail d')
-            ->join('cd_material m', 'm.material = d.MATERIAL', 'left')
+            ->from('abc_mst_po_detail d')
+            ->join('abc_cd_material m', 'm.material = d.MATERIAL', 'left')
             ->where('d.PO', $po)
             ->where('d.PLANT', $plant)
             ->order_by('d.SEQ_NO', 'ASC')

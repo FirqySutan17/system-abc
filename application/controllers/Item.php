@@ -272,7 +272,7 @@ class Item extends MY_Controller {
         }
 
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-        $filename = 'cd_item_'.date('Ymd_His').'.xlsx';
+        $filename = 'abc_cd_item_'.date('Ymd_His').'.xlsx';
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="'.$filename.'"');
@@ -320,6 +320,6 @@ class Item extends MY_Controller {
         $dompdf->loadHtml($html);
         $dompdf->setPaper('A4','landscape');
         $dompdf->render();
-        $dompdf->stream('cd_item_'.date('Ymd_His').'.pdf', ['Attachment'=>1]);
+        $dompdf->stream('abc_cd_item_'.date('Ymd_His').'.pdf', ['Attachment'=>1]);
     }
 }

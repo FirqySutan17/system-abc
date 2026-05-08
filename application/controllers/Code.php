@@ -123,7 +123,7 @@ class Code extends MY_Controller {
         // Validasi UNIQUE: HEAD_CODE + CODE
         $exists = $this->db->where('head_code', $data['head_code'])
                         ->where('code', $data['code'])
-                        ->get('cd_code')
+                        ->get('abc_cd_code')
                         ->row();
 
         if($exists){
@@ -135,7 +135,7 @@ class Code extends MY_Controller {
         }
 
         // Insert ke DB
-        $ok = $this->db->insert('cd_code', [
+        $ok = $this->db->insert('abc_cd_code', [
             'head_code' => $data['head_code'],
             'code'      => $data['code'],
             'code_name' => $data['code_name'],
@@ -153,7 +153,7 @@ class Code extends MY_Controller {
         $data = $this->db->select('HEAD_CODE as id, HEAD_CODE as text')
                         ->group_by('HEAD_CODE')
                         ->order_by('HEAD_CODE')
-                        ->get('cd_code')
+                        ->get('abc_cd_code')
                         ->result_array();
 
         echo json_encode($data); // langsung array, tidak pakai 'data'
@@ -165,7 +165,7 @@ class Code extends MY_Controller {
         $data = $this->db->select('CODE as id, CODE as text')
                         ->where('HEAD_CODE', $head)
                         ->order_by('CODE')
-                        ->get('cd_code')
+                        ->get('abc_cd_code')
                         ->result_array();
 
         echo json_encode($data); // langsung array
@@ -252,7 +252,7 @@ class Code extends MY_Controller {
         }
 
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-        $filename = 'cd_code_export_'.date('Ymd_His').'.xlsx';
+        $filename = 'abc_cd_code_export_'.date('Ymd_His').'.xlsx';
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="'.$filename.'"');
@@ -292,6 +292,6 @@ class Code extends MY_Controller {
         $dompdf->loadHtml($html);
         $dompdf->setPaper('A4','landscape');
         $dompdf->render();
-        $dompdf->stream('cd_code_export_'.date('Ymd_His').'.pdf', ['Attachment'=>1]);
+        $dompdf->stream('abc_cd_code_export_'.date('Ymd_His').'.pdf', ['Attachment'=>1]);
     }
 }

@@ -89,7 +89,7 @@ class Cost extends MY_Controller {
 
         // Validasi UNIQUE: HEAD_CODE + CODE
         $exists = $this->db->where('cost', $data['COST'])
-                        ->get('cd_cost')
+                        ->get('abc_cd_cost')
                         ->row();
 
         if($exists){
@@ -101,7 +101,7 @@ class Cost extends MY_Controller {
         }
 
         // Insert ke DB
-        $ok = $this->db->insert('cd_cost', [
+        $ok = $this->db->insert('abc_cd_cost', [
             'cost'          => $data['COST'],
             'cost_name'     => $data['COST_NAME'],
             'account_code'  => $data['ACCOUNT_CODE'],
@@ -148,16 +148,16 @@ class Cost extends MY_Controller {
         $cost = $this->input->get('cost', TRUE);
 
         $this->db->select('
-            cd_cost.COST,
-            cd_cost.COST_NAME,
-            cd_cost.ACCOUNT_CODE,
-            cd_cost.CLASS,
-            cd_cost.REMARK,
+            abc_cd_cost.COST,
+            abc_cd_cost.COST_NAME,
+            abc_cd_cost.ACCOUNT_CODE,
+            abc_cd_cost.CLASS,
+            abc_cd_cost.REMARK,
             cd_account.ACCOUNT_NAME AS ACCOUNT_NAME
         ');
-        $this->db->from('cd_cost');
-        $this->db->join('cd_account', 'cd_account.ACCOUNT = cd_cost.ACCOUNT_CODE', 'left');
-        $this->db->where('cd_cost.COST', $cost);
+        $this->db->from('abc_cd_cost');
+        $this->db->join('cd_account', 'cd_account.ACCOUNT = abc_cd_cost.ACCOUNT_CODE', 'left');
+        $this->db->where('abc_cd_cost.COST', $cost);
 
         $row = $this->db->get()->row_array();
 
@@ -187,7 +187,7 @@ class Cost extends MY_Controller {
         unset($data['orig_cost']);
 
         // Lakukan update
-        $ok = $this->db->where('COST', $orig_cost)->update('cd_cost', $data);
+        $ok = $this->db->where('COST', $orig_cost)->update('abc_cd_cost', $data);
 
         echo json_encode([
             'status'  => $ok,

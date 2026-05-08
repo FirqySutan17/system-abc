@@ -3,7 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Cost_model extends CI_Model {
 
-    protected $table = 'cd_cost';
+    protected $table = 'abc_cd_cost';
     protected $primary = ['COST']; // composite PK
 
     public function __construct()
@@ -40,13 +40,13 @@ class Cost_model extends CI_Model {
 
     public function insert($data)
     {
-        return $this->db->insert('cd_cost', $data);
+        return $this->db->insert('abc_cd_cost', $data);
     }
 
     public function get_by_pk($cost)
     {
         return $this->db->where('cost', $cost)
-                        ->get('cd_cost')
+                        ->get('abc_cd_cost')
                         ->row();
     }
 

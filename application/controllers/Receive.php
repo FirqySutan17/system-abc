@@ -92,6 +92,12 @@ class Receive extends MY_Controller {
         echo json_encode($data);
     }
 
+    public function get_plant()
+    {
+        $data = $this->Receive_model->get_plant_select2();
+        echo json_encode($data);
+    }
+
     /**
      * Select2: supplier
      */
@@ -150,64 +156,72 @@ class Receive extends MY_Controller {
 
     public function create()
     {
+        header('Content-Type: application/json');
+
         $post     = $this->input->post(NULL, TRUE);
         $username = $this->session->userdata('username');
 
-        /* ================= VALIDASI WAJIB ================= */
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDASI HEADER
+        |--------------------------------------------------------------------------
+        */
         if (
             empty($post['PLANT']) ||
-            empty($post['RECEIVE_DATE']) ||
-            empty($post['SUPPLIER'])
+            empty($post['PO']) ||
+            empty($post['RECEIVE_DATE'])
         ) {
             echo json_encode([
                 'status'  => false,
-                'message' => 'Plant, tanggal receive, dan supplier wajib diisi'
+                'message' => 'Plant, PO, dan Tanggal Receive wajib diisi'
             ]);
             return;
         }
 
-        $plant = $post['PLANT'];
-        $po = trim($post['PO'] ?? '');
-        $po = ($po === '' || strtolower($po) === 'null') ? null : $po;
+        $plant = trim($post['PLANT']);
+        $po    = trim($post['PO']);
 
-        /* ================= VALIDASI PLANT USER ================= */
-        if (!$this->Receive_model->user_has_plant($username, $plant)) {
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDASI PO
+        |--------------------------------------------------------------------------
+        */
+        $poHeader = $this->Receive_model->get_po_header($po, $plant);
+
+        if (!$poHeader) {
             echo json_encode([
                 'status'  => false,
-                'message' => 'Plant tidak diizinkan untuk user ini'
+                'message' => 'PO tidak ditemukan'
             ]);
             return;
         }
 
-        /* ================= VALIDASI PO vs PLANT ================= */
-        if ($po !== null) {
-
-            $poHeader = $this->Receive_model->get_po_header($po, $plant);
-
-            if (!$poHeader) {
-                echo json_encode([
-                    'status'  => false,
-                    'message' => 'PO tidak ditemukan'
-                ]);
-                return;
-            }
-
-            if (!empty($poHeader['STATUS'])) {
-                echo json_encode([
-                    'status'  => false,
-                    'message' => 'PO ini sudah pernah direceive'
-                ]);
-                return;
-            }
+        if (!empty($poHeader['STATUS'])) {
+            echo json_encode([
+                'status'  => false,
+                'message' => 'PO ini sudah pernah direceive'
+            ]);
+            return;
         }
 
-        /* ================= PARSE DETAIL ================= */
+        /*
+        |--------------------------------------------------------------------------
+        | SUPPLIER AUTO FROM PO
+        |--------------------------------------------------------------------------
+        */
+        $supplier = $poHeader['SUPPLIER'];
+
+        /*
+        |--------------------------------------------------------------------------
+        | PARSE DETAIL
+        |--------------------------------------------------------------------------
+        */
         $detailRaw = $this->input->post('DETAIL', false);
 
         if ($detailRaw === null) {
             echo json_encode([
                 'status'  => false,
-                'message' => 'DETAIL tidak terkirim ke server'
+                'message' => 'DETAIL tidak terkirim'
             ]);
             return;
         }
@@ -217,117 +231,167 @@ class Receive extends MY_Controller {
         if (empty($detailArr) || !is_array($detailArr)) {
             echo json_encode([
                 'status'  => false,
-                'message' => 'Detail receive wajib diisi'
+                'message' => 'Detail material wajib diisi'
             ]);
             return;
         }
 
-        /* ================= GENERATE NOMOR ================= */
+        /*
+        |--------------------------------------------------------------------------
+        | GENERATE NUMBER
+        |--------------------------------------------------------------------------
+        */
         $receiveNo = $this->Receive_model->generate_receive_no($plant);
+        $slipNo    = $this->Receive_model->generate_slip_no();
 
-        $this->db->trans_start();
+        /*
+        |--------------------------------------------------------------------------
+        | TRANSACTION
+        |--------------------------------------------------------------------------
+        */
+        $this->db->trans_begin();
 
-        /* ================= INSERT HEADER ================= */
-        $header = [
-            'PLANT'        => $plant,
-            'RECEIVE'      => $receiveNo,
-            'PO'           => $po,
-            'NOTA'         => $post['NOTA'] ?? null,
-            'RECEIVE_DATE' => date('Y-m-d', strtotime($post['RECEIVE_DATE'])),
-            'SUPPLIER'     => $post['SUPPLIER'],
-            'PEMBAYARAN'   => $post['PEMBAYARAN'] ?? null,
-            'JENIS_PAY'    => $post['JENIS_PAY'] ?? null,
-            'NO_REF'       => $post['NO_REF'] ?? null,
-            'REMARK'       => $post['REMARK'] ?? null,
-            'CREATED_AT'   => date('Y-m-d H:i:s'),
-            'CREATED_BY'   => $username
-        ];
+        try {
 
-        $this->Receive_model->insert_receive_header($header);
+            /*
+            |--------------------------------------------------------------------------
+            | INSERT HEADER
+            |--------------------------------------------------------------------------
+            */
+            $header = [
+                'PLANT'        => $plant,
+                'RECEIVE'      => $receiveNo,
+                'NOTA'         => $post['NOTA'] ?? null,
+                'PO'           => $po,
+                'RECEIVE_DATE' => date('Y-m-d', strtotime($post['RECEIVE_DATE'])),
+                'SUPPLIER'     => $supplier,
+                'PEMBAYARAN'   => $post['PEMBAYARAN'] ?? null,
+                'JENIS_PAY'    => $post['JENIS_PAY'] ?? null,
+                'NO_REF'       => $post['NO_REF'] ?? null,
+                'SLIP_NO'      => $slipNo,
+                'REMARK'       => $post['REMARK'] ?? null,
+                'CREATED_AT'   => date('Y-m-d H:i:s'),
+                'CREATED_BY'   => $username
+            ];
 
-        /* ================= UPLOAD ATTACHMENT (1x SAJA) ================= */
-        if (!empty($_FILES['ATTACHMENT']['name'])) {
-            $upload = $this->Receive_model->upload_file(
-                'ATTACHMENT',
+            $this->Receive_model->insert_receive_header($header);
+
+            /*
+            |--------------------------------------------------------------------------
+            | UPLOAD ATTACHMENT
+            |--------------------------------------------------------------------------
+            */
+            if (!empty($_FILES['ATTACHMENT']['name'])) {
+
+                $upload = $this->Receive_model->upload_file(
+                    'ATTACHMENT',
+                    $plant,
+                    $receiveNo,
+                    $post['RECEIVE_DATE']
+                );
+
+                if ($upload) {
+
+                    $this->Receive_model->update_receive_header(
+                        $receiveNo,
+                        [
+                            'ATTACH_FILE_NAME'      => $upload['filename'],
+                            'ATTACH_ORIGINAL_NAME'  => $_FILES['ATTACHMENT']['name'],
+                            'ATTACH_PATH'           => $upload['path'],
+                            'ATTACH_EXT'            => pathinfo($upload['filename'], PATHINFO_EXTENSION),
+                            'ATTACH_SIZE'           => $_FILES['ATTACHMENT']['size']
+                        ],
+                        $plant
+                    );
+                }
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | INSERT DETAIL
+            |--------------------------------------------------------------------------
+            */
+            $rows = [];
+            $seq  = 1;
+
+            foreach ($detailArr as $row) {
+
+                if (empty($row['MATERIAL'])) continue;
+
+                $jumlah      = (float) ($row['JUMLAH'] ?? 0);
+                $berat       = (float) ($row['BERAT'] ?? 0);
+                $harga       = (float) $this->normalize_number($row['HARGA'] ?? 0);
+                $total       = (float) $this->normalize_number($row['TOTAL'] ?? 0);
+                $susutJumlah = (float) ($row['SUSUT_JUMLAH'] ?? 0);
+                $susutBerat  = (float) ($row['SUSUT_BERAT'] ?? 0);
+
+                $rows[] = [
+                    'PLANT'         => $plant,
+                    'RECEIVE'       => $receiveNo,
+                    'SEQ_NO'        => $seq,
+                    'PO'            => $po,
+                    'PO_SEQ'        => $row['PO_SEQ'] ?? null,
+                    'CUSTOMER'      => $row['CUSTOMER'] ?? null,
+                    'MATERIAL'      => $row['MATERIAL'],
+                    'JUMLAH'        => $jumlah,
+                    'BERAT'         => $berat,
+                    'HARGA'         => $harga,
+                    'TOTAL'         => $total,
+                    'SUSUT_JUMLAH'  => $susutJumlah,
+                    'SUSUT_BERAT'   => $susutBerat,
+                    'KETERANGAN'    => $row['KETERANGAN'] ?? null,
+                    'STATUS'        => 'RECEIVED',
+                    'CREATED_AT'    => date('Y-m-d H:i:s'),
+                    'CREATED_BY'    => $username
+                ];
+
+                $seq++;
+            }
+
+            if (empty($rows)) {
+                throw new Exception('Detail receive tidak valid');
+            }
+
+            $this->Receive_model->insert_receive_detail_batch($rows);
+
+            /*
+            |--------------------------------------------------------------------------
+            | UPDATE PO STATUS
+            |--------------------------------------------------------------------------
+            */
+            $this->Receive_model->update_po_status(
+                $po,
                 $plant,
-                $receiveNo,
-                $post['RECEIVE_DATE']
+                'RECEIVED'
             );
 
-            if ($upload) {
-                $this->Receive_model->update_receive_header(
-                    $receiveNo,
-                    [
-                        'ATTACH_FILE_NAME'      => $upload['filename'],
-                        'ATTACH_ORIGINAL_NAME' => $_FILES['ATTACHMENT']['name'],
-                        'ATTACH_PATH'           => $upload['path'],
-                        'ATTACH_EXT'            => pathinfo($upload['filename'], PATHINFO_EXTENSION),
-                        'ATTACH_SIZE'           => $_FILES['ATTACHMENT']['size']
-                    ],
-                    $plant
-                );
+            /*
+            |--------------------------------------------------------------------------
+            | COMMIT
+            |--------------------------------------------------------------------------
+            */
+            if ($this->db->trans_status() === FALSE) {
+                throw new Exception('Gagal menyimpan Receive');
             }
-        }
 
-        /* ================= INSERT DETAIL ================= */
-        $rows = [];
-        $seq  = 1;
+            $this->db->trans_commit();
 
-        foreach ($detailArr as $row) {
+            echo json_encode([
+                'status'  => true,
+                'receive' => $receiveNo,
+                'slip_no' => $slipNo,
+                'message' => 'Receive berhasil disimpan'
+            ]);
 
-            if (empty($row['MATERIAL'])) continue;
+        } catch (Exception $e) {
 
-            $rows[] = [
-                'PLANT'      => $plant,
-                'RECEIVE'    => $receiveNo,
-                'SEQ_NO'     => $seq,
-                'PO'         => $po,
-                'PO_SEQ'     => isset($row['PO_SEQ']) ? $row['PO_SEQ'] : null,
-                'MATERIAL'   => $row['MATERIAL'],
-                'JUMLAH'     => (float) $row['JUMLAH'],
-                'BERAT'      => (float) $row['BERAT'],
-                'HARGA'      => $this->normalize_number($row['HARGA']),
-                'TOTAL'      => $this->normalize_number($row['TOTAL']),
-                'STATUS'     => 'RECEIVED',
-                'CREATED_AT' => date('Y-m-d H:i:s'),
-                'CREATED_BY' => $username
-            ];
-            $seq++;
-        }
-
-        if (empty($rows)) {
             $this->db->trans_rollback();
+
             echo json_encode([
                 'status'  => false,
-                'message' => 'Detail receive tidak valid'
+                'message' => $e->getMessage()
             ]);
-            return;
         }
-
-        $this->Receive_model->insert_receive_detail_batch($rows);
-        if ($po !== null) {
-            $this->Receive_model->update_po_status($po, $plant, 'RECEIVED');
-        }
-
-        /* ================= SLIP NO ================= */
-        $slipNo = $this->Receive_model->generate_slip_no();
-        $this->Receive_model->update_receive_header(
-            $receiveNo,
-            ['SLIP_NO' => $slipNo],
-            $plant
-        );
-
-        $this->db->trans_complete();
-
-        echo json_encode([
-            'status'  => $this->db->trans_status(),
-            'receive' => $receiveNo,
-            'slip_no' => $slipNo,
-            'message' => $this->db->trans_status()
-                ? 'Receive berhasil disimpan'
-                : 'Gagal menyimpan Receive'
-        ]);
-        exit;
     }
 
     /**
@@ -481,7 +545,7 @@ class Receive extends MY_Controller {
                         'PLANT'   => $plant,
                         'RECEIVE' => $receive,
                         'SEQ_NO'  => $row['SEQ_NO']
-                    ])->update('mst_receive_detail', [
+                    ])->update('abc_mst_receive_detail', [
                         'PO'         => $newPo,
                         'MATERIAL'   => $row['MATERIAL'],
                         'JUMLAH'     => (float)$row['JUMLAH'],
@@ -660,7 +724,7 @@ class Receive extends MY_Controller {
                 r.SLIP_NO,
                 r.REMARK
             ')
-            ->from('mst_receive r')
+            ->from('abc_mst_receive r')
             ->join('cd_code aj', "aj.CODE = r.PLANT AND aj.HEAD_CODE = 'AJ'", 'left')
             ->join('cd_customer s', "s.CUST = r.SUPPLIER", 'left')
             ->where('r.RECEIVE', $receive)
@@ -688,7 +752,7 @@ class Receive extends MY_Controller {
                 d.HARGA,
                 d.TOTAL
             ')
-            ->from('mst_receive_detail d')
+            ->from('abc_mst_receive_detail d')
             ->join('cd_material m', 'm.material = d.MATERIAL', 'left')
             ->where('d.RECEIVE', $receive)
             ->where('d.PLANT', $plant)

@@ -3,7 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Code_model extends CI_Model {
 
-    protected $table = 'cd_code';
+    protected $table = 'abc_cd_code';
     protected $primary = ['HEAD_CODE','CODE']; // composite PK
 
     public function __construct()
@@ -74,14 +74,14 @@ class Code_model extends CI_Model {
 
     public function insert($data)
     {
-        return $this->db->insert('cd_code', $data);
+        return $this->db->insert('abc_cd_code', $data);
     }
 
     public function get_by_pk($head_code, $code)
     {
         return $this->db->where('head_code', $head_code)
                         ->where('code', $code)
-                        ->get('cd_code')
+                        ->get('abc_cd_code')
                         ->row();
     }
 
@@ -115,6 +115,6 @@ class Code_model extends CI_Model {
     {
         return $this->db->where('head_code', $head)
                         ->order_by('code_name')
-                        ->get('cd_code')->result();
+                        ->get('abc_cd_code')->result();
     }
 }
