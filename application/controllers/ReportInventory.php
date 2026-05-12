@@ -51,68 +51,1372 @@ class ReportInventory extends MY_Controller {
 
     public function load_data()
     {
-        $page   = (int)$this->input->get('page') ?: 1;
-        $limit  = (int)$this->input->get('limit') ?: 10;
-        $order  = $this->input->get('order', TRUE) ?: 'PO_DATE';
-        $dirInput = $this->input->get('dir', TRUE) ?? 'DESC'; // default 'DESC' kalau null
-        $dir = strtoupper($dirInput) === 'DESC' ? 'DESC' : 'ASC';
+        header('Content-Type: application/json');
 
-        $po = $this->input->get('po', TRUE);
-        $date_from = $this->convert_date($this->input->get('date_from', TRUE));
-        $date_to   = $this->convert_date($this->input->get('date_to', TRUE));
+        $page  = (int) $this->input->get('page');
+        $limit = (int) $this->input->get('limit');
 
-        // ===== FILTER =====
+        $page  = $page > 0 ? $page : 1;
+        $limit = $limit > 0 ? $limit : 100; // report card style → default besar
+
+        $date = $this->convert_date(
+            $this->input->get('date', TRUE)
+        );
+
         $filters = [
-            'role_id'   => $this->session->userdata('role_id'),
-            'plant'     => $this->input->get('plant', TRUE),
-            'supplier'   => $this->input->get('supplier', TRUE),
-            'po'         => $this->input->get('po', TRUE),
-            'date_from'  => $date_from,
-            'date_to'    => $date_to,
+            'role_id'   => (int) $this->session->userdata('role_id'),
+            'plant'     => $this->input->get('plant', true),
+            'supplier'  => $this->input->get('supplier', true),
+            'po'        => $this->input->get('po', true),
+            'date_from' => $this->input->get('date_from', true),
+            'date_to'   => $this->input->get('date_to', true),
         ];
 
+        // non-admin force plant
         if ($this->session->userdata('role_id') != 1) {
             $filters['plant'] = $this->session->userdata('plant');
         }
 
         $start = ($page - 1) * $limit;
 
-        $rows  = $this->ReportInventory_model->get_po_report(
+        /*
+        |--------------------------------------------------------------------------
+        | ROWS
+        |--------------------------------------------------------------------------
+        */
+        $rows = $this->ReportInventory_model->get_po_report(
             $limit,
             $start,
             $filters,
-            $order,
-            $dir
+            'PO_DATE',
+            'DESC'
         );
 
-        $totalRows = $this->ReportInventory_model->count_po_report($filters);
+        /*
+        |--------------------------------------------------------------------------
+        | ALL ROWS (summary + grand)
+        |--------------------------------------------------------------------------
+        */
+        $allRows = $this->ReportInventory_model->get_po_report(
+            0,
+            0,
+            $filters,
+            'PO_DATE',
+            'DESC'
+        );
 
-        // ===== TOTAL (TANPA LIMIT) =====
-        $allRows = $this->ReportInventory_model
-            ->get_po_report(0, 0, $filters, $order, $dir);
+        /*
+        |--------------------------------------------------------------------------
+        | SUMMARY
+        |--------------------------------------------------------------------------
+        */
+        $uniquePO       = [];
+        $uniqueSupplier = [];
+        $uniqueCustomer = [];
 
+        $sumJumlah = 0;
+        $sumBerat  = 0;
+        $sumTotal  = 0;
+
+        foreach ($allRows as $r) {
+
+            $uniquePO[$r->PO . '|' . $r->PLANT] = true;
+
+            if (!empty($r->SUPPLIER)) {
+                $uniqueSupplier[$r->SUPPLIER] = true;
+            }
+
+            if (!empty($r->CUSTOMER)) {
+                $uniqueCustomer[$r->CUSTOMER] = true;
+            }
+
+            $sumJumlah += (float) $r->JUMLAH;
+            $sumBerat  += (float) $r->BERAT;
+            $sumTotal  += (float) $r->TOTAL;
+        }
+
+        $summary = [
+            'total_po'       => count($uniquePO),
+            'total_supplier' => count($uniqueSupplier),
+            'total_customer' => count($uniqueCustomer),
+            'total_jumlah'   => number_format($sumJumlah, 2, '.', ','),
+            'total_berat'    => number_format($sumBerat, 2, '.', ','),
+            'total_amount'   => $sumTotal
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | GRAND TOTAL
+        |--------------------------------------------------------------------------
+        */
+        $grand = [
+            'jumlah' => number_format($sumJumlah, 2, '.', ','),
+            'berat'  => number_format($sumBerat, 2, '.', ','),
+            'total'  => $sumTotal
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | RESPONSE
+        |--------------------------------------------------------------------------
+        */
+        echo json_encode([
+            'status'  => true,
+            'rows'    => $rows,
+            'summary' => $summary,
+            'grand'   => $grand,
+            'total'   => count($uniquePO)
+        ]);
+    }
+
+    public function export_excel_po()
+    {
+        $filters = [
+            'plant'     => $this->input->get('plant', true),
+            'supplier'  => $this->input->get('supplier', true),
+            'po'        => $this->input->get('po', true),
+            'date_from' => $this->input->get('date_from', true),
+            'date_to'   => $this->input->get('date_to', true),
+        ];
+
+        $rows = $this->ReportInventory_model->get_po_report(
+            0,
+            0,
+            $filters,
+            'a.PO_DATE',
+            'DESC'
+        );
+
+        if (empty($rows)) {
+            show_error('No data found for export');
+        }
+
+        $grouped = [];
+        foreach ($rows as $r) {
+            $key = $r->PO . '|' . $r->PLANT;
+
+            if (!isset($grouped[$key])) {
+                $grouped[$key] = [
+                    'PO'            => $r->PO,
+                    'PLANT_NAME'    => $r->PLANT_NAME,
+                    'PO_DATE'       => $r->PO_DATE,
+                    'PO_NAME'       => $r->PO_NAME,
+                    'SUPPLIER'      => $r->SUPPLIER,
+                    'SUPPLIER_NAME' => $r->SUPPLIER_NAME,
+                    'STATUS'        => $r->STATUS,
+                    'REMARK'        => $r->REMARK,
+                    'DETAIL'        => []
+                ];
+            }
+
+            $grouped[$key]['DETAIL'][] = $r;
+        }
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('PO Report');
+
+        /*
+        |--------------------------------------------------------------------------
+        | HEADER
+        |--------------------------------------------------------------------------
+        */
+        $logoPath = FCPATH . 'assets/img/abc-trans.png';
+
+        if (file_exists($logoPath)) {
+            $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
+            $drawing->setPath($logoPath);
+            $drawing->setCoordinates('A1');
+            $drawing->setHeight(55);
+            $drawing->setWorksheet($sheet);
+        }
+
+        $sheet->mergeCells('B1:H1');
+        $sheet->setCellValue('B1', 'PT. Abadi Bersama Cerah');
+        $sheet->getStyle('B1')->getFont()->setBold(true)->setSize(18);
+
+        $sheet->mergeCells('B2:H2');
+        $sheet->setCellValue('B2', 'PURCHASE ORDER REPORT');
+        $sheet->getStyle('B2')->getFont()->setBold(true)->setSize(13);
+
+        $period = date('d M Y', strtotime($filters['date_from'])) .
+            ' - ' .
+            date('d M Y', strtotime($filters['date_to']));
+
+        $sheet->mergeCells('B3:H3');
+        $sheet->setCellValue('B3', 'Period : ' . $period);
+        $sheet->getStyle('B3')->getFont()->setItalic(true);
+
+        $row = 6;
+
+        $grandQty = 0;
+        $grandWeight = 0;
+        $grandTotal = 0;
+
+        foreach ($grouped as $po) {
+
+            /*
+            |--------------------------------------------------------------------------
+            | CARD HEADER
+            |--------------------------------------------------------------------------
+            */
+            $sheet->mergeCells("A{$row}:F{$row}");
+            $sheet->setCellValue("A{$row}", '#' . $po['PO']);
+            $sheet->setCellValue("G{$row}", $po['STATUS'] ? 'RECEIVED' : 'OPEN');
+
+            $sheet->getStyle("A{$row}:G{$row}")->applyFromArray([
+                'font' => [
+                    'bold'  => true,
+                    'color' => ['rgb' => 'FFFFFF'],
+                    'size'  => 11
+                ],
+                'fill' => [
+                    'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => '0F4C81']
+                ]
+            ]);
+
+            $row++;
+
+            /*
+            |--------------------------------------------------------------------------
+            | META GRID (RAPI)
+            |--------------------------------------------------------------------------
+            */
+            $metaStyle = [
+                'font' => [
+                    'bold' => true
+                ]
+            ];
+
+            // row 1
+            $sheet->setCellValue("A{$row}", 'PLANT');
+            $sheet->setCellValue("B{$row}", ':');
+            $sheet->setCellValue("C{$row}", $po['PLANT_NAME']);
+
+            $sheet->setCellValue("E{$row}", 'SUPPLIER');
+            $sheet->setCellValue("F{$row}", ':');
+            $sheet->setCellValue("G{$row}", $po['SUPPLIER'] . ' - ' . $po['SUPPLIER_NAME']);
+
+            $sheet->getStyle("A{$row}")->applyFromArray($metaStyle);
+            $sheet->getStyle("E{$row}")->applyFromArray($metaStyle);
+
+            $row++;
+
+            // row 2
+            $sheet->setCellValue("A{$row}", 'PO DATE');
+            $sheet->setCellValue("B{$row}", ':');
+            $sheet->setCellValue("C{$row}", strtoupper(date('d F Y', strtotime($po['PO_DATE']))));
+
+            $sheet->setCellValue("E{$row}", 'PO TYPE');
+            $sheet->setCellValue("F{$row}", ':');
+            $sheet->setCellValue("G{$row}", $po['PO_NAME']);
+
+            $sheet->getStyle("A{$row}")->applyFromArray($metaStyle);
+            $sheet->getStyle("E{$row}")->applyFromArray($metaStyle);
+
+            $row++;
+
+            // row 3 remark
+            $sheet->setCellValue("A{$row}", 'REMARK');
+            $sheet->setCellValue("B{$row}", ':');
+            $sheet->mergeCells("C{$row}:G{$row}");
+            $sheet->setCellValue("C{$row}", !empty($po['REMARK']) ? $po['REMARK'] : '-');
+
+            $sheet->getStyle("A{$row}")->applyFromArray($metaStyle);
+
+            $row += 2;
+
+            /*
+            |--------------------------------------------------------------------------
+            | TABLE HEADER
+            |--------------------------------------------------------------------------
+            */
+            $headers = ['CUSTOMER', 'MATERIAL', 'QTY', 'WEIGHT', 'PRICE', 'TOTAL'];
+
+            $col = 'A';
+            foreach ($headers as $h) {
+                $sheet->setCellValue($col . $row, $h);
+                $col++;
+            }
+
+            $sheet->getStyle("A{$row}:F{$row}")->applyFromArray([
+                'font' => [
+                    'bold' => true
+                ],
+                'alignment' => [
+                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
+                ],
+                'fill' => [
+                    'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => 'E9ECEF']
+                ]
+            ]);
+
+            $row++;
+
+            /*
+            |--------------------------------------------------------------------------
+            | DETAIL
+            |--------------------------------------------------------------------------
+            */
+            $subQty = 0;
+            $subWeight = 0;
+            $subTotal = 0;
+
+            foreach ($po['DETAIL'] as $d) {
+
+                $sheet->setCellValue("A{$row}", $d->CUSTOMER . ' - ' . $d->CUSTOMER_NAME);
+                $sheet->setCellValue("B{$row}", $d->MATERIAL . ' - ' . $d->MATERIAL_NAME);
+                $sheet->setCellValue("C{$row}", (float)$d->JUMLAH);
+                $sheet->setCellValue("D{$row}", (float)$d->BERAT);
+                $sheet->setCellValue("E{$row}", (float)$d->HARGA);
+                $sheet->setCellValue("F{$row}", (float)$d->TOTAL);
+
+                $subQty += (float)$d->JUMLAH;
+                $subWeight += (float)$d->BERAT;
+                $subTotal += (float)$d->TOTAL;
+
+                $row++;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | SUBTOTAL
+            |--------------------------------------------------------------------------
+            */
+            $sheet->mergeCells("A{$row}:B{$row}");
+            $sheet->setCellValue("A{$row}", 'SUBTOTAL');
+            $sheet->setCellValue("C{$row}", $subQty);
+            $sheet->setCellValue("D{$row}", $subWeight);
+            $sheet->setCellValue("F{$row}", $subTotal);
+
+            $sheet->getStyle("A{$row}:F{$row}")->applyFromArray([
+                'font' => ['bold' => true],
+                'fill' => [
+                    'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => 'F8F9FA']
+                ]
+            ]);
+
+            $grandQty += $subQty;
+            $grandWeight += $subWeight;
+            $grandTotal += $subTotal;
+
+            $row += 2;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | GRAND TOTAL
+        |--------------------------------------------------------------------------
+        */
+        $sheet->mergeCells("A{$row}:B{$row}");
+        $sheet->setCellValue("A{$row}", 'GRAND TOTAL');
+        $sheet->setCellValue("C{$row}", $grandQty);
+        $sheet->setCellValue("D{$row}", $grandWeight);
+        $sheet->setCellValue("F{$row}", $grandTotal);
+
+        $sheet->getStyle("A{$row}:F{$row}")->applyFromArray([
+            'font' => [
+                'bold' => true,
+                'size' => 11
+            ]
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | FORMAT
+        |--------------------------------------------------------------------------
+        */
+        $sheet->getStyle("C1:F{$row}")
+            ->getNumberFormat()
+            ->setFormatCode('#,##0.00');
+
+        $sheet->getColumnDimension('A')->setWidth(35);
+        $sheet->getColumnDimension('B')->setWidth(35);
+        $sheet->getColumnDimension('C')->setWidth(20);
+        $sheet->getColumnDimension('D')->setWidth(20);
+        $sheet->getColumnDimension('E')->setWidth(20);
+        $sheet->getColumnDimension('F')->setWidth(22);
+        $sheet->getColumnDimension('G')->setWidth(40);
+
+        $sheet->freezePane('A7');
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="REPORT_PO.xlsx"');
+        header('Cache-Control: max-age=0');
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->save('php://output');
+        exit;
+    }
+
+    public function export_pdf_po()
+    {
+        $filters = [
+            'plant'     => $this->input->get('plant', true),
+            'supplier'  => $this->input->get('supplier', true),
+            'po'        => $this->input->get('po', true),
+            'date_from' => $this->input->get('date_from', true),
+            'date_to'   => $this->input->get('date_to', true),
+        ];
+
+        $rows = $this->ReportInventory_model->get_po_report(
+            0,
+            0,
+            $filters,
+            'a.PO_DATE',
+            'DESC'
+        );
+
+        if (empty($rows)) {
+            show_error('No data found for export');
+        }
+
+        $grouped = [];
+        foreach ($rows as $r) {
+            $key = $r->PO . '|' . $r->PLANT;
+            $grouped[$key][] = $r;
+        }
+
+        $logo = FCPATH . 'assets/img/abc-trans.png';
+        $logo64 = file_exists($logo)
+            ? 'data:image/png;base64,' . base64_encode(file_get_contents($logo))
+            : '';
+
+        $period = date('d M Y', strtotime($filters['date_from'])) .
+            ' - ' .
+            date('d M Y', strtotime($filters['date_to']));
+
+        $html = '
+        <style>
+            body{
+                font-family:sans-serif;
+                font-size:10px;
+                color:#222;
+            }
+
+            .head{
+                margin-bottom:18px;
+            }
+
+            .title{
+                text-align:center;
+                font-weight:bold;
+                font-size:18px;
+            }
+
+            .subtitle{
+                text-align:center;
+                margin-top:4px;
+                font-size:11px;
+            }
+
+            .card{
+                border:1px solid #dfe7ef;
+                border-radius:10px;
+                margin-bottom:20px;
+                overflow:hidden;
+            }
+
+            .card-head{
+                background:#0F4C81;
+                color:#fff;
+                padding:10px 14px;
+                font-weight:bold;
+                font-size:12px;
+            }
+
+            .meta{
+                padding:12px 14px;
+                background:#f8fafc;
+            }
+
+            .meta-table{
+                width:100%;
+                border-collapse:collapse;
+            }
+
+            .meta-table td{
+                border:none;
+                padding:3px 0;
+                vertical-align:top;
+                font-size:10px;
+            }
+
+            .meta-label{
+                width:70px;
+                font-weight:bold;
+                white-space:nowrap;
+            }
+
+            .meta-sep{
+                width:10px;
+                text-align:center;
+                font-weight:bold;
+            }
+
+            .meta-gap{
+                width:30px;
+            }
+
+            .meta-value{
+                font-weight:normal;
+            }
+
+            table{
+                width:100%;
+                border-collapse:collapse;
+            }
+
+            th,td{
+                border:1px solid #d9dee5;
+                padding:6px;
+                font-size:10px;
+            }
+
+            th{
+                background:#eef2f7;
+                font-weight:bold;
+            }
+
+            .right{
+                text-align:right;
+            }
+
+            .subtotal{
+                background:#f6f8fa;
+                font-weight:bold;
+            }
+        </style>
+
+        <div class="head">
+            <table width="100%" border="0" style="border:none;">
+                <tr>
+                    <td width="70" style="border:none;">' .
+                        ($logo64 ? '<img src="'.$logo64.'" height="55">' : '') .
+                    '</td>
+                    <td style="border:none;">
+                        <div class="title">PT. Abadi Bersama Cerah</div>
+                        <div class="subtitle">PURCHASE ORDER REPORT</div>
+                        <div class="subtitle">Period : '.$period.'</div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        ';
+
+        foreach ($grouped as $group) {
+
+            $h = $group[0];
+
+            $html .= '
+            <div class="card">
+
+                <div class="card-head">
+                    #'.$h->PO.' — '.($h->STATUS ? 'RECEIVED' : 'OPEN').'
+                </div>
+
+                <div class="meta">
+                    <table class="meta-table">
+                        <tr>
+                            <td class="meta-label">PLANT</td>
+                            <td class="meta-sep">:</td>
+                            <td class="meta-value">'.$h->PLANT_NAME.'</td>
+
+                            <td class="meta-gap"></td>
+
+                            <td class="meta-label">SUPPLIER</td>
+                            <td class="meta-sep">:</td>
+                            <td class="meta-value">'.$h->SUPPLIER.' - '.$h->SUPPLIER_NAME.'</td>
+                        </tr>
+
+                        <tr>
+                            <td class="meta-label">PO DATE</td>
+                            <td class="meta-sep">:</td>
+                            <td class="meta-value">'.strtoupper(date('d F Y', strtotime($h->PO_DATE))).'</td>
+
+                            <td class="meta-gap"></td>
+
+                            <td class="meta-label">PO TYPE</td>
+                            <td class="meta-sep">:</td>
+                            <td class="meta-value">'.$h->PO_NAME.'</td>
+                        </tr>
+
+                        <tr>
+                            <td class="meta-label">REMARK</td>
+                            <td class="meta-sep">:</td>
+                            <td class="meta-value" colspan="5">'.(!empty($h->REMARK) ? $h->REMARK : '-').'</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>CUSTOMER</th>
+                            <th>MATERIAL</th>
+                            <th>QTY</th>
+                            <th>WEIGHT</th>
+                            <th>PRICE</th>
+                            <th>TOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            ';
+
+            $subQty = 0;
+            $subWeight = 0;
+            $subTotal = 0;
+
+            foreach ($group as $d) {
+
+                $subQty += (float)$d->JUMLAH;
+                $subWeight += (float)$d->BERAT;
+                $subTotal += (float)$d->TOTAL;
+
+                $html .= '
+                <tr>
+                    <td>'.$d->CUSTOMER.' - '.$d->CUSTOMER_NAME.'</td>
+                    <td>'.$d->MATERIAL.' - '.$d->MATERIAL_NAME.'</td>
+                    <td class="right">'.number_format($d->JUMLAH,2,',','.').'</td>
+                    <td class="right">'.number_format($d->BERAT,2,',','.').'</td>
+                    <td class="right">'.number_format($d->HARGA,0,',','.').'</td>
+                    <td class="right">'.number_format($d->TOTAL,0,',','.').'</td>
+                </tr>';
+            }
+
+            $html .= '
+                        <tr class="subtotal">
+                            <td colspan="2">SUBTOTAL</td>
+                            <td class="right">'.number_format($subQty,2,',','.').'</td>
+                            <td class="right">'.number_format($subWeight,2,',','.').'</td>
+                            <td></td>
+                            <td class="right">'.number_format($subTotal,0,',','.').'</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>';
+        }
+
+        $mpdf = new \Mpdf\Mpdf([
+            'orientation'   => 'L',
+            'margin_left'   => 10,
+            'margin_right'  => 10,
+            'margin_top'    => 10,
+            'margin_bottom' => 12
+        ]);
+
+        $mpdf->SetHTMLFooter('
+            <div style="text-align:right;font-size:9px;color:#666;">
+                Page {PAGENO} of {nbpg}
+            </div>
+        ');
+
+        $mpdf->WriteHTML($html);
+        $mpdf->Output('REPORT_PO.pdf', 'I');
+        exit;
+    }
+
+    public function load_receive()
+    {
+        ob_clean();
+        header('Content-Type: application/json');
+
+        $page  = (int)$this->input->get('page') ?: 1;
+        $limit = (int)$this->input->get('limit') ?: 10;
+        $order = $this->input->get('order', true) ?: 'RECEIVE_DATE';
+
+        $dirInput = $this->input->get('dir', true) ?? 'DESC';
+        $dir = strtoupper($dirInput) === 'ASC' ? 'ASC' : 'DESC';
+
+        $date_from = $this->convert_date($this->input->get('date_from', true));
+        $date_to   = $this->convert_date($this->input->get('date_to', true));
+
+        $filters = [
+            'plant'     => $this->input->get('plant', true),
+            'supplier'  => $this->input->get('supplier', true),
+            'receive'   => $this->input->get('receive', true),
+            'date_from' => $date_from,
+            'date_to'   => $date_to,
+        ];
+
+        $start = ($page - 1) * $limit;
+
+        $rows = $this->ReportInventory_model
+            ->get_receive_report($limit, $start, $filters, $order, $dir);
+
+        $totalRows = $this->ReportInventory_model
+            ->count_receive_report($filters);
+
+        // group card
+        $grouped = [];
         $grand = [
             'jumlah' => 0,
             'berat'  => 0,
             'total'  => 0
         ];
 
-        foreach ($allRows as $r) {
-            $grand['jumlah'] += (float) $r->JUMLAH;
-            $grand['berat']  += (float) $r->BERAT;
-            $grand['total']  += (float) str_replace(['.', ','], '', $r->TOTAL);
+        foreach ($rows as $r) {
+
+            $key = $r->RECEIVE . '|' . $r->PLANT;
+
+            if (!isset($grouped[$key])) {
+                $grouped[$key] = [
+                    'RECEIVE'          => $r->RECEIVE,
+                    'PLANT'            => $r->PLANT,
+                    'PLANT_NAME'       => $r->PLANT_NAME,
+                    'RECEIVE_DATE'     => $r->RECEIVE_DATE,
+                    'PO'               => $r->PO,
+                    'NOTA'             => $r->NOTA,
+                    'SUPPLIER'         => $r->SUPPLIER,
+                    'SUPPLIER_NAME'    => $r->SUPPLIER_NAME,
+                    'PEMBAYARAN'       => $r->PEMBAYARAN,
+                    'JENIS_PAY'        => $r->JENIS_PAY,
+                    'NO_REF'           => $r->NO_REF,
+                    'SLIP_NO'          => $r->SLIP_NO,
+                    'REMARK'           => $r->REMARK,
+                    'ATTACH_FILE_NAME' => $r->ATTACH_FILE_NAME,
+                    'DETAIL'           => []
+                ];
+            }
+
+            $grouped[$key]['DETAIL'][] = [
+                'SEQ_NO'         => $r->SEQ_NO,
+                'CUSTOMER'       => $r->CUSTOMER,
+                'CUSTOMER_NAME'  => $r->CUSTOMER_NAME,
+                'MATERIAL'       => $r->MATERIAL,
+                'MATERIAL_NAME'  => $r->MATERIAL_NAME,
+                'JUMLAH'         => (float)$r->JUMLAH,
+                'BERAT'          => (float)$r->BERAT,
+                'SUSUT_JUMLAH'   => (float)$r->SUSUT_JUMLAH,
+                'SUSUT_BERAT'    => (float)$r->SUSUT_BERAT,
+                'HARGA'          => (float)$r->HARGA,
+                'TOTAL'          => (float)$r->TOTAL,
+                'KETERANGAN'     => $r->KETERANGAN,
+                'STATUS'         => $r->STATUS
+            ];
+
+            $grand['jumlah'] += (float)$r->JUMLAH;
+            $grand['berat']  += (float)$r->BERAT;
+            $grand['total']  += (float)$r->TOTAL;
         }
 
         $pages = ceil($totalRows / $limit);
         $pagination = $this->build_pagination($pages, $page, 'ajax');
 
         echo json_encode([
-            'rows'       => $rows,
+            'rows'       => array_values($grouped),
             'total'      => $totalRows,
-            'grand'      => $grand, // 🔥 dikirim ke view
+            'grand'      => $grand,
             'pagination' => $pagination,
             'page'       => $page
         ]);
+        exit;
+    }
+
+    public function export_excel_receive()
+    {
+        $filters = [
+            'plant'     => $this->input->get('plant', true),
+            'supplier'  => $this->input->get('supplier', true),
+            'receive'   => $this->input->get('receive', true),
+            'date_from' => $this->input->get('date_from', true),
+            'date_to'   => $this->input->get('date_to', true),
+        ];
+
+        $rows = $this->ReportInventory_model->get_receive_report(
+            0,
+            0,
+            $filters,
+            'RECEIVE_DATE',
+            'DESC'
+        );
+
+        if (empty($rows)) {
+            show_error('No data found for export');
+        }
+
+        $grouped = [];
+        foreach ($rows as $r) {
+            $key = $r->RECEIVE . '|' . $r->PLANT;
+
+            if (!isset($grouped[$key])) {
+                $grouped[$key] = [
+                    'RECEIVE'          => $r->RECEIVE,
+                    'PLANT_NAME'       => $r->PLANT_NAME,
+                    'RECEIVE_DATE'     => $r->RECEIVE_DATE,
+                    'PO'               => $r->PO,
+                    'NOTA'             => $r->NOTA,
+                    'SUPPLIER'         => $r->SUPPLIER,
+                    'SUPPLIER_NAME'    => $r->SUPPLIER_NAME,
+                    'PEMBAYARAN'       => $r->PEMBAYARAN,
+                    'JENIS_PAY'        => $r->JENIS_PAY,
+                    'NO_REF'           => $r->NO_REF,
+                    'SLIP_NO'          => $r->SLIP_NO,
+                    'REMARK'           => $r->REMARK,
+                    'ATTACH_FILE_NAME' => $r->ATTACH_FILE_NAME,
+                    'DETAIL'           => []
+                ];
+            }
+
+            $grouped[$key]['DETAIL'][] = $r;
+        }
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Receive Report');
+
+        $logoPath = FCPATH . 'assets/img/abc-trans.png';
+
+        if (file_exists($logoPath)) {
+            $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
+            $drawing->setPath($logoPath);
+            $drawing->setCoordinates('A1');
+            $drawing->setHeight(55);
+            $drawing->setWorksheet($sheet);
+        }
+
+        $sheet->mergeCells('B1:J1');
+        $sheet->setCellValue('B1', 'PT. Abadi Bersama Cerah');
+        $sheet->getStyle('B1')->getFont()->setBold(true)->setSize(18);
+
+        $sheet->mergeCells('B2:J2');
+        $sheet->setCellValue('B2', 'RECEIVE REPORT');
+        $sheet->getStyle('B2')->getFont()->setBold(true)->setSize(13);
+
+        $period = date('d M Y', strtotime($filters['date_from'])) .
+            ' - ' .
+            date('d M Y', strtotime($filters['date_to']));
+
+        $sheet->mergeCells('B3:J3');
+        $sheet->setCellValue('B3', 'Period : ' . $period);
+        $sheet->getStyle('B3')->getFont()->setItalic(true);
+
+        $row = 6;
+
+        $grandQty = 0;
+        $grandWeight = 0;
+        $grandTotal = 0;
+
+        foreach ($grouped as $rc) {
+
+            $sheet->mergeCells("A{$row}:I{$row}");
+            $sheet->setCellValue("A{$row}", '#' . $rc['RECEIVE']);
+            $sheet->setCellValue("J{$row}", 'RECEIVED');
+
+            $sheet->getStyle("A{$row}:J{$row}")->applyFromArray([
+                'font' => [
+                    'bold'  => true,
+                    'color' => ['rgb' => 'FFFFFF'],
+                    'size'  => 11
+                ],
+                'fill' => [
+                    'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => '0F4C81']
+                ]
+            ]);
+
+            $row++;
+
+            $metaStyle = ['font' => ['bold' => true]];
+
+            // line 1
+            $sheet->setCellValue("A{$row}", 'PLANT');
+            $sheet->setCellValue("B{$row}", ':');
+            $sheet->setCellValue("C{$row}", $rc['PLANT_NAME']);
+
+            $sheet->setCellValue("F{$row}", 'SUPPLIER');
+            $sheet->setCellValue("G{$row}", ':');
+            $sheet->setCellValue("H{$row}", $rc['SUPPLIER'].' - '.$rc['SUPPLIER_NAME']);
+
+            $sheet->getStyle("A{$row}")->applyFromArray($metaStyle);
+            $sheet->getStyle("F{$row}")->applyFromArray($metaStyle);
+
+            $row++;
+
+            // line 2
+            $sheet->setCellValue("A{$row}", 'PO');
+            $sheet->setCellValue("B{$row}", ':');
+            $sheet->setCellValue("C{$row}", $rc['PO']);
+
+            $sheet->setCellValue("F{$row}", 'RECEIVE DATE');
+            $sheet->setCellValue("G{$row}", ':');
+            $sheet->setCellValue("H{$row}", strtoupper(date('d F Y', strtotime($rc['RECEIVE_DATE']))));
+
+            $sheet->getStyle("A{$row}")->applyFromArray($metaStyle);
+            $sheet->getStyle("F{$row}")->applyFromArray($metaStyle);
+
+            $row++;
+
+            // line 3
+            $sheet->setCellValue("A{$row}", 'NOTA');
+            $sheet->setCellValue("B{$row}", ':');
+            $sheet->setCellValue("C{$row}", $rc['NOTA'] ?: '-');
+
+            $sheet->setCellValue("F{$row}", 'REF NO');
+            $sheet->setCellValue("G{$row}", ':');
+            $sheet->setCellValue("H{$row}", $rc['NO_REF'] ?: '-');
+
+            $sheet->getStyle("A{$row}")->applyFromArray($metaStyle);
+            $sheet->getStyle("F{$row}")->applyFromArray($metaStyle);
+
+            $row++;
+
+            // line 4
+            $sheet->setCellValue("A{$row}", 'PAYMENT');
+            $sheet->setCellValue("B{$row}", ':');
+            $sheet->setCellValue("C{$row}", $rc['PEMBAYARAN'] ?: '-');
+
+            $sheet->setCellValue("F{$row}", 'PAY TYPE');
+            $sheet->setCellValue("G{$row}", ':');
+            $sheet->setCellValue("H{$row}", $rc['JENIS_PAY'] ?: '-');
+
+            $sheet->getStyle("A{$row}")->applyFromArray($metaStyle);
+            $sheet->getStyle("F{$row}")->applyFromArray($metaStyle);
+
+            $row++;
+
+            // line 5
+            $sheet->setCellValue("A{$row}", 'SLIP NO');
+            $sheet->setCellValue("B{$row}", ':');
+            $sheet->setCellValue("C{$row}", $rc['SLIP_NO'] ?: '-');
+
+            $sheet->setCellValue("F{$row}", 'ATTACHMENT');
+            $sheet->setCellValue("G{$row}", ':');
+            $sheet->setCellValue("H{$row}", $rc['ATTACH_FILE_NAME'] ? 'Available' : '-');
+
+            $sheet->getStyle("A{$row}")->applyFromArray($metaStyle);
+            $sheet->getStyle("F{$row}")->applyFromArray($metaStyle);
+
+            $row++;
+
+            // remark
+            $sheet->setCellValue("A{$row}", 'REMARK');
+            $sheet->setCellValue("B{$row}", ':');
+            $sheet->mergeCells("C{$row}:J{$row}");
+            $sheet->setCellValue("C{$row}", $rc['REMARK'] ?: '-');
+            $sheet->getStyle("A{$row}")->applyFromArray($metaStyle);
+
+            $row += 2;
+
+            $headers = [
+                'CUSTOMER',
+                'MATERIAL',
+                'QTY',
+                'WEIGHT',
+                'SHRINK QTY',
+                'SHRINK WEIGHT',
+                'PRICE',
+                'TOTAL',
+                'REMARK',
+                'STATUS'
+            ];
+
+            $col = 'A';
+            foreach ($headers as $h) {
+                $sheet->setCellValue($col.$row, $h);
+                $col++;
+            }
+
+            $sheet->getStyle("A{$row}:J{$row}")->applyFromArray([
+                'font' => ['bold' => true],
+                'alignment' => [
+                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER
+                ],
+                'fill' => [
+                    'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => 'E9ECEF']
+                ]
+            ]);
+
+            $row++;
+
+            $subQty = 0;
+            $subWeight = 0;
+            $subTotal = 0;
+
+            foreach ($rc['DETAIL'] as $d) {
+
+                $sheet->setCellValue("A{$row}", $d->CUSTOMER.' - '.$d->CUSTOMER_NAME);
+                $sheet->setCellValue("B{$row}", $d->MATERIAL.' - '.$d->MATERIAL_NAME);
+                $sheet->setCellValue("C{$row}", (float)$d->JUMLAH);
+                $sheet->setCellValue("D{$row}", (float)$d->BERAT);
+                $sheet->setCellValue("E{$row}", (float)$d->SUSUT_JUMLAH);
+                $sheet->setCellValue("F{$row}", (float)$d->SUSUT_BERAT);
+                $sheet->setCellValue("G{$row}", (float)$d->HARGA);
+                $sheet->setCellValue("H{$row}", (float)$d->TOTAL);
+                $sheet->setCellValue("I{$row}", $d->KETERANGAN ?: '-');
+                $sheet->setCellValue("J{$row}", $d->STATUS ?: '-');
+
+                $subQty += (float)$d->JUMLAH;
+                $subWeight += (float)$d->BERAT;
+                $subTotal += (float)$d->TOTAL;
+
+                $row++;
+            }
+
+            $sheet->mergeCells("A{$row}:B{$row}");
+            $sheet->setCellValue("A{$row}", 'SUBTOTAL');
+            $sheet->setCellValue("C{$row}", $subQty);
+            $sheet->setCellValue("D{$row}", $subWeight);
+            $sheet->setCellValue("H{$row}", $subTotal);
+
+            $sheet->getStyle("A{$row}:J{$row}")->applyFromArray([
+                'font' => ['bold' => true],
+                'fill' => [
+                    'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => 'F8F9FA']
+                ]
+            ]);
+
+            $grandQty += $subQty;
+            $grandWeight += $subWeight;
+            $grandTotal += $subTotal;
+
+            $row += 2;
+        }
+
+        $sheet->mergeCells("A{$row}:B{$row}");
+        $sheet->setCellValue("A{$row}", 'GRAND TOTAL');
+        $sheet->setCellValue("C{$row}", $grandQty);
+        $sheet->setCellValue("D{$row}", $grandWeight);
+        $sheet->setCellValue("H{$row}", $grandTotal);
+
+        $sheet->getStyle("A{$row}:J{$row}")->getFont()->setBold(true);
+
+        $sheet->getStyle("C1:H{$row}")
+            ->getNumberFormat()
+            ->setFormatCode('#,##0.00');
+
+        foreach (range('A', 'J') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="REPORT_RECEIVE.xlsx"');
+
+        (new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet))
+            ->save('php://output');
+        exit;
+    }
+
+    public function export_pdf_receive()
+    {
+        $filters = [
+            'plant'     => $this->input->get('plant', true),
+            'supplier'  => $this->input->get('supplier', true),
+            'receive'   => $this->input->get('receive', true),
+            'date_from' => $this->input->get('date_from', true),
+            'date_to'   => $this->input->get('date_to', true),
+        ];
+
+        $rows = $this->ReportInventory_model->get_receive_report(
+            0,
+            0,
+            $filters,
+            'RECEIVE_DATE',
+            'DESC'
+        );
+
+        if (empty($rows)) {
+            show_error('No data found for export');
+        }
+
+        $grouped = [];
+        foreach ($rows as $r) {
+            $key = $r->RECEIVE . '|' . $r->PLANT;
+            $grouped[$key][] = $r;
+        }
+
+        $logo = FCPATH . 'assets/img/abc-trans.png';
+        $logo64 = file_exists($logo)
+            ? 'data:image/png;base64,' . base64_encode(file_get_contents($logo))
+            : '';
+
+        $period = date('d M Y', strtotime($filters['date_from'])) .
+            ' - ' .
+            date('d M Y', strtotime($filters['date_to']));
+
+        $html = '
+        <style>
+            body{
+                font-family:sans-serif;
+                font-size:10px;
+                color:#222;
+            }
+
+            .head{
+                margin-bottom:18px;
+            }
+
+            .title{
+                text-align:center;
+                font-weight:bold;
+                font-size:18px;
+            }
+
+            .subtitle{
+                text-align:center;
+                margin-top:4px;
+                font-size:11px;
+            }
+
+            .card{
+                border:1px solid #dfe7ef;
+                border-radius:10px;
+                margin-bottom:20px;
+                overflow:hidden;
+            }
+
+            .card-head{
+                background:#0F4C81;
+                color:#fff;
+                padding:10px 14px;
+                font-weight:bold;
+                font-size:12px;
+            }
+
+            .meta{
+                padding:12px 14px;
+                background:#f8fafc;
+            }
+
+            .meta-table{
+                width:100%;
+                border-collapse:collapse;
+            }
+
+            .meta-table td{
+                border:none;
+                padding:3px 0;
+                vertical-align:top;
+                font-size:10px;
+            }
+
+            .meta-label{
+                width:85px;
+                font-weight:bold;
+                white-space:nowrap;
+            }
+
+            .meta-sep{
+                width:10px;
+                text-align:center;
+                font-weight:bold;
+            }
+
+            .meta-gap{
+                width:30px;
+            }
+
+            .meta-value{
+                font-weight:normal;
+            }
+
+            table{
+                width:100%;
+                border-collapse:collapse;
+            }
+
+            th,td{
+                border:1px solid #d9dee5;
+                padding:6px;
+                font-size:10px;
+            }
+
+            th{
+                background:#eef2f7;
+                font-weight:bold;
+            }
+
+            .right{
+                text-align:right;
+            }
+
+            .subtotal{
+                background:#f6f8fa;
+                font-weight:bold;
+            }
+        </style>
+
+        <div class="head">
+            <table width="100%" border="0" style="border:none;">
+                <tr>
+                    <td width="70" style="border:none;">' .
+                        ($logo64 ? '<img src="'.$logo64.'" height="55">' : '') .
+                    '</td>
+                    <td style="border:none;">
+                        <div class="title">PT. Abadi Bersama Cerah</div>
+                        <div class="subtitle">RECEIVE REPORT</div>
+                        <div class="subtitle">Period : '.$period.'</div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        ';
+
+        foreach ($grouped as $group) {
+
+            $h = $group[0];
+
+            $html .= '
+            <div class="card">
+
+                <div class="card-head">
+                    #'.$h->RECEIVE.' — RECEIVED
+                </div>
+
+                <div class="meta">
+                    <table class="meta-table">
+                        <tr>
+                            <td class="meta-label">PLANT</td>
+                            <td class="meta-sep">:</td>
+                            <td class="meta-value">'.$h->PLANT_NAME.'</td>
+
+                            <td class="meta-gap"></td>
+
+                            <td class="meta-label">SUPPLIER</td>
+                            <td class="meta-sep">:</td>
+                            <td class="meta-value">'.$h->SUPPLIER.' - '.$h->SUPPLIER_NAME.'</td>
+                        </tr>
+
+                        <tr>
+                            <td class="meta-label">PO</td>
+                            <td class="meta-sep">:</td>
+                            <td class="meta-value">'.$h->PO.'</td>
+
+                            <td class="meta-gap"></td>
+
+                            <td class="meta-label">RECEIVE DATE</td>
+                            <td class="meta-sep">:</td>
+                            <td class="meta-value">'.strtoupper(date('d F Y', strtotime($h->RECEIVE_DATE))).'</td>
+                        </tr>
+
+                        <tr>
+                            <td class="meta-label">NOTA</td>
+                            <td class="meta-sep">:</td>
+                            <td class="meta-value">'.($h->NOTA ?: '-').'</td>
+
+                            <td class="meta-gap"></td>
+
+                            <td class="meta-label">REF NO</td>
+                            <td class="meta-sep">:</td>
+                            <td class="meta-value">'.($h->NO_REF ?: '-').'</td>
+                        </tr>
+
+                        <tr>
+                            <td class="meta-label">PAYMENT</td>
+                            <td class="meta-sep">:</td>
+                            <td class="meta-value">'.($h->PEMBAYARAN ?: '-').'</td>
+
+                            <td class="meta-gap"></td>
+
+                            <td class="meta-label">PAY TYPE</td>
+                            <td class="meta-sep">:</td>
+                            <td class="meta-value">'.($h->JENIS_PAY ?: '-').'</td>
+                        </tr>
+
+                        <tr>
+                            <td class="meta-label">SLIP NO</td>
+                            <td class="meta-sep">:</td>
+                            <td class="meta-value">'.($h->SLIP_NO ?: '-').'</td>
+
+                            <td class="meta-gap"></td>
+
+                            <td class="meta-label">ATTACHMENT</td>
+                            <td class="meta-sep">:</td>
+                            <td class="meta-value">'.($h->ATTACH_FILE_NAME ? 'Available' : '-').'</td>
+                        </tr>
+
+                        <tr>
+                            <td class="meta-label">REMARK</td>
+                            <td class="meta-sep">:</td>
+                            <td class="meta-value" colspan="5">'.($h->REMARK ?: '-').'</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>CUSTOMER</th>
+                            <th>MATERIAL</th>
+                            <th>QTY</th>
+                            <th>WEIGHT</th>
+                            <th>SHRINK QTY</th>
+                            <th>SHRINK WEIGHT</th>
+                            <th>PRICE</th>
+                            <th>TOTAL</th>
+                            <th>REMARK</th>
+                            <th>STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            ';
+
+            $subQty = 0;
+            $subWeight = 0;
+            $subTotal = 0;
+
+            foreach ($group as $d) {
+
+                $subQty += (float)$d->JUMLAH;
+                $subWeight += (float)$d->BERAT;
+                $subTotal += (float)$d->TOTAL;
+
+                $html .= '
+                <tr>
+                    <td>'.$d->CUSTOMER.' - '.$d->CUSTOMER_NAME.'</td>
+                    <td>'.$d->MATERIAL.' - '.$d->MATERIAL_NAME.'</td>
+                    <td class="right">'.number_format($d->JUMLAH,2,',','.').'</td>
+                    <td class="right">'.number_format($d->BERAT,2,',','.').'</td>
+                    <td class="right">'.number_format($d->SUSUT_JUMLAH,2,',','.').'</td>
+                    <td class="right">'.number_format($d->SUSUT_BERAT,2,',','.').'</td>
+                    <td class="right">'.number_format($d->HARGA,0,',','.').'</td>
+                    <td class="right">'.number_format($d->TOTAL,0,',','.').'</td>
+                    <td>'.($d->KETERANGAN ?: '-').'</td>
+                    <td>'.$d->STATUS.'</td>
+                </tr>';
+            }
+
+            $html .= '
+                        <tr class="subtotal">
+                            <td colspan="2">SUBTOTAL</td>
+                            <td class="right">'.number_format($subQty,2,',','.').'</td>
+                            <td class="right">'.number_format($subWeight,2,',','.').'</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td class="right">'.number_format($subTotal,0,',','.').'</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>';
+        }
+
+        $mpdf = new \Mpdf\Mpdf([
+            'orientation'   => 'L',
+            'margin_left'   => 10,
+            'margin_right'  => 10,
+            'margin_top'    => 10,
+            'margin_bottom' => 12
+        ]);
+
+        $mpdf->SetHTMLFooter('
+            <div style="text-align:right;font-size:9px;color:#666;">
+                Page {PAGENO} of {nbpg}
+            </div>
+        ');
+
+        $mpdf->WriteHTML($html);
+        $mpdf->Output('REPORT_RECEIVE.pdf', 'I');
+        exit;
     }
 
     private function build_pagination($totalPages, $currentPage, $mode = 'url')
@@ -207,1124 +1511,6 @@ class ReportInventory extends MY_Controller {
                 </li>
             ";
         }
-    }
-
-    public function export_excel_po()
-    {
-        // Convert tanggal ke Y-m-d sama seperti load_data()
-        $date_from = $this->convert_date($this->input->get('date_from', TRUE));
-        $date_to   = $this->convert_date($this->input->get('date_to', TRUE));
-
-        $filters = [
-            'plant'      => $this->input->get('plant', TRUE),
-            'supplier'   => $this->input->get('supplier', TRUE),
-            'po'         => $this->input->get('po', TRUE),
-            'date_from'  => $date_from,
-            'date_to'    => $date_to,
-        ];
-
-        if ($this->session->userdata('role_id') != 1) {
-            $filters['plant'] = $this->session->userdata('plant');
-        }
-
-        $rows = $this->ReportInventory_model->get_po_report(0,0,$filters,'PO_DATE','DESC'); // ambil semua data
-
-        if (empty($rows)) {
-            show_error('No data found for export');
-        }
-
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-
-        // ================= HEADER =================
-        $headers = ['PLANT','DATE','NO PO','SUPPLIER','MATERIAL','JUMLAH','BERAT','HARGA','TOTAL'];
-        $col = 'A';
-        foreach ($headers as $h) {
-            $sheet->setCellValue($col.'1', $h);
-            $col++;
-        }
-
-        $rowExcel = 2;
-
-        // ================= GROUP DATA =================
-        $grouped = [];
-        foreach ($rows as $r) {
-            $key = $r->PO . '|' . $r->PLANT;
-            $grouped[$key][] = $r;
-        }
-
-        // ================= FILL DATA =================
-        foreach ($grouped as $group) {
-
-            $startRow = $rowExcel;
-            $rowspan  = count($group);
-
-            foreach ($group as $i => $r) {
-                $harga = (float) str_replace(['.', ','], '', $r->HARGA);
-                $total = (float) str_replace(['.', ','], '', $r->TOTAL);
-
-                // Kolom detail (selalu ditulis)
-                $sheet->setCellValue("E{$rowExcel}", $r->MATERIAL_NAME);
-                $sheet->setCellValue("F{$rowExcel}", $r->JUMLAH);
-                $sheet->setCellValue("G{$rowExcel}", $r->BERAT);
-                $sheet->setCellValueExplicit("H$rowExcel", $harga, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC);
-                $sheet->setCellValueExplicit("I$rowExcel", $total, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC);
-
-                // Kolom header PO → hanya tulis di baris pertama
-                if ($i === 0) {
-                    $sheet->setCellValue("A{$rowExcel}", $r->PLANT_NAME);
-                    $sheet->setCellValue("B{$rowExcel}", date('d/m/Y', strtotime($r->PO_DATE)));
-                    $sheet->setCellValue("C{$rowExcel}", $r->PO);
-                    $sheet->setCellValue("D{$rowExcel}", $r->SUPPLIER_NAME);
-                }
-
-                $rowExcel++;
-            }
-
-            // ================= MERGE CELL =================
-            if ($rowspan > 1) {
-                $endRow = $startRow + $rowspan - 1;
-
-                $sheet->mergeCells("A{$startRow}:A{$endRow}");
-                $sheet->mergeCells("B{$startRow}:B{$endRow}");
-                $sheet->mergeCells("C{$startRow}:C{$endRow}");
-                $sheet->mergeCells("D{$startRow}:D{$endRow}");
-
-                // Vertical align tengah
-                foreach (['A','B','C','D'] as $col) {
-                    $sheet->getStyle("{$col}{$startRow}")
-                        ->getAlignment()
-                        ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
-                }
-            }
-        }
-
-        $sheet->setCellValue("E{$rowExcel}", 'GRAND TOTAL');
-        $sheet->mergeCells("E{$rowExcel}:H{$rowExcel}");
-        $sheet->getStyle("E{$rowExcel}")
-            ->getAlignment()
-            ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
-
-        $sheet->setCellValueExplicit(
-            "I{$rowExcel}",
-            array_sum(array_map(function($r){
-                return (float) str_replace(['.', ','], '', $r->TOTAL);
-            }, $rows)),
-            \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC
-        );
-
-        $sheet->getStyle("E{$rowExcel}:I{$rowExcel}")->getFont()->setBold(true);
-
-        // Auto width
-        foreach (range('A','I') as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
-
-        // Format angka
-        $sheet->getStyle("F2:I" . ($rowExcel - 1))
-            ->getNumberFormat()
-            ->setFormatCode('#,##0.00');
-
-        // ================= OUTPUT =================
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="report_po.xlsx"');
-        header('Cache-Control: max-age=0');
-
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-        $writer->save('php://output');
-        exit;
-    }
-
-    public function export_pdf_po()
-    {
-        $date_from = $this->convert_date($this->input->get('date_from', TRUE));
-        $date_to   = $this->convert_date($this->input->get('date_to', TRUE));
-
-        $filters = [
-            'plant'      => $this->input->get('plant', TRUE),
-            'supplier'   => $this->input->get('supplier', TRUE),
-            'po'         => $this->input->get('po', TRUE),
-            'date_from'  => $date_from,
-            'date_to'    => $date_to,
-        ];
-
-        if ($this->session->userdata('role_id') != 1) {
-            $filters['plant'] = $this->session->userdata('plant');
-        }
-
-        $rows = $this->ReportInventory_model
-            ->get_po_report(0, 0, $filters, 'PO_DATE', 'DESC');
-
-        if (empty($rows)) {
-            show_error('No data found for export');
-        }
-
-        // ================= GROUP DATA =================
-        $grouped = [];
-        foreach ($rows as $r) {
-            $key = $r->PO . '|' . $r->PLANT;
-            $grouped[$key][] = $r;
-        }
-
-        // ================= BUILD HTML =================
-        $html = '
-        <style>
-            table {
-                border-collapse: collapse;
-                width: 100%;
-                font-size: 9px;
-            }
-            th, td {
-                border: 1px solid #000;
-                padding: 4px;
-            }
-            th {
-                background: #eee;
-                text-align: center;
-            }
-            td.text-right { text-align: right; }
-            td.text-center { text-align: center; }
-        </style>
-
-        <h3 style="text-align:center">REPORT PO</h3>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>PLANT</th>
-                    <th>DATE</th>
-                    <th>NO PO</th>
-                    <th>SUPPLIER</th>
-                    <th>MATERIAL</th>
-                    <th>JUMLAH</th>
-                    <th>BERAT</th>
-                    <th>HARGA</th>
-                    <th>TOTAL</th>
-                </tr>
-            </thead>
-            <tbody>
-        ';
-
-        foreach ($grouped as $group) {
-
-            $rowspan = count($group);
-
-            foreach ($group as $i => $r) {
-
-                $html .= '<tr>';
-
-                if ($i === 0) {
-                    $html .= '
-                        <td rowspan="'.$rowspan.'" class="text-center">'.$r->PLANT_NAME.'</td>
-                        <td rowspan="'.$rowspan.'" class="text-center">'.date('d/m/Y', strtotime($r->PO_DATE)).'</td>
-                        <td rowspan="'.$rowspan.'" class="text-center"><b>'.$r->PO.'</b></td>
-                        <td rowspan="'.$rowspan.'">'.$r->SUPPLIER_NAME.'</td>
-                    ';
-                }
-
-                $harga = (int) str_replace(['.', ','], '', $r->HARGA);
-                $total = (int) str_replace(['.', ','], '', $r->TOTAL);  
-                $hargaFormatted = number_format($harga, 0, ',', '.');
-                $totalFormatted = number_format($total, 0, ',', '.');
-
-                $html .= '
-                    <td>'.$r->MATERIAL_NAME.'</td>
-                    <td class="text-right">'.number_format($r->JUMLAH, 2).'</td>
-                    <td class="text-right">'.number_format($r->BERAT, 2).'</td>
-                    <td class="text-right">'.$hargaFormatted.'</td>
-                    <td class="text-right">'.$totalFormatted.'</td>
-                ';
-
-                $html .= '</tr>';
-            }
-        }
-
-        $grandJumlah = 0;
-        $grandBerat  = 0;
-        $grandTotal  = 0;
-
-        foreach ($rows as $r) {
-            $grandJumlah += (float)$r->JUMLAH;
-            $grandBerat  += (float)$r->BERAT;
-            $grandTotal  += (float)str_replace(['.', ','], '', $r->TOTAL);
-        }
-
-        $html .= '
-        <tr style="font-weight:bold;background:#eee">
-            <td colspan="5" class="text-right">GRAND TOTAL</td>
-            <td class="text-right">'.number_format($grandJumlah,2).'</td>
-            <td class="text-right">'.number_format($grandBerat,2).'</td>
-            <td></td>
-            <td class="text-right">'.number_format($grandTotal,0,",",".").'</td>
-        </tr>
-        ';
-
-        $html .= '</tbody></table>';
-
-        // ================= RENDER PDF =================
-        $mpdf = new \Mpdf\Mpdf([
-            'orientation' => 'L', // landscape mirip excel
-            'margin_left' => 10,
-            'margin_right'=> 10,
-            'margin_top'  => 10,
-            'margin_bottom'=> 10
-        ]);
-
-        $mpdf->WriteHTML($html);
-        $mpdf->Output('report_po.pdf', 'I');
-    }
-
-    // RECEIVE REPORT 
-
-    public function load_receive()
-    {
-        ob_clean();
-        header('Content-Type: application/json');
-
-        $page   = (int)$this->input->get('page') ?: 1;
-        $limit  = (int)$this->input->get('limit') ?: 10;
-        $order  = $this->input->get('order', TRUE) ?: 'RECEIVE_DATE';
-
-        $dirInput = $this->input->get('dir', TRUE) ?? 'DESC';
-        $dir = strtoupper($dirInput) === 'DESC' ? 'DESC' : 'ASC';
-
-        $date_from = $this->convert_date($this->input->get('date_from', TRUE));
-        $date_to   = $this->convert_date($this->input->get('date_to', TRUE));
-
-        $filters = [
-            'role_id'   => $this->session->userdata('role_id'),
-            'plant'     => $this->input->get('plant', TRUE),
-            'supplier'  => $this->input->get('supplier', TRUE),
-            'receive'   => $this->input->get('receive', TRUE) ?: $this->input->get('po', TRUE),
-            'date_from' => $date_from,
-            'date_to'   => $date_to,
-        ];
-
-        if ($filters['role_id'] != 1) {
-            $filters['plant'] = $this->session->userdata('plant');
-        }
-
-        $start = ($page - 1) * $limit;
-
-        // ================= DATA PAGE =================
-        $rows = $this->ReportInventory_model
-            ->get_receive_report($limit, $start, $filters, $order, $dir);
-
-        $totalRows = $this->ReportInventory_model
-            ->count_receive_report($filters);
-
-        // ================= GRAND TOTAL (NO LIMIT) =================
-        $allRows = $this->ReportInventory_model
-            ->get_receive_report(0, 0, $filters, $order, $dir);
-
-        $grand = [
-            'jumlah' => 0,
-            'berat'  => 0,
-            'total'  => 0
-        ];
-
-        foreach ($allRows as $r) {
-            $grand['jumlah'] += (float)$r->JUMLAH;
-            $grand['berat']  += (float)$r->BERAT;
-            $grand['total']  += (float)str_replace(['.', ','], '', $r->TOTAL);
-        }
-
-        $pages = ceil($totalRows / $limit);
-        $pagination = $this->build_pagination($pages, $page, 'ajax');
-
-        echo json_encode([
-            'rows'       => $rows,
-            'total'      => $totalRows,
-            'grand'      => $grand, // 🔥 penting
-            'pagination' => $pagination,
-            'page'       => $page
-        ]);
-        exit;
-    }
-
-    public function export_excel_receive()
-    {
-        $date_from = $this->convert_date($this->input->get('date_from'));
-        $date_to   = $this->convert_date($this->input->get('date_to'));
-
-        $filters = [
-            'plant'     => $this->input->get('plant'),
-            'supplier'  => $this->input->get('supplier'),
-            'receive'   => $this->input->get('receive') ?: $this->input->get('po'),
-            'date_from' => $date_from,
-            'date_to'   => $date_to,
-        ];
-
-        if ($this->session->userdata('role_id') != 1) {
-            $filters['plant'] = $this->session->userdata('plant');
-        }
-
-        $rows = $this->ReportInventory_model
-            ->get_receive_report(0, 0, $filters, 'RECEIVE_DATE', 'DESC');
-
-        if (empty($rows)) {
-            show_error('No data found for export');
-        }
-
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-
-        // ================= HEADER =================
-        $headers = [
-            'PLANT','DATE','NO RECEIVE','NO PO','SUPPLIER',
-            'MATERIAL','JUMLAH','BERAT','HARGA','TOTAL'
-        ];
-
-        $col = 'A';
-        foreach ($headers as $h) {
-            $sheet->setCellValue($col.'1', $h);
-            $col++;
-        }
-
-        $rowExcel = 2;
-
-        // ================= GROUP =================
-        $grouped = [];
-        foreach ($rows as $r) {
-            $key = $r->RECEIVE.'|'.$r->PLANT;
-            $grouped[$key][] = $r;
-        }
-
-        // ================= FILL =================
-        foreach ($grouped as $group) {
-
-            $startRow = $rowExcel;
-            $rowspan  = count($group);
-
-            foreach ($group as $i => $r) {
-
-                $harga = (float) str_replace(['.', ','], '', $r->HARGA);
-                $total = (float) str_replace(['.', ','], '', $r->TOTAL);
-
-                // DETAIL
-                $sheet->setCellValue("F$rowExcel", $r->MATERIAL_NAME);
-                $sheet->setCellValue("G$rowExcel", $r->JUMLAH);
-                $sheet->setCellValue("H$rowExcel", $r->BERAT);
-                $sheet->setCellValueExplicit("I$rowExcel", $harga, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC);
-                $sheet->setCellValueExplicit("J$rowExcel", $total, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC);
-
-                // HEADER RECEIVE
-                if ($i === 0) {
-                    $sheet->setCellValue("A$rowExcel", $r->PLANT_NAME);
-                    $sheet->setCellValue("B$rowExcel", date('d/m/Y', strtotime($r->RECEIVE_DATE)));
-                    $sheet->setCellValue("C$rowExcel", $r->RECEIVE);
-                    $sheet->setCellValue("D$rowExcel", $r->PO);
-                    $sheet->setCellValue("E$rowExcel", $r->SUPPLIER_NAME);
-                }
-
-                $rowExcel++;
-            }
-
-            // ================= MERGE =================
-            if ($rowspan > 1) {
-                $endRow = $startRow + $rowspan - 1;
-
-                foreach (['A','B','C','D','E'] as $c) {
-                    $sheet->mergeCells("$c$startRow:$c$endRow");
-                    $sheet->getStyle("$c$startRow")
-                        ->getAlignment()
-                        ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
-                }
-            }
-        }
-
-        // ================= GRAND TOTAL =================
-        $sheet->setCellValue("F{$rowExcel}", 'GRAND TOTAL');
-        $sheet->mergeCells("F{$rowExcel}:I{$rowExcel}");
-
-        $sheet->getStyle("F{$rowExcel}")
-            ->getAlignment()
-            ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
-
-        $sheet->setCellValue("G{$rowExcel}", array_sum(array_column($rows,'JUMLAH')));
-        $sheet->setCellValue("H{$rowExcel}", array_sum(array_column($rows,'BERAT')));
-
-        $sheet->setCellValueExplicit(
-            "J{$rowExcel}",
-            array_sum(array_map(function($r){
-                return (float)str_replace(['.', ','], '', $r->TOTAL);
-            }, $rows)),
-            \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC
-        );
-
-        $sheet->getStyle("F{$rowExcel}:J{$rowExcel}")
-            ->getFont()
-            ->setBold(true);
-
-        // AUTO WIDTH
-        foreach (range('A','J') as $c) {
-            $sheet->getColumnDimension($c)->setAutoSize(true);
-        }
-
-        // FORMAT ANGKA
-        $sheet->getStyle("G2:J".($rowExcel-1))
-            ->getNumberFormat()
-            ->setFormatCode('#,##0');
-
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="report_receive.xlsx"');
-        header('Cache-Control: max-age=0');
-
-        (new Xlsx($spreadsheet))->save('php://output');
-        exit;
-    }
-
-    public function export_pdf_receive()
-    {
-        $date_from = $this->convert_date($this->input->get('date_from'));
-        $date_to   = $this->convert_date($this->input->get('date_to'));
-
-        $filters = [
-            'plant'     => $this->input->get('plant'),
-            'supplier'  => $this->input->get('supplier'),
-            'receive'   => $this->input->get('receive') ?: $this->input->get('po'),
-            'date_from' => $date_from,
-            'date_to'   => $date_to,
-        ];
-
-        if ($this->session->userdata('role_id') != 1) {
-            $filters['plant'] = $this->session->userdata('plant');
-        }
-
-        $rows = $this->ReportInventory_model
-            ->get_receive_report(0, 0, $filters, 'RECEIVE_DATE', 'DESC');
-
-        if (empty($rows)) {
-            show_error('No data found for export');
-        }
-
-        $grouped = [];
-        foreach ($rows as $r) {
-            $key = $r->RECEIVE.'|'.$r->PLANT;
-            $grouped[$key][] = $r;
-        }
-
-        $html = '
-        <style>
-            table{border-collapse:collapse;width:100%;font-size:9px}
-            th,td{border:1px solid #000;padding:4px}
-            th{text-align:center;background:#eee}
-            .r{text-align:right}
-            .c{text-align:center}
-        </style>
-
-        <h3 style="text-align:center">REPORT RECEIVE</h3>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>PLANT</th>
-                    <th>DATE</th>
-                    <th>NO RECEIVE</th>
-                    <th>NO PO</th>
-                    <th>SUPPLIER</th>
-                    <th>MATERIAL</th>
-                    <th>JUMLAH</th>
-                    <th>BERAT</th>
-                    <th>HARGA</th>
-                    <th>TOTAL</th>
-                </tr>
-            </thead>
-            <tbody>
-        ';
-
-        foreach ($grouped as $group) {
-            $rowspan = count($group);
-
-            foreach ($group as $i => $r) {
-                $harga = number_format((float)str_replace(['.',','],'',$r->HARGA),0,',','.');
-                $total = number_format((float)str_replace(['.',','],'',$r->TOTAL),0,',','.');
-
-                $html .= '<tr>';
-
-                if ($i === 0) {
-                    $html .= "
-                        <td rowspan='$rowspan' class='c'>$r->PLANT_NAME</td>
-                        <td rowspan='$rowspan' class='c'>".date('d/m/Y',strtotime($r->RECEIVE_DATE))."</td>
-                        <td rowspan='$rowspan' class='c'><b>$r->RECEIVE</b></td>
-                        <td rowspan='$rowspan' class='c'>$r->PO</td>
-                        <td rowspan='$rowspan'>$r->SUPPLIER_NAME</td>
-                    ";
-                }
-
-                $html .= "
-                    <td>$r->MATERIAL_NAME</td>
-                    <td class='r'>".number_format($r->JUMLAH,2)."</td>
-                    <td class='r'>".number_format($r->BERAT,2)."</td>
-                    <td class='r'>$harga</td>
-                    <td class='r'>$total</td>
-                </tr>";
-            }
-        }
-
-        $gtJumlah = 0;
-        $gtBerat  = 0;
-        $gtTotal  = 0;
-
-        foreach ($rows as $r) {
-            $gtJumlah += (float)$r->JUMLAH;
-            $gtBerat  += (float)$r->BERAT;
-            $gtTotal  += (float)str_replace(['.', ','], '', $r->TOTAL);
-        }
-
-        $html .= "
-        <tr style='font-weight:bold;background:#eee'>
-            <td colspan='6' class='r'>GRAND TOTAL</td>
-            <td class='r'>".number_format($gtJumlah,2)."</td>
-            <td class='r'>".number_format($gtBerat,2)."</td>
-            <td></td>
-            <td class='r'>".number_format($gtTotal,0,',','.')."</td>
-        </tr>
-        ";
-
-        $html .= '</tbody></table>';
-
-        $mpdf = new \Mpdf\Mpdf([
-            'orientation'=>'L',
-            'margin_left'=>10,
-            'margin_right'=>10,
-            'margin_top'=>10,
-            'margin_bottom'=>10
-        ]);
-
-        $mpdf->WriteHTML($html);
-        $mpdf->Output('report_receive.pdf','I');
-    }
-
-    public function load_receive_lb()
-    {
-        ob_clean();
-        header('Content-Type: application/json');
-
-        $page   = (int)$this->input->get('page') ?: 1;
-        $limit  = (int)$this->input->get('limit') ?: 10;
-        $order  = $this->input->get('order', TRUE) ?: 'RECEIVE_DATE';
-
-        $dirInput = $this->input->get('dir', TRUE) ?? 'DESC';
-        $dir = strtoupper($dirInput) === 'DESC' ? 'DESC' : 'ASC';
-
-        $date_from = $this->convert_date($this->input->get('date_from', TRUE));
-        $date_to   = $this->convert_date($this->input->get('date_to', TRUE));
-
-        // ======================
-        // PLANT FILTER (STANDARD)
-        // ======================
-        $userPlants = json_decode($this->session->userdata('plant'), true);
-        $selectedPlant = $this->input->get('plant', TRUE);
-
-        if (!empty($selectedPlant)) {
-
-            if (!in_array($selectedPlant, $userPlants)) {
-                show_error('Unauthorized plant access');
-            }
-
-            $plantFilter = [$selectedPlant];
-
-        } else {
-
-            $plantFilter = $userPlants;
-        }
-
-        $filters = [
-            'plant'     => $plantFilter,
-            'supplier'  => $this->input->get('supplier', TRUE),
-            'receive'   => $this->input->get('receive', TRUE),
-            'date_from' => $date_from,
-            'date_to'   => $date_to,
-        ];
-
-        $start = ($page - 1) * $limit;
-
-        $rows  = $this->ReportInventory_model
-            ->get_receive_lb_report($limit, $start, $filters, $order, $dir);
-
-        $total = $this->ReportInventory_model
-            ->count_receive_lb_report($filters);
-
-        $grand = $this->ReportInventory_model
-            ->get_receive_lb_grand_total($filters);
-
-        $pages = ceil($total / $limit);
-        $pagination = $this->build_pagination($pages, $page, 'ajax');
-
-        echo json_encode([
-            'rows'       => $rows,
-            'total'      => $total,
-            'grand'      => $grand,
-            'pagination' => $pagination,
-            'page'       => $page
-        ]);
-        exit;
-    }
-
-    public function export_excel_receive_lb()
-    {
-        $date_from = $this->convert_date($this->input->get('date_from'));
-        $date_to   = $this->convert_date($this->input->get('date_to'));
-
-        $filters = [
-            'plant'     => $this->input->get('plant'),
-            'supplier'  => $this->input->get('supplier'),
-            'receive'   => $this->input->get('receive'),
-            'date_from' => $date_from,
-            'date_to'   => $date_to,
-        ];
-
-        $userPlants = json_decode($this->session->userdata('plant'), true);
-        $selectedPlant = $this->input->get('plant');
-
-        if (!empty($selectedPlant)) {
-
-            if (!in_array($selectedPlant, $userPlants)) {
-                show_error('Unauthorized plant access');
-            }
-
-            $filters['plant'] = [$selectedPlant];
-
-        } else {
-
-            $filters['plant'] = $userPlants;
-        }
-
-        $rows = $this->ReportInventory_model->get_receive_lb_report(0, 0, $filters, 'RECEIVE_DATE', 'DESC');
-        $grand = $this->ReportInventory_model->get_receive_lb_grand_total($filters);
-
-        if (empty($rows)) {
-            show_error('No data found for export');
-        }
-
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-
-        // ================= HEADER =================
-        $headers = [
-            'PLANT','DATE','NO RECEIVE','PEMBAYARAN','JENIS PAY','SLIP NO','DO','SUPPLIER','DRIVER','NO CAR',
-            'ARRIVE SCHEDULE','DEPART SCHEDULE','QTY','WEIGHT','AVG BW','PRICE','AMOUNT','DEAD','DEAD WEIGHT','SHRINK','RECEIVE AMOUNT','REMARK','STATUS'
-        ];
-
-        $col = 'A';
-        foreach ($headers as $h) {
-            $sheet->setCellValue($col.'1', $h);
-            $col++;
-        }
-
-        $rowExcel = 2;
-
-        // ================= GROUP =================
-        $grouped = [];
-        foreach ($rows as $r) {
-            $key = $r->RECEIVE.'|'.$r->PLANT;
-            $grouped[$key][] = $r;
-        }
-
-        // ================= FILL =================
-        foreach ($grouped as $group) {
-
-            $startRow = $rowExcel;
-            $rowspan  = count($group);
-
-            foreach ($group as $i => $r) {
-                // DETAIL
-                $sheet->setCellValue("K$rowExcel", $r->ARRIVE_SCHEDULE);
-                $sheet->setCellValue("L$rowExcel", $r->DEPART_SCHEDULE);
-                $sheet->setCellValue("M$rowExcel", $r->QTY);
-                $sheet->setCellValue("N$rowExcel", $r->WEIGHT);
-                $sheet->setCellValue("O$rowExcel", $r->AVG_BW);
-                $sheet->setCellValue("P$rowExcel", $r->PRICE);
-                $sheet->setCellValue("Q$rowExcel", $r->AMOUNT);
-                $sheet->setCellValue("R$rowExcel", $r->DEAD);
-                $sheet->setCellValue("S$rowExcel", $r->DEAD_WEIGHT);
-                $sheet->setCellValue("T$rowExcel", $r->SHRINK);
-                $sheet->setCellValue("U$rowExcel", $r->RECEIVE_AMOUNT);
-                $sheet->setCellValue("V$rowExcel", $r->REMARK);
-                $sheet->setCellValue("W$rowExcel", $r->STATUS);
-
-                // HEADER RECEIVE
-                if ($i === 0) {
-                    $sheet->setCellValue("A$rowExcel", $r->PLANT_NAME);
-                    $sheet->setCellValue("B$rowExcel", date('d/m/Y', strtotime($r->RECEIVE_DATE)));
-                    $sheet->setCellValue("C$rowExcel", $r->RECEIVE);
-                    $sheet->setCellValue("D$rowExcel", $r->PEMBAYARAN);
-                    $sheet->setCellValue("E$rowExcel", $r->JENIS_PAY);
-                    $sheet->setCellValue("F$rowExcel", $r->SLIP_NO);
-                    $sheet->setCellValue("G$rowExcel", $r->DO);
-                    $sheet->setCellValue("H$rowExcel", $r->SUPPLIER_NAME);
-                    $sheet->setCellValue("I$rowExcel", $r->DRIVER);
-                    $sheet->setCellValue("J$rowExcel", $r->NO_CAR);
-                }
-
-                $rowExcel++;
-            }
-
-            // ================= MERGE =================
-            if ($rowspan > 1) {
-                $endRow = $startRow + $rowspan - 1;
-                foreach (range('A','J') as $c) {
-                    $sheet->mergeCells("$c$startRow:$c$endRow");
-                    $sheet->getStyle("$c$startRow")
-                        ->getAlignment()
-                        ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
-                }
-            }
-        }
-
-        // ================= GRAND TOTAL =================
-        $sheet->setCellValue("A$rowExcel", 'GRAND TOTAL');
-        $sheet->mergeCells("A$rowExcel:J$rowExcel");
-
-        $sheet->setCellValue("N$rowExcel", $grand->total_berat);
-        $sheet->setCellValue("Q$rowExcel", $grand->total_amount);
-
-        // STYLE
-        $sheet->getStyle("A$rowExcel:W$rowExcel")->applyFromArray([
-            'font' => ['bold' => true],
-            'borders' => [
-                'top' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THICK]
-            ]
-        ]);
-
-        // FORMAT NUMBER
-        $sheet->getStyle("N$rowExcel:Q$rowExcel")
-            ->getNumberFormat()
-            ->setFormatCode('#,##0.00');
-
-        // AUTO WIDTH
-        foreach (range('A','W') as $c) {
-            $sheet->getColumnDimension($c)->setAutoSize(true);
-        }
-
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="report_receive_lb.xlsx"');
-        header('Cache-Control: max-age=0');
-
-        (new Xlsx($spreadsheet))->save('php://output');
-        exit;
-    }
-
-    public function export_pdf_receive_lb()
-    {
-        $date_from = $this->convert_date($this->input->get('date_from'));
-        $date_to   = $this->convert_date($this->input->get('date_to'));
-
-        $filters = [
-            'plant'     => $this->input->get('plant'),
-            'supplier'  => $this->input->get('supplier'),
-            'receive'   => $this->input->get('receive'),
-            'date_from' => $date_from,
-            'date_to'   => $date_to,
-        ];
-
-        $userPlants = json_decode($this->session->userdata('plant'), true);
-        $selectedPlant = $this->input->get('plant');
-
-        if (!empty($selectedPlant)) {
-
-            if (!in_array($selectedPlant, $userPlants)) {
-                show_error('Unauthorized plant access');
-            }
-
-            $filters['plant'] = [$selectedPlant];
-
-        } else {
-
-            $filters['plant'] = $userPlants;
-        }
-
-        $rows  = $this->ReportInventory_model
-            ->get_receive_lb_report(0, 0, $filters, 'RECEIVE_DATE', 'DESC');
-
-        $grand = $this->ReportInventory_model
-            ->get_receive_lb_grand_total($filters);
-
-        if (empty($rows)) {
-            show_error('No data found for export');
-        }
-
-        $grouped = [];
-        foreach ($rows as $r) {
-            $key = $r->RECEIVE . '|' . $r->PLANT;
-            $grouped[$key][] = $r;
-        }
-
-        $html = '
-        <style>
-            table{border-collapse:collapse;width:100%;font-size:9px}
-            th,td{border:1px solid #000;padding:4px}
-            th{text-align:center;background:#eee}
-            .r{text-align:right}
-            .c{text-align:center}
-        </style>
-
-        <h3 style="text-align:center">REPORT RECEIVE LB</h3>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>PLANT</th>
-                    <th>DATE</th>
-                    <th>NO RECEIVE</th>
-                    <th>PEMBAYARAN</th>
-                    <th>JENIS PAY</th>
-                    <th>SLIP NO</th>
-                    <th>DO</th>
-                    <th>SUPPLIER</th>
-                    <th>DRIVER</th>
-                    <th>NO CAR</th>
-                    <th>ARRIVE SCHEDULE</th>
-                    <th>DEPART SCHEDULE</th>
-                    <th>QTY</th>
-                    <th>WEIGHT</th>
-                    <th>AVG BW</th>
-                    <th>PRICE</th>
-                    <th>AMOUNT</th>
-                    <th>DEAD</th>
-                    <th>DEAD WEIGHT</th>
-                    <th>SHRINK</th>
-                    <th>RECEIVE AMOUNT</th>
-                    <th>REMARK</th>
-                    <th>STATUS</th>
-                </tr>
-            </thead>
-            <tbody>
-        ';
-
-        foreach ($grouped as $group) {
-            $rowspan = count($group);
-
-            foreach ($group as $i => $r) {
-                $html .= '<tr>';
-
-                if ($i === 0) {
-                    $html .= "
-                        <td rowspan='{$rowspan}' class='c'>{$r->PLANT_NAME}</td>
-                        <td rowspan='{$rowspan}' class='c'>".date('d/m/Y',strtotime($r->RECEIVE_DATE))."</td>
-                        <td rowspan='{$rowspan}' class='c'>{$r->RECEIVE}</td>
-                        <td rowspan='{$rowspan}'>{$r->PEMBAYARAN}</td>
-                        <td rowspan='{$rowspan}'>{$r->JENIS_PAY}</td>
-                        <td rowspan='{$rowspan}'>{$r->SLIP_NO}</td>
-                        <td rowspan='{$rowspan}'>{$r->DO}</td>
-                        <td rowspan='{$rowspan}'>{$r->SUPPLIER_NAME}</td>
-                        <td rowspan='{$rowspan}'>{$r->DRIVER}</td>
-                        <td rowspan='{$rowspan}'>{$r->NO_CAR}</td>
-                    ";
-                }
-
-                $html .= "
-                    <td>{$r->ARRIVE_SCHEDULE}</td>
-                    <td>{$r->DEPART_SCHEDULE}</td>
-                    <td class='r'>{$r->QTY}</td>
-                    <td class='r'>{$r->WEIGHT}</td>
-                    <td class='r'>{$r->AVG_BW}</td>
-                    <td class='r'>{$r->PRICE}</td>
-                    <td class='r'>{$r->AMOUNT}</td>
-                    <td class='r'>{$r->DEAD}</td>
-                    <td class='r'>{$r->DEAD_WEIGHT}</td>
-                    <td class='r'>{$r->SHRINK}</td>
-                    <td class='r'>{$r->RECEIVE_AMOUNT}</td>
-                    <td>{$r->REMARK}</td>
-                    <td>{$r->STATUS}</td>
-                </tr>";
-            }
-        }
-
-        $html .= "
-            <tr style='font-weight:bold;border-top:2px solid #000'>
-                <td colspan='13' class='c'>GRAND TOTAL</td>
-                <td class='r'>".number_format($grand->total_berat,2)."</td>
-                <td colspan='2'></td>
-                <td class='r'>".number_format($grand->total_amount,0,',','.')."</td>
-                <td colspan='6'></td>
-            </tr>
-            </tbody>
-        </table>
-        ";
-
-        $mpdf = new \Mpdf\Mpdf([
-            'orientation'   => 'L',
-            'margin_left'   => 10,
-            'margin_right'  => 10,
-            'margin_top'    => 10,
-            'margin_bottom' => 10
-        ]);
-
-        $mpdf->WriteHTML($html);
-        $mpdf->Output('report_receive_lb.pdf','I');
-    }
-
-    public function load_material_balance()
-    {
-        ob_clean();
-        header('Content-Type: application/json');
-
-        $page  = max((int)$this->input->get('page'), 1);
-        $limit = max((int)$this->input->get('limit'), 1);
-
-        $date_from = $this->convert_date($this->input->get('date_from', TRUE));
-        $date_to   = $this->convert_date($this->input->get('date_to', TRUE));
-
-        $plantInput = $this->input->get('plant', TRUE);
-
-        $filters = [
-            'role_id'   => $this->session->userdata('role_id'),
-            'plant'     => ($plantInput === '*' ? '' : $plantInput),
-            'material'  => trim($this->input->get('material', TRUE)),
-            'date_from' => $date_from,
-            'date_to'   => $date_to,
-        ];
-
-        if ($filters['role_id'] != 1) {
-            $filters['plant'] = $this->session->userdata('plant');
-        }
-
-        $start = ($page - 1) * $limit;
-
-        $rows  = $this->ReportInventory_model->get_material_balance($limit, $start, $filters);
-        $total = $this->ReportInventory_model->count_material_balance($filters);
-
-        // 🔥 TOTAL SELURUH DATA (TANPA LIMIT)
-        $grandTotal = $this->ReportInventory_model->get_material_balance_total($filters);
-
-        $pages = $limit ? ceil($total / $limit) : 1;
-        $pagination = $this->build_pagination($pages, $page, 'ajax');
-
-        echo json_encode([
-            'rows'       => $rows,
-            'total'      => $total,
-            'pagination' => $pagination,
-            'page'       => $page,
-            'grand'      => $grandTotal
-        ]);
-        exit;
-    }
-
-    public function export_excel_material_balance()
-    {
-        $date_from = $this->convert_date($this->input->get('date_from'));
-        $date_to   = $this->convert_date($this->input->get('date_to'));
-
-        $filters = [
-            'plant'     => $this->input->get('plant'),
-            'material'  => trim($this->input->get('material')),
-            'date_from' => $date_from,
-            'date_to'   => $date_to,
-        ];
-
-        if ($this->session->userdata('role_id') != 1) {
-            $filters['plant'] = $this->session->userdata('plant');
-        }
-
-        $rows = $this->ReportInventory_model->get_material_balance(0, 0, $filters);
-
-        if (empty($rows)) show_error('No data found for export');
-
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-
-        $headers = ['PLANT','MATERIAL','BEGIN QTY','BEGIN BW','IN QTY','IN BW','OUT QTY','OUT BW','END QTY','END BW'];
-
-        foreach ($headers as $i => $h) {
-            $sheet->setCellValue(chr(65+$i).'1', $h);
-        }
-
-        $rowExcel = 2;
-        foreach ($rows as $r) {
-            $sheet->setCellValue("A$rowExcel", $r->plant_name);
-            $sheet->setCellValue("B$rowExcel", $r->material.' - '.$r->material_name);
-            $sheet->setCellValue("C$rowExcel", $r->BEGIN_qty);
-            $sheet->setCellValue("D$rowExcel", $r->BEGIN_bw);
-            $sheet->setCellValue("E$rowExcel", $r->in_qty);
-            $sheet->setCellValue("F$rowExcel", $r->in_bw);
-            $sheet->setCellValue("G$rowExcel", $r->out_qty);
-            $sheet->setCellValue("H$rowExcel", $r->out_bw);
-            $sheet->setCellValue("I$rowExcel", $r->END_qty);
-            $sheet->setCellValue("J$rowExcel", $r->END_bw);
-            $rowExcel++;
-        }
-
-        foreach (range('A','J') as $c) {
-            $sheet->getColumnDimension($c)->setAutoSize(true);
-        }
-
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="material_balance.xlsx"');
-        header('Cache-Control: max-age=0');
-
-        (new Xlsx($spreadsheet))->save('php://output');
-        exit;
-    }
-
-    public function export_pdf_material_balance()
-    {
-        $date_from = $this->convert_date($this->input->get('date_from'));
-        $date_to   = $this->convert_date($this->input->get('date_to'));
-
-        $filters = [
-            'plant'     => $this->input->get('plant'),
-            'material'  => trim($this->input->get('material')),
-            'date_from' => $date_from,
-            'date_to'   => $date_to,
-        ];
-
-        if ($this->session->userdata('role_id') != 1) {
-            $filters['plant'] = $this->session->userdata('plant');
-        }
-
-        $rows = $this->ReportInventory_model->get_material_balance(0, 0, $filters);
-
-        if (empty($rows)) show_error('No data found for export');
-
-        $html = '
-        <style>
-            table {border-collapse: collapse; width: 100%; font-size: 10px}
-            th, td {border: 1px solid #000; padding: 4px}
-            th {background: #eee; text-align:center}
-            .r {text-align:right}
-            .l {text-align:left}
-        </style>
-        <h3 style="text-align:center">MATERIAL BALANCE</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th rowspan="2">PLANT</th>
-                    <th rowspan="2">MATERIAL</th>
-                    <th colspan="2">BEGIN</th>
-                    <th colspan="2">IN</th>
-                    <th colspan="2">OUT</th>
-                    <th colspan="2">END</th>
-                </tr>
-                <tr>
-                    <th>QTY</th><th>BW</th>
-                    <th>QTY</th><th>BW</th>
-                    <th>QTY</th><th>BW</th>
-                    <th>QTY</th><th>BW</th>
-                </tr>
-            </thead><tbody>';
-
-        foreach ($rows as $r) {
-            $html .= "<tr>
-                <td class='l'>{$r->plant_name}</td>
-                <td class='l'>{$r->material} - {$r->material_name}</td>
-                <td class='r'>".number_format($r->BEGIN_qty,2,',','.')."</td>
-                <td class='r'>".number_format($r->BEGIN_bw,2,',','.')."</td>
-                <td class='r'>".number_format($r->in_qty,2,',','.')."</td>
-                <td class='r'>".number_format($r->in_bw,2,',','.')."</td>
-                <td class='r'>".number_format($r->out_qty,2,',','.')."</td>
-                <td class='r'>".number_format($r->out_bw,2,',','.')."</td>
-                <td class='r'>".number_format($r->END_qty,2,',','.')."</td>
-                <td class='r'>".number_format($r->END_bw,2,',','.')."</td>
-            </tr>";
-        }
-
-        $html .= '</tbody></table>';
-
-        $mpdf = new \Mpdf\Mpdf(['orientation' => 'L']);
-        $mpdf->WriteHTML($html);
-        $mpdf->Output('material_balance.pdf', 'I');
     }
 
     private function convert_date($date)

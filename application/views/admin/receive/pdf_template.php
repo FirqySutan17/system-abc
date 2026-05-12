@@ -1,201 +1,299 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>Receive Slip</title>
+<!-- application/views/admin/receive/pdf_template.php -->
 
-    <style>
-        body {
-            font-family: DejaVu Sans;
-            font-size: 10px;
-            color: #000;
-        }
+<?php
+$logo = FCPATH.'assets/img/abc-trans.png';
+$logo64 = file_exists($logo)
+    ? 'data:image/png;base64,'.base64_encode(file_get_contents($logo))
+    : '';
+?>
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+<style>
+    body{
+        font-family:sans-serif;
+        font-size:11px;
+        color:#222;
+    }
 
-        .header-table td {
-            vertical-align: top;
-        }
+    .header{
+        margin-bottom:20px;
+    }
 
-        .logo {
-            width: 180px;
-        }
+    .title{
+        text-align:center;
+        font-size:22px;
+        font-weight:bold;
+        margin-bottom:4px;
+    }
 
-        .title {
-            font-size: 16px;
-            font-weight: bold;
-            text-align: right;
-        }
+    .subtitle{
+        text-align:center;
+        font-size:12px;
+        color:#666;
+    }
 
-        .info-table td {
-            padding: 3px 5px;
-        }
+    .card{
+        border:1px solid #dfe7ef;
+        border-radius:12px;
+        overflow:hidden;
+    }
 
-        .info-label {
-            width: 95px;
-            font-weight: bold;
-        }
+    .card-head{
+        background:#0F4C81;
+        color:#fff;
+        padding:12px 15px;
+        font-size:14px;
+        font-weight:bold;
+    }
 
-        .detail-table th,
-        .detail-table td {
-            border: 1px solid #000;
-            padding: 5px;
-        }
+    .meta{
+        padding:15px;
+        background:#f8fafc;
+        border-bottom:1px solid #e5e7eb;
+    }
 
-        .detail-table th {
-            background-color: #eee;
-            text-align: center;
-        }
+    .meta-table{
+        width:100%;
+        border-collapse:collapse;
+    }
 
-        .text-right {
-            text-align: right;
-        }
+    .meta-table td{
+        border:none;
+        padding:4px 0;
+        vertical-align:top;
+    }
 
-        .text-center {
-            text-align: center;
-        }
+    .label{
+        width:95px;
+        font-weight:bold;
+        white-space:nowrap;
+    }
 
-        .total-box {
-            margin-top: 10px;
-            width: 40%;
-            float: right;
-        }
+    .sep{
+        width:10px;
+        text-align:center;
+        font-weight:bold;
+    }
 
-        .total-box td {
-            padding: 4px;
-        }
+    .gap{
+        width:30px;
+    }
 
-        .remark {
-            margin-top: 30px;
-            clear: both;
-        }
-    </style>
-</head>
+    .table{
+        width:100%;
+        border-collapse:collapse;
+    }
 
-<body>
+    .table th,
+    .table td{
+        border:1px solid #d9dee5;
+        padding:7px;
+        font-size:10px;
+    }
 
-<!-- ================= HEADER ================= -->
-<table class="header-table">
-    <tr>
-        <td>
-            <!-- LOGO DUMMY (GANTI SENDIRI) -->
-            <img src="https://apja.co.id/assets/img/apja-logo.png" class="logo" style="width: 190px; margin-bottom: 20px">
-        </td>
-        <td class="title" style="vertical-align: middle">
-            RECEIVE SLIP
-        </td>
-    </tr>
-</table>
+    .table th{
+        background:#eef2f7;
+        text-align:center;
+        font-weight:bold;
+    }
 
-<hr>
+    .right{
+        text-align:right;
+    }
 
-<!-- ================= INFO RECEIVE ================= -->
-<table class="info-table" style="margin-top: 15px">
-    <tr>
-        <td class="info-label">Plant</td>
-        <td colspan="3">
-            : <?= $header->PLANT_NAME; ?> - PT. ARTHA PRATAMA JAYA ABADI
-        </td>
-        <td class="info-label">Receive Date</td>
-        <td>
-            : <?= date('d-M-Y', strtotime($header->RECEIVE_DATE)); ?>
-        </td>
-    </tr>
+    .center{
+        text-align:center;
+    }
 
-    <tr>
-        <td class="info-label">Supplier</td>
-        <td colspan="3">
-            : (<?= $header->SUPPLIER; ?>) <?= $header->SUPPLIER_NAME ?: '-'; ?>
-        </td>
-        <td class="info-label">Receive No</td>
-        <td>
-            : #<?= $header->RECEIVE; ?>
-        </td>
-    </tr>
+    .subtotal{
+        background:#f8fafc;
+        font-weight:bold;
+    }
 
-    <tr>
-        <td class="info-label">PO No</td>
-        <td colspan="3">
-            : #<?= $header->PO_TEXT; ?>
-        </td>
-        <td class="info-label">Nota / Ref</td>
-        <td>
-            : #<?= $header->NO_REF ?: '-'; ?>
-        </td>
-    </tr>
-</table>
+    .remark-box{
+        margin-top:18px;
+        padding:12px;
+        border:1px dashed #cbd5e1;
+        border-radius:10px;
+        background:#fcfcfc;
+    }
 
-<br>
+    .remark-title{
+        font-weight:bold;
+        margin-bottom:6px;
+    }
 
-<!-- ================= DETAIL ================= -->
-<table class="detail-table">
-    <thead>
+    .sign{
+        margin-top:55px;
+        width:100%;
+    }
+
+    .sign td{
+        width:50%;
+        text-align:center;
+        border:none;
+    }
+
+    .sign-line{
+        margin-top:55px;
+        font-weight:bold;
+    }
+</style>
+
+<div class="header">
+    <table width="100%" border="0">
         <tr>
-            <th width="4%">No</th>
-            <th>Material</th>
-            <th width="10%">Qty</th>
-            <th width="10%">Berat</th>
-            <th width="15%">Harga</th>
-            <th width="15%">Total</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php
-        $no = 1;
-        foreach ($detail as $d):
-        ?>
-        <tr>
-            <td class="text-center"><?= $no++; ?></td>
-            <td>
-                (<?= $d->MATERIAL; ?>) <?= $d->MATERIAL_NAME; ?>
+            <td width="70" style="border:none;">
+                <?php if($logo64): ?>
+                    <img src="<?= $logo64 ?>" height="60">
+                <?php endif; ?>
             </td>
-            <td class="text-right">
-                <?= number_format($d->JUMLAH, 2, ',', '.'); ?>
-            </td>
-            <td class="text-right">
-                <?= number_format($d->BERAT, 2, ',', '.'); ?>
-            </td>
-            <td class="text-right">
-                Rp <?= number_format((float)$d->HARGA, 0, ',', '.'); ?>
-            </td>
-            <td class="text-right">
-                Rp <?= number_format((float)$d->TOTAL, 0, ',', '.'); ?>
+            <td style="border:none;">
+                <div class="title">PT. Abadi Bersama Cerah</div>
+                <div class="subtitle">RECEIVE SLIP</div>
             </td>
         </tr>
-        <?php endforeach; ?>
-    </tbody>
-</table>
-
-<!-- ================= TOTAL ================= -->
-<table class="total-box">
-    <tr>
-        <td><b>Total Qty</b></td>
-        <td class="text-right">
-            <?= number_format($summary['total_jumlah'], 2, ',', '.'); ?>
-        </td>
-    </tr>
-    <tr>
-        <td><b>Total Berat</b></td>
-        <td class="text-right">
-            <?= number_format($summary['total_berat'], 2, ',', '.'); ?>
-        </td>
-    </tr>
-    <tr>
-        <td><b>Grand Total</b></td>
-        <td class="text-right">
-            <b>Rp <?= number_format($summary['grand_total'], 0, ',', '.'); ?></b>
-        </td>
-    </tr>
-</table>
-
-<!-- ================= REMARK ================= -->
-<div class="remark">
-    <b>Remark:</b><br>
-    <?= $header->REMARK ?: '-'; ?>
+    </table>
 </div>
 
-</body>
-</html>
+<div class="card">
+
+    <div class="card-head">
+        #<?= $header->RECEIVE ?>
+    </div>
+
+    <div class="meta">
+        <table class="meta-table">
+
+            <tr>
+                <td class="label">PLANT</td>
+                <td class="sep">:</td>
+                <td><?= $header->PLANT_NAME ?></td>
+
+                <td class="gap"></td>
+
+                <td class="label">SUPPLIER</td>
+                <td class="sep">:</td>
+                <td><?= $header->SUPPLIER ?> - <?= $header->SUPPLIER_NAME ?></td>
+            </tr>
+
+            <tr>
+                <td class="label">RECEIVE DATE</td>
+                <td class="sep">:</td>
+                <td><?= strtoupper(date('d F Y', strtotime($header->RECEIVE_DATE))) ?></td>
+
+                <td class="gap"></td>
+
+                <td class="label">PO</td>
+                <td class="sep">:</td>
+                <td><?= $header->PO_TEXT ?></td>
+            </tr>
+
+            <tr>
+                <td class="label">NOTA</td>
+                <td class="sep">:</td>
+                <td><?= $header->NOTA ?: '-' ?></td>
+
+                <td class="gap"></td>
+
+                <td class="label">REF NO</td>
+                <td class="sep">:</td>
+                <td><?= $header->NO_REF ?: '-' ?></td>
+            </tr>
+
+            <tr>
+                <td class="label">PAYMENT</td>
+                <td class="sep">:</td>
+                <td><?= $header->PEMBAYARAN ?: '-' ?></td>
+
+                <td class="gap"></td>
+
+                <td class="label">PAY TYPE</td>
+                <td class="sep">:</td>
+                <td><?= $header->JENIS_PAY ?: '-' ?></td>
+            </tr>
+
+            <tr>
+                <td class="label">SLIP NO</td>
+                <td class="sep">:</td>
+                <td><?= $header->SLIP_NO ?: '-' ?></td>
+
+                <td class="gap"></td>
+
+                <td class="label">ATTACHMENT</td>
+                <td class="sep">:</td>
+                <td><?= $header->ATTACH_FILE_NAME ? 'Available' : '-' ?></td>
+            </tr>
+
+            <tr>
+                <td class="label">STATUS</td>
+                <td class="sep">:</td>
+                <td colspan="5"><?= $header->STATUS_TEXT ?></td>
+            </tr>
+
+        </table>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th width="5%">NO</th>
+                <th>MATERIAL</th>
+                <th width="10%">QTY</th>
+                <th width="10%">WEIGHT</th>
+                <th width="10%">SHRINK QTY</th>
+                <th width="10%">SHRINK WEIGHT</th>
+                <th width="12%">PRICE</th>
+                <th width="12%">TOTAL</th>
+                <th width="11%">REMARK</th>
+                <th width="10%">STATUS</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            <?php foreach($detail as $i => $d): ?>
+            <tr>
+                <td class="center"><?= $i+1 ?></td>
+                <td><?= $d->MATERIAL_NAME ?></td>
+                <td class="right"><?= number_format($d->JUMLAH,2,',','.') ?></td>
+                <td class="right"><?= number_format($d->BERAT,2,',','.') ?></td>
+                <td class="right"><?= number_format($d->SUSUT_JUMLAH,2,',','.') ?></td>
+                <td class="right"><?= number_format($d->SUSUT_BERAT,2,',','.') ?></td>
+                <td class="right"><?= number_format($d->HARGA,0,',','.') ?></td>
+                <td class="right"><?= number_format($d->TOTAL,0,',','.') ?></td>
+                <td><?= $d->KETERANGAN ?: '-' ?></td>
+                <td class="center"><?= $d->STATUS ?: '-' ?></td>
+            </tr>
+            <?php endforeach; ?>
+
+            <tr class="subtotal">
+                <td colspan="2">TOTAL</td>
+                <td class="right"><?= number_format($summary['qty'],2,',','.') ?></td>
+                <td class="right"><?= number_format($summary['weight'],2,',','.') ?></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="right"><?= number_format($summary['total'],0,',','.') ?></td>
+                <td></td>
+                <td></td>
+            </tr>
+
+        </tbody>
+    </table>
+
+</div>
+
+<div class="remark-box">
+    <div class="remark-title">Remark</div>
+    <?= !empty($header->REMARK) ? nl2br($header->REMARK) : '-' ?>
+</div>
+
+<table class="sign">
+    <tr>
+        <td>Prepared By</td>
+        <td>Approved By</td>
+    </tr>
+    <tr>
+        <td class="sign-line">(_____________________)</td>
+        <td class="sign-line">(_____________________)</td>
+    </tr>
+</table>

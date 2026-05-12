@@ -1,376 +1,533 @@
-<?php $userPlant = $this->session->userdata('plant'); ?>
+<?php
+$userPlant = $this->session->userdata('plant');
+$roleId    = $this->session->userdata('role_id');
+?>
 
-<!-- <h5 class="card-title fw-semibold mb-4">REPORT PO - INVENTORY</h5> -->
+<div class="po-report-wrap">
 
-<!-- SEARCH + ADD -->
-<div class="row mb-3 align-items-end">
+    <!-- FILTER -->
+    <div class="report-filter-card">
+        <div class="row g-3 align-items-end">
 
-    <!-- PLANT -->
-    <div class="col-md-2">
-        <label class="form-label">Plant</label>
-        <select id="filter_plant" class="form-control">
-            <option value="">-- All Plant --</option>
-            <?php foreach ($plants as $p): ?>
-                <option value="<?= $p->CODE ?>">
-                    <?= $p->CODE_NAME ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-    </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold">Plant</label>
+                <select id="filter_plant" class="form-control">
+                    <?php foreach ($plants as $p): ?>
+                        <?php if ($p->CODE == '*') continue; ?>
+                        <option value="<?= $p->CODE ?>">
+                            <?= $p->CODE_NAME ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
 
-    <!-- SUPPLIER -->
-    <div class="col-md-2">
-        <label class="form-label">Supplier</label>
-        <select id="filter_supplier" class="form-control">
-            <option value=""></option> <!-- WAJIB untuk allowClear -->
-            <?php foreach ($suppliers as $s): ?>
-                <option value="<?= $s->CUST ?>">
-                    <?= $s->CUST ?> - <?= $s->FULL_NAME ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-    </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Supplier</label>
+                <select id="filter_supplier" class="form-control">
+                    <option value=""></option>
+                    <?php foreach ($suppliers as $s): ?>
+                        <option value="<?= $s->CUST ?>">
+                            <?= $s->CUST ?> - <?= $s->FULL_NAME ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
 
-    <!-- PO NUMBER -->
-    <div class="col-md-2">
-        <label class="form-label">No PO</label>
-        <input type="text" id="filter_po" class="form-control" placeholder="Search PO">
-    </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">PO Number</label>
+                <input
+                    type="text"
+                    id="filter_po"
+                    class="form-control"
+                    placeholder="Search PO..."
+                >
+            </div>
 
-    <!-- DATE FROM -->
-    <div class="col-md-2">
-        <label class="form-label">Date From</label>
-        <input type="date" id="date_from" class="form-control" placeholder="dd/mm/yyyy">
-    </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold">Date From</label>
+                <input
+                    type="date"
+                    id="filter_date_from"
+                    class="form-control"
+                >
+            </div>
 
-    <!-- DATE TO -->
-    <div class="col-md-2">
-        <label class="form-label">Date To</label>
-        <input type="date" id="date_to" class="form-control" placeholder="dd/mm/yyyy">
-    </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold">Date To</label>
+                <input
+                    type="date"
+                    id="filter_date_to"
+                    class="form-control"
+                >
+            </div>
 
-    <!-- BUTTON FILTER -->
-    <div class="col-md-1">
-        <label class="form-label d-block">&nbsp;</label>
-        <button class="btn btn-primary w-100" id="btnFilter" style="margin-top: -23px">
-            <i class="fa fa-search"></i> Filter
-        </button>
-    </div>
+            <div class="col-md-10"></div>
 
-    <div class="col-md-1">
-        <label class="form-label d-block">&nbsp;</label>
-        <div class="btn-group w-100">
-            <button type="button" class="btn btn-primary w-100" data-bs-toggle="dropdown" aria-expanded="false" style="margin-top: -23px">
-                <i class="ti ti-download"></i>
-            </button>
-            <ul class="dropdown-menu w-100">
-                <li>
-                    <a class="dropdown-item" href="#" id="exportExcel">
-                        <i class="fa fa-file-excel"></i> Export Excel
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item" href="#" id="exportPDF">
-                        <i class="fa fa-file-pdf"></i> Export PDF
-                    </a>
-                </li>
-            </ul>
+            <div class="col-md-2">
+                <div class="btn-group w-100">
+                    <button
+                        class="btn btn-success dropdown-toggle w-100"
+                        data-bs-toggle="dropdown"
+                    >
+                        <i class="fa fa-download me-1"></i>
+                        Export
+                    </button>
+
+                    <ul class="dropdown-menu w-100">
+                        <li>
+                            <a href="#" class="dropdown-item" id="exportExcel">
+                                <i class="fa fa-file-excel text-success me-2"></i>
+                                Export Excel
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="dropdown-item" id="exportPDF">
+                                <i class="fa fa-file-pdf text-danger me-2"></i>
+                                Export PDF
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
         </div>
     </div>
 
-</div>
+    <!-- LOADING -->
+    <div id="poLoading" class="report-loading d-none">
+        <div class="text-center">
+            <div class="spinner-border text-primary"></div>
+            <div class="fw-semibold mt-3">Loading report...</div>
+            <small class="text-muted">Please wait a moment</small>
+        </div>
+    </div>
 
-<!-- TABLE -->
-<div class="table-responsive">
-    <table class="table table-bordered" id="poReportTable">
-        <thead>
-            <tr>
-                <th style="text-align: center">PLANT</th>
-                <th style="text-align: center">DATE</th>
-                <th style="text-align: center">NO. PO</th>
-                <th style="text-align: center">SUPPLIER</th>
-                <th style="text-align: center">MATERIAL</th>
-                <th style="text-align: center">JUMLAH</th>
-                <th style="text-align: center">BERAT</th>
-                <th style="text-align: center">HARGA</th>
-                <th style="text-align: center">TOTAL</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-        <tfoot>
-            <tr class="table-secondary fw-bold">
-                <td colspan="5" class="text-end detail-row" style="vertical-align: middle">GRAND TOTAL</td>
-                <td class="text-end detail-row" style="vertical-align: middle" id="gt_jumlah">0.00</td>
-                <td class="text-end detail-row" style="vertical-align: middle" id="gt_berat">0.00</td>
-                <td class="text-end detail-row" style="vertical-align: middle"></td>
-                <td class="text-end detail-row" style="vertical-align: middle" id="gt_total">0</td>
-            </tr>
-    </tfoot>
-    </table>
-</div>
+    <!-- CONTENT -->
+    <div id="poReportWrapper"></div>
 
-<div class="d-flex justify-content-between mt-3">
-    <div id="info"></div>
-    <div id="pagination"></div>
+    <!-- PAGINATION -->
+    <div class="d-flex justify-content-between align-items-center mt-4">
+        <div id="pageInfo" class="small text-muted"></div>
+        <div id="pagination"></div>
+    </div>
+
 </div>
 
 <style>
-    .detail-row {
-        border: 2px solid #efefef !important;
-        vertical-align: middle !important;
-    }
+
+.po-report-wrap{
+    padding:4px;
+}
+
+.report-filter-card{
+    background:#fff;
+    border:1px solid #edf2f7;
+    border-radius:18px;
+    padding:24px;
+    box-shadow:0 8px 25px rgba(15,23,42,.05);
+    margin-bottom:24px;
+}
+
+.report-loading{
+    min-height:280px;
+    background:#fff;
+    border-radius:18px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    border:1px solid #edf2f7;
+}
+
+#poReportWrapper.loading{
+    opacity:.35;
+    pointer-events:none;
+    transition:.25s;
+}
+.po-card{
+    border:1px solid #e9ecef;
+    border-radius:18px;
+    overflow:hidden;
+    margin-bottom:22px;
+    box-shadow:0 8px 30px rgba(0,0,0,.05);
+}
+
+.po-head{
+    background:linear-gradient(135deg,#0F4C81,#1d6fb1);
+    color:#fff;
+    padding:18px 22px;
+}
+
+.po-title{
+    font-size:18px;
+    font-weight:700;
+}
+
+.po-body{
+    padding:20px;
+    background:#fff;
+}
+
+.status-badge{
+    padding:5px 12px;
+    border-radius:30px;
+    font-size:12px;
+    font-weight:700;
+}
+
+.status-open{
+    background:#fff3cd;
+    color:#9a6700;
+}
+
+.status-received{
+    background:#d1e7dd;
+    color:#0f5132;
+}
+
+.table-detail th{
+    background:#f8f9fa;
+    font-size:13px;
+    text-transform:uppercase;
+}
+
+.table-detail td{
+    vertical-align:middle;
+}
+
+.subtotal-row{
+    background:#f8fafc;
+    font-weight:700;
+}
+
+.po-meta-grid{
+    margin-top:14px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px 28px;
+    font-size:13px;
+}
+
+.meta-label{
+    display:inline-block;
+    width:85px;
+    font-weight:700;
+    color:rgba(255,255,255,.85);
+    letter-spacing:.4px;
+}
+
+.meta-value{
+    font-weight:500;
+    color:#fff;
+}
 </style>
 
 <script>
-    var state = {
-        page: 1,
-        limit: 10,
-        order: 'PO_DATE',
-        dir: 'DESC',
-        plant: $('#filter_plant').val(),
-        supplier: '',
-        po: '',
-        date_from: '',
-        date_to: ''
-    };
+const POReport = {
 
-    let typingTimer;
-    const typingDelay = 300; // ms
+    state:{
+        page:1,
+        limit:10
+    },
 
-    $('#filter_po').on('keyup', function () {
-        clearTimeout(typingTimer);
+    init(){
+        this.initSelect2();
+        this.bind();
 
-        typingTimer = setTimeout(function () {
-            state.page = 1;
-            state.po   = $('#filter_po').val();
-            loadPage(1);
-        }, typingDelay);
-    });
+        setTimeout(()=>{
+            this.setDefault();
+            this.load();
+        },100);
+    },
 
-    $('#filter_po').on('input', function () {
-        if ($(this).val() === '') {
-            state.page = 1;
-            state.po   = '';
-            loadPage(1);
+    setDefault(){
+        const now = new Date();
+
+        const yyyy = now.getFullYear();
+        const mm   = String(now.getMonth()+1).padStart(2,'0');
+        const dd   = String(now.getDate()).padStart(2,'0');
+
+        const today = `${yyyy}-${mm}-${dd}`;
+        const first = `${yyyy}-${mm}-01`;
+
+        $('#filter_date_from').val(first);
+        $('#filter_date_to').val(today);
+
+        // skip CODE = *
+        const $plant = $('#filter_plant');
+
+        const firstValid = $plant.find('option').filter(function () {
+            const val = ($(this).val() || '').trim();
+
+            return val !== '' && val !== '*';
+        }).first();
+
+        if(firstValid.length){
+            $plant.val(firstValid.val()).trigger('change.select2');
         }
-    });
 
-    $('#btnFilter').on('click', function () {
-        state.page      = 1;
-        state.plant     = $('#filter_plant').val();
-        state.supplier  = $('#filter_supplier').val();
-        state.po        = $('#filter_po').val();
-        state.date_from = $('#date_from').val();
-        state.date_to   = $('#date_to').val();
-        loadPage(1);
-    });
+        console.log('DEFAULT PLANT =', $plant.val());
+    },
 
-    $('#search').on('keyup', function(){
-        state.search = $(this).val();
-        loadPage(1);
-    });
-
-    $(document).ready(function () {
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const dd = String(today.getDate()).padStart(2, '0');
-
-        const dateTo = `${yyyy}-${mm}-${dd}`;
-
-        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-        const fy = firstDay.getFullYear();
-        const fm = String(firstDay.getMonth() + 1).padStart(2, '0');
-        const fd = String(firstDay.getDate()).padStart(2, '0');
-
-        const dateFrom = `${fy}-${fm}-${fd}`;
-
-        $('#date_from').val(dateFrom);
-        $('#date_to').val(dateTo);
-
-        /* =====================
-        USER INFO
-        ===================== */
-        const roleId    = '<?= $this->session->userdata("role_id"); ?>';
-        const userPlant = '<?= $this->session->userdata("plant"); ?>';
-
-        /* =====================
-        INIT SELECT2 PLANT
-        ===================== */
+    initSelect2(){
         $('#filter_plant').select2({
-            width: '100%',
-            placeholder: '-- ALL PLANT --',
-            allowClear: roleId === '1'
+            width:'100%'
         });
 
-        if (roleId !== '1') {
-            $('#filter_plant')
-                .val(userPlant)
-                .trigger('change')
-                .prop('disabled', true);
-        } else {
-            $('#filter_plant').val('').trigger('change');
-        }
-
-        /* =====================
-        INIT SELECT2 SUPPLIER
-        ===================== */
         $('#filter_supplier').select2({
-            width: '100%',
-            placeholder: '-- ALL SUPPLIER --',
-            allowClear: true
+            width:'100%',
+            placeholder:'Choose Supplier',
+            allowClear:true
+        });
+    },
+
+    showLoading(){
+        $('#poLoading').removeClass('d-none');
+        $('#poReportWrapper').addClass('loading');
+    },
+
+    hideLoading(){
+        $('#poLoading').addClass('d-none');
+        $('#poReportWrapper').removeClass('loading');
+    },
+
+    bind(){
+        let timer;
+
+        $('#filter_po').on('keyup', ()=>{
+            clearTimeout(timer);
+            timer = setTimeout(()=>{
+                this.state.page = 1;
+                this.load();
+            },300);
         });
 
-        $('#filter_plant').on('change', function () {
-            loadPage();
+        $('#filter_plant,#filter_supplier,#filter_date_from,#filter_date_to')
+            .on('change', ()=>{
+                this.state.page = 1;
+                this.load();
+            });
+
+        $('#exportExcel').on('click',(e)=>{
+            e.preventDefault();
+            window.open(
+                '<?= base_url("report-inventory/export_excel_po"); ?>?'+this.query(),
+                '_blank'
+            );
         });
 
-        // DATE CHANGE
-        $('#date_from, #date_to').on('change', function () {
-            loadPage();
+        $('#exportPDF').on('click',(e)=>{
+            e.preventDefault();
+            window.open(
+                '<?= base_url("report-inventory/export_pdf_po"); ?>?'+this.query(),
+                '_blank'
+            );
         });
 
-        /* =====================
-        AUTO LOAD DATA
-        ===================== */
-        loadPage();
-    });
+        $(document).on('click','#pagination a',(e)=>{
+            e.preventDefault();
 
-    /* =========================
-    UTIL
-    ========================= */
-    function formatDate(dateString){
-        if(!dateString) return '-';
-        const d = new Date(dateString);
-        const day = String(d.getDate()).padStart(2,'0');
-        const month = String(d.getMonth()+1).padStart(2,'0');
-        const year = d.getFullYear();
-        return `${day}/${month}/${year}`;
-    }
+            const page = $(e.currentTarget).data('page');
 
-    function formatRupiah(x){
-        let n = parseFloat(x || 0).toFixed(0).toString().split('.');
-        return n[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    }
-
-    function formatDecimal(x){
-        return parseFloat(x || 0).toFixed(2);
-    }
-
-    function getExportParams() {
-        return $.param({
-            plant     : $('#filter_plant').val(),
-            supplier  : $('#filter_supplier').val(),
-            po        : $('#filter_po').val(),
-            date_from : $('#date_from').val(),
-            date_to   : $('#date_to').val()
-        });
-    }
-
-    $('#exportExcel').on('click', function(e){
-        e.preventDefault();
-        window.open('<?= base_url("report-inventory/export_excel_po"); ?>?' + getExportParams(), '_blank');
-    });
-
-    $('#exportPDF').on('click', function(e){
-        e.preventDefault();
-        window.open('<?= base_url("report-inventory/export_pdf_po"); ?>?' + getExportParams(), '_blank');
-    });
-
-    function renderGrandTotal(grand){
-        if(!grand) return;
-
-        $('#gt_jumlah').text(formatDecimal(grand.jumlah));
-        $('#gt_berat').text(formatDecimal(grand.berat));
-        $('#gt_total').text(formatRupiah(grand.total));
-    }
-
-    /* =========================
-    LOAD DATA
-    ========================= */
-    function loadPage(p = 1) {
-        state.page = p;
-        const params = {
-            page      : state.page,
-            limit     : state.limit,
-            plant     : $('#filter_plant').val(),
-            supplier  : $('#filter_supplier').val(),
-            po        : $('#filter_po').val(),
-            date_from : $('#date_from').val(),
-            date_to   : $('#date_to').val()
-        };
-
-        console.log('LOAD DATA PARAMS:', params);
-
-        $.get('<?= base_url("report-inventory/load_data"); ?>', params, function (resp) {
-            resp = typeof resp === 'string' ? JSON.parse(resp) : resp;
-
-            const tbody = $('#poReportTable tbody').empty();
-
-            if (!resp.rows || resp.rows.length === 0) {
-                tbody.html('<tr><td colspan="9" class="text-center">No data found</td></tr>');
-                renderGrandTotal({jumlah:0, berat:0, total:0});
-            } else {
-                renderPOReport(resp.rows);
+            if(page){
+                this.state.page = page;
+                this.load();
             }
-
-            renderGrandTotal(resp.grand);
-
-            // 🔥 WAJIB DI LUAR IF
-            $('#pagination').html(resp.pagination || '');
-            $('#info').html(`Showing ${((state.page-1)*state.limit+1)} 
-                to ${Math.min(state.page*state.limit, resp.total)} 
-                of ${resp.total} entries`);
         });
-    }
+    },
 
-    function renderPOReport(items){
-        const tbody = $('#poReportTable tbody').empty();
+    query(){
+        return $.param({
+            page      : this.state.page,
+            limit     : this.state.limit,
+            plant     : $('#filter_plant').val(),
+            supplier  : $('#filter_supplier').val(),
+            po        : $('#filter_po').val(),
+            date_from : $('#filter_date_from').val(),
+            date_to   : $('#filter_date_to').val()
+        });
+    },
+
+    money(x){
+        return Number(x || 0).toLocaleString('id-ID');
+    },
+
+    decimal(x){
+        return Number(x || 0).toLocaleString('id-ID',{
+            minimumFractionDigits:2,
+            maximumFractionDigits:2
+        });
+    },
+
+    dateIndoLong(date){
+        if(!date) return '-';
+
+        const bulan = [
+            'JANUARI','FEBRUARI','MARET','APRIL','MEI','JUNI',
+            'JULI','AGUSTUS','SEPTEMBER','OKTOBER','NOVEMBER','DESEMBER'
+        ];
+
+        const d = new Date(date);
+
+        return `${String(d.getDate()).padStart(2,'0')} ${bulan[d.getMonth()]} ${d.getFullYear()}`;
+    },
+
+    render(rows){
+        const wrap = $('#poReportWrapper').empty();
+
+        if(!rows || !rows.length){
+            wrap.html(`
+                <div class="text-center py-5 text-muted">
+                    No data found
+                </div>
+            `);
+            return;
+        }
 
         const grouped = {};
-        items.forEach(r=>{
-            const key = r.PO + '|' + r.PLANT;
-            if(!grouped[key]) grouped[key] = [];
-            grouped[key].push(r);
+
+        rows.forEach(r=>{
+            const key = r.PO+'|'+r.PLANT;
+
+            if(!grouped[key]){
+                grouped[key] = {
+                    PO: r.PO,
+                    PLANT_NAME: r.PLANT_NAME,
+                    PO_DATE: r.PO_DATE,
+                    PO_NAME: r.PO_NAME,
+                    SUPPLIER: r.SUPPLIER,
+                    SUPPLIER_NAME: r.SUPPLIER_NAME,
+                    STATUS: r.STATUS,
+                    REMARK: r.REMARK,
+                    DETAIL:[]
+                };
+            }
+
+            grouped[key].DETAIL.push(r);
         });
 
-        Object.values(grouped).forEach(group=>{
-            const rowspan = group.length;
+        Object.values(grouped).forEach(po=>{
 
-            group.forEach((r, index)=>{
-                let tr = '<tr>';
+            let badge = po.STATUS
+                ? `<span class="status-badge status-received">RECEIVED</span>`
+                : `<span class="status-badge status-open">OPEN</span>`;
 
-                if(index === 0){
-                    tr += `
-                        <td rowspan="${rowspan}" class="text-center detail-row" style="vertical-align: middle">${r.PLANT_NAME}</td>
-                        <td rowspan="${rowspan}" class="text-center detail-row" style="vertical-align: middle">${formatDate(r.PO_DATE)}</td>
-                        <td rowspan="${rowspan}" class="text-center detail-row" style="vertical-align: middle"><b>#${r.PO}</b></td>
-                        <td rowspan="${rowspan}" class="text-center detail-row" style="vertical-align: middle">${r.SUPPLIER_NAME} <br> <b>${r.SUPPLIER}</b></td>
-                    `;
-                }
+            let detailRows = '';
+            let subQty = 0;
+            let subWeight = 0;
+            let subTotal = 0;
 
-                tr += `
-                    <td class="text-center detail-row">${r.MATERIAL_NAME} <br> <b>${r.MATERIAL}</b></td>
-                    <td class="text-end detail-row">${formatDecimal(r.JUMLAH)}</td>
-                    <td class="text-end detail-row">${formatDecimal(r.BERAT)}</td>
-                    <td class="text-end detail-row">${formatRupiah(r.HARGA)}</td>
-                    <td class="text-end detail-row">${formatRupiah(r.TOTAL)}</td>
+            po.DETAIL.forEach(r=>{
+
+                subQty += Number(r.JUMLAH || 0);
+                subWeight += Number(r.BERAT || 0);
+                subTotal += Number(r.TOTAL || 0);
+
+                detailRows += `
+                    <tr>
+                        <td>${r.CUSTOMER_NAME}</td>
+                        <td>${r.MATERIAL_NAME}</td>
+                        <td class="text-end">${this.decimal(r.JUMLAH)}</td>
+                        <td class="text-end">${this.decimal(r.BERAT)}</td>
+                        <td class="text-end">${this.money(r.HARGA)}</td>
+                        <td class="text-end fw-semibold">${this.money(r.TOTAL)}</td>
+                    </tr>
                 `;
-
-                tr += '</tr>';
-                tbody.append(tr);
             });
+
+            wrap.append(`
+                <div class="po-card">
+                    <div class="po-head">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="po-title">#${po.PO}</div>
+                            ${badge}
+                        </div>
+
+                        <div class="po-meta-grid">
+                            <div>
+                                <span class="meta-label">PLANT</span>
+                                <span class="meta-value">: ${po.PLANT_NAME}</span>
+                            </div>
+
+                            <div>
+                                <span class="meta-label">SUPPLIER</span>
+                                <span class="meta-value">: ${po.SUPPLIER} - ${po.SUPPLIER_NAME}</span>
+                            </div>
+
+                            <div>
+                                <span class="meta-label">PO DATE</span>
+                                <span class="meta-value">: ${this.dateIndoLong(po.PO_DATE)}</span>
+                            </div>
+
+                            <div>
+                                <span class="meta-label">PO TYPE</span>
+                                <span class="meta-value">: ${po.PO_NAME || '-'}</span>
+                            </div>
+                            <div>
+                                <span class="meta-label">REMARK</span>
+                                <span class="meta-value">: ${po.REMARK || '-'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="po-body">
+                        <table class="table table-bordered table-hover table-detail mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Material</th>
+                                    <th class="text-end">Qty</th>
+                                    <th class="text-end">Weight</th>
+                                    <th class="text-end">Price</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${detailRows}
+                                <tr class="subtotal-row">
+                                    <td colspan="2">SUBTOTAL</td>
+                                    <td class="text-end">${this.decimal(subQty)}</td>
+                                    <td class="text-end">${this.decimal(subWeight)}</td>
+                                    <td></td>
+                                    <td class="text-end">${this.money(subTotal)}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `);
         });
-    }
+    },
 
-    $(document).on('click', '#pagination a', function(e){
-        e.preventDefault();
-        const page = $(this).data('page');
-        if(page){
-            loadPage(page);
-        }
-    });
+    load(){
+        this.showLoading();
 
+        $.get(
+            '<?= base_url("report-inventory/load_data"); ?>',
+            this.query(),
+            (resp)=>{
+                resp = typeof resp === 'string'
+                    ? JSON.parse(resp)
+                    : resp;
+
+                this.render(resp.rows || []);
+                $('#pagination').html(resp.pagination || '');
+                $('#pageInfo').html(resp.info || '');
+            }
+        )
+        .fail(()=>{
+            $('#poReportWrapper').html(`
+                <div class="alert alert-danger mb-0">
+                    Failed load report data
+                </div>
+            `);
+        })
+        .always(()=>{
+            this.hideLoading();
+        });
+    },
+};
+
+$(function(){
+    POReport.init();
+});
 </script>
-
-

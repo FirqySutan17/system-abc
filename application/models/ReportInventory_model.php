@@ -8,7 +8,7 @@ class ReportInventory_model extends CI_Model {
         return $this->db
             ->where('HEAD_CODE', 'AJ')
             ->where('CODE', $plant)
-            ->get('cd_code')
+            ->get('abc_cd_code')
             ->row();
     }
 
@@ -16,8 +16,8 @@ class ReportInventory_model extends CI_Model {
     {
         return $this->db
             ->select('CODE, CODE_NAME')
-            ->from('cd_code')
-            ->where('HEAD_CODE', 'AJ')
+            ->from('abc_cd_code')
+            ->where('HEAD_CODE', 'PLANT')
             ->order_by('CODE', 'ASC')
             ->get()
             ->result();
@@ -27,7 +27,7 @@ class ReportInventory_model extends CI_Model {
     {
         return $this->db
             ->select('CUST, FULL_NAME')
-            ->from('cd_customer')
+            ->from('abc_cd_customer')
             ->group_start()
                 ->where('CUST_KIND', 'SUPPLIER')
                 ->or_where('CUST_CLASS', 'SUPPLIER')
@@ -41,7 +41,7 @@ class ReportInventory_model extends CI_Model {
     {
         return $this->db
             ->select('CUST, FULL_NAME')
-            ->from('cd_customer')
+            ->from('abc_cd_customer')
             ->group_start()
                 ->where('CUST_KIND', 'CUSTOMER')
                 ->or_where('CUST_CLASS', 'CUSTOMER')
@@ -58,223 +58,362 @@ class ReportInventory_model extends CI_Model {
         return $d ? $d->format('Y-m-d') : null;
     }
 
-    public function get_po_report($limit, $start, $filters, $order = 'PO_DATE', $dir = 'DESC')
-    {
-        // =========================
-        // STEP 1: HEADER (PO ONLY)
-        // =========================
-        $sqlHeader = "
-            SELECT a.PO, a.PLANT
-            FROM mst_po a
-            WHERE a.DELETED IS NULL
-        ";
+    public function get_po_report(
+        $limit = 0,
+        $start = 0,
+        $filters = [],
+        $order = 'a.PO_DATE',
+        $dir = 'DESC'
+    ){
+        $allowedOrder = [
+            'PO_DATE'  => 'a.PO_DATE',
+            'PO'       => 'a.PO',
+            'PLANT'    => 'a.PLANT',
+            'SUPPLIER' => 'a.SUPPLIER',
+            'STATUS'   => 'a.STATUS'
+        ];
+
+        $orderKey = str_replace('a.', '', $order);
+        $orderBy  = $allowedOrder[$orderKey] ?? 'a.PO_DATE';
+        $dir      = strtoupper($dir) === 'ASC' ? 'ASC' : 'DESC';
+
+        /*
+        |--------------------------------------------------------------------------
+        | STEP 1 : HEADER ONLY (pagination = 10 card)
+        |--------------------------------------------------------------------------
+        */
+        $header = $this->db
+            ->select('a.PO, a.PLANT')
+            ->from('abc_mst_po a')
+            ->where('a.DELETED IS NULL', null, false);
 
         if (!empty($filters['plant'])) {
-            $sqlHeader .= " AND a.PLANT = " . $this->db->escape($filters['plant']);
+            $this->db->where('a.PLANT', $filters['plant']);
         }
+
         if (!empty($filters['supplier'])) {
-            $sqlHeader .= " AND a.SUPPLIER LIKE " . $this->db->escape('%'.$filters['supplier'].'%');
+            $this->db->where('a.SUPPLIER', $filters['supplier']);
         }
+
         if (!empty($filters['po'])) {
-            $sqlHeader .= " AND a.PO LIKE " . $this->db->escape('%'.$filters['po'].'%');
+            $this->db->like('a.PO', $filters['po']);
         }
+
         if (!empty($filters['date_from'])) {
-            $sqlHeader .= " AND DATE(a.PO_DATE) >= " . $this->db->escape($filters['date_from']);
+            $this->db->where('DATE(a.PO_DATE) >=', $filters['date_from']);
         }
+
         if (!empty($filters['date_to'])) {
-            $sqlHeader .= " AND DATE(a.PO_DATE) <= " . $this->db->escape($filters['date_to']);
+            $this->db->where('DATE(a.PO_DATE) <=', $filters['date_to']);
         }
 
-        $allowed_order = ['PO', 'PLANT', 'PO_DATE', 'SUPPLIER'];
-        if (!in_array($order, $allowed_order)) $order = 'PO_DATE';
-        $dir = strtoupper($dir) === 'DESC' ? 'DESC' : 'ASC';
-
-        $sqlHeader .= " ORDER BY a.$order $dir";
+        $this->db->order_by($orderBy, $dir);
+        $this->db->order_by('a.PO', 'DESC');
 
         if ($limit > 0) {
-            $sqlHeader .= " LIMIT " . (int)$start . ", " . (int)$limit;
+            $this->db->limit($limit, $start);
         }
 
-        $headers = $this->db->query($sqlHeader)->result();
-        if (empty($headers)) return [];
+        $headers = $this->db->get()->result();
 
-        // =========================
-        // STEP 2: DETAIL JOIN
-        // =========================
-        $whereIn = [];
+        if (empty($headers)) {
+            return [];
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | BUILD WHERE IN HEADER
+        |--------------------------------------------------------------------------
+        */
+        $pairs = [];
+
         foreach ($headers as $h) {
-            $whereIn[] = "(" .
-                $this->db->escape($h->PO) . "," .
-                $this->db->escape($h->PLANT) .
-            ")";
+            $pairs[] = "("
+                .$this->db->escape($h->PO)
+                .","
+                .$this->db->escape($h->PLANT)
+                .")";
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | STEP 2 : FULL DETAIL
+        |--------------------------------------------------------------------------
+        */
         $sql = "
-            SELECT 
-                a.PO,
+            SELECT
                 a.PLANT,
-                c.CODE_NAME AS PLANT_NAME,
+                plant.CODE_NAME AS PLANT_NAME,
+
+                a.PO,
                 a.PO_DATE,
+                a.PO_TYPE,
+                type.CODE_NAME AS PO_NAME,
+
                 a.SUPPLIER,
-                d.FULL_NAME AS SUPPLIER_NAME,
+                supplier.FULL_NAME AS SUPPLIER_NAME,
+
+                a.STATUS,
+                a.REMARK,
+
+                b.SEQ_NO,
+                b.CUSTOMER,
+                customer.FULL_NAME AS CUSTOMER_NAME,
+
                 b.MATERIAL,
-                e.MATERIAL_NAME,
+                material.MATERIAL_NAME,
+
                 b.JUMLAH,
                 b.BERAT,
                 b.HARGA,
                 b.TOTAL
-            FROM mst_po a
-            JOIN mst_po_detail b 
-                ON a.PO = b.PO AND a.PLANT = b.PLANT
-            LEFT JOIN cd_code c 
-                ON c.HEAD_CODE = 'AJ' 
-                AND c.CODE COLLATE utf8mb4_uca1400_ai_ci = a.PLANT
-            LEFT JOIN cd_customer d 
-                ON d.CUST COLLATE utf8mb4_uca1400_ai_ci = a.SUPPLIER
-            LEFT JOIN cd_material e 
-                ON e.MATERIAL COLLATE utf8mb4_uca1400_ai_ci = b.MATERIAL
-            WHERE (a.PO, a.PLANT) IN (" . implode(',', $whereIn) . ")
-            ORDER BY a.$order $dir
+
+            FROM abc_mst_po a
+
+            INNER JOIN abc_mst_po_detail b
+                ON a.PO = b.PO
+                AND a.PLANT = b.PLANT
+
+            LEFT JOIN abc_cd_code plant
+                ON plant.HEAD_CODE = 'PLANT'
+                AND plant.CODE COLLATE utf8mb4_unicode_ci =
+                a.PLANT COLLATE utf8mb4_unicode_ci
+
+            LEFT JOIN abc_cd_code type
+                ON type.HEAD_CODE = 'PO'
+                AND type.CODE COLLATE utf8mb4_unicode_ci =
+                a.PO_TYPE COLLATE utf8mb4_unicode_ci
+
+            LEFT JOIN abc_cd_customer supplier
+                ON supplier.CUST COLLATE utf8mb4_unicode_ci =
+                a.SUPPLIER COLLATE utf8mb4_unicode_ci
+
+            LEFT JOIN abc_cd_customer customer
+                ON customer.CUST COLLATE utf8mb4_unicode_ci =
+                b.CUSTOMER COLLATE utf8mb4_unicode_ci
+
+            LEFT JOIN abc_cd_material material
+                ON material.MATERIAL COLLATE utf8mb4_unicode_ci =
+                b.MATERIAL COLLATE utf8mb4_unicode_ci
+
+            WHERE (a.PO,a.PLANT) IN (" . implode(',', $pairs) . ")
+
+            ORDER BY
+                $orderBy $dir,
+                a.PO DESC,
+                b.SEQ_NO ASC
         ";
 
         return $this->db->query($sql)->result();
     }
 
-    public function count_po_report($filters)
+    public function count_po_report($filters = [])
     {
-        $sql = "
-            SELECT COUNT(DISTINCT a.PO, a.PLANT) AS total
-            FROM mst_po a
-            WHERE a.DELETED IS NULL
-        ";
+        $this->db
+            ->select('COUNT(*) total', false)
+            ->from('abc_mst_po a')
+            ->where('a.DELETED IS NULL', null, false);
 
         if (!empty($filters['plant'])) {
-            $sql .= " AND a.PLANT = " . $this->db->escape($filters['plant']);
-        }
-        if (!empty($filters['supplier'])) {
-            $sql .= " AND a.SUPPLIER LIKE " . $this->db->escape('%'.$filters['supplier'].'%');
-        }
-        if (!empty($filters['po'])) {
-            $sql .= " AND a.PO LIKE " . $this->db->escape('%'.$filters['po'].'%');
-        }
-        if (!empty($filters['date_from'])) {
-            $sql .= " AND DATE(a.PO_DATE) >= " . $this->db->escape($filters['date_from']);
-        }
-        if (!empty($filters['date_to'])) {
-            $sql .= " AND DATE(a.PO_DATE) <= " . $this->db->escape($filters['date_to']);
+            $this->db->where('a.PLANT', $filters['plant']);
         }
 
-        return (int)$this->db->query($sql)->row()->total;
+        if (!empty($filters['supplier'])) {
+            $this->db->where('a.SUPPLIER', $filters['supplier']);
+        }
+
+        if (!empty($filters['po'])) {
+            $this->db->like('a.PO', $filters['po']);
+        }
+
+        if (!empty($filters['date_from'])) {
+            $this->db->where('DATE(a.PO_DATE) >=', $filters['date_from']);
+        }
+
+        if (!empty($filters['date_to'])) {
+            $this->db->where('DATE(a.PO_DATE) <=', $filters['date_to']);
+        }
+
+        return (int)$this->db->get()->row()->total;
     }
 
-    public function get_receive_report($limit, $start, $filters, $order = 'RECEIVE_DATE', $dir = 'DESC')
-    {
-        // =====================
-        // SUBQUERY HEADER RECEIVE
-        // =====================
+    public function get_receive_report(
+        $limit = 0,
+        $start = 0,
+        $filters = [],
+        $order = 'RECEIVE_DATE',
+        $dir = 'DESC'
+    ){
+        $allowedOrder = [
+            'RECEIVE'      => 'r.RECEIVE',
+            'PLANT'        => 'r.PLANT',
+            'RECEIVE_DATE' => 'r.RECEIVE_DATE',
+            'PO'           => 'r.PO',
+            'SUPPLIER'     => 'r.SUPPLIER'
+        ];
+
+        $orderBy = $allowedOrder[$order] ?? 'r.RECEIVE_DATE';
+        $dir = strtoupper($dir) === 'ASC' ? 'ASC' : 'DESC';
+
+        /*
+        |--------------------------------------------------------------------------
+        | STEP 1 HEADER
+        |--------------------------------------------------------------------------
+        */
         $sql = "
-            SELECT r.RECEIVE
-            FROM mst_receive r
+            SELECT r.RECEIVE, r.PLANT
+            FROM abc_mst_receive r
             WHERE r.DELETED IS NULL
         ";
 
-        // ===== FILTER HEADER =====
         if (!empty($filters['plant'])) {
-            $sql .= " AND r.PLANT = " . $this->db->escape($filters['plant']);
+            $sql .= " AND r.PLANT = ".$this->db->escape($filters['plant']);
         }
+
         if (!empty($filters['supplier'])) {
-            $sql .= " AND r.SUPPLIER LIKE " . $this->db->escape('%'.$filters['supplier'].'%');
+            $sql .= " AND r.SUPPLIER = ".$this->db->escape($filters['supplier']);
         }
+
         if (!empty($filters['receive'])) {
-            $sql .= " AND (r.PO LIKE " . $this->db->escape('%'.$filters['receive'].'%') . "
-                        OR r.RECEIVE LIKE " . $this->db->escape('%'.$filters['receive'].'%') . ")";
+            $search = $this->db->escape('%'.$filters['receive'].'%');
+
+            $sql .= " AND (
+                r.RECEIVE LIKE {$search}
+                OR r.PO LIKE {$search}
+            )";
         }
+
         if (!empty($filters['date_from'])) {
-            $sql .= " AND DATE(r.RECEIVE_DATE) >= " . $this->db->escape($filters['date_from']);
+            $sql .= " AND DATE(r.RECEIVE_DATE) >= ".$this->db->escape($filters['date_from']);
         }
+
         if (!empty($filters['date_to'])) {
-            $sql .= " AND DATE(r.RECEIVE_DATE) <= " . $this->db->escape($filters['date_to']);
+            $sql .= " AND DATE(r.RECEIVE_DATE) <= ".$this->db->escape($filters['date_to']);
         }
 
-        // ===== ORDER HEADER =====
-        $allowed_order = ['RECEIVE', 'PLANT', 'RECEIVE_DATE', 'PO', 'SUPPLIER'];
-        if (!in_array($order, $allowed_order)) $order = 'RECEIVE_DATE';
-        $dir = strtoupper($dir) === 'DESC' ? 'DESC' : 'ASC';
+        $sql .= " ORDER BY {$orderBy} {$dir}, r.RECEIVE DESC";
 
-        $sql .= " ORDER BY r.$order $dir";
-
-        // ===== LIMIT HEADER (INI KUNCI) =====
         if ($limit > 0) {
-            $sql .= " LIMIT " . (int)$start . ", " . (int)$limit;
+            $sql .= " LIMIT {$start}, {$limit}";
         }
 
-        $receiveHeaders = $this->db->query($sql)->result_array();
-        if (empty($receiveHeaders)) return [];
+        $headers = $this->db->query($sql)->result();
 
-        $receiveList = array_column($receiveHeaders, 'RECEIVE');
-        $receiveIn   = implode(',', array_map([$this->db, 'escape'], $receiveList));
+        if (!$headers) {
+            return [];
+        }
 
-        // =====================
-        // QUERY DETAIL
-        // =====================
-        $sqlDetail = "
+        $pairs = [];
+        foreach ($headers as $h) {
+            $pairs[] = "("
+                .$this->db->escape($h->RECEIVE)
+                .","
+                .$this->db->escape($h->PLANT)
+                .")";
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | STEP 2 DETAIL
+        |--------------------------------------------------------------------------
+        */
+        $sql = "
             SELECT
                 r.RECEIVE,
                 r.PLANT,
-                c.CODE_NAME AS PLANT_NAME,
+                plant.CODE_NAME AS PLANT_NAME,
                 r.RECEIVE_DATE,
                 r.PO,
+                r.NOTA,
                 r.SUPPLIER,
-                cust.FULL_NAME AS SUPPLIER_NAME,
+                supplier.FULL_NAME AS SUPPLIER_NAME,
+                r.PEMBAYARAN,
+                r.JENIS_PAY,
+                r.NO_REF,
+                r.SLIP_NO,
+                r.REMARK,
+                r.ATTACH_FILE_NAME,
 
+                d.SEQ_NO,
+                d.CUSTOMER,
+                customer.FULL_NAME AS CUSTOMER_NAME,
                 d.MATERIAL,
-                mat.MATERIAL_NAME,
+                material.MATERIAL_NAME,
                 d.JUMLAH,
                 d.BERAT,
+                d.SUSUT_JUMLAH,
+                d.SUSUT_BERAT,
                 d.HARGA,
-                d.TOTAL
-            FROM mst_receive r
-            LEFT JOIN mst_receive_detail d 
-                ON d.RECEIVE = r.RECEIVE 
+                d.TOTAL,
+                d.KETERANGAN,
+                d.STATUS
+
+            FROM abc_mst_receive r
+
+            INNER JOIN abc_mst_receive_detail d
+                ON d.RECEIVE = r.RECEIVE
                 AND d.PLANT = r.PLANT
                 AND d.DELETED IS NULL
-            LEFT JOIN cd_code c 
-                ON c.HEAD_CODE = 'AJ'
-                AND c.CODE COLLATE utf8mb4_uca1400_ai_ci = r.PLANT
-            LEFT JOIN cd_customer cust 
-                ON cust.CUST COLLATE utf8mb4_uca1400_ai_ci = r.SUPPLIER
-            LEFT JOIN cd_material mat 
-                ON mat.MATERIAL COLLATE utf8mb4_uca1400_ai_ci = d.MATERIAL
-            WHERE r.RECEIVE IN ($receiveIn)
-            ORDER BY r.$order $dir
+
+            LEFT JOIN abc_cd_code plant
+                ON plant.HEAD_CODE = 'PLANT'
+                AND plant.CODE COLLATE utf8mb4_unicode_ci =
+                r.PLANT COLLATE utf8mb4_unicode_ci
+
+            LEFT JOIN abc_cd_customer supplier
+                ON supplier.CUST COLLATE utf8mb4_unicode_ci =
+                r.SUPPLIER COLLATE utf8mb4_unicode_ci
+
+            LEFT JOIN abc_cd_customer customer
+                ON customer.CUST COLLATE utf8mb4_unicode_ci =
+                d.CUSTOMER COLLATE utf8mb4_unicode_ci
+
+            LEFT JOIN abc_cd_material material
+                ON material.MATERIAL COLLATE utf8mb4_unicode_ci =
+                d.MATERIAL COLLATE utf8mb4_unicode_ci
+
+            WHERE (r.RECEIVE,r.PLANT) IN (".implode(',', $pairs).")
+
+            ORDER BY
+                {$orderBy} {$dir},
+                r.RECEIVE DESC,
+                d.SEQ_NO ASC
         ";
 
-        return $this->db->query($sqlDetail)->result();
+        return $this->db->query($sql)->result();
     }
 
-    public function count_receive_report($filters)
+    public function count_receive_report($filters = [])
     {
         $sql = "
-            SELECT COUNT(*) AS total
-            FROM mst_receive r
+            SELECT COUNT(*) total
+            FROM abc_mst_receive r
             WHERE r.DELETED IS NULL
         ";
 
         if (!empty($filters['plant'])) {
-            $sql .= " AND r.PLANT = " . $this->db->escape($filters['plant']);
+            $sql .= " AND r.PLANT = ".$this->db->escape($filters['plant']);
         }
+
         if (!empty($filters['supplier'])) {
-            $sql .= " AND r.SUPPLIER LIKE " . $this->db->escape('%'.$filters['supplier'].'%');
+            $sql .= " AND r.SUPPLIER = ".$this->db->escape($filters['supplier']);
         }
+
         if (!empty($filters['receive'])) {
-            $sql .= " AND (r.PO LIKE " . $this->db->escape('%'.$filters['receive'].'%') . "
-                        OR r.RECEIVE LIKE " . $this->db->escape('%'.$filters['receive'].'%') . ")";
+            $search = $this->db->escape('%'.$filters['receive'].'%');
+
+            $sql .= " AND (
+                r.RECEIVE LIKE {$search}
+                OR r.PO LIKE {$search}
+            )";
         }
+
         if (!empty($filters['date_from'])) {
-            $sql .= " AND DATE(r.RECEIVE_DATE) >= " . $this->db->escape($filters['date_from']);
+            $sql .= " AND DATE(r.RECEIVE_DATE) >= ".$this->db->escape($filters['date_from']);
         }
+
         if (!empty($filters['date_to'])) {
-            $sql .= " AND DATE(r.RECEIVE_DATE) <= " . $this->db->escape($filters['date_to']);
+            $sql .= " AND DATE(r.RECEIVE_DATE) <= ".$this->db->escape($filters['date_to']);
         }
 
         return (int)$this->db->query($sql)->row()->total;
@@ -341,10 +480,10 @@ class ReportInventory_model extends CI_Model {
                 c.CODE_NAME AS PLANT_NAME,
                 cust.FULL_NAME AS SUPPLIER_NAME
             FROM mst_receive_lb r
-            LEFT JOIN cd_code c 
+            LEFT JOIN abc_cd_code c 
                 ON c.HEAD_CODE = 'AJ' 
                 AND c.CODE COLLATE utf8mb4_uca1400_ai_ci = r.PLANT
-            LEFT JOIN cd_customer cust 
+            LEFT JOIN abc_cd_customer cust 
                 ON cust.CUST COLLATE utf8mb4_uca1400_ai_ci = r.SUPPLIER
             WHERE r.DELETED IS NULL
             AND (r.RECEIVE, r.PLANT) IN ($in)
@@ -508,7 +647,7 @@ class ReportInventory_model extends CI_Model {
 
         $sql .= " GROUP BY plant, material, material_name
             ) AS tbl
-            LEFT JOIN cd_code c ON c.CODE = tbl.plant AND c.HEAD_CODE = 'AJ'
+            LEFT JOIN abc_cd_code c ON c.CODE = tbl.plant AND c.HEAD_CODE = 'AJ'
             GROUP BY tbl.plant, c.CODE_NAME, tbl.material, tbl.material_name
             ORDER BY tbl.material ASC
         ";

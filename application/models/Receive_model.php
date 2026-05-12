@@ -76,7 +76,7 @@ class Receive_model extends CI_Model {
         $this->db->join(
             'abc_cd_code cd',
             "cd.CODE COLLATE utf8mb4_unicode_ci = r.PLANT COLLATE utf8mb4_unicode_ci
-             AND cd.HEAD_CODE = 'AJ'",
+             AND cd.HEAD_CODE = 'PLANT'",
             'left',
             false
         );
@@ -399,12 +399,13 @@ class Receive_model extends CI_Model {
         return $this->db
         ->select('
             r.*,
+            c.CUST,
             c.FULL_NAME AS SUPPLIER_NAME,
             cd.CODE_NAME AS PLANT_NAME
         ')
         ->from('abc_mst_receive r')
         ->join('abc_cd_customer c', 'r.SUPPLIER = c.CUST', 'left')
-        ->join('abc_cd_code cd', "cd.CODE = r.PLANT AND cd.HEAD_CODE = 'AJ'", 'left')
+        ->join('abc_cd_code cd', "cd.CODE = r.PLANT AND cd.HEAD_CODE = 'PLANT'", 'left')
         ->where('r.PLANT', $plant)
         ->where('r.RECEIVE', $receive)
         ->get()->row_array();
@@ -413,16 +414,28 @@ class Receive_model extends CI_Model {
     public function get_receive_detail($plant, $receive)
     {
         return $this->db
-            ->select('d.*, m.MATERIAL_NAME')
+            ->select('
+                d.*,
+                m.MATERIAL_NAME,
+                c.FULL_NAME AS CUSTOMER_NAME
+            ')
             ->from('abc_mst_receive_detail d')
-            ->join('abc_cd_material m',
+            ->join(
+                'abc_cd_material m',
                 'm.MATERIAL COLLATE utf8mb4_unicode_ci = d.MATERIAL COLLATE utf8mb4_unicode_ci',
-                'left', false
+                'left',
+                false
+            )
+            ->join(
+                'abc_cd_customer c',
+                'c.CUST = d.CUSTOMER',
+                'left'
             )
             ->where('d.PLANT', $plant)
             ->where('d.RECEIVE', $receive)
             ->order_by('d.SEQ_NO', 'ASC')
-            ->get()->result_array();
+            ->get()
+            ->result_array();
     }
 
     public function update_po_status($po, $plant, $status = 'RECEIVED')

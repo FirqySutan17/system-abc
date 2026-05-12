@@ -18,7 +18,7 @@
                         Report Receive
                     </a>
                 </li>
-                <li class="nav-item">
+                <!-- <li class="nav-item">
                     <a class="nav-link" data-bs-toggle="tab" href="#tab-receive-lb">
                         Receive LB
                     </a>
@@ -27,7 +27,7 @@
                     <a class="nav-link" data-bs-toggle="tab" href="#tab-balance">
                         Material Balance
                     </a>
-                </li>
+                </li> -->
             </ul>
 
             <!-- TAB CONTENT -->
@@ -39,14 +39,6 @@
 
                 <div class="tab-pane fade" id="tab-receive">
                     <?php $this->load->view('admin/report_inventory/tab_receive'); ?>
-                </div>
-
-                <div class="tab-pane fade" id="tab-receive-lb">
-                    <?php $this->load->view('admin/report_inventory/tab_receive_lb'); ?>
-                </div>
-
-                <div class="tab-pane fade" id="tab-balance">
-                    <?php $this->load->view('admin/report_inventory/tab_material_balance'); ?>
                 </div>
 
             </div>
@@ -68,12 +60,6 @@ document.addEventListener('shown.bs.tab', function (event) {
         } else {
             console.warn('ReceiveReport belum tersedia');
             console.log('ReceiveReport global:', window.ReceiveReport);
-        }
-    }
-
-    if (target === '#tab-receive-lb') {
-        if (window.ReceiveLBReport) {
-            ReceiveLBReport.init(true); // force init
         }
     }
 });

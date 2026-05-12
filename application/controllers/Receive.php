@@ -123,18 +123,209 @@ class Receive extends MY_Controller {
      */
     public function get_po()
     {
-        $q = $this->input->get('q', true);
+        $q     = $this->input->get('q', true);
+        $plant = $this->input->get('plant', true);
 
-        $role_id = (int) $this->session->userdata('role_id');
-        $plant   = $this->input->get('plant', true); // ✅ AMBIL DARI JS
+        $this->db->select("
+            p.PO,
+            p.PO_DATE,
+            p.SUPPLIER,
+            s.FULL_NAME AS SUPPLIER_NAME
+        ");
 
-        if (empty($plant)) {
-            echo json_encode([]);
+        $this->db->from('abc_mst_po p');
+
+        $this->db->join(
+            'abc_cd_customer s',
+            's.CUST = p.SUPPLIER',
+            'left'
+        );
+
+        $this->db->where('p.DELETED IS NULL', null, false);
+
+        $this->db->where('p.STATUS', 0);
+
+        if(!empty($plant)){
+
+            $this->db->where(
+                'p.PLANT',
+                $plant
+            );
+
+        }
+
+        if(!empty($q)){
+
+            $this->db->group_start();
+
+            $this->db->like('p.PO', $q);
+
+            $this->db->or_like(
+                's.FULL_NAME',
+                $q
+            );
+
+            $this->db->group_end();
+
+        }
+
+        $this->db->order_by(
+            'p.PO_DATE',
+            'DESC'
+        );
+
+        $rows = $this->db
+            ->get()
+            ->result();
+
+        $result = [];
+
+        foreach($rows as $r){
+
+            $result[] = [
+
+                'id' => $r->PO,
+
+                'text' =>
+                    $r->PO .
+                    ' | ' .
+                    date(
+                        'd/m/Y',
+                        strtotime($r->PO_DATE)
+                    ) .
+                    ' | ' .
+                    $r->SUPPLIER_NAME
+
+            ];
+
+        }
+
+        echo json_encode($result);
+    }
+    public function get_po_detail()
+    {
+        $po    = $this->input->get('po', true);
+        $plant = $this->input->get('plant', true);
+
+        if(
+            empty($po) ||
+            empty($plant)
+        ){
+
+            echo json_encode([
+                'status'  => false,
+                'message' => 'PO / Plant kosong'
+            ]);
+
             return;
         }
 
-        $data = $this->Receive_model->search_po($role_id, $plant, $q, 20);
-        echo json_encode($data);
+        /*
+        |--------------------------------------------------------------------------
+        | HEADER
+        |--------------------------------------------------------------------------
+        */
+
+        $header = $this->db
+            ->select("
+                p.*,
+
+                supplier.FULL_NAME AS SUPPLIER_NAME,
+
+                material.MATERIAL_NAME,
+
+                type.CODE_NAME AS PO_TYPE_NAME
+            ")
+            ->from('abc_mst_po p')
+
+            ->join(
+                'abc_cd_customer supplier',
+                'supplier.CUST = p.SUPPLIER',
+                'left'
+            )
+
+            ->join(
+                'abc_cd_material material',
+                'material.MATERIAL = p.MATERIAL',
+                'left'
+            )
+
+            ->join(
+                'abc_cd_code type',
+                "type.CODE = p.PO_TYPE
+                AND type.HEAD_CODE = 'PO'",
+                'left'
+            )
+
+            ->where('p.PO', $po)
+
+            ->where('p.PLANT', $plant)
+
+            ->where('p.DELETED IS NULL', null, false)
+
+            ->get()
+
+            ->row();
+
+        if(!$header){
+
+            echo json_encode([
+                'status'  => false,
+                'message' => 'PO tidak ditemukan'
+            ]);
+
+            return;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        $detail = $this->db
+            ->select("
+                d.*,
+
+                customer.FULL_NAME AS CUSTOMER_NAME,
+
+                type.CODE_NAME AS PO_TYPE_NAME
+            ")
+
+            ->from('abc_mst_po_detail d')
+
+            ->join(
+                'abc_cd_customer customer',
+                'customer.CUST = d.CUSTOMER',
+                'left'
+            )
+
+            ->join(
+                'abc_cd_code type',
+                "type.CODE = d.PO_TYPE
+                AND type.HEAD_CODE = 'PO'",
+                'left'
+            )
+
+            ->where('d.PO', $po)
+
+            ->where('d.PLANT', $plant)
+
+            ->order_by('d.SEQ_NO', 'ASC')
+
+            ->get()
+
+            ->result();
+
+        echo json_encode([
+
+            'status' => true,
+
+            'header' => $header,
+
+            'detail' => $detail
+
+        ]);
     }
 
     /**
@@ -158,239 +349,411 @@ class Receive extends MY_Controller {
     {
         header('Content-Type: application/json');
 
-        $post     = $this->input->post(NULL, TRUE);
-        $username = $this->session->userdata('username');
-
-        /*
-        |--------------------------------------------------------------------------
-        | VALIDASI HEADER
-        |--------------------------------------------------------------------------
-        */
-        if (
-            empty($post['PLANT']) ||
-            empty($post['PO']) ||
-            empty($post['RECEIVE_DATE'])
-        ) {
-            echo json_encode([
-                'status'  => false,
-                'message' => 'Plant, PO, dan Tanggal Receive wajib diisi'
-            ]);
-            return;
-        }
-
-        $plant = trim($post['PLANT']);
-        $po    = trim($post['PO']);
-
-        /*
-        |--------------------------------------------------------------------------
-        | VALIDASI PO
-        |--------------------------------------------------------------------------
-        */
-        $poHeader = $this->Receive_model->get_po_header($po, $plant);
-
-        if (!$poHeader) {
-            echo json_encode([
-                'status'  => false,
-                'message' => 'PO tidak ditemukan'
-            ]);
-            return;
-        }
-
-        if (!empty($poHeader['STATUS'])) {
-            echo json_encode([
-                'status'  => false,
-                'message' => 'PO ini sudah pernah direceive'
-            ]);
-            return;
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | SUPPLIER AUTO FROM PO
-        |--------------------------------------------------------------------------
-        */
-        $supplier = $poHeader['SUPPLIER'];
-
-        /*
-        |--------------------------------------------------------------------------
-        | PARSE DETAIL
-        |--------------------------------------------------------------------------
-        */
-        $detailRaw = $this->input->post('DETAIL', false);
-
-        if ($detailRaw === null) {
-            echo json_encode([
-                'status'  => false,
-                'message' => 'DETAIL tidak terkirim'
-            ]);
-            return;
-        }
-
-        $detailArr = json_decode($detailRaw, true);
-
-        if (empty($detailArr) || !is_array($detailArr)) {
-            echo json_encode([
-                'status'  => false,
-                'message' => 'Detail material wajib diisi'
-            ]);
-            return;
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | GENERATE NUMBER
-        |--------------------------------------------------------------------------
-        */
-        $receiveNo = $this->Receive_model->generate_receive_no($plant);
-        $slipNo    = $this->Receive_model->generate_slip_no();
-
-        /*
-        |--------------------------------------------------------------------------
-        | TRANSACTION
-        |--------------------------------------------------------------------------
-        */
         $this->db->trans_begin();
 
-        try {
+        try{
+
+            /*
+            |--------------------------------------------------------------------------
+            | HEADER
+            |--------------------------------------------------------------------------
+            */
+
+            $plant       = $this->input->post('PLANT', true);
+            $po          = $this->input->post('PO', true);
+            $receiveDate = $this->input->post('RECEIVE_DATE', true);
+
+            $supplier    = $this->input->post('SUPPLIER', true);
+
+            $nota        = $this->input->post('NOTA', true);
+            $noRef       = $this->input->post('NO_REF', true);
+
+            $remark      = $this->input->post('REMARK', true);
+
+            $pembayaran  = $this->input->post('PEMBAYARAN', true);
+
+            $jenisPay    = $this->input->post('JENIS_PAY', true);
+
+            $detail      = json_decode(
+                $this->input->post('DETAIL'),
+                true
+            );
+
+            if(
+                empty($plant) ||
+                empty($po)
+            ){
+
+                throw new Exception(
+                    'Header receive belum lengkap'
+                );
+
+            }
+
+            if(empty($detail)){
+
+                throw new Exception(
+                    'Detail receive kosong'
+                );
+
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | GENERATE RECEIVE
+            |--------------------------------------------------------------------------
+            */
+
+            $prefix = 'RCV';
+
+            $ym = date('ym');
+
+            $q = $this->db
+                ->query("
+                    SELECT MAX(
+                        RIGHT(RECEIVE,4)
+                    ) AS seq
+                    FROM abc_mst_receive
+                    WHERE LEFT(RECEIVE,6)=?
+                ", [
+                    $prefix . $ym
+                ])
+                ->row();
+
+            $seq = $q && $q->seq
+                ? ((int)$q->seq + 1)
+                : 1;
+
+            $receiveNo =
+                $prefix .
+                $ym .
+                str_pad(
+                    $seq,
+                    4,
+                    '0',
+                    STR_PAD_LEFT
+                );
+
+            /*
+            |--------------------------------------------------------------------------
+            | GENERATE SLIP
+            |--------------------------------------------------------------------------
+            */
+
+            $slipNo =
+                'SLP-' .
+                date('Ymd') .
+                '-' .
+                str_pad(
+                    $seq,
+                    4,
+                    '0',
+                    STR_PAD_LEFT
+                );
+
+            /*
+            |--------------------------------------------------------------------------
+            | ATTACHMENT
+            |--------------------------------------------------------------------------
+            */
+
+            $attachName = null;
+
+            if(
+                isset($_FILES['ATTACHMENT']) &&
+                $_FILES['ATTACHMENT']['name']
+            ){
+
+                $config['upload_path'] =
+                    './uploads/receive/';
+
+                $config['allowed_types'] =
+                    'jpg|jpeg|png|pdf|xlsx|docx';
+
+                $config['max_size'] = 10240;
+
+                $config['encrypt_name'] = true;
+
+                if(
+                    !is_dir($config['upload_path'])
+                ){
+
+                    mkdir(
+                        $config['upload_path'],
+                        0777,
+                        true
+                    );
+
+                }
+
+                $this->load->library(
+                    'upload',
+                    $config
+                );
+
+                if(
+                    !$this->upload->do_upload(
+                        'ATTACHMENT'
+                    )
+                ){
+
+                    throw new Exception(
+                        strip_tags(
+                            $this->upload->display_errors()
+                        )
+                    );
+
+                }
+
+                $uploadData =
+                    $this->upload->data();
+
+                $attachName =
+                    $uploadData['file_name'];
+
+            }
 
             /*
             |--------------------------------------------------------------------------
             | INSERT HEADER
             |--------------------------------------------------------------------------
             */
+
             $header = [
-                'PLANT'        => $plant,
+
                 'RECEIVE'      => $receiveNo,
-                'NOTA'         => $post['NOTA'] ?? null,
+
+                'PLANT'        => $plant,
+
+                'RECEIVE_DATE' => $receiveDate,
+
                 'PO'           => $po,
-                'RECEIVE_DATE' => date('Y-m-d', strtotime($post['RECEIVE_DATE'])),
+
                 'SUPPLIER'     => $supplier,
-                'PEMBAYARAN'   => $post['PEMBAYARAN'] ?? null,
-                'JENIS_PAY'    => $post['JENIS_PAY'] ?? null,
-                'NO_REF'       => $post['NO_REF'] ?? null,
+
+                'PEMBAYARAN'   => $pembayaran,
+
+                'JENIS_PAY'    => $jenisPay,
+
+                'NOTA'         => $nota,
+
+                'NO_REF'       => $noRef,
+
                 'SLIP_NO'      => $slipNo,
-                'REMARK'       => $post['REMARK'] ?? null,
-                'CREATED_AT'   => date('Y-m-d H:i:s'),
-                'CREATED_BY'   => $username
+
+                'REMARK'       => $remark,
+
+                'ATTACH_FILE_NAME' =>
+                    $attachName,
+
+                'STATUS' => 1,
+
+                'CREATED_BY' =>
+                    $this->session
+                        ->userdata('username'),
+
+                'CREATED_AT' =>
+                    date('Y-m-d H:i:s')
+
             ];
 
-            $this->Receive_model->insert_receive_header($header);
+            $this->db->insert(
+                'abc_mst_receive',
+                $header
+            );
 
             /*
             |--------------------------------------------------------------------------
-            | UPLOAD ATTACHMENT
+            | DETAIL
             |--------------------------------------------------------------------------
             */
-            if (!empty($_FILES['ATTACHMENT']['name'])) {
 
-                $upload = $this->Receive_model->upload_file(
-                    'ATTACHMENT',
-                    $plant,
-                    $receiveNo,
-                    $post['RECEIVE_DATE']
-                );
+            $seqNo = 1;
 
-                if ($upload) {
+            foreach($detail as $d){
 
-                    $this->Receive_model->update_receive_header(
-                        $receiveNo,
-                        [
-                            'ATTACH_FILE_NAME'      => $upload['filename'],
-                            'ATTACH_ORIGINAL_NAME'  => $_FILES['ATTACHMENT']['name'],
-                            'ATTACH_PATH'           => $upload['path'],
-                            'ATTACH_EXT'            => pathinfo($upload['filename'], PATHINFO_EXTENSION),
-                            'ATTACH_SIZE'           => $_FILES['ATTACHMENT']['size']
-                        ],
-                        $plant
-                    );
-                }
-            }
+                $insert = [
 
-            /*
-            |--------------------------------------------------------------------------
-            | INSERT DETAIL
-            |--------------------------------------------------------------------------
-            */
-            $rows = [];
-            $seq  = 1;
+                    'RECEIVE' => $receiveNo,
 
-            foreach ($detailArr as $row) {
+                    'PLANT'   => $plant,
 
-                if (empty($row['MATERIAL'])) continue;
+                    'SEQ_NO'  => $seqNo,
 
-                $jumlah      = (float) ($row['JUMLAH'] ?? 0);
-                $berat       = (float) ($row['BERAT'] ?? 0);
-                $harga       = (float) $this->normalize_number($row['HARGA'] ?? 0);
-                $total       = (float) $this->normalize_number($row['TOTAL'] ?? 0);
-                $susutJumlah = (float) ($row['SUSUT_JUMLAH'] ?? 0);
-                $susutBerat  = (float) ($row['SUSUT_BERAT'] ?? 0);
+                    'PO_SEQ'  => $d['PO_SEQ'],
 
-                $rows[] = [
-                    'PLANT'         => $plant,
-                    'RECEIVE'       => $receiveNo,
-                    'SEQ_NO'        => $seq,
-                    'PO'            => $po,
-                    'PO_SEQ'        => $row['PO_SEQ'] ?? null,
-                    'CUSTOMER'      => $row['CUSTOMER'] ?? null,
-                    'MATERIAL'      => $row['MATERIAL'],
-                    'JUMLAH'        => $jumlah,
-                    'BERAT'         => $berat,
-                    'HARGA'         => $harga,
-                    'TOTAL'         => $total,
-                    'SUSUT_JUMLAH'  => $susutJumlah,
-                    'SUSUT_BERAT'   => $susutBerat,
-                    'KETERANGAN'    => $row['KETERANGAN'] ?? null,
-                    'STATUS'        => 'RECEIVED',
-                    'CREATED_AT'    => date('Y-m-d H:i:s'),
-                    'CREATED_BY'    => $username
+                    'CUSTOMER' =>
+                        $d['CUSTOMER'] ?? null,
+
+                    'PO_TYPE' =>
+                        $d['PO_TYPE'] ?? null,
+
+                    'MATERIAL' =>
+                        explode(
+                            ' - ',
+                            $d['MATERIAL']
+                        )[0],
+
+                    'JUMLAH' =>
+                        (float)$d['JUMLAH'],
+
+                    'BERAT' =>
+                        (float)$d['BERAT'],
+
+                    'HARGA' =>
+                        (float)$d['HARGA'],
+
+                    'TOTAL' =>
+                        (float)$d['TOTAL'],
+
+                    'SUSUT_JUMLAH' =>
+                        (float)$d['SUSUT_JUMLAH'],
+
+                    'SUSUT_BERAT' =>
+                        (float)$d['SUSUT_BERAT'],
+
+                    'KETERANGAN' =>
+                        $d['KETERANGAN'],
+
+                    'IS_EXTRA' =>
+                        $d['IS_EXTRA'],
+
+                    'CREATED_BY' =>
+                        $this->session
+                            ->userdata('username'),
+
+                    'CREATED_AT' =>
+                        date('Y-m-d H:i:s')
+
                 ];
 
-                $seq++;
-            }
+                $this->db->insert(
+                    'abc_mst_receive_detail',
+                    $insert
+                );
 
-            if (empty($rows)) {
-                throw new Exception('Detail receive tidak valid');
-            }
+                /*
+                |--------------------------------------------------------------------------
+                | SALES AUTO
+                |--------------------------------------------------------------------------
+                */
 
-            $this->Receive_model->insert_receive_detail_batch($rows);
+                if(
+                    strtoupper(
+                        trim(
+                            $d['CUSTOMER']
+                        )
+                    ) !== 'INTERNAL FARM'
+                ){
+
+                    $sales = [
+
+                        'RECEIVE' => $receiveNo,
+
+                        'PLANT'   => $plant,
+
+                        'CUSTOMER' =>
+                            $d['CUSTOMER'],
+
+                        'MATERIAL' =>
+                            explode(
+                                ' - ',
+                                $d['MATERIAL']
+                            )[0],
+
+                        'JUMLAH' =>
+                            (float)$d['JUMLAH'],
+
+                        'BERAT' =>
+                            (float)$d['BERAT'],
+
+                        'HARGA' =>
+                            (float)$d['HARGA'],
+
+                        'TOTAL' =>
+                            (float)$d['TOTAL'],
+
+                        'CREATED_BY' =>
+                            $this->session
+                                ->userdata('username'),
+
+                        'CREATED_AT' =>
+                            date('Y-m-d H:i:s')
+
+                    ];
+
+                    $this->db->insert(
+                        'abc_trx_sales',
+                        $sales
+                    );
+
+                }
+
+                $seqNo++;
+
+            }
 
             /*
             |--------------------------------------------------------------------------
-            | UPDATE PO STATUS
+            | UPDATE STATUS PO
             |--------------------------------------------------------------------------
             */
-            $this->Receive_model->update_po_status(
-                $po,
-                $plant,
-                'RECEIVED'
-            );
+
+            $this->db
+                ->where('PO', $po)
+
+                ->where('PLANT', $plant)
+
+                ->update(
+                    'abc_mst_po',
+                    [
+                        'STATUS' => 1
+                    ]
+                );
 
             /*
             |--------------------------------------------------------------------------
             | COMMIT
             |--------------------------------------------------------------------------
             */
-            if ($this->db->trans_status() === FALSE) {
-                throw new Exception('Gagal menyimpan Receive');
+
+            if(
+                $this->db->trans_status() === false
+            ){
+
+                throw new Exception(
+                    'Transaction failed'
+                );
+
             }
 
             $this->db->trans_commit();
 
             echo json_encode([
-                'status'  => true,
-                'receive' => $receiveNo,
-                'slip_no' => $slipNo,
-                'message' => 'Receive berhasil disimpan'
+
+                'status' => true,
+
+                'message' =>
+                    'Receive berhasil dibuat',
+
+                'receive' =>
+                    $receiveNo
+
             ]);
 
-        } catch (Exception $e) {
+        }catch(Exception $e){
 
             $this->db->trans_rollback();
 
             echo json_encode([
-                'status'  => false,
-                'message' => $e->getMessage()
+
+                'status' => false,
+
+                'message' =>
+                    $e->getMessage()
+
             ]);
+
         }
     }
 
@@ -401,7 +764,6 @@ class Receive extends MY_Controller {
     {
         $receive = $this->input->get('receive', TRUE);
         $plant   = $this->input->get('plant', TRUE);
-        $role_id = (int)$this->session->userdata('role_id');
         $username = $this->session->userdata('username');
 
         if (!$receive || !$plant) {
@@ -410,17 +772,6 @@ class Receive extends MY_Controller {
                 'message' => 'Receive & Plant required'
             ]);
             return;
-        }
-
-        // 🔐 VALIDASI PLANT UNTUK NON ADMIN
-        if ($role_id !== 1) {
-            if (!$this->Receive_model->user_has_plant($username, $plant)) {
-                echo json_encode([
-                    'status'  => false,
-                    'message' => 'Unauthorized plant'
-                ]);
-                return;
-            }
         }
 
         $header = $this->Receive_model->get_receive_header($plant, $receive);
@@ -446,13 +797,19 @@ class Receive extends MY_Controller {
 
     public function update()
     {
-        $data     = $this->input->post(NULL, TRUE);
-        $receive  = $data['RECEIVE'] ?? null;
-        $plant    = $data['PLANT'] ?? null;
-        $role_id  = (int)$this->session->userdata('role_id');
+        header('Content-Type: application/json');
+
+        $data     = $_POST;
+        $receive  = trim($data['RECEIVE'] ?? '');
+        $plant    = trim($data['PLANT'] ?? '');
         $username = $this->session->userdata('username');
 
-        if (!$receive || !$plant) {
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDASI
+        |--------------------------------------------------------------------------
+        */
+        if (empty($receive) || empty($plant)) {
             echo json_encode([
                 'status'  => false,
                 'message' => 'Receive & Plant required'
@@ -460,19 +817,13 @@ class Receive extends MY_Controller {
             return;
         }
 
-        // 🔐 VALIDASI PLANT UNTUK NON ADMIN
-        if ($role_id !== 1) {
-            if (!$this->Receive_model->user_has_plant($username, $plant)) {
-                echo json_encode([
-                    'status'  => false,
-                    'message' => 'Unauthorized plant'
-                ]);
-                return;
-            }
-        }
-
-        // ambil header lama (untuk cek PO lama)
+        /*
+        |--------------------------------------------------------------------------
+        | HEADER LAMA
+        |--------------------------------------------------------------------------
+        */
         $oldHeader = $this->Receive_model->get_receive_header($plant, $receive);
+
         if (!$oldHeader) {
             echo json_encode([
                 'status'  => false,
@@ -482,15 +833,37 @@ class Receive extends MY_Controller {
         }
 
         $oldPo = $oldHeader['PO'] ?? null;
-        $newPo = $data['PO'] ?? null;
-        $newPo = ($newPo === '' || strtolower($newPo) === 'null') ? null : $newPo;
 
+        $newPo = trim($data['PO'] ?? '');
+        $newPo = ($newPo === '' || strtolower($newPo) === 'null')
+            ? null
+            : $newPo;
+
+        /*
+        |--------------------------------------------------------------------------
+        | PARSE DETAIL
+        |--------------------------------------------------------------------------
+        */
+        $detailRaw = $data['DETAIL'] ?? '[]';
+        $detailArr = json_decode($detailRaw, true);
+
+        if (!is_array($detailArr)) {
+            $detailArr = [];
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | HEADER UPDATE
+        |--------------------------------------------------------------------------
+        */
         $header = [
-            'RECEIVE_DATE' => date('Y-m-d', strtotime($data['RECEIVE_DATE'])),
-            'SUPPLIER'     => $data['SUPPLIER'],
+            'RECEIVE_DATE' => !empty($data['RECEIVE_DATE'])
+                ? date('Y-m-d', strtotime($data['RECEIVE_DATE']))
+                : null,
+            'SUPPLIER'     => $data['SUPPLIER'] ?? null,
             'PO'           => $newPo,
-            'PEMBAYARAN' => $data['PEMBAYARAN_EDIT'] ?? null,
-            'JENIS_PAY'  => $data['JENIS_PAY_EDIT'] ?? null,
+            'PEMBAYARAN'   => $data['PEMBAYARAN_EDIT'] ?? null,
+            'JENIS_PAY'    => $data['JENIS_PAY_EDIT'] ?? null,
             'NOTA'         => $data['NOTA'] ?? null,
             'NO_REF'       => $data['NO_REF'] ?? null,
             'REMARK'       => $data['REMARK'] ?? null,
@@ -498,136 +871,185 @@ class Receive extends MY_Controller {
             'UPDATED_BY'   => $username
         ];
 
-        $this->db->trans_start();
+        $this->db->trans_begin();
 
-        // =========================
-        // UPDATE HEADER
-        // =========================
-        $this->Receive_model->update_receive_header($receive, $header, $plant);
+        try {
 
-        // =========================
-        // UPDATE STATUS PO
-        // =========================
-
-        // PO lama → dikosongkan
-        if ($oldPo && $oldPo !== $newPo) {
-            $this->Receive_model->reset_po_status($oldPo, $plant);
-        }
-
-        // PO baru dikunci
-        if ($newPo) {
-            $this->Receive_model->set_po_received(
-                $newPo,
-                $plant,
-                $username
+            /*
+            |--------------------------------------------------------------------------
+            | UPDATE HEADER
+            |--------------------------------------------------------------------------
+            */
+            $this->Receive_model->update_receive_header(
+                $receive,
+                $header,
+                $plant
             );
-        }
 
-        // =========================
-        // DETAIL
-        // =========================
-        $lastSeq = (int) $this->Receive_model->get_max_seq_no($plant, $receive);
-        $seq     = $lastSeq + 1;
+            /*
+            |--------------------------------------------------------------------------
+            | UPDATE STATUS PO
+            |--------------------------------------------------------------------------
+            */
+            if ($oldPo && $oldPo !== $newPo) {
+                $this->Receive_model->reset_po_status($oldPo, $plant);
+            }
 
-        $keepSeq   = [];
-        $insertRow = [];
+            if ($newPo) {
+                $this->Receive_model->set_po_received(
+                    $newPo,
+                    $plant,
+                    $username
+                );
+            }
 
-        if (!empty($data['DETAIL']) && is_array($data['DETAIL'])) {
+            /*
+            |--------------------------------------------------------------------------
+            | UPDATE DETAIL
+            |--------------------------------------------------------------------------
+            */
+            $lastSeq   = (int) $this->Receive_model->get_max_seq_no($plant, $receive);
+            $seq       = $lastSeq + 1;
 
-            foreach ($data['DETAIL'] as $row) {
+            $keepSeq   = [];
+            $insertRow = [];
 
-                // DETAIL LAMA
+            foreach ($detailArr as $row) {
+
+                // UPDATE DETAIL LAMA
                 if (!empty($row['SEQ_NO'])) {
 
                     $keepSeq[] = $row['SEQ_NO'];
 
-                    $this->db->where([
-                        'PLANT'   => $plant,
-                        'RECEIVE' => $receive,
-                        'SEQ_NO'  => $row['SEQ_NO']
-                    ])->update('abc_mst_receive_detail', [
-                        'PO'         => $newPo,
-                        'MATERIAL'   => $row['MATERIAL'],
-                        'JUMLAH'     => (float)$row['JUMLAH'],
-                        'BERAT'      => (float)$row['BERAT'],
-                        'HARGA'      => (float)$row['HARGA'],
-                        'TOTAL'      => (float)$row['TOTAL'],
-                        'UPDATED_AT' => date('Y-m-d H:i:s'),
-                        'UPDATED_BY' => $username
-                    ]);
+                    $this->db
+                        ->where([
+                            'PLANT'   => $plant,
+                            'RECEIVE' => $receive,
+                            'SEQ_NO'  => $row['SEQ_NO']
+                        ])
+                        ->update('abc_mst_receive_detail', [
+                            'PO'           => $newPo,
+                            'PO_SEQ'       => $row['PO_SEQ'] ?? null,
+                            'CUSTOMER'     => $row['CUSTOMER'] ?? null,
+                            'MATERIAL'     => $row['MATERIAL'] ?? null,
+                            'JUMLAH'       => (float)($row['JUMLAH'] ?? 0),
+                            'BERAT'        => (float)($row['BERAT'] ?? 0),
+                            'HARGA'        => (float)($row['HARGA'] ?? 0),
+                            'TOTAL'        => (float)($row['TOTAL'] ?? 0),
+                            'SUSUT_JUMLAH' => (float)($row['SUSUT_JUMLAH'] ?? 0),
+                            'SUSUT_BERAT'  => (float)($row['SUSUT_BERAT'] ?? 0),
+                            'KETERANGAN'   => $row['KETERANGAN'] ?? null,
+                            'UPDATED_AT'   => date('Y-m-d H:i:s'),
+                            'UPDATED_BY'   => $username
+                        ]);
 
                 }
-                // DETAIL BARU
+                // INSERT DETAIL BARU
                 else {
 
                     $insertRow[] = [
-                        'PLANT'      => $plant,
-                        'RECEIVE'    => $receive,
-                        'SEQ_NO'     => $seq,
-                        'PO'         => $newPo,
-                        'MATERIAL'   => $row['MATERIAL'],
-                        'JUMLAH'     => (float)$row['JUMLAH'],
-                        'BERAT'      => (float)$row['BERAT'],
-                        'HARGA'      => (float)$row['HARGA'],
-                        'TOTAL'      => (float)$row['TOTAL'],
-                        'CREATED_AT' => date('Y-m-d H:i:s'),
-                        'CREATED_BY' => $username
+                        'PLANT'        => $plant,
+                        'RECEIVE'      => $receive,
+                        'SEQ_NO'       => $seq,
+                        'PO'           => $newPo,
+                        'PO_SEQ'       => $row['PO_SEQ'] ?? null,
+                        'CUSTOMER'     => $row['CUSTOMER'] ?? null,
+                        'MATERIAL'     => $row['MATERIAL'] ?? null,
+                        'JUMLAH'       => (float)($row['JUMLAH'] ?? 0),
+                        'BERAT'        => (float)($row['BERAT'] ?? 0),
+                        'HARGA'        => (float)($row['HARGA'] ?? 0),
+                        'TOTAL'        => (float)($row['TOTAL'] ?? 0),
+                        'SUSUT_JUMLAH' => (float)($row['SUSUT_JUMLAH'] ?? 0),
+                        'SUSUT_BERAT'  => (float)($row['SUSUT_BERAT'] ?? 0),
+                        'KETERANGAN'   => $row['KETERANGAN'] ?? null,
+                        'STATUS'       => 'RECEIVED',
+                        'CREATED_AT'   => date('Y-m-d H:i:s'),
+                        'CREATED_BY'   => $username
                     ];
 
                     $keepSeq[] = $seq;
                     $seq++;
                 }
             }
-        }
 
-        // INSERT DETAIL BARU
-        if (!empty($insertRow)) {
-            $this->Receive_model->insert_receive_detail_batch($insertRow);
-        }
+            /*
+            |--------------------------------------------------------------------------
+            | INSERT DETAIL BARU
+            |--------------------------------------------------------------------------
+            */
+            if (!empty($insertRow)) {
+                $this->Receive_model->insert_receive_detail_batch($insertRow);
+            }
 
-        // HAPUS DETAIL YANG DIDELETE DI UI
-        if (!empty($keepSeq)) {
-            $this->Receive_model->delete_receive_detail_not_in_seq(
-                $plant,
-                $receive,
-                $keepSeq
-            );
-        }
-
-        if (!empty($_FILES['ATTACHMENT']['name'])) {
-
-            $upload = $this->Receive_model->upload_file(
-                'ATTACHMENT',
-                $plant,
-                $receive,
-                $data['RECEIVE_DATE']
-            );
-
-            if ($upload) {
-                $this->Receive_model->update_receive_header(
+            /*
+            |--------------------------------------------------------------------------
+            | DELETE DETAIL YANG DIHAPUS
+            |--------------------------------------------------------------------------
+            */
+            if (!empty($keepSeq)) {
+                $this->Receive_model->delete_receive_detail_not_in_seq(
+                    $plant,
                     $receive,
-                    [
-                        'ATTACH_FILE_NAME'      => $upload['filename'],
-                        'ATTACH_ORIGINAL_NAME' => $_FILES['ATTACHMENT']['name'],
-                        'ATTACH_PATH'           => $upload['path'],
-                        'ATTACH_EXT'            => pathinfo($upload['filename'], PATHINFO_EXTENSION),
-                        'ATTACH_SIZE'           => $_FILES['ATTACHMENT']['size'],
-                        'UPDATED_AT'            => date('Y-m-d H:i:s'),
-                        'UPDATED_BY'            => $this->session->userdata('username')
-                    ],
-                    $plant
+                    $keepSeq
                 );
             }
+
+            /*
+            |--------------------------------------------------------------------------
+            | UPLOAD ATTACHMENT
+            |--------------------------------------------------------------------------
+            */
+            if (!empty($_FILES['ATTACHMENT']['name'])) {
+
+                $upload = $this->Receive_model->upload_file(
+                    'ATTACHMENT',
+                    $plant,
+                    $receive,
+                    $data['RECEIVE_DATE'] ?? date('Y-m-d')
+                );
+
+                if ($upload) {
+                    $this->Receive_model->update_receive_header(
+                        $receive,
+                        [
+                            'ATTACH_FILE_NAME'     => $upload['filename'],
+                            'ATTACH_ORIGINAL_NAME' => $_FILES['ATTACHMENT']['name'],
+                            'ATTACH_PATH'          => $upload['path'],
+                            'ATTACH_EXT'           => pathinfo($upload['filename'], PATHINFO_EXTENSION),
+                            'ATTACH_SIZE'          => $_FILES['ATTACHMENT']['size'],
+                            'UPDATED_AT'           => date('Y-m-d H:i:s'),
+                            'UPDATED_BY'           => $username
+                        ],
+                        $plant
+                    );
+                }
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | COMMIT
+            |--------------------------------------------------------------------------
+            */
+            if ($this->db->trans_status() === false) {
+                throw new Exception('Gagal update receive');
+            }
+
+            $this->db->trans_commit();
+
+            echo json_encode([
+                'status'  => true,
+                'message' => 'Receive berhasil diupdate'
+            ]);
+
+        } catch (Exception $e) {
+
+            $this->db->trans_rollback();
+
+            echo json_encode([
+                'status'  => false,
+                'message' => $e->getMessage()
+            ]);
         }
-
-        $this->db->trans_complete();
-
-        echo json_encode([
-            'status'  => $this->db->trans_status(),
-            'message' => $this->db->trans_status()
-                ? 'Receive berhasil diupdate'
-                : 'Gagal update receive'
-        ]);
     }
 
     /**
@@ -700,35 +1122,60 @@ class Receive extends MY_Controller {
     /**
      * Print PDF stub (you can implement PDF generation here)
      */
+    // CONTROLLER
     public function print_slip_pdf()
     {
-        $receive = $this->input->get('receive');
-        $plant   = $this->input->get('plant');
+        $receive = $this->input->get('receive', true);
+        $plant   = $this->input->get('plant', true);
 
         if (!$receive || !$plant) {
-            show_error('Parameter RECEIVE atau PLANT tidak lengkap');
+            show_error('Parameter RECEIVE / PLANT tidak lengkap');
         }
 
-        /* ================= HEADER ================= */
+        /*
+        |--------------------------------------------------------------------------
+        | HEADER
+        |--------------------------------------------------------------------------
+        */
         $header = $this->db
-            ->select('
+            ->select("
                 r.RECEIVE,
                 r.PLANT,
-                aj.CODE_NAME AS PLANT_NAME,
+                plant.CODE_NAME AS PLANT_NAME,
                 r.RECEIVE_DATE,
                 r.PO,
                 r.NOTA,
                 r.NO_REF,
                 r.SUPPLIER,
-                s.FULL_NAME AS SUPPLIER_NAME,
+                supplier.FULL_NAME AS SUPPLIER_NAME,
+                r.PEMBAYARAN,
+                r.JENIS_PAY,
                 r.SLIP_NO,
+                r.ATTACH_FILE_NAME,
                 r.REMARK
-            ')
+            ", false)
             ->from('abc_mst_receive r')
-            ->join('cd_code aj', "aj.CODE = r.PLANT AND aj.HEAD_CODE = 'AJ'", 'left')
-            ->join('cd_customer s', "s.CUST = r.SUPPLIER", 'left')
+
+            ->join(
+                'abc_cd_code plant',
+                "plant.HEAD_CODE='PLANT'
+                AND plant.CODE COLLATE utf8mb4_unicode_ci =
+                r.PLANT COLLATE utf8mb4_unicode_ci",
+                'left',
+                false
+            )
+
+            ->join(
+                'abc_cd_customer supplier',
+                "supplier.CUST COLLATE utf8mb4_unicode_ci =
+                r.SUPPLIER COLLATE utf8mb4_unicode_ci",
+                'left',
+                false
+            )
+
             ->where('r.RECEIVE', $receive)
             ->where('r.PLANT', $plant)
+            ->where('r.DELETED IS NULL', null, false)
             ->get()
             ->row();
 
@@ -736,57 +1183,97 @@ class Receive extends MY_Controller {
             show_error('Receive tidak ditemukan');
         }
 
-        /* ================= HANDLE PO NULL ================= */
         $header->PO_TEXT = empty($header->PO)
             ? 'Direct Receive'
             : $header->PO;
 
-        /* ================= DETAIL ================= */
+        $header->STATUS_TEXT = 'RECEIVED';
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
         $detail = $this->db
-            ->select('
+            ->select("
                 d.SEQ_NO,
                 d.MATERIAL,
-                m.material_name AS MATERIAL_NAME,
+                m.MATERIAL_NAME,
                 d.JUMLAH,
                 d.BERAT,
+                d.SUSUT_JUMLAH,
+                d.SUSUT_BERAT,
                 d.HARGA,
-                d.TOTAL
-            ')
+                d.TOTAL,
+                d.KETERANGAN,
+                d.STATUS
+            ", false)
             ->from('abc_mst_receive_detail d')
-            ->join('cd_material m', 'm.material = d.MATERIAL', 'left')
+
+            ->join(
+                'abc_cd_material m',
+                "m.MATERIAL COLLATE utf8mb4_unicode_ci =
+                d.MATERIAL COLLATE utf8mb4_unicode_ci",
+                'left',
+                false
+            )
+
             ->where('d.RECEIVE', $receive)
             ->where('d.PLANT', $plant)
             ->order_by('d.SEQ_NO', 'ASC')
             ->get()
             ->result();
 
-        /* ================= SUMMARY ================= */
-        $summary = [
-            'total_jumlah' => 0,
-            'total_berat'  => 0,
-            'grand_total'  => 0,
-        ];
-
-        foreach ($detail as $row) {
-            $summary['total_jumlah'] += (float)$row->JUMLAH;
-            $summary['total_berat']  += (float)$row->BERAT;
-            $summary['grand_total']  += $this->normalize_number($row->TOTAL);
+        if (empty($detail)) {
+            show_error('Detail receive tidak ditemukan');
         }
 
-        $data = compact('header', 'detail', 'summary');
+        /*
+        |--------------------------------------------------------------------------
+        | SUMMARY
+        |--------------------------------------------------------------------------
+        */
+        $summary = [
+            'qty'    => 0,
+            'weight' => 0,
+            'total'  => 0
+        ];
 
-        /* ================= PDF ================= */
-        $html = $this->load->view('admin/receive/pdf_template', $data, true);
+        foreach ($detail as $d) {
+            $summary['qty']    += (float)$d->JUMLAH;
+            $summary['weight'] += (float)$d->BERAT;
+            $summary['total']  += (float)$d->TOTAL;
+        }
+
+        $data = [
+            'header'  => $header,
+            'detail'  => $detail,
+            'summary' => $summary
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | PDF
+        |--------------------------------------------------------------------------
+        */
+        $html = $this->load->view(
+            'admin/receive/pdf_template',
+            $data,
+            true
+        );
 
         $this->load->library('pdf');
+
         $this->pdf->loadHtml($html);
         $this->pdf->setPaper('A4', 'portrait');
         $this->pdf->render();
 
         $this->pdf->stream(
-            "SLIP_RECEIVE_{$receive}.pdf",
+            'RECEIVE_'.$header->RECEIVE.'.pdf',
             ['Attachment' => false]
         );
+
+        exit;
     }
 
     function format_decimal_id($number, $dec = 2)

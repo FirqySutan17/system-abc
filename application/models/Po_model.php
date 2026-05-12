@@ -12,35 +12,72 @@ class Po_model extends CI_Model {
     /**
      * Load list (header table)
      */
-    public function get_data($limit, $start, $role_id, $plant, $username, $search = '', $order = 'PO', $dir = 'DESC')
+    public function get_data(
+        $limit,
+        $start,
+        $role_id,
+        $plant,
+        $username,
+        $search = '',
+        $order = 'PO_DATE',
+        $dir = 'DESC'
+    )
     {
-        $role_id = (int) $role_id;
+        $this->db->select("
+            po.*,
 
-        $this->db->select('
-            abc_mst_po.*,
-            abc_cd_customer.FULL_NAME AS SUPPLIER_NAME,
-            abc_cd_code.CODE_NAME AS AJ_NAME
-        ');
-        $this->db->from('abc_mst_po');
+            supplier.FULL_NAME AS SUPPLIER_NAME,
 
-        // JOIN SUPPLIER
+            plant.CODE_NAME AS PLANT_NAME,
+
+            po_type.CODE_NAME AS PO_TYPE_NAME,
+
+            material.material_name AS MATERIAL_NAME
+        ");
+
+        $this->db->from('abc_mst_po po');
+
+        // ================= SUPPLIER =================
         $this->db->join(
-            'abc_cd_customer',
-            'abc_mst_po.SUPPLIER COLLATE utf8mb4_unicode_ci = abc_cd_customer.CUST COLLATE utf8mb4_unicode_ci',
+            'abc_cd_customer supplier',
+            'supplier.CUST COLLATE utf8mb4_unicode_ci =
+            po.SUPPLIER COLLATE utf8mb4_unicode_ci',
             'left',
             false
         );
 
-        // JOIN abc_CD_CODE (AJ)
+        // ================= PLANT =================
         $this->db->join(
-            'abc_cd_code',
-            "abc_cd_code.CODE COLLATE utf8mb4_unicode_ci = abc_mst_po.PLANT COLLATE utf8mb4_unicode_ci
-            AND abc_cd_code.HEAD_CODE = 'PLANT'",
+            'abc_cd_code plant',
+            "plant.CODE COLLATE utf8mb4_unicode_ci =
+            po.PLANT COLLATE utf8mb4_unicode_ci
+            AND plant.HEAD_CODE = 'PLANT'",
             'left',
             false
         );
 
-        // 🔓 ADMIN → TANPA FILTER PLANT
+        $this->db->join(
+            'abc_cd_code po_type',
+            "po_type.CODE COLLATE utf8mb4_unicode_ci =
+            po.PO_TYPE COLLATE utf8mb4_unicode_ci
+            AND po_type.HEAD_CODE = 'PO'",
+            'left',
+            false
+        );
+
+        // ================= MATERIAL =================
+        $this->db->join(
+            'abc_cd_material material',
+            'material.MATERIAL COLLATE utf8mb4_unicode_ci =
+            po.MATERIAL COLLATE utf8mb4_unicode_ci',
+            'left',
+            false
+        );
+
+        // ================= FILTER DELETED =================
+        $this->db->where('po.DELETED IS NULL');
+
+        // ================= ROLE FILTER =================
         if ($role_id !== 1) {
 
             $plants = json_decode($plant, true);
@@ -48,52 +85,109 @@ class Po_model extends CI_Model {
             if (is_array($plants)) {
                 $plants = array_map('strval', $plants);
             } else {
-                $plants = array_map('trim', explode(',', $plant));
+                $plants = array_map(
+                    'trim',
+                    explode(',', $plant)
+                );
             }
 
-            $this->db->where_in('abc_mst_po.PLANT', $plants);
-            $this->db->where('abc_mst_po.CREATED_BY', $username);
+            $this->db->where_in(
+                'po.PLANT',
+                $plants
+            );
+
+            $this->db->where(
+                'po.CREATED_BY',
+                $username
+            );
         }
 
-        if ($search != '') {
+        // ================= SEARCH =================
+        if (!empty($search)) {
+
             $this->db->group_start();
-            $this->db->like('abc_mst_po.PO', $search);
-            $this->db->or_like('abc_mst_po.SUPPLIER', $search);
-            $this->db->or_like('abc_cd_customer.FULL_NAME', $search);
-            $this->db->or_like('abc_mst_po.REMARK', $search);
-            $this->db->or_like('abc_cd_code.CODE_NAME', $search); // ← tambahan
+
+            $this->db->like('po.PO', $search);
+
+            $this->db->or_like('po.SUPPLIER', $search);
+
+            $this->db->or_like(
+                'supplier.FULL_NAME',
+                $search
+            );
+
+            $this->db->or_like(
+                'material.material_name',
+                $search
+            );
+
+            $this->db->or_like(
+                'po.NO_TRUCK',
+                $search
+            );
+
+            $this->db->or_like(
+                'po.DRIVER',
+                $search
+            );
+
+            $this->db->or_like(
+                'po.REMARK',
+                $search
+            );
+
             $this->db->group_end();
         }
 
-        $this->db->order_by($order, $dir);
+        // ================= ORDER =================
+        $this->db->order_by(
+            'po.' . $order,
+            $dir
+        );
 
-        return $this->db->get('', (int)$limit, (int)$start)->result();
+        // ================= LIMIT =================
+        $this->db->limit(
+            (int)$limit,
+            (int)$start
+        );
+
+        return $this->db->get()->result();
     }
 
     /**
      * Count total filtered rows
      */
-    public function count_data($role_id, $plant, $username, $search = '')
+    public function count_data(
+        $role_id,
+        $plant,
+        $username,
+        $search = ''
+    )
     {
-        $role_id = (int) $role_id;
+        $this->db->from('abc_mst_po po');
 
-        $this->db->from('abc_mst_po');
-
+        // ================= SUPPLIER =================
         $this->db->join(
-            'abc_cd_customer',
-            'abc_mst_po.SUPPLIER COLLATE utf8mb4_unicode_ci = abc_cd_customer.CUST COLLATE utf8mb4_unicode_ci',
+            'abc_cd_customer supplier',
+            'supplier.CUST COLLATE utf8mb4_unicode_ci =
+            po.SUPPLIER COLLATE utf8mb4_unicode_ci',
             'left',
             false
         );
 
+        // ================= MATERIAL =================
         $this->db->join(
-            'abc_cd_code',
-            "abc_cd_code.CODE COLLATE utf8mb4_unicode_ci = abc_mst_po.PLANT COLLATE utf8mb4_unicode_ci
-            AND abc_cd_code.HEAD_CODE = 'AJ'",
+            'abc_cd_material material',
+            'material.MATERIAL COLLATE utf8mb4_unicode_ci =
+            po.MATERIAL COLLATE utf8mb4_unicode_ci',
             'left',
             false
         );
 
+        // ================= FILTER =================
+        $this->db->where('po.DELETED IS NULL');
+
+        // ================= ROLE =================
         if ($role_id !== 1) {
 
             $plants = json_decode($plant, true);
@@ -101,20 +195,55 @@ class Po_model extends CI_Model {
             if (is_array($plants)) {
                 $plants = array_map('strval', $plants);
             } else {
-                $plants = array_map('trim', explode(',', $plant));
+                $plants = array_map(
+                    'trim',
+                    explode(',', $plant)
+                );
             }
 
-            $this->db->where_in('abc_mst_po.PLANT', $plants);
-            $this->db->where('abc_mst_po.CREATED_BY', $username);
+            $this->db->where_in(
+                'po.PLANT',
+                $plants
+            );
+
+            $this->db->where(
+                'po.CREATED_BY',
+                $username
+            );
         }
 
-        if ($search != '') {
+        // ================= SEARCH =================
+        if (!empty($search)) {
+
             $this->db->group_start();
-            $this->db->like('abc_mst_po.PO', $search);
-            $this->db->or_like('abc_mst_po.SUPPLIER', $search);
-            $this->db->or_like('abc_cd_customer.FULL_NAME', $search);
-            $this->db->or_like('abc_mst_po.REMARK', $search);
-            $this->db->or_like('abc_cd_code.CODE_NAME', $search); // ← tambahan
+
+            $this->db->like('po.PO', $search);
+
+            $this->db->or_like(
+                'supplier.FULL_NAME',
+                $search
+            );
+
+            $this->db->or_like(
+                'material.material_name',
+                $search
+            );
+
+            $this->db->or_like(
+                'po.NO_TRUCK',
+                $search
+            );
+
+            $this->db->or_like(
+                'po.DRIVER',
+                $search
+            );
+
+            $this->db->or_like(
+                'po.REMARK',
+                $search
+            );
+
             $this->db->group_end();
         }
 
@@ -239,46 +368,71 @@ class Po_model extends CI_Model {
         return $this->db->get()->row_array();
     }
 
-    public function get_header_for_edit($plant, $po, $username, $role_id)
+    public function get_header_for_edit(
+        $plant,
+        $po,
+        $username,
+        $role_id
+    )
     {
-        $this->db->select('
-            abc_mst_po.*,
-            s.FULL_NAME AS SUPPLIER_NAME,
-            plant_code.CODE_NAME AS AJ_NAME,
-            type_code.CODE_NAME AS PO_TYPE_NAME
-        ');
+        $this->db->select("
+            po.*,
 
-        $this->db->from('abc_mst_po');
+            supplier.FULL_NAME AS SUPPLIER_NAME,
 
-        // supplier
+            plant_code.CODE_NAME AS PLANT_NAME,
+
+            type_code.CODE_NAME AS PO_TYPE_NAME,
+
+            material.MATERIAL_NAME
+        ");
+
+        $this->db->from('abc_mst_po po');
+
+        // ================= SUPPLIER =================
         $this->db->join(
-            'abc_cd_customer s',
-            's.CUST = abc_mst_po.SUPPLIER',
+            'abc_cd_customer supplier',
+            'supplier.CUST = po.SUPPLIER',
             'left'
         );
 
-        // plant
+        // ================= PLANT =================
         $this->db->join(
             'abc_cd_code plant_code',
-            "plant_code.CODE = abc_mst_po.PLANT
+            "plant_code.CODE = po.PLANT
             AND plant_code.HEAD_CODE = 'PLANT'",
             'left'
         );
 
-        // po type
+        // ================= PO TYPE =================
         $this->db->join(
             'abc_cd_code type_code',
-            "type_code.CODE = abc_mst_po.PO_TYPE
+            "type_code.CODE = po.PO_TYPE
             AND type_code.HEAD_CODE = 'PO'",
             'left'
         );
 
-        $this->db->where('abc_mst_po.PLANT', $plant);
-        $this->db->where('abc_mst_po.PO', $po);
+        // ================= MATERIAL =================
+        $this->db->join(
+            'abc_cd_material material',
+            'material.MATERIAL = po.MATERIAL',
+            'left'
+        );
 
-        // non-admin hanya data sendiri
+        // ================= WHERE =================
+        $this->db->where('po.PLANT', $plant);
+
+        $this->db->where('po.PO', $po);
+
+        $this->db->where('po.DELETED IS NULL', null, false);
+
+        // ================= NON ADMIN =================
         if ((int)$role_id !== 1) {
-            $this->db->where('abc_mst_po.CREATED_BY', $username);
+
+            $this->db->where(
+                'po.CREATED_BY',
+                $username
+            );
         }
 
         return $this->db->get()->row_array();
@@ -302,49 +456,82 @@ class Po_model extends CI_Model {
 
     public function get_detail_for_edit($plant, $po)
     {
-        $this->db->select('
+        $this->db->select("
             d.*,
-            m.MATERIAL_NAME,
-            c.FULL_NAME AS CUSTOMER_NAME
-        ');
+
+            customer.FULL_NAME AS CUSTOMER_NAME
+        ");
 
         $this->db->from('abc_mst_po_detail d');
 
+        // ================= CUSTOMER =================
         $this->db->join(
-            'abc_cd_material m',
-            'm.MATERIAL = d.MATERIAL',
+            'abc_cd_customer customer',
+            'customer.CUST = d.CUSTOMER',
             'left'
         );
 
-        $this->db->join(
-            'abc_cd_customer c',
-            'c.CUST = d.CUSTOMER',
-            'left'
-        );
-
+        // ================= WHERE =================
         $this->db->where('d.PLANT', $plant);
+
         $this->db->where('d.PO', $po);
-        $this->db->order_by('d.SEQ_NO','ASC');
+
+        $this->db->order_by(
+            'd.SEQ_NO',
+            'ASC'
+        );
 
         return $this->db->get()->result_array();
     }
 
-    public function user_can_access_po($plant, $po, $username, $role_id)
+    public function get_header_only($plant, $po)
     {
+        return $this->db
+            ->where('PLANT', $plant)
+            ->where('PO', $po)
+            ->where('DELETED IS NULL', null, false)
+            ->get('abc_mst_po')
+            ->row();
+    }
+
+    public function user_can_access_po(
+        $plant,
+        $po,
+        $username,
+        $role_id
+    )
+    {
+        // ================= ADMIN =================
         if ((int)$role_id === 1) {
-            return true; // admin bebas
+
+            return true;
         }
 
         return $this->db
             ->where('PLANT', $plant)
             ->where('PO', $po)
             ->where('CREATED_BY', $username)
+            ->where('DELETED IS NULL', null, false)
             ->count_all_results('abc_mst_po') > 0;
     }
 
-    public function update_header_safe($plant, $po, $data, $username, $role_id)
+    public function update_header_safe(
+        $plant,
+        $po,
+        $data,
+        $username,
+        $role_id
+    )
     {
-        if (!$this->user_can_access_po($plant, $po, $username, $role_id)) {
+        if (
+            !$this->user_can_access_po(
+                $plant,
+                $po,
+                $username,
+                $role_id
+            )
+        ) {
+
             return false;
         }
 
