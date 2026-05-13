@@ -79,6 +79,7 @@ STYLE
 .receive-card .modal-title{
     font-weight:700;
     font-size:18px;
+    color: #fff;
 }
 
 .receive-card .modal-body{
@@ -103,6 +104,7 @@ STYLE
     border-radius:12px;
     min-height:44px;
     border:1px solid #dbe2ea;
+    font-size: 12px;
 }
 
 .receive-card .form-control:focus{
@@ -255,7 +257,6 @@ MODAL
                                 </label>
 
                                 <select id="plantAdd"
-                                    class="form-control"
                                     required></select>
 
                                 <input type="hidden"
@@ -295,7 +296,6 @@ MODAL
                                 </label>
 
                                 <select id="poAdd"
-                                    class="form-control"
                                     required></select>
 
                                 <input type="hidden"
@@ -334,11 +334,16 @@ MODAL
                             <div class="col-md-3">
 
                                 <label class="form-label">
-                                    Pembayaran
+                                    Pembayaran *
                                 </label>
 
-                                <select name="PEMBAYARAN"
-                                    class="form-control">
+                                <select id="paymentAdd"
+                                    name="PEMBAYARAN"
+                                    required>
+
+                                    <option value="">
+                                        -- PILIH --
+                                    </option>
 
                                     <option value="CASH">
                                         CASH
@@ -355,11 +360,16 @@ MODAL
                             <div class="col-md-3">
 
                                 <label class="form-label">
-                                    Jenis Pay
+                                    Jenis Pay *
                                 </label>
 
-                                <select name="JENIS_PAY"
-                                    class="form-control">
+                                <select id="jenisPayAdd"
+                                    name="JENIS_PAY"
+                                    required>
+
+                                    <option value="">
+                                        -- PILIH --
+                                    </option>
 
                                     <option value="LUNAS">
                                         LUNAS
@@ -380,7 +390,7 @@ MODAL
 
                                 <input type="text"
                                     name="NOTA"
-                                    class="form-control">
+                                    class="form-control" placeholder="Opsional..">
                             </div>
 
                             <div class="col-md-3">
@@ -390,7 +400,7 @@ MODAL
 
                                 <input type="text"
                                     name="NO_REF"
-                                    class="form-control">
+                                    class="form-control" placeholder="Opsional..">
                             </div>
 
                             <div class="col-md-6">
@@ -411,7 +421,7 @@ MODAL
 
                                 <textarea name="REMARK"
                                     rows="2"
-                                    class="form-control"></textarea>
+                                    class="form-control" placeholder="Opsional.."></textarea>
                             </div>
 
                         </div>
@@ -544,7 +554,6 @@ MODAL
 
                                         <th>Customer</th>
                                         <th>PO Type</th>
-                                        <th>Material</th>
                                         <th>Jumlah</th>
                                         <th>Berat</th>
                                         <th>Harga</th>
@@ -634,36 +643,57 @@ MODAL
                             <input name="RECEIVE_DATE" id="RECEIVE_DATE_EDIT" type="date" class="form-control" required>
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label d-block">Pembayaran</label>
-                            <div style="padding:10px 10px">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input edit-pay" type="radio" 
-                                           name="PEMBAYARAN_EDIT" id="edit_pay_cash" value="CASH">
-                                    <label class="form-check-label" for="edit_pay_cash">CASH</label>
-                                </div>
 
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input edit-pay" type="radio" 
-                                           name="PEMBAYARAN_EDIT" id="edit_pay_transfer" value="TRANSFER">
-                                    <label class="form-check-label" for="edit_pay_transfer">TRANSFER</label>
-                                </div>
-                            </div>
+                            <label class="form-label">
+                                Pembayaran *
+                            </label>
+
+                            <select id="paymentEdit"
+                                name="PEMBAYARAN_EDIT"
+                                class="form-control"
+                                required>
+
+                                <option value="">
+                                    -- PILIH --
+                                </option>
+
+                                <option value="CASH">
+                                    CASH
+                                </option>
+
+                                <option value="TRANSFER">
+                                    TRANSFER
+                                </option>
+
+                            </select>
+
                         </div>
-                        <div class="col-md-2">
-                            <label class="form-label d-block">Jenis Pembayaran</label>
-                            <div style="padding:10px 10px">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input edit-tipe-pay" type="radio" 
-                                           name="JENIS_PAY_EDIT" id="edit_pay_lunas" value="LUNAS">
-                                    <label class="form-check-label" for="edit_pay_lunas">LUNAS</label>
-                                </div>
 
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input edit-tipe-pay" type="radio" 
-                                           name="JENIS_PAY_EDIT" id="edit_pay_tempo" value="TEMPO">
-                                    <label class="form-check-label" for="edit_pay_tempo">TEMPO</label>
-                                </div>
-                            </div>
+                        <div class="col-md-2">
+
+                            <label class="form-label">
+                                Jenis Pembayaran *
+                            </label>
+
+                            <select id="jenisPayEdit"
+                                name="JENIS_PAY_EDIT"
+                                class="form-control"
+                                required>
+
+                                <option value="">
+                                    -- PILIH --
+                                </option>
+
+                                <option value="LUNAS">
+                                    LUNAS
+                                </option>
+
+                                <option value="TEMPO">
+                                    TEMPO
+                                </option>
+
+                            </select>
+
                         </div>
                         <div class="col-md-4">
                             <label class="form-label">Supplier *</label>
@@ -714,7 +744,6 @@ MODAL
                         <thead>
                             <tr>
                                 <th style="text-align:center">Customer</th>
-                                <th style="text-align:center">Material</th>
                                 <th style="text-align:center">Jumlah</th>
                                 <th style="text-align:center">Berat</th>
                                 <th style="text-align:center">Harga</th>
@@ -780,6 +809,22 @@ MODAL
     .loading-hide{
         opacity:.35;
         pointer-events:none;
+    }
+
+    .modal-content{
+        border:none;
+        border-radius:20px;
+        overflow:visible;
+    }
+
+    .modal-header{
+        background:#f8fafc;
+        border-bottom:1px solid #e5e7eb;
+    }
+
+    .modal-footer{
+        background:#f8fafc;
+        border-top:1px solid #e5e7eb;
     }
 </style>
 
@@ -848,6 +893,37 @@ MODAL
                 }
             }
         });
+    }
+
+    function initReceiveAddSelect2(){
+        // ================= PAYMENT =================
+
+        $('#paymentAdd').select2({
+
+            placeholder:'-- PILIH PAYMENT --',
+
+            dropdownParent: $('#receiveAdd'),
+
+            width:'100%',
+
+            minimumResultsForSearch: Infinity
+
+        });
+
+        // ================= JENIS PAY =================
+
+        $('#jenisPayAdd').select2({
+
+            placeholder:'-- PILIH JENIS --',
+
+            dropdownParent: $('#receiveAdd'),
+
+            width:'100%',
+
+            minimumResultsForSearch: Infinity
+
+        });
+
     }
 
     function formatDate(dateString) {
@@ -974,14 +1050,21 @@ MODAL
 
     function formatMoneyID(value){
 
-        if(value === null || value === '' || isNaN(value)){
+        if(
+            value === null ||
+            value === '' ||
+            isNaN(value)
+        ){
             return '';
         }
 
-        return parseFloat(value).toLocaleString('id-ID',{
-            minimumFractionDigits:0,
-            maximumFractionDigits:0
-        });
+        return Number(value).toLocaleString(
+            'id-ID',
+            {
+                minimumFractionDigits:2,
+                maximumFractionDigits:2
+            }
+        );
 
     }
 
@@ -1083,14 +1166,21 @@ MODAL
 
     function formatDecimalID(value, decimals = 2){
 
-        if(value === null || value === '' || isNaN(value)){
+        if(
+            value === null ||
+            value === '' ||
+            isNaN(value)
+        ){
             return '';
         }
 
-        return parseFloat(value).toLocaleString('id-ID',{
-            minimumFractionDigits: decimals,
-            maximumFractionDigits: decimals
-        });
+        return Number(value).toLocaleString(
+            'id-ID',
+            {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            }
+        );
 
     }
 
@@ -1098,47 +1188,21 @@ MODAL
 
         if(!value) return 0;
 
-        return parseFloat(
-            value.toString()
-                .replace(/\./g,'')
-                .replace(',', '.')
-        ) || 0;
+        value = value.toString();
+
+        // hapus titik ribuan
+        value = value.replace(/\./g,'');
+
+        // ubah koma decimal ke titik
+        value = value.replace(',', '.');
+
+        return parseFloat(value) || 0;
 
     }
 
     function unformatNumber(value) {
         if (!value) return 0;
         return parseFloat(value.replace(/\./g, '').replace(',', '.')) || 0;
-    }
-
-    /* -------------------------
-    Add / remove detail rows
-    ------------------------- */
-
-    function calcReceiveRow($row){
-        let jumlah = cleanNumber($row.find('.jumlah').val());
-        let harga  = cleanNumber($row.find('.harga').val());
-
-        let total = jumlah * harga;
-
-        $row.find('.total').val(
-            total ? formatDecimalID(total, 0) : ''
-        );
-    }
-
-    function calcRow(el){
-        let tr = $(el).closest('tr');
-        let qty   = cleanNumber(tr.find('.jumlah').val());
-        let price = cleanNumber(tr.find('.harga').val());
-
-        let total = qty * price;
-        tr.find('.total').val(total);
-    }
-
-    function updateTotalRow(row){
-        var jumlah = cleanNumber(row.find('.jumlah').val());
-        var harga  = cleanNumber(row.find('.harga').val());
-        row.find('.total').val(formatRupiah((jumlah * harga).toString()));
     }
 
     /* -------------------------
@@ -1188,25 +1252,14 @@ MODAL
 
                                 <input type="text"
                                     class="form-control"
-                                    value="${row.CUSTOMER} - ${row.CUSTOMER_NAME}"
+                                    value="${row.CUSTOMER_NAME}"
                                     readonly>
                             </td>
 
                             <td>
                                 <input type="text"
                                     class="form-control"
-                                    value="${row.PO_TYPE_NAME}"
-                                    readonly>
-                            </td>
-
-                            <td>
-                                <input type="hidden"
-                                    class="material-code"
-                                    value="${resp.header.MATERIAL}">
-
-                                <input type="text"
-                                    class="form-control"
-                                    value="${resp.header.MATERIAL} - ${resp.header.MATERIAL_NAME}"
+                                    value="${resp.header.PO_TYPE_NAME}"
                                     readonly>
                             </td>
 
@@ -1263,6 +1316,84 @@ MODAL
 
     }
 
+    function initPoTypeSelect2(el, modal){
+
+        $(el).select2({
+
+            placeholder:'-- PILIH TYPE --',
+
+            dropdownParent: $(modal),
+
+            width:'100%',
+
+            ajax:{
+                url:'<?= base_url("receive/get_po_type"); ?>',
+
+                dataType:'json',
+
+                delay:250,
+
+                data:function(params){
+
+                    return {
+                        q:params.term
+                    };
+
+                },
+
+                processResults:function(data){
+
+                    return {
+                        results:data
+                    };
+
+                }
+            }
+
+        });
+
+    }
+
+    function initCustomerSelect2(el, modal){
+
+        $(el).select2({
+
+            placeholder:'-- PILIH CUSTOMER --',
+
+            dropdownParent: $(modal),
+
+            width:'100%',
+
+            ajax:{
+
+                url:'<?= base_url("receive/get_customer"); ?>',
+
+                dataType:'json',
+
+                delay:250,
+
+                data:function(params){
+
+                    return {
+                        q: params.term
+                    };
+
+                },
+
+                processResults:function(data){
+
+                    return {
+                        results:data
+                    };
+
+                }
+
+            }
+
+        });
+
+    }
+
     function addRemainingRow(){
 
         $('#receiveDetailTableAdd tbody').append(`
@@ -1270,87 +1401,110 @@ MODAL
             <tr class="receive-extra-row">
 
                 <td>
-
-                    <input type="text"
-                        class="form-control customer-extra"
-                        value="INTERNAL FARM">
-
+                    <select class="customer-extra"></select>
                 </td>
 
                 <td>
-
-                    <select class="form-control po-type-extra">
-
-                        <option value="AMBIL SENDIRI">
-                            Ambil Sendiri
-                        </option>
-
-                    </select>
-
+                    <select class="po-type-extra"></select>
                 </td>
 
                 <td>
-
-                    <input type="text"
-                        class="form-control material-extra"
-                        value="${$('#poMaterialAdd').val()}">
-
-                </td>
-
-                <td>
-
                     <input type="text"
                         class="form-control text-end jumlah-extra">
-
                 </td>
 
                 <td>
-
                     <input type="text"
                         class="form-control text-end berat-extra">
-
                 </td>
 
                 <td>
-
                     <input type="text"
                         class="form-control text-end harga-extra">
-
                 </td>
 
                 <td>
-
                     <input type="text"
                         class="form-control text-end total-extra">
-
                 </td>
 
                 <td>
-
                     <input type="text"
-                        class="form-control text-end"
+                        class="form-control text-end susut-jumlah"
                         value="0">
-
                 </td>
 
                 <td>
-
                     <input type="text"
-                        class="form-control text-end"
+                        class="form-control text-end susut-berat"
                         value="0">
-
                 </td>
 
                 <td>
-
                     <input type="text"
-                        class="form-control">
-
+                        class="form-control keterangan">
                 </td>
 
             </tr>
 
         `);
+
+        // =========================================
+        // LAST ROW
+        // =========================================
+
+        let lastRow =
+            $('#receiveDetailTableAdd tbody tr:last');
+
+        // =========================================
+        // INIT CUSTOMER SELECT2
+        // =========================================
+
+        initCustomerSelect2(
+            lastRow.find('.customer-extra'),
+            '#receiveAdd'
+        );
+
+        // =========================================
+        // INIT PO TYPE SELECT2
+        // =========================================
+
+        initPoTypeSelect2(
+            lastRow.find('.po-type-extra'),
+            '#receiveAdd'
+        );
+
+        // =========================================
+        // DEFAULT CUSTOMER
+        // =========================================
+
+        let customerOption = new Option(
+            'INTERNAL FARM',
+            'INTERNAL FARM',
+            true,
+            true
+        );
+
+        lastRow
+            .find('.customer-extra')
+            .append(customerOption)
+            .trigger('change');
+
+        // =========================================
+        // DEFAULT TYPE
+        // =========================================
+
+        let typeOption = new Option(
+            'AMBIL SENDIRI',
+            'AMBIL SENDIRI',
+            true,
+            true
+        );
+
+        lastRow
+            .find('.po-type-extra')
+            .append(typeOption)
+            .trigger('change');
 
     }
 
@@ -1365,7 +1519,9 @@ MODAL
         $('#receiveDetailTableAdd tbody tr').each(function(){
 
             qty += parseDecimalID(
-                $(this).find('.jumlah').val()
+                $(this)
+                    .find('.jumlah,.jumlah-extra')
+                    .val()
             );
 
             berat += parseDecimalID(
@@ -1401,10 +1557,12 @@ MODAL
         // init select2 supplier & PO
         initPlantSelect2('#plantAdd', '#receiveAdd');
         setDefaultPlant('#plantAdd');
-        initSupplierSelect2('#supplierAdd', '#receiveAdd');
 
         initPoSelect2();
-        setDefaultSupplier('#supplierAdd');
+
+        initReceiveAddSelect2();
+        $('#paymentAdd').val('').trigger('change');
+        $('#jenisPayAdd').val('').trigger('change');
 
         // remove row
         $('#receiveDetailTableAdd, #receiveDetailTableEdit').on('click','.removeRow', function(){ $(this).closest('tr').remove(); });
@@ -1458,16 +1616,14 @@ MODAL
 
         });
 
-        /* =========================================================
-        INPUT FORMAT
-        ========================================================= */
-
         $(document).on(
-            'input',
+            'blur',
             '.jumlah,.berat,.susut-jumlah,.susut-berat,.jumlah-extra,.berat-extra',
             function(){
 
-                let val = parseDecimalID($(this).val());
+                let val = parseDecimalID(
+                    $(this).val()
+                );
 
                 $(this).val(
                     formatDecimalID(val)
@@ -1479,11 +1635,13 @@ MODAL
         );
 
         $(document).on(
-            'input',
+            'blur',
             '.harga,.total,.harga-extra,.total-extra',
             function(){
 
-                let val = parseRupiah($(this).val());
+                let val = parseRupiah(
+                    $(this).val()
+                );
 
                 $(this).val(
                     formatMoneyID(val)
@@ -1493,56 +1651,6 @@ MODAL
 
             }
         );
-
-        function validateReceiveQty(){
-
-            let poQty = parseDecimalID(
-                $('#poJumlahAdd').val()
-            );
-
-            let poBerat = parseDecimalID(
-                $('#poBeratAdd').val()
-            );
-
-            let totalQty = 0;
-
-            let totalBerat = 0;
-
-            $('#receiveDetailTableAdd tbody tr').each(function(){
-
-                totalQty += parseDecimalID(
-                    $(this).find('.jumlah,.jumlah-extra').val()
-                );
-
-                totalBerat += parseDecimalID(
-                    $(this).find('.berat,.berat-extra').val()
-                );
-
-            });
-
-            if(totalQty > poQty){
-
-                alert(
-                    'Total jumlah melebihi master PO'
-                );
-
-                return false;
-
-            }
-
-            if(totalBerat > poBerat){
-
-                alert(
-                    'Total berat melebihi master PO'
-                );
-
-                return false;
-
-            }
-
-            return true;
-
-        }
 
         function validateRemainingRow(){
 
@@ -1595,10 +1703,6 @@ MODAL
 
             e.preventDefault();
 
-            if(!validateReceiveQty()){
-                return;
-            }
-
             if(!validateRemainingRow()){
                 return;
             }
@@ -1635,11 +1739,6 @@ MODAL
                         isExtra
                             ? $(this).find('.po-type-extra').val()
                             : null,
-
-                    MATERIAL :
-                        isExtra
-                            ? $(this).find('.material-extra').val()
-                            : $(this).find('.material-code').val(),
 
                     JUMLAH :
                         parseDecimalID(
@@ -1803,16 +1902,7 @@ MODAL
                                     <input type="hidden" class="customer-code" value="${row.CUSTOMER ?? ''}">
                                     <input type="text"
                                         class="form-control"
-                                        value="${row.CUSTOMER ?? ''} - ${row.CUSTOMER_NAME ?? ''}"
-                                        readonly
-                                        style="background:#efefef">
-                                </td>
-
-                                <td>
-                                    <input type="hidden" class="material-code" value="${row.MATERIAL}">
-                                    <input type="text"
-                                        class="form-control"
-                                        value="${row.MATERIAL} - ${row.MATERIAL_NAME ?? ''}"
+                                        value="${row.CUSTOMER_NAME ?? ''}"
                                         readonly
                                         style="background:#efefef">
                                 </td>
@@ -1962,18 +2052,6 @@ MODAL
         });
 
     }); // end ready
-
-    function cleanNumber(val) {
-        if (val === null || val === undefined || val === '') return 0;
-
-        val = val.toString();
-
-        // format ID:
-        // 1.000.000,50 → 1000000.50
-        return parseFloat(
-            val.replace(/\./g, '').replace(',', '.')
-        ) || 0;
-    }
 
     // Format ribuan TAPI tidak mengubah desimal
     function formatRupiah(x){

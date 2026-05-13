@@ -24,6 +24,72 @@ class Receive extends MY_Controller {
         $this->load->view('templates/footer');
     }
 
+    public function get_customer()
+    {
+        $term = $this->input->get('q');
+
+        $this->db->select('CUST, FULL_NAME')
+            ->from('abc_cd_customer')
+            ->where('CUST_KIND', 'CUSTOMER')
+            ->where('CUST_CLASS', 'CUSTOMER')
+            ->where('STATUS', 'Y');
+
+        if (!empty($term)) {
+            $this->db->group_start();
+            $this->db->like('CUST', $term);
+            $this->db->or_like('FULL_NAME', $term);
+            $this->db->group_end();
+        }
+
+        $this->db->order_by('CUST', 'ASC');
+
+        $rows = $this->db->get()->result();
+
+        $data = [];
+
+        foreach ($rows as $row) {
+            $data[] = [
+                'id'   => $row->CUST,
+                'text' => $row->CUST . ' - ' . $row->FULL_NAME
+            ];
+        }
+
+        echo json_encode($data);
+    }
+
+    public function get_po_type()
+    {
+        $term = $this->input->get('q');
+
+        $this->db->select('CODE, CODE_NAME')
+            ->from('abc_cd_code')
+            ->where('HEAD_CODE', 'PO')
+            ->where('CODE <>', '*')
+            ->where('USE_YN', 'Y');
+
+        if (!empty($term)) {
+            $this->db->group_start();
+            $this->db->like('CODE', $term);
+            $this->db->or_like('CODE_NAME', $term);
+            $this->db->group_end();
+        }
+
+        $this->db->order_by('HEAD_CODE', 'ASC');
+
+        $rows = $this->db->get()->result();
+
+        $data = [];
+
+        foreach ($rows as $row) {
+            $data[] = [
+                'id'   => $row->CODE,
+                'text' => $row->CODE_NAME
+            ];
+        }
+
+        echo json_encode($data);
+    }
+
     /**
      * Load data for table (ajax)
      */
@@ -202,15 +268,16 @@ class Receive extends MY_Controller {
 
         echo json_encode($result);
     }
+
     public function get_po_detail()
     {
         $po    = $this->input->get('po', true);
         $plant = $this->input->get('plant', true);
 
-        if(
+        if (
             empty($po) ||
             empty($plant)
-        ){
+        ) {
 
             echo json_encode([
                 'status'  => false,
@@ -236,6 +303,7 @@ class Receive extends MY_Controller {
 
                 type.CODE_NAME AS PO_TYPE_NAME
             ")
+
             ->from('abc_mst_po p')
 
             ->join(
@@ -267,7 +335,7 @@ class Receive extends MY_Controller {
 
             ->row();
 
-        if(!$header){
+        if (!$header) {
 
             echo json_encode([
                 'status'  => false,
@@ -287,9 +355,7 @@ class Receive extends MY_Controller {
             ->select("
                 d.*,
 
-                customer.FULL_NAME AS CUSTOMER_NAME,
-
-                type.CODE_NAME AS PO_TYPE_NAME
+                customer.FULL_NAME AS CUSTOMER_NAME
             ")
 
             ->from('abc_mst_po_detail d')
@@ -297,13 +363,6 @@ class Receive extends MY_Controller {
             ->join(
                 'abc_cd_customer customer',
                 'customer.CUST = d.CUSTOMER',
-                'left'
-            )
-
-            ->join(
-                'abc_cd_code type',
-                "type.CODE = d.PO_TYPE
-                AND type.HEAD_CODE = 'PO'",
                 'left'
             )
 
@@ -326,23 +385,6 @@ class Receive extends MY_Controller {
             'detail' => $detail
 
         ]);
-    }
-
-    /**
-     * Load PO detail (ajax) - when user selects PO in form
-     */
-    public function load_po_detail()
-    {
-        $po    = $this->input->get('po', TRUE);
-        $plant = $this->input->get('plant', TRUE);
-
-        if (!$po || !$plant) {
-            echo json_encode(['status'=>false,'message'=>'PO & Plant required']);
-            return;
-        }
-
-        $detail = $this->Receive_model->get_po_detail($po, $plant);
-        echo json_encode(['status'=>true,'detail'=>$detail]);
     }
 
     public function create()
