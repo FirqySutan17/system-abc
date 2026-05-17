@@ -48,104 +48,450 @@ class Receive_model extends CI_Model {
         $username,
         $search = '',
         $order = 'RECEIVE_DATE',
-        $dir = 'DESC'
-    ) {
+        $dir = 'DESC',
+        $status = '',
+        $dateFrom = '',
+        $dateTo = ''
+    )
+    {
         $role_id = (int)$role_id;
 
-        $this->db->select('
-            r.RECEIVE,
-            r.NOTA,
-            r.PLANT,
-            r.PO,
-            r.RECEIVE_DATE,
-            r.SUPPLIER,
-            c.FULL_NAME AS SUPPLIER_NAME,
-            r.REMARK,
-            r.SLIP_NO,
-            cd.CODE_NAME AS AJ_NAME
-        ');
+        $this->db->select("
+            r.*,
+
+            supplier.FULL_NAME AS SUPPLIER_NAME,
+
+            plant.CODE_NAME AS PLANT_NAME,
+
+            po.PO_TYPE,
+
+            po_type.CODE_NAME AS PO_TYPE_NAME,
+
+            po.MATERIAL,
+
+            material.MATERIAL_NAME,
+
+            SUM(rd.JUMLAH) AS TOTAL_QTY,
+
+            SUM(rd.BERAT) AS TOTAL_BERAT,
+
+            COUNT(DISTINCT rd.CUSTOMER)
+                AS TOTAL_CUSTOMER,
+
+            COUNT(DISTINCT rd.SALES_NO)
+                AS TOTAL_SALES
+        ", false);
+
         $this->db->from('abc_mst_receive r');
 
+        /*
+        |--------------------------------------------------------------------------
+        | SUPPLIER
+        |--------------------------------------------------------------------------
+        */
+
         $this->db->join(
-            'abc_cd_customer c',
-            'r.SUPPLIER COLLATE utf8mb4_unicode_ci = c.CUST COLLATE utf8mb4_unicode_ci',
+            'abc_cd_customer supplier',
+            '
+                supplier.CUST COLLATE utf8mb4_unicode_ci =
+                r.SUPPLIER COLLATE utf8mb4_unicode_ci
+            ',
             'left',
             false
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT
+        |--------------------------------------------------------------------------
+        */
+
         $this->db->join(
-            'abc_cd_code cd',
-            "cd.CODE COLLATE utf8mb4_unicode_ci = r.PLANT COLLATE utf8mb4_unicode_ci
-             AND cd.HEAD_CODE = 'PLANT'",
+            'abc_cd_code plant',
+            "
+                plant.CODE COLLATE utf8mb4_unicode_ci =
+                r.PLANT COLLATE utf8mb4_unicode_ci
+                AND plant.HEAD_CODE = 'PLANT'
+            ",
             'left',
             false
         );
 
-        $this->db->where('r.DELETED IS NULL', null, false);
+        /*
+        |--------------------------------------------------------------------------
+        | RECEIVE DETAIL
+        |--------------------------------------------------------------------------
+        */
 
-        /* 🔐 NON ADMIN */
-        if ($role_id !== 1) {
-            $plants = json_decode($plant, true);
-            if (!is_array($plants)) {
-                $plants = explode(',', $plant);
-            }
+        $this->db->join(
+            'abc_mst_receive_detail rd',
+            '
+                rd.RECEIVE = r.RECEIVE
+                AND rd.PLANT = r.PLANT
+                AND rd.DELETED IS NULL
+            ',
+            'left',
+            false
+        );
 
-            $this->db->where_in('r.PLANT', $plants);
-            $this->db->where('r.CREATED_BY', $username);
-        }
+        /*
+        |--------------------------------------------------------------------------
+        | PO
+        |--------------------------------------------------------------------------
+        */
 
-        if ($search !== '') {
+        $this->db->join(
+            'abc_mst_po po',
+            '
+                po.PO = r.PO
+                AND po.PLANT = r.PLANT
+            ',
+            'left',
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | PO TYPE
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+            'abc_cd_code po_type',
+            "
+                po_type.CODE COLLATE utf8mb4_unicode_ci =
+                po.PO_TYPE COLLATE utf8mb4_unicode_ci
+                AND po_type.HEAD_CODE = 'PO'
+            ",
+            'left',
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | MATERIAL
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+            'abc_cd_material material',
+            '
+                material.MATERIAL COLLATE utf8mb4_unicode_ci =
+                po.MATERIAL COLLATE utf8mb4_unicode_ci
+            ',
+            'left',
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER DELETED
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->where(
+            'r.DELETED IS NULL',
+            null,
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        */
+
+        if($search !== ''){
+
             $this->db->group_start();
-            $this->db->like('r.RECEIVE', $search);
-            $this->db->or_like('r.PO', $search);
-            $this->db->or_like('r.NOTA', $search);
-            $this->db->or_like('c.FULL_NAME', $search);
-            $this->db->or_like('r.REMARK', $search);
-            $this->db->or_like('cd.CODE_NAME', $search);
+
+            $this->db->like(
+                'r.RECEIVE',
+                $search
+            );
+
+            $this->db->or_like(
+                'r.PO',
+                $search
+            );
+
+            $this->db->or_like(
+                'supplier.FULL_NAME',
+                $search
+            );
+
+            $this->db->or_like(
+                'material.MATERIAL_NAME',
+                $search
+            );
+
+            $this->db->or_like(
+                'r.REMARK',
+                $search
+            );
+
             $this->db->group_end();
+
         }
 
-        $this->db->order_by($order, $dir);
-        $this->db->limit((int)$limit, (int)$start);
+        /*
+        |--------------------------------------------------------------------------
+        | STATUS
+        |--------------------------------------------------------------------------
+        */
 
-        return $this->db->get()->result_array();
+        if(!empty($status)){
+
+            $this->db->where(
+                'r.STATUS_RECEIVE',
+                $status
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATE RANGE
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($dateFrom)){
+
+            $this->db->where(
+                'r.RECEIVE_DATE >=',
+                $dateFrom . ' 00:00:00'
+            );
+
+        }
+
+        if(!empty($dateTo)){
+
+            $this->db->where(
+                'r.RECEIVE_DATE <=',
+                $dateTo . ' 23:59:59'
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | GROUP BY
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->group_by('r.RECEIVE');
+
+        /*
+        |--------------------------------------------------------------------------
+        | ORDER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->order_by(
+            'r.' . $order,
+            $dir
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | LIMIT
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->limit(
+            (int)$limit,
+            (int)$start
+        );
+
+        return $this->db
+            ->get()
+            ->result_array();
     }
 
-    public function count_data($role_id, $plant, $username, $search = '')
+    public function count_data(
+        $role_id,
+        $plant,
+        $username,
+        $search = '',
+        $status = '',
+        $dateFrom = '',
+        $dateTo = ''
+    )
     {
         $role_id = (int)$role_id;
 
         $this->db->from('abc_mst_receive r');
-        $this->db->join('abc_cd_customer c',
-            'r.SUPPLIER COLLATE utf8mb4_unicode_ci = c.CUST COLLATE utf8mb4_unicode_ci',
-            'left', false
-        );
-        $this->db->join('abc_cd_code cd',
-            "cd.CODE COLLATE utf8mb4_unicode_ci = r.PLANT COLLATE utf8mb4_unicode_ci
-             AND cd.HEAD_CODE = 'AJ'",
-            'left', false
+
+        /*
+        |--------------------------------------------------------------------------
+        | SUPPLIER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+            'abc_cd_customer supplier',
+            '
+                supplier.CUST COLLATE utf8mb4_unicode_ci =
+                r.SUPPLIER COLLATE utf8mb4_unicode_ci
+            ',
+            'left',
+            false
         );
 
-        $this->db->where('r.DELETED IS NULL', null, false);
+        /*
+        |--------------------------------------------------------------------------
+        | PO
+        |--------------------------------------------------------------------------
+        */
 
-        if ($role_id !== 1) {
-            $plants = json_decode($plant, true);
-            if (!is_array($plants)) {
-                $plants = explode(',', $plant);
+        $this->db->join(
+            'abc_mst_po po',
+            '
+                po.PO = r.PO
+                AND po.PLANT = r.PLANT
+            ',
+            'left',
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | MATERIAL
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+            'abc_cd_material material',
+            '
+                material.MATERIAL COLLATE utf8mb4_unicode_ci =
+                po.MATERIAL COLLATE utf8mb4_unicode_ci
+            ',
+            'left',
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER DELETED
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->where(
+            'r.DELETED IS NULL',
+            null,
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | ROLE FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        if($role_id !== 1){
+
+            $plants = json_decode(
+                $plant,
+                true
+            );
+
+            if(!is_array($plants)){
+
+                $plants = explode(
+                    ',',
+                    $plant
+                );
+
             }
-            $this->db->where_in('r.PLANT', $plants);
-            $this->db->where('r.CREATED_BY', $username);
+
+            $this->db->where_in(
+                'r.PLANT',
+                $plants
+            );
+
+            $this->db->where(
+                'r.CREATED_BY',
+                $username
+            );
+
         }
 
-        if ($search !== '') {
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        */
+
+        if($search !== ''){
+
             $this->db->group_start();
-            $this->db->like('r.RECEIVE', $search);
-            $this->db->or_like('r.PO', $search);
-            $this->db->or_like('r.NOTA', $search);
-            $this->db->or_like('c.FULL_NAME', $search);
-            $this->db->or_like('r.REMARK', $search);
-            $this->db->or_like('cd.CODE_NAME', $search);
+
+            $this->db->like(
+                'r.RECEIVE',
+                $search
+            );
+
+            $this->db->or_like(
+                'r.PO',
+                $search
+            );
+
+            $this->db->or_like(
+                'supplier.FULL_NAME',
+                $search
+            );
+
+            $this->db->or_like(
+                'material.MATERIAL_NAME',
+                $search
+            );
+
+            $this->db->or_like(
+                'r.REMARK',
+                $search
+            );
+
             $this->db->group_end();
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | STATUS
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($status)){
+
+            $this->db->where(
+                'r.STATUS_RECEIVE',
+                $status
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATE RANGE
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($dateFrom)){
+
+            $this->db->where(
+                'r.RECEIVE_DATE >=',
+                $dateFrom . ' 00:00:00'
+            );
+
+        }
+
+        if(!empty($dateTo)){
+
+            $this->db->where(
+                'r.RECEIVE_DATE <=',
+                $dateTo . ' 23:59:59'
+            );
+
         }
 
         return $this->db->count_all_results();
@@ -397,44 +743,119 @@ class Receive_model extends CI_Model {
     public function get_receive_header($plant, $receive)
     {
         return $this->db
-        ->select('
-            r.*,
-            c.CUST,
-            c.FULL_NAME AS SUPPLIER_NAME,
-            cd.CODE_NAME AS PLANT_NAME
-        ')
-        ->from('abc_mst_receive r')
-        ->join('abc_cd_customer c', 'r.SUPPLIER = c.CUST', 'left')
-        ->join('abc_cd_code cd', "cd.CODE = r.PLANT AND cd.HEAD_CODE = 'PLANT'", 'left')
-        ->where('r.PLANT', $plant)
-        ->where('r.RECEIVE', $receive)
-        ->get()->row_array();
+
+            ->select('
+                r.*,
+
+                c.CUST,
+
+                c.FULL_NAME AS SUPPLIER_NAME,
+
+                cd.CODE_NAME AS PLANT_NAME,
+
+                po.MATERIAL,
+
+                po.JUMLAH,
+
+                po.BERAT,
+
+                po.HARGA,
+
+                po.TOTAL,
+
+                po.NO_TRUCK,
+
+                po.DRIVER,
+
+                m.MATERIAL_NAME
+            ')
+
+            ->from('abc_mst_receive r')
+
+            ->join(
+                'abc_cd_customer c',
+                'r.SUPPLIER = c.CUST',
+                'left'
+            )
+
+            ->join(
+                'abc_cd_code cd',
+                "
+                    cd.CODE = r.PLANT
+                    AND cd.HEAD_CODE = 'PLANT'
+                ",
+                'left',
+                false
+            )
+
+            ->join(
+                'abc_mst_po po',
+                '
+                    po.PO = r.PO
+                    AND po.PLANT = r.PLANT
+                ',
+                'left'
+            )
+
+            ->join(
+                'abc_cd_material m',
+                '
+                    m.MATERIAL = po.MATERIAL
+                ',
+                'left'
+            )
+
+            ->where('r.PLANT', $plant)
+
+            ->where('r.RECEIVE', $receive)
+
+            ->get()
+
+            ->row_array();
     }
 
     public function get_receive_detail($plant, $receive)
     {
         return $this->db
-            ->select('
+            ->select("
                 d.*,
                 m.MATERIAL_NAME,
-                c.FULL_NAME AS CUSTOMER_NAME
-            ')
+                c.FULL_NAME AS CUSTOMER_NAME,
+                pt.CODE_NAME AS PO_TYPE_NAME
+            ")
+
             ->from('abc_mst_receive_detail d')
+
             ->join(
                 'abc_cd_material m',
-                'm.MATERIAL COLLATE utf8mb4_unicode_ci = d.MATERIAL COLLATE utf8mb4_unicode_ci',
-                'left',
-                false
+                'm.MATERIAL = d.MATERIAL',
+                'left'
             )
+
             ->join(
                 'abc_cd_customer c',
                 'c.CUST = d.CUSTOMER',
                 'left'
             )
+
+            ->join(
+                'abc_cd_code pt',
+                "
+                    TRIM(pt.CODE) = TRIM(d.PO_TYPE)
+                    AND pt.HEAD_CODE = 'PO'
+                ",
+                'left',
+                false
+            )
+
             ->where('d.PLANT', $plant)
+
             ->where('d.RECEIVE', $receive)
+
             ->order_by('d.SEQ_NO', 'ASC')
+
             ->get()
+
             ->result_array();
     }
 

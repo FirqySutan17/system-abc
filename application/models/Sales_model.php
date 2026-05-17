@@ -37,9 +37,9 @@ class Sales_model extends CI_Model {
             s.AMOUNT
         ', false);
 
-        $this->db->from('mst_sales s');
-        $this->db->join('cd_code cc', "cc.CODE = s.PLANT AND cc.HEAD_CODE='AJ'", 'left');
-        $this->db->join('cd_customer c', 'c.CUST = s.CUSTOMER', 'left');
+        $this->db->from('abc_mst_sales s');
+        $this->db->join('abc_cd_code cc', "cc.CODE = s.PLANT AND cc.HEAD_CODE='AJ'", 'left');
+        $this->db->join('abc_cd_customer c', 'c.CUST = s.CUSTOMER', 'left');
         $this->db->where('s.DELETED IS NULL', null, false);
 
         if ($role_id !== 1) {
@@ -66,7 +66,7 @@ class Sales_model extends CI_Model {
     {
         $role_id = (int)$role_id;
 
-        $this->db->from('mst_sales s');
+        $this->db->from('abc_mst_sales s');
         $this->db->where('s.DELETED IS NULL', null, false);
 
         if ($role_id !== 1) {
@@ -115,6 +115,24 @@ class Sales_model extends CI_Model {
         return $plants;
     }
 
+    public function get_plant_select2()
+    {
+        return $this->db
+            ->select('CODE as id, CODE_NAME as text')
+
+            ->from('abc_cd_code')
+
+            ->where('HEAD_CODE', 'PLANT')
+
+            ->where('CODE !=', '*')
+
+            ->order_by('CODE_NAME', 'ASC')
+
+            ->get()
+
+            ->result_array();
+    }
+
     public function get_plant_select2_by_user($username)
     {
         $plantCodes = $this->get_user_plants($username);
@@ -125,81 +143,35 @@ class Sales_model extends CI_Model {
 
         return $this->db
             ->select('CODE as id, CODE_NAME as text')
-            ->where('HEAD_CODE', 'AJ')
+            ->where('HEAD_CODE', 'PLANT')
             ->where_in('CODE', $plantCodes)
             ->order_by('CODE_NAME', 'ASC')
-            ->get('cd_code')
+            ->get('abc_cd_code')
             ->result_array();
     }
 
-    public function user_has_plant($username, $plant)
-    {
-        if (!$plant) return false;
+    public function user_has_plant(
+        $username,
+        $plant
+    ){
+        if (!$plant) {
+            return false;
+        }
 
-        $plant  = (string)trim($plant);
+        $plant = trim((string)$plant);
+
         $plants = array_map(
-            fn($p) => (string)trim($p),
+            function($p){
+                return trim((string)$p);
+            },
             $this->get_user_plants($username)
         );
 
-        return in_array($plant, $plants, true);
-    }
-
-    public function sync_dp_cashin($sales, $plant, $customer, $dpAmount, $username)
-    {
-        $dpAmount = (float)$dpAmount;
-
-        // HAPUS JIKA DP = 0
-        if ($dpAmount <= 0) {
-            $this->delete_auto_dp_cashin($sales, $plant);
-            return;
-        }
-
-        // CEK DETAIL AUTO DP SUDAH ADA?
-        $exist = $this->db->where([
-            'SALES'       => $sales,
-            'PLANT'       => $plant,
-            'ORG_SLIP_NO' => 'AUTO_DP'
-        ])->get('mst_cash_in_detail')->row_array();
-
-        if ($exist) {
-            // UPDATE NOMINAL
-            $this->db->where('ID', $exist['ID'])->update('mst_cash_in_detail', [
-                'AMOUNT_OFFSET'  => $dpAmount,
-                'AMOUNT_INVOICE' => $dpAmount,
-                'UPDATED_AT'     => date('Y-m-d H:i:s'),
-                'UPDATED_BY'     => $username
-            ]);
-
-            $this->recalculate_cash_in_header($exist['CASH_IN'], $plant);
-            return;
-        }
-
-        // BUAT HEADER BARU (AMAN PER PLANT)
-        $cashInNo = $this->generate_cash_in_no($plant);
-
-        $this->db->insert('mst_cash_in', [
-            'CASH_IN'     => $cashInNo,
-            'PLANT'       => $plant,
-            'CUSTOMER'    => $customer,
-            'CASHIN_DATE' => date('Y-m-d'),
-            'AMOUNT'      => $dpAmount,
-            'CREATED_AT'  => date('Y-m-d H:i:s'),
-            'CREATED_BY'  => $username
-        ]);
-
-        $this->db->insert('mst_cash_in_detail', [
-            'CASH_IN'        => $cashInNo,
-            'PLANT'          => $plant,
-            'SEQ_NO'         => 1,
-            'SALES'          => $sales,
-            'AMOUNT_OFFSET'  => $dpAmount,
-            'AMOUNT_INVOICE' => $dpAmount,
-            'DATE_OFFSET'     => date('Y-m-d H:i:s'),
-            'ORG_SLIP_NO'    => 'AUTO_DP',
-            'CREATED_AT'     => date('Y-m-d H:i:s'),
-            'CREATED_BY'     => $username
-        ]);
+        return in_array(
+            $plant,
+            $plants,
+            true
+        );
     }
 
     public function delete_auto_dp_cashin($sales, $plant)
@@ -208,18 +180,18 @@ class Sales_model extends CI_Model {
             'SALES'       => $sales,
             'PLANT'       => $plant,
             'ORG_SLIP_NO' => 'AUTO_DP'
-        ])->get('mst_cash_in_detail')->result_array();
+        ])->get('abc_mst_cash_in_detail')->result_array();
 
         foreach ($details as $d) {
-            $this->db->delete('mst_cash_in_detail', ['ID' => $d['ID']]);
+            $this->db->delete('abc_mst_cash_in_detail', ['ID' => $d['ID']]);
 
             $remain = $this->db->where([
                 'CASH_IN' => $d['CASH_IN'],
                 'PLANT'   => $plant
-            ])->count_all_results('mst_cash_in_detail');
+            ])->count_all_results('abc_mst_cash_in_detail');
 
             if ($remain == 0) {
-                $this->db->delete('mst_cash_in', [
+                $this->db->delete('abc_mst_cash_in', [
                     'CASH_IN' => $d['CASH_IN'],
                     'PLANT'   => $plant
                 ]);
@@ -234,7 +206,7 @@ class Sales_model extends CI_Model {
         return $this->db->where([
                 'PLANT' => $plant,
                 'SALES' => $sales
-            ])->update('mst_sales', [
+            ])->update('abc_mst_sales', [
                 'AMOUNT'     => $total,
                 'DP_AMOUNT'  => $dp,        // ✅ FIX
                 'REMAIN'     => $remain,
@@ -247,18 +219,18 @@ class Sales_model extends CI_Model {
     {
         $total = $this->db->select_sum('AMOUNT_OFFSET')
             ->where(['CASH_IN'=>$cashIn,'PLANT'=>$plant])
-            ->get('mst_cash_in_detail')
+            ->get('abc_mst_cash_in_detail')
             ->row()->AMOUNT_OFFSET;
 
         $this->db->where(['CASH_IN'=>$cashIn,'PLANT'=>$plant])
-            ->update('mst_cash_in', ['AMOUNT'=>$total]);
+            ->update('abc_mst_cash_in', ['AMOUNT'=>$total]);
     }
 
     public function get_total_paid($sales, $plant)
     {
         return (float)$this->db
             ->select('COALESCE(SUM(AMOUNT_OFFSET),0) AS TOTAL_PAID')
-            ->from('mst_cash_in_detail')
+            ->from('abc_mst_cash_in_detail')
             ->where('SALES', $sales)
             ->where('PLANT', $plant)
             ->where('DELETED IS NULL', null, false)
@@ -276,26 +248,51 @@ class Sales_model extends CI_Model {
         ];
     }
 
-    /* ---------------------------------------------------------
-       AUTO NUMBER GENERATOR
-    --------------------------------------------------------- */
     public function generate_sales_no($plant)
     {
         $today  = date('Ymd');
+
+        /*
+        |--------------------------------------------------------------------------
+        | FORMAT
+        |--------------------------------------------------------------------------
+        | 20260517SO0001
+        */
+
         $prefix = $today . 'SO';
 
         $this->db->select('SALES');
-        $this->db->from('mst_sales');
+
+        $this->db->from('abc_mst_sales');
+
         $this->db->where('PLANT', $plant);
-        $this->db->like('SALES', $prefix, 'after');
+
+        $this->db->like(
+            'SALES',
+            $prefix,
+            'after'
+        );
+
         $this->db->order_by('SALES', 'DESC');
+
         $this->db->limit(1);
 
-        $row = $this->db->get()->row();
+        $row = $this->db
+            ->get()
+            ->row();
 
-        $seq = $row ? ((int)substr($row->SALES, -4) + 1) : 1;
+        $seq = $row
+            ? ((int)substr($row->SALES, -4) + 1)
+            : 1;
 
-        return $prefix . str_pad($seq, 4, '0', STR_PAD_LEFT);
+        return
+            $prefix .
+            str_pad(
+                $seq,
+                4,
+                '0',
+                STR_PAD_LEFT
+            );
     }
 
     public function generate_slip_no($plant)
@@ -304,7 +301,7 @@ class Sales_model extends CI_Model {
         $prefix = $today . 'AR';
 
         $this->db->select('SLIP_NO');
-        $this->db->from('mst_sales');
+        $this->db->from('abc_mst_sales');
         $this->db->where('PLANT', $plant);
         $this->db->like('SLIP_NO', $prefix, 'after');
         $this->db->order_by('SLIP_NO', 'DESC');
@@ -323,7 +320,7 @@ class Sales_model extends CI_Model {
         $prefix = $today . 'CI';
 
         $this->db->select('CASH_IN');
-        $this->db->from('mst_cash_in');
+        $this->db->from('abc_mst_cash_in');
         $this->db->where('PLANT', $plant);
         $this->db->like('CASH_IN', $prefix, 'after');
         $this->db->order_by('CASH_IN', 'DESC');
@@ -338,7 +335,7 @@ class Sales_model extends CI_Model {
 
     public function get_sales_header_secure($sales, $plant, $username, $role_id)
     {
-        $this->db->from('mst_sales');
+        $this->db->from('abc_mst_sales');
         $this->db->where('SALES', $sales);
         $this->db->where('PLANT', $plant); // 🔒 KUNCI PLANT
 
@@ -352,27 +349,35 @@ class Sales_model extends CI_Model {
         return $this->db->get()->row_array();
     }
 
-    /* ---------------------------------------------------------
-       SALES OPERATIONS
-    --------------------------------------------------------- */
     public function insert_sales_header($data)
     {
-        return $this->db->insert('mst_sales', $data);
+        return $this->db
+            ->insert(
+                'abc_mst_sales',
+                $data
+            );
     }
 
     public function update_sales_amount($plant, $salesNo, $amount)
     {
         $this->db->where('PLANT', $plant);
         $this->db->where('SALES', $salesNo);
-        $this->db->update('mst_sales', [
+        $this->db->update('abc_mst_sales', [
             'AMOUNT' => $amount
         ]);
     }
 
     public function insert_sales_detail_batch($rows)
     {
-        if(empty($rows)) return false;
-        return $this->db->insert_batch('mst_sales_detail', $rows);
+        if (empty($rows)) {
+            return false;
+        }
+
+        return $this->db
+            ->insert_batch(
+                'abc_mst_sales_detail',
+                $rows
+            );
     }
 
     public function get_sales_header($sales, $plant)
@@ -383,15 +388,15 @@ class Sales_model extends CI_Model {
                 c.FULL_NAME AS CUSTOMER_NAME,
                 cc.CODE_NAME AS PLANT_NAME
             ')
-            ->from('mst_sales s')
+            ->from('abc_mst_sales s')
             ->join(
-                'cd_customer c',
+                'abc_cd_customer c',
                 's.CUSTOMER COLLATE utf8mb4_unicode_ci = c.CUST COLLATE utf8mb4_unicode_ci',
                 'left',
                 false
             )
             ->join(
-                'cd_code cc',
+                'abc_cd_code cc',
                 "cc.CODE = s.PLANT AND cc.HEAD_CODE = 'AJ'",
                 'left'
             )
@@ -408,9 +413,9 @@ class Sales_model extends CI_Model {
                 d.*,
                 i.FULL_NAME AS ITEM_NAME
             ')
-            ->from('mst_sales_detail d')
+            ->from('abc_mst_sales_detail d')
             ->join(
-                'cd_item i',
+                'abc_cd_item i',
                 'd.ITEM COLLATE utf8mb4_unicode_ci = i.ITEM COLLATE utf8mb4_unicode_ci',
                 'left',
                 false
@@ -422,12 +427,18 @@ class Sales_model extends CI_Model {
             ->result_array();
     }
 
-    public function update_sales_header($plant, $sales, $data)
-    {
+    public function update_sales_header(
+        $plant,
+        $sales,
+        $data
+    ){
         return $this->db
             ->where('PLANT', $plant)
             ->where('SALES', $sales)
-            ->update('mst_sales', $data);
+            ->update(
+                'abc_mst_sales',
+                $data
+            );
     }
 
     public function delete_sales_detail($plant, $sales)
@@ -435,7 +446,7 @@ class Sales_model extends CI_Model {
         return $this->db
             ->where('PLANT', $plant)
             ->where('SALES', $sales)
-            ->delete('mst_sales_detail');
+            ->delete('abc_mst_sales_detail');
     }
 
     public function delete_sales_header($plant, $sales)
@@ -443,7 +454,7 @@ class Sales_model extends CI_Model {
         return $this->db
             ->where('PLANT', $plant)
             ->where('SALES', $sales)
-            ->delete('mst_sales');
+            ->delete('abc_mst_sales');
     }
 
     /* ---------------------------------------------------------
@@ -452,7 +463,7 @@ class Sales_model extends CI_Model {
     public function search_customer($q = null, $limit = 20)
     {
         $this->db->select('CUST as id, FULL_NAME as name');
-        $this->db->from('cd_customer');
+        $this->db->from('abc_cd_customer');
 
         // hanya yang aktif
         $this->db->where('STATUS', 'Y');
@@ -489,7 +500,7 @@ class Sales_model extends CI_Model {
     public function get_customer_by_id($cust)
     {
         $this->db->select('CUST, FULL_NAME');
-        $this->db->from('cd_customer');
+        $this->db->from('abc_cd_customer');
 
         $this->db->where('CUST', $cust);
         $this->db->where('STATUS', 'Y');
@@ -502,20 +513,20 @@ class Sales_model extends CI_Model {
         return $this->db->get()->row_array();
     }
 
-    public function search_item($q = null, $limit = 20)
+    public function search_material($q = null, $limit = 20)
     {
-        // Asumsikan master item ada di cd_material (MATERIAL, MATERIAL_NAME)
-        $this->db->select('ITEM as id, FULL_NAME');
-        $this->db->from('cd_item');
+        // Asumsikan master item ada di abc_cd_material (MATERIAL, MATERIAL_NAME)
+        $this->db->select('MATERIAL as id, MATERIAL_NAME');
+        $this->db->from('abc_cd_material');
 
         if ($q) {
             $this->db->group_start();
-            $this->db->like('ITEM', $q);
-            $this->db->or_like('FULL_NAME', $q);
+            $this->db->like('MATERIAL', $q);
+            $this->db->or_like('MATERIAL_NAME', $q);
             $this->db->group_end();
         }
 
-        $this->db->order_by('ITEM', 'ASC');
+        $this->db->order_by('MATERIAL', 'ASC');
         $this->db->limit($limit);
 
         $rows = $this->db->get()->result_array();
@@ -524,7 +535,7 @@ class Sales_model extends CI_Model {
         foreach ($rows as $r) {
             $out[] = [
                 'id'   => $r['id'],
-                'text' => $r['id'] . ' - ' . $r['FULL_NAME']
+                'text' => $r['id'] . ' - ' . $r['MATERIAL_NAME']
             ];
         }
 
@@ -533,6 +544,6 @@ class Sales_model extends CI_Model {
 
     public function get_all_sales()
     {
-        return $this->db->get('mst_sales')->result_array();
+        return $this->db->get('abc_mst_sales')->result_array();
     }
 }

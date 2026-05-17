@@ -175,10 +175,10 @@ class Sales extends MY_Controller {
     /**
      * Select2: item (material)
      */
-    public function get_item()
+    public function get_material()
     {
         $term = $this->input->get('q');
-        $data = $this->Sales_model->search_item($term);
+        $data = $this->Sales_model->search_material($term);
         echo json_encode($data);
     }
 
@@ -186,160 +186,442 @@ class Sales extends MY_Controller {
     {
         $username = $this->session->userdata('username');
 
-        $data = $this->Sales_model->get_plant_select2_by_user($username);
+        $data = $this->Sales_model->get_plant_select2($username);
 
         echo json_encode($data);
     }
 
     public function create()
     {
+        ob_clean();
+
+        header('Content-Type: application/json');
+
         $data = $this->input->post(NULL, TRUE);
 
-        $role_id  = (int)$this->session->userdata('role_id');
         $username = $this->session->userdata('username');
 
-        if (empty($data['PLANT']) || empty($data['CUSTOMER']) || empty($data['SALES_DATE'])) {
-            echo json_encode(['status'=>false,'message'=>'Plant, Customer dan Tanggal wajib diisi']);
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDATION HEADER
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            empty($data['PLANT']) ||
+            empty($data['CUSTOMER']) ||
+            empty($data['SALES_DATE'])
+        ) {
+
+            echo json_encode([
+                'status'  => false,
+                'message' => 'Plant, Customer dan Tanggal wajib diisi'
+            ]);
+
             return;
         }
 
-        $plant = $data['PLANT'];
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
 
-        if ($role_id !== 1 && !$this->Sales_model->user_has_plant($username, $plant)) {
-            echo json_encode(['status'=>false,'message'=>'Akses plant ditolak']);
-            return;
-        }
+        $detailRows = json_decode(
+            $data['DETAIL'] ?? '[]',
+            true
+        );
 
-        $detailRows = json_decode($data['DETAIL'] ?? '[]', true);
         if (empty($detailRows)) {
-            echo json_encode(['status'=>false,'message'=>'Detail tidak boleh kosong']);
+
+            echo json_encode([
+                'status'  => false,
+                'message' => 'Detail item tidak boleh kosong'
+            ]);
+
             return;
         }
 
-        $this->db->trans_start();
+        /*
+        |--------------------------------------------------------------------------
+        | TRANSACTION
+        |--------------------------------------------------------------------------
+        */
 
-        $salesNo = $this->Sales_model->generate_sales_no($plant);
+        $this->db->trans_begin();
+
+        /*
+        |--------------------------------------------------------------------------
+        | GENERATE SALES
+        |--------------------------------------------------------------------------
+        */
+
+        $plant = trim($data['PLANT']);
+
+        $salesNo = $this->Sales_model
+            ->generate_sales_no($plant);
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL LOOP
+        |--------------------------------------------------------------------------
+        */
 
         $rows  = [];
+
         $seq   = 1;
-        $total = 0;
+
+        $grand = 0;
 
         foreach ($detailRows as $row) {
-            if (empty($row['ITEM'])) continue;
 
-            $method   = $row['METHOD'] ?? 'QTY';
-            $qty      = $this->parseDecimalID($row['QTY'] ?? 0);
-            $berat    = $this->parseDecimalID($row['BERAT'] ?? 0);
-            $harga    = $this->parseDecimalID($row['HARGA'] ?? 0);
-            $discount = $this->parseDecimalID($row['DISCOUNT'] ?? 0);
+            /*
+            |--------------------------------------------------------------------------
+            | MATERIAL
+            |--------------------------------------------------------------------------
+            */
 
-            if ($method === 'BW' && $berat <= 0) continue;
-            if ($method === 'QTY' && $qty <= 0) continue;
+            $material = trim(
+                $row['MATERIAL'] ?? ''
+            );
 
-            $base   = ($method === 'BW') ? ($berat * $harga) : ($qty * $harga);
-            $amount = max(0, $base - $discount);
-            $total += $amount;
+            if ($material == '') {
+                continue;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | VALUE
+            |--------------------------------------------------------------------------
+            */
+
+            $jumlah = (float) str_replace(
+                ',',
+                '',
+                $row['JUMLAH'] ?? 0
+            );
+
+            $berat = (float) str_replace(
+                ',',
+                '',
+                $row['BERAT'] ?? 0
+            );
+
+            $harga = (float) str_replace(
+                ',',
+                '',
+                $row['HARGA'] ?? 0
+            );
+
+            $discount = (float) str_replace(
+                ',',
+                '',
+                $row['DISCOUNT'] ?? 0
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | VALIDATION DETAIL
+            |--------------------------------------------------------------------------
+            */
+
+            if ($jumlah <= 0 && $berat <= 0) {
+                continue;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | TOTAL
+            |--------------------------------------------------------------------------
+            | PRIORITAS:
+            | BERAT jika ada
+            | selain itu JUMLAH
+            */
+
+            $basis = $berat > 0
+                ? $berat
+                : $jumlah;
+
+            $amount = ($basis * $harga) - $discount;
+
+            if ($amount < 0) {
+                $amount = 0;
+            }
+
+            $grand += $amount;
+
+            /*
+            |--------------------------------------------------------------------------
+            | DETAIL ARRAY
+            |--------------------------------------------------------------------------
+            */
 
             $rows[] = [
+
                 'PLANT'      => $plant,
+
                 'SALES'      => $salesNo,
+
                 'SEQ_NO'     => $seq++,
-                'CUSTOMER'   => $data['CUSTOMER'],
-                'ITEM'       => $row['ITEM'],
-                'QTY'        => $qty,
+
+                'CUSTOMER'   => trim($data['CUSTOMER']),
+
+                'MATERIAL'   => $material,
+
+                'JUMLAH'     => $jumlah,
+
                 'BERAT'      => $berat,
+
                 'HARGA'      => $harga,
+
                 'DISCOUNT'   => $discount,
-                'AMOUNT'     => $amount,
+
+                'TOTAL'      => $amount,
+
                 'CREATED_AT' => date('Y-m-d H:i:s'),
+
                 'CREATED_BY' => $username
             ];
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDATION DETAIL FINAL
+        |--------------------------------------------------------------------------
+        */
+
         if (empty($rows)) {
+
             $this->db->trans_rollback();
-            echo json_encode(['status'=>false,'message'=>'Detail tidak valid']);
+
+            echo json_encode([
+                'status'  => false,
+                'message' => 'Detail sales tidak valid'
+            ]);
+
             return;
         }
 
-        $dp = $this->parse_rupiah($data['BAYAR_AWAL'] ?? 0);
+        /*
+        |--------------------------------------------------------------------------
+        | PAYMENT
+        |--------------------------------------------------------------------------
+        */
 
-        if ($data['JENIS_PAY'] === 'TEMPO') {
-            $remain = max(0, $total - $dp);
-            $status = ($dp > 0) ? 'PARTIAL' : 'OPEN';
-        } else { // LUNAS
-            $dp     = $total;
+        $dp = (float) str_replace(
+            ',',
+            '',
+            $data['DP_AMOUNT'] ?? 0
+        );
+
+        $jenisPay = strtoupper(
+            trim($data['JENIS_PAY'])
+        );
+
+        if ($jenisPay === 'TEMPO') {
+
+            $remain = $grand - $dp;
+
+            if ($remain < 0) {
+                $remain = 0;
+            }
+
+            $status = $dp > 0
+                ? 'PARTIAL'
+                : 'OPEN';
+
+        } else {
+
+            /*
+            |--------------------------------------------------------------------------
+            | LUNAS
+            |--------------------------------------------------------------------------
+            */
+
+            $dp     = $grand;
+
             $remain = 0;
+
             $status = 'PAID';
         }
 
-        $this->Sales_model->insert_sales_header([
-            'SALES'      => $salesNo,
+        /*
+        |--------------------------------------------------------------------------
+        | HEADER
+        |--------------------------------------------------------------------------
+        */
+
+        $header = [
+
             'PLANT'      => $plant,
-            'CUSTOMER'   => $data['CUSTOMER'],
-            'SALES_DATE' => date('Y-m-d H:i:s', strtotime($data['SALES_DATE'])),
-            'PEMBAYARAN' => $data['PEMBAYARAN'],
-            'JENIS_PAY'  => $data['JENIS_PAY'],
-            'REMARK'     => $data['REMARK'] ?? null,
-            'NOTA'       => $data['NOTA'] ?? null,
-            'AMOUNT'     => $total,
+
+            'SALES'      => $salesNo,
+
+            'CUSTOMER'   => trim($data['CUSTOMER']),
+
+            'SALES_DATE' => date(
+                'Y-m-d H:i:s',
+                strtotime($data['SALES_DATE'])
+            ),
+
+            'PEMBAYARAN' => trim(
+                $data['PEMBAYARAN']
+            ),
+
+            'JENIS_PAY'  => $jenisPay,
+
+            'NOTA'       => trim(
+                $data['NOTA'] ?? ''
+            ),
+
+            'REMARK'     => trim(
+                $data['REMARK'] ?? ''
+            ),
+
+            'AMOUNT'     => $grand,
+
             'DP_AMOUNT'  => $dp,
+
             'REMAIN'     => $remain,
+
             'STATUS'     => $status,
+
             'CREATED_AT' => date('Y-m-d H:i:s'),
+
             'CREATED_BY' => $username
-        ]);
+        ];
 
-        if (!empty($_FILES['ATTACHMENT']['name'])) {
+        $this->Sales_model
+            ->insert_sales_header($header);
 
-            $uploadPath = FCPATH . 'uploads/sales/' . date('Y') . '/' . $plant;
+        /*
+        |--------------------------------------------------------------------------
+        | ATTACHMENT
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            isset($_FILES['ATTACHMENT']) &&
+            !empty($_FILES['ATTACHMENT']['name'])
+        ) {
+
+            $uploadPath =
+                FCPATH .
+                'uploads/sales/' .
+                date('Y') . '/' .
+                $plant;
+
             if (!is_dir($uploadPath)) {
-                mkdir($uploadPath, 0777, true);
+
+                mkdir(
+                    $uploadPath,
+                    0777,
+                    true
+                );
             }
 
             $config = [
-                'upload_path'   => $uploadPath,
-                'allowed_types' => 'jpg|jpeg|png|pdf|doc|docx|xls|xlsx',
-                'max_size'      => 5120,
-                'file_name'     => $salesNo . '_' . time(),
-                'overwrite'     => false
+
+                'upload_path' => $uploadPath,
+
+                'allowed_types' =>
+                    'jpg|jpeg|png|pdf|doc|docx|xls|xlsx',
+
+                'max_size' => 5120,
+
+                'file_name' =>
+                    $salesNo . '_' . time(),
+
+                'overwrite' => false
             ];
 
-            $this->load->library('upload', $config);
+            $this->load->library(
+                'upload',
+                $config
+            );
 
-            if (!$this->upload->do_upload('ATTACHMENT')) {
+            if (
+                !$this->upload
+                    ->do_upload('ATTACHMENT')
+            ) {
 
                 $this->db->trans_rollback();
+
                 echo json_encode([
-                    'status'  => false,
-                    'message' => $this->upload->display_errors('', '')
+
+                    'status' => false,
+
+                    'message' => strip_tags(
+                        $this->upload->display_errors()
+                    )
                 ]);
+
                 return;
-
-            } else {
-
-                $file = $this->upload->data();
-
-                $this->Sales_model->update_sales_header($plant, $salesNo, [
-                    'ATTACHMENT_NAME' => $file['client_name'],
-                    'ATTACHMENT_PATH' => 'uploads/sales/' . date('Y') . '/' . $plant . '/' . $file['file_name'],
-                    'ATTACHMENT_TYPE' => $file['file_type']
-                ]);
             }
+
+            $file = $this->upload->data();
+
+            $this->Sales_model
+                ->update_sales_header(
+                    $plant,
+                    $salesNo,
+                    [
+
+                        'ATTACHMENT_NAME' =>
+                            $file['client_name'],
+
+                        'ATTACHMENT_PATH' =>
+                            'uploads/sales/' .
+                            date('Y') . '/' .
+                            $plant . '/' .
+                            $file['file_name'],
+
+                        'ATTACHMENT_TYPE' =>
+                            $file['file_type']
+                    ]
+                );
         }
 
-        $this->Sales_model->insert_sales_detail_batch($rows);
+        /*
+        |--------------------------------------------------------------------------
+        | INSERT DETAIL
+        |--------------------------------------------------------------------------
+        */
 
-        // 🔥 CASH IN HANYA UNTUK TEMPO
-        if ($data['JENIS_PAY'] === 'TEMPO' && $dp > 0) {
-            $this->Sales_model->sync_dp_cashin($salesNo, $plant, $data['CUSTOMER'], $dp, $username);
+        $this->Sales_model
+            ->insert_sales_detail_batch($rows);
+
+        /*
+        |--------------------------------------------------------------------------
+        | COMMIT
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $this->db->trans_status() === FALSE
+        ) {
+
+            $this->db->trans_rollback();
+
+            echo json_encode([
+
+                'status'  => false,
+
+                'message' => 'Gagal menyimpan sales'
+            ]);
+
+            return;
         }
 
-        $this->db->trans_complete();
+        $this->db->trans_commit();
 
         echo json_encode([
-            'status'=>$this->db->trans_status(),
-            'message'=>$this->db->trans_status() ? 'Sales berhasil dibuat' : 'Gagal membuat sales'
+
+            'status'  => true,
+
+            'message' => 'Sales berhasil dibuat',
+
+            'sales'   => $salesNo
         ]);
     }
 
@@ -715,9 +997,9 @@ class Sales extends MY_Controller {
                 s.STATUS,
                 s.REMARK
             ')
-            ->from('mst_sales s')
-            ->join('cd_code aj', "aj.CODE = s.PLANT AND aj.HEAD_CODE = 'AJ'", 'left')
-            ->join('cd_customer c', 'c.CUST = s.CUSTOMER', 'left')
+            ->from('abc_mst_sales s')
+            ->join('abc_cd_code aj', "aj.CODE = s.PLANT AND aj.HEAD_CODE = 'AJ'", 'left')
+            ->join('abc_cd_customer c', 'c.CUST = s.CUSTOMER', 'left')
             ->where('s.SALES', $sales)
             ->where('s.PLANT', $plant)
             ->get()
@@ -739,8 +1021,8 @@ class Sales extends MY_Controller {
                 d.DISCOUNT,
                 d.AMOUNT
             ')
-            ->from('mst_sales_detail d')
-            ->join('cd_item f', 'f.ITEM = d.ITEM', 'left')
+            ->from('abc_mst_sales_detail d')
+            ->join('abc_cd_item f', 'f.ITEM = d.ITEM', 'left')
             ->where('d.SALES', $sales)
             ->where('d.PLANT', $plant)
             ->order_by('d.SEQ_NO', 'ASC')
@@ -794,9 +1076,9 @@ class Sales extends MY_Controller {
                 s.REMAIN,
                 s.STATUS
             ')
-            ->from('mst_sales s')
-            ->join('cd_code aj', "aj.CODE = s.PLANT AND aj.HEAD_CODE = 'AJ'", 'left')
-            ->join('cd_customer c', "c.CUST = s.CUSTOMER", 'left')
+            ->from('abc_mst_sales s')
+            ->join('abc_cd_code aj', "aj.CODE = s.PLANT AND aj.HEAD_CODE = 'AJ'", 'left')
+            ->join('abc_cd_customer c', "c.CUST = s.CUSTOMER", 'left')
             ->where('s.SALES', $sales)
             ->where('s.PLANT', $plant)
             ->get()
@@ -823,8 +1105,8 @@ class Sales extends MY_Controller {
                 d.AMOUNT,
                 i.FULL_NAME
             ')
-            ->from('mst_sales_detail d')
-            ->join('cd_item i', "i.ITEM = d.ITEM", 'left')
+            ->from('abc_mst_sales_detail d')
+            ->join('abc_cd_item i', "i.ITEM = d.ITEM", 'left')
             ->where('d.SALES', $sales)
             ->where('d.PLANT', $plant)
             ->order_by('d.SEQ_NO', 'ASC')

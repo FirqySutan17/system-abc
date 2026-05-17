@@ -527,7 +527,7 @@
             has_permission('productions_sales') ||
             has_permission('repot_productions_sales')
         ): ?>
-        <!-- <li class="sidebar-item nav-small-cap" style="padding: 0px; margin-top: 15px">
+        <li class="sidebar-item nav-small-cap" style="padding: 0px; margin-top: 15px">
             <a class="sidebar-link custom-arrow-toggle" href="javascript:void(0)" style="border-radius: 10px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
                 <div style="display: flex; align-items: center;">
                     <span class="sidebar-icon"><i class="ti ti-database"></i></span>
@@ -557,7 +557,7 @@
                 <?php endif; ?>
               </ul>
 
-        </li> -->
+        </li>
         <?php endif; ?>
 
         <?php if (

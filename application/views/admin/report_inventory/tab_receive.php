@@ -191,7 +191,7 @@
 }
 
 .receive-body{
-    padding:24px;
+    padding:10px;
 }
 
 .attach-badge{
@@ -336,6 +336,25 @@ window.ReceiveReport = {
                 '_blank'
             );
         });
+
+        $(document).on(
+            'click',
+            '#rc_pagination a',
+            (e)=>{
+
+                e.preventDefault();
+
+                const page = $(e.currentTarget)
+                    .data('page');
+
+                if(page){
+
+                    this.load(page);
+
+                }
+
+            }
+        );
     },
 
     query(){
@@ -384,18 +403,93 @@ window.ReceiveReport = {
     },
 
     render(rows){
-        const wrap = $('#receiveReportWrapper').empty();
 
-        if(!rows.length){
+        const wrap = $('#receiveReportWrapper');
+
+        wrap.empty();
+
+        if(!rows || !rows.length){
+
             wrap.html(`
                 <div class="text-center py-5 text-muted bg-white rounded-4 border">
                     No data found
                 </div>
             `);
+
             return;
         }
 
-        rows.forEach(rc=>{
+        /*
+        |--------------------------------------------------------------------------
+        | GROUPING HEADER
+        |--------------------------------------------------------------------------
+        */
+
+        const grouped = {};
+
+        rows.forEach(r=>{
+
+            const key = r.RECEIVE + '|' + r.PLANT;
+
+            if(!grouped[key]){
+
+                grouped[key] = {
+
+                    RECEIVE : r.RECEIVE,
+
+                    PLANT : r.PLANT,
+
+                    PLANT_NAME : r.PLANT_NAME,
+
+                    RECEIVE_DATE : r.RECEIVE_DATE,
+
+                    PO : r.PO,
+
+                    NOTA : r.NOTA,
+
+                    NO_REF : r.NO_REF,
+
+                    SUPPLIER : r.SUPPLIER,
+
+                    SUPPLIER_NAME : r.SUPPLIER_NAME,
+
+                    PEMBAYARAN : r.PEMBAYARAN,
+
+                    PEMBAYARAN_NAME : r.PEMBAYARAN_NAME,
+
+                    JENIS_PAY : r.JENIS_PAY,
+
+                    SLIP_NO : r.SLIP_NO,
+
+                    REMARK : r.REMARK,
+
+                    ATTACH_FILE_NAME : r.ATTACH_FILE_NAME,
+
+                    STATUS_RECEIVE : r.STATUS_RECEIVE,
+
+                    DETAIL : []
+
+                };
+
+            }
+
+            grouped[key].DETAIL.push(r);
+
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | RENDER CARD
+        |--------------------------------------------------------------------------
+        */
+
+        Object.values(grouped).forEach(rc=>{
+
+            /*
+            |--------------------------------------------------------------------------
+            | STATUS
+            |--------------------------------------------------------------------------
+            */
 
             let badge = `
                 <span class="status-badge status-received">
@@ -403,144 +497,383 @@ window.ReceiveReport = {
                 </span>
             `;
 
+            if(
+                rc.STATUS_RECEIVE === 'OPEN'
+            ){
+
+                badge = `
+                    <span class="status-badge status-open">
+                        OPEN
+                    </span>
+                `;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | ATTACHMENT
+            |--------------------------------------------------------------------------
+            */
+
             let attachment = rc.ATTACH_FILE_NAME
                 ? `<span class="attach-badge">Available</span>`
                 : '-';
 
+            /*
+            |--------------------------------------------------------------------------
+            | DETAIL
+            |--------------------------------------------------------------------------
+            */
+
             let detailRows = '';
+
             let subQty = 0;
             let subWeight = 0;
             let subTotal = 0;
 
-            (rc.DETAIL || []).forEach(r=>{
+            rc.DETAIL.forEach(r=>{
 
                 subQty += Number(r.JUMLAH || 0);
+
                 subWeight += Number(r.BERAT || 0);
+
                 subTotal += Number(r.TOTAL || 0);
+
+                /*
+                |--------------------------------------------------------------------------
+                | EXTRA BADGE
+                |--------------------------------------------------------------------------
+                */
+
+                let extraBadge = '';
+
+                if(
+                    Number(r.IS_EXTRA) === 1
+                ){
+
+                    extraBadge = `
+                        <span class="badge bg-warning text-dark ms-1" style="font-size: 10px">
+                            EXTRA
+                        </span>
+                    `;
+
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | SALES BADGE
+                |--------------------------------------------------------------------------
+                */
+
+                let salesBadge = '';
+
+                if(
+                    Number(r.SALES_CREATED) === 1
+                ){
+
+                    salesBadge = `
+                        <div class="small text-success fw-semibold mt-1">
+                            SALES : ${r.SALES_NO || '-'}
+                        </div>
+                    `;
+
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | PO TYPE
+                |--------------------------------------------------------------------------
+                */
+
+                let poType = r.PO_TYPE_NAME || '-';
 
                 detailRows += `
                     <tr>
-                        <td>${r.CUSTOMER_NAME}</td>
-                        <td>${r.MATERIAL_NAME}</td>
-                        <td class="text-end">${this.decimal(r.JUMLAH)}</td>
-                        <td class="text-end">${this.decimal(r.BERAT)}</td>
-                        <td class="text-end">${this.decimal(r.SUSUT_JUMLAH)}</td>
-                        <td class="text-end">${this.decimal(r.SUSUT_BERAT)}</td>
-                        <td class="text-end">${this.money(r.HARGA)}</td>
-                        <td class="text-end fw-semibold">${this.money(r.TOTAL)}</td>
-                        <td>${r.KETERANGAN || '-'}</td>
-                        <td class="text-center">${r.STATUS || '-'}</td>
+
+                        <td>
+                            ${r.CUSTOMER_NAME || '-'}
+                            ${salesBadge}
+                        </td>
+
+                        <td>
+                            ${r.MATERIAL_NAME || '-'}
+                            ${extraBadge}
+
+                            <div class="small text-muted mt-1">
+                                TYPE : ${poType}
+                            </div>
+                        </td>
+
+                        <td class="text-end">
+                            ${this.decimal(r.JUMLAH)}
+                        </td>
+
+                        <td class="text-end">
+                            ${this.decimal(r.BERAT)}
+                        </td>
+
+                        <td class="text-end">
+                            ${this.decimal(r.SUSUT_JUMLAH)}
+                        </td>
+
+                        <td class="text-end">
+                            ${this.decimal(r.SUSUT_BERAT)}
+                        </td>
+
+                        <td class="text-end">
+                            ${this.money(r.HARGA)}
+                        </td>
+
+                        <td class="text-end fw-semibold">
+                            ${this.money(r.TOTAL)}
+                        </td>
+
+                        <td>
+                            ${r.KETERANGAN || '-'}
+                        </td>
+
+                        <td class="text-center">
+                            ${r.STATUS || '-'}
+                        </td>
+
                     </tr>
                 `;
             });
 
+            /*
+            |--------------------------------------------------------------------------
+            | PO TEXT
+            |--------------------------------------------------------------------------
+            */
+
+            let poText = rc.PO;
+
+            if(
+                !poText ||
+                poText === ''
+            ){
+
+                poText = 'DIRECT RECEIVE';
+
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | PAYMENT
+            |--------------------------------------------------------------------------
+            */
+
+            let paymentText =
+                rc.PEMBAYARAN_NAME ||
+                rc.PEMBAYARAN ||
+                '-';
+
+            /*
+            |--------------------------------------------------------------------------
+            | RENDER
+            |--------------------------------------------------------------------------
+            */
+
             wrap.append(`
+
                 <div class="receive-card">
 
                     <div class="receive-head">
+
                         <div class="d-flex justify-content-between align-items-center">
-                            <div class="receive-title">#${rc.RECEIVE}</div>
+
+                            <div class="receive-title">
+                                #${rc.RECEIVE}
+                            </div>
+
                             ${badge}
+
                         </div>
 
                         <div class="meta-grid">
+
                             <div class="meta-item">
                                 <span class="meta-label">PLANT</span>
-                                <span class="meta-value">: ${rc.PLANT_NAME}</span>
+                                <span class="meta-value">
+                                    : ${rc.PLANT_NAME}
+                                </span>
                             </div>
 
                             <div class="meta-item">
                                 <span class="meta-label">SUPPLIER</span>
-                                <span class="meta-value">: ${rc.SUPPLIER} - ${rc.SUPPLIER_NAME}</span>
+                                <span class="meta-value">
+                                    : ${rc.SUPPLIER} - ${rc.SUPPLIER_NAME}
+                                </span>
                             </div>
 
                             <div class="meta-item">
                                 <span class="meta-label">PO</span>
-                                <span class="meta-value">: ${rc.PO}</span>
+                                <span class="meta-value">
+                                    : ${poText}
+                                </span>
                             </div>
 
                             <div class="meta-item">
                                 <span class="meta-label">RECEIVE DATE</span>
-                                <span class="meta-value">: ${this.dateIndoLong(rc.RECEIVE_DATE)}</span>
+                                <span class="meta-value">
+                                    : ${this.dateIndoLong(rc.RECEIVE_DATE)}
+                                </span>
                             </div>
 
                             <div class="meta-item">
                                 <span class="meta-label">NOTA</span>
-                                <span class="meta-value">: ${rc.NOTA || '-'}</span>
+                                <span class="meta-value">
+                                    : ${rc.NOTA || '-'}
+                                </span>
                             </div>
 
                             <div class="meta-item">
                                 <span class="meta-label">REF NO</span>
-                                <span class="meta-value">: ${rc.NO_REF || '-'}</span>
+                                <span class="meta-value">
+                                    : ${rc.NO_REF || '-'}
+                                </span>
                             </div>
 
                             <div class="meta-item">
                                 <span class="meta-label">PAYMENT</span>
-                                <span class="meta-value">: ${rc.PEMBAYARAN_NAME || rc.PEMBAYARAN || '-'}</span>
+                                <span class="meta-value">
+                                    : ${paymentText}
+                                </span>
                             </div>
 
                             <div class="meta-item">
                                 <span class="meta-label">PAY TYPE</span>
-                                <span class="meta-value">: ${rc.JENIS_PAY || '-'}</span>
+                                <span class="meta-value">
+                                    : ${rc.JENIS_PAY || '-'}
+                                </span>
                             </div>
 
                             <div class="meta-item">
                                 <span class="meta-label">SLIP NO</span>
-                                <span class="meta-value">: ${rc.SLIP_NO || '-'}</span>
+                                <span class="meta-value">
+                                    : ${rc.SLIP_NO || '-'}
+                                </span>
                             </div>
 
                             <div class="meta-item">
                                 <span class="meta-label">ATTACHMENT</span>
-                                <span class="meta-value">: ${attachment}</span>
+                                <span class="meta-value">
+                                    : ${attachment}
+                                </span>
                             </div>
 
-                            <div class="meta-item" style="grid-column:1 / -1">
+                            <div
+                                class="meta-item"
+                                style="grid-column:1 / -1"
+                            >
                                 <span class="meta-label">REMARK</span>
-                                <span class="meta-value">: ${rc.REMARK || '-'}</span>
+
+                                <span class="meta-value">
+                                    : ${rc.REMARK || '-'}
+                                </span>
                             </div>
+
                         </div>
+
                     </div>
 
                     <div class="receive-body">
+
                         <div class="table-responsive">
+
                             <table class="table table-bordered table-hover table-detail">
+
                                 <thead>
+
                                     <tr>
-                                        <th>Customer</th>
-                                        <th>Material</th>
-                                        <th class="text-end" style="vertical-align: middle">Qty</th>
-                                        <th class="text-end" style="vertical-align: middle">Weight</th>
-                                        <th class="text-end" style="vertical-align: middle">Shrink Qty</th>
-                                        <th class="text-end" style="vertical-align: middle">Shrink Weight</th>
-                                        <th class="text-end" style="vertical-align: middle">Price</th>
-                                        <th class="text-end" style="vertical-align: middle">Total</th>
-                                        <th class="text-center">Remark</th>
-                                        <th class="text-center">Status</th>
+
+                                        <th>CUSTOMER</th>
+
+                                        <th>MATERIAL</th>
+
+                                        <th class="text-end">
+                                            QTY
+                                        </th>
+
+                                        <th class="text-end">
+                                            WEIGHT
+                                        </th>
+
+                                        <th class="text-end">
+                                            SHRINK QTY
+                                        </th>
+
+                                        <th class="text-end">
+                                            SHRINK WEIGHT
+                                        </th>
+
+                                        <th class="text-end">
+                                            PRICE
+                                        </th>
+
+                                        <th class="text-end">
+                                            TOTAL
+                                        </th>
+
+                                        <th>
+                                            REMARK
+                                        </th>
+
+                                        <th>
+                                            STATUS
+                                        </th>
+
                                     </tr>
+
                                 </thead>
 
                                 <tbody>
+
                                     ${detailRows}
 
                                     <tr class="subtotal-row">
-                                        <td colspan="2">SUBTOTAL</td>
-                                        <td class="text-end" style="vertical-align: middle">${this.decimal(subQty)}</td>
-                                        <td class="text-end" style="vertical-align: middle">${this.decimal(subWeight)}</td>
+
+                                        <td colspan="2">
+                                            SUBTOTAL
+                                        </td>
+
+                                        <td class="text-end">
+                                            ${this.decimal(subQty)}
+                                        </td>
+
+                                        <td class="text-end">
+                                            ${this.decimal(subWeight)}
+                                        </td>
+
                                         <td></td>
+
                                         <td></td>
+
                                         <td></td>
-                                        <td class="text-end" style="vertical-align: middle">${this.money(subTotal)}</td>
+
+                                        <td class="text-end">
+                                            ${this.money(subTotal)}
+                                        </td>
+
                                         <td></td>
+
                                         <td></td>
+
                                     </tr>
+
                                 </tbody>
+
                             </table>
+
                         </div>
+
                     </div>
 
                 </div>
+
             `);
+
         });
+
     },
 
     dateIndoLong(date){
@@ -567,14 +900,4 @@ window.ReceiveReport = {
         });
     }
 };
-
-$(document).on('click','#rc_pagination a',function(e){
-    e.preventDefault();
-
-    const page = $(this).data('page');
-
-    if(page){
-        ReceiveReport.load(page);
-    }
-});
 </script>

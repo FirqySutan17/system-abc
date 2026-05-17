@@ -6,16 +6,110 @@
             <h5 class="card-title fw-semibold mb-4">RECEIVE - INVENTORY</h5>
 
             <!-- SEARCH + ADD ROW -->
-            <div class="row mb-3">
-                <div class="col-md-8">
-                    <input id="search" type="text" class="form-control" placeholder="Cari receive..." />
+            <div class="row g-2 mb-3">
+
+                <!-- =========================
+                SEARCH
+                ========================== -->
+
+                <div class="col-md-3">
+
+                    <input
+                        id="search"
+                        type="text"
+                        class="form-control"
+                        placeholder="Cari receive, supplier, PO...">
+
                 </div>
-                <div class="col-md-4 col-sm-12 text-end mt-2 mt-md-0">
-                    <div class="btn-group "></div>
-                    <button id="btnAdd" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#receiveAdd">
-                        <i class="ti ti-plus"></i> Tambah Receive
+
+                <!-- =========================
+                STATUS
+                ========================== -->
+
+                <div class="col-md-2">
+
+                    <select
+                        id="filterStatus"
+                        class="form-control">
+
+                        <option value="">
+                            Semua Status
+                        </option>
+
+                        <option value="OPEN">
+                            OPEN
+                        </option>
+
+                        <option value="POSTED">
+                            POSTED
+                        </option>
+
+                        <option value="CANCEL">
+                            CANCEL
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <!-- DATE FROM -->
+                <div class="col-md-2">
+
+                    <input
+                        type="date"
+                        id="dateFrom"
+                        class="form-control"
+                        value="<?= date('Y-m-01'); ?>">
+
+                </div>
+
+                <!-- DATE TO -->
+                <div class="col-md-2">
+
+                    <input
+                        type="date"
+                        id="dateTo"
+                        class="form-control"
+                        value="<?= date('Y-m-d'); ?>">
+
+                </div>
+
+                <!-- =========================
+                RESET
+                ========================== -->
+
+                <div class="col-md-1">
+
+                    <button
+                        class="btn btn-light w-100"
+                        id="btnResetFilter">
+
+                        Reset
+
                     </button>
+
                 </div>
+
+                <!-- =========================
+                ADD
+                ========================== -->
+
+                <div class="col-md-2 text-end">
+
+                    <button
+                        id="btnAdd"
+                        class="btn btn-primary w-100"
+                        data-bs-toggle="modal"
+                        data-bs-target="#receiveAdd">
+
+                        <i class="ti ti-plus"></i>
+
+                        Tambah Receive
+
+                    </button>
+
+                </div>
+
             </div>
 
             <!-- Table -->
@@ -28,23 +122,59 @@
                         <small class="text-muted">Please wait a moment</small>
                     </div>
                 </div>
+                <div id="tableWrapper">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle table-modern" id="mainTable">
+                            <thead>
+                                <tr>
 
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover" id="mainTable">
-                        <thead>
-                            <tr>
-                                <th data-order="PLANT" style="text-align: center;">Plant</th>
-                                <th data-order="RECEIVE" style="text-align: center;">RECEIVE</th>
-                                <th data-order="PO" style="text-align: center;">PO</th>
-                                <th data-order="RECEIVE_DATE" style="text-align: center;">Tgl Receive</th>
-                                <th data-order="SUPPLIER" style="text-align: center;">Supplier</th>
-                                <th data-order="REMARK" style="text-align: center;">Remark</th>
-                                <th style="text-align: center;">#</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-body"></tbody>
-                    </table>
+                                    <th class="text-center">
+                                        Plant
+                                    </th>
+
+                                    <th class="text-center">
+                                        Receive
+                                    </th>
+
+                                    <th class="text-center">
+                                        PO
+                                    </th>
+
+                                    <th class="text-center">
+                                        Date
+                                    </th>
+
+                                    <th class="text-center">
+                                        Supplier
+                                    </th>
+
+                                    <th class="text-center">
+                                        Material
+                                    </th>
+
+                                    <th class="text-center">
+                                        Qty / Weight
+                                    </th>
+
+                                    <th class="text-center">
+                                        Sales
+                                    </th>
+
+                                    <th class="text-center">
+                                        Status
+                                    </th>
+
+                                    <th class="text-center">
+                                        #
+                                    </th>
+
+                                </tr>
+                            </thead>
+                            <tbody id="table-body"></tbody>
+                        </table>
+                    </div>
                 </div>
+                
 
             </div>
             
@@ -62,149 +192,251 @@
 STYLE
 ========================================= -->
 <style>
+    .table-modern td,
+    .table-modern th{
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+    .receive-card{
+        border:1px solid #e5e7eb;
+        border-radius:18px;
+    }
 
-.receive-card{
-    border:1px solid #e5e7eb;
-    border-radius:18px;
-    overflow:hidden;
-}
+    .receive-card .modal-header{
+        background:linear-gradient(135deg,#1e3a8a,#2563eb);
+        color:#fff;
+        border:none;
+        padding:18px 24px;
+    }
 
-.receive-card .modal-header{
-    background:linear-gradient(135deg,#1e3a8a,#2563eb);
-    color:#fff;
-    border:none;
-    padding:18px 24px;
-}
-
-.receive-card .modal-title{
-    font-weight:700;
-    font-size:18px;
-    color: #fff;
-}
-
-.receive-card .modal-body{
-    background:#f8fafc;
-    padding:22px;
-}
-
-.receive-card .modal-footer{
-    border:none;
-    padding:18px 24px;
-    background:#fff;
-}
-
-.receive-card .form-label{
-    font-size:12px;
-    font-weight:700;
-    color:#475569;
-    margin-bottom:6px;
-}
-
-.receive-card .form-control{
-    border-radius:12px;
-    min-height:44px;
-    border:1px solid #dbe2ea;
-    font-size: 12px;
-}
-
-.receive-card .form-control:focus{
-    border-color:#2563eb;
-    box-shadow:0 0 0 0.15rem rgba(37,99,235,.15);
-}
-
-.receive-section{
-    background:#fff;
-    border-radius:18px;
-    padding:18px;
-    margin-bottom:18px;
-    border:1px solid #e2e8f0;
-}
-
-.receive-section-title{
-    font-size:15px;
-    font-weight:700;
-    color:#0f172a;
-    margin-bottom:16px;
-}
-
-.po-master-card{
-    border:1px solid #dbeafe;
-    border-radius:18px;
-    background:#eff6ff;
-    padding:18px;
-}
-
-.po-master-title{
-    font-size:14px;
-    font-weight:700;
-    margin-bottom:16px;
-    color:#1e3a8a;
-}
-
-#receiveDetailTableAdd{
-    margin-bottom:0;
-}
-
-#receiveDetailTableAdd thead th{
-    background:#f1f5f9;
-    font-size:12px;
-    font-weight:700;
-    text-align:center;
-    vertical-align:middle;
-    white-space:nowrap;
-}
-
-#receiveDetailTableAdd tbody td{
-    vertical-align:middle;
-}
-
-.receive-po-row{
-    background:#fff;
-}
-
-.receive-extra-row{
-    background:#fff7ed;
-}
-
-.summary-box{
-    background:#0f172a;
-    color:#fff;
-    border-radius:16px;
-    padding:18px;
-}
-
-.summary-item{
-    display:flex;
-    justify-content:space-between;
-    margin-bottom:8px;
-}
-
-.summary-item:last-child{
-    margin-bottom:0;
-}
-
-.summary-label{
-    opacity:.8;
-}
-
-.summary-value{
-    font-weight:700;
-}
-
-@media(max-width:768px){
+    .receive-card .modal-title{
+        font-weight:700;
+        font-size:18px;
+        color: #fff;
+    }
 
     .receive-card .modal-body{
-        padding:15px;
+        background:#f8fafc;
+        padding:22px;
+    }
+
+    .receive-card .modal-footer{
+        border:none;
+        padding:18px 24px;
+        background:#fff;
+    }
+
+    .receive-card .form-label{
+        font-size:12px;
+        font-weight:700;
+        color:#475569;
+        margin-bottom:6px;
+    }
+
+    .receive-card .form-control,
+    .receive-card .form-select{
+        border-radius:12px;
+        min-height:44px;
+        border:1px solid #dbe2ea;
+        font-size:12px;
+    }
+
+    .receive-card .form-control:focus,
+    .receive-card .form-select:focus{
+        border-color:#2563eb;
+        box-shadow:0 0 0 0.15rem rgba(37,99,235,.15);
     }
 
     .receive-section{
-        padding:15px;
+        background:#fff;
+        border-radius:18px;
+        padding:18px;
+        margin-bottom:18px;
+        border:1px solid #e2e8f0;
+    }
+
+    .receive-section-title{
+        font-size:15px;
+        font-weight:700;
+        color:#0f172a;
+        margin-bottom:16px;
+    }
+
+    .po-master-card{
+        border:1px solid #dbeafe;
+        border-radius:18px;
+        background:#eff6ff;
+        padding:18px;
+    }
+
+    .po-master-title{
+        font-size:14px;
+        font-weight:700;
+        margin-bottom:16px;
+        color:#1e3a8a;
     }
 
     #receiveDetailTableAdd{
-        min-width:1600px;
+        margin-bottom:0;
     }
-}
+
+    #receiveDetailTableAdd thead th{
+        background:#f1f5f9;
+        font-size:12px;
+        font-weight:700;
+        text-align:center;
+        vertical-align:middle;
+        white-space:nowrap;
+    }
+
+    #receiveDetailTableAdd tbody td{
+        vertical-align:middle;
+    }
+
+    .receive-po-row{
+        background:#fff;
+    }
+
+    .receive-extra-row{
+        background:#fff7ed;
+    }
+
+    .summary-box{
+        background:#0f172a;
+        color:#fff;
+        border-radius:16px;
+        padding:18px;
+    }
+
+    .summary-item{
+        display:flex;
+        justify-content:space-between;
+        margin-bottom:8px;
+    }
+
+    .summary-item:last-child{
+        margin-bottom:0;
+    }
+
+    .summary-label{
+        opacity:.8;
+    }
+
+    .summary-value{
+        font-weight:700;
+    }
+    .table-box{
+        min-height:300px;
+    }
+
+    .table-loading{
+        position:absolute;
+        inset:0;
+        z-index:10;
+        background:rgba(255,255,255,.82);
+        backdrop-filter:blur(2px);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        border-radius:12px;
+    }
+
+    .loading-card{
+        text-align:center;
+        padding:28px 40px;
+        background:#fff;
+        border-radius:18px;
+        box-shadow:0 10px 30px rgba(0,0,0,.08);
+    }
+
+    .loading-hide{
+        opacity:.35;
+        pointer-events:none;
+    }
+
+    .modal-content{
+        border:none;
+        border-radius:20px;
+    }
+
+    .modal-header{
+        background:#f8fafc;
+        border-bottom:1px solid #e5e7eb;
+    }
+
+    .modal-footer{
+        background:#f8fafc;
+        border-top:1px solid #e5e7eb;
+    }
+    .modal-dialog-scrollable .modal-body{
+        overflow-y:auto;
+        overflow-x:hidden;
+    }
+
+    .select2-container {
+        width: 100% !important;
+    }
+
+    .select2-container--bootstrap-5
+    .select2-selection {
+
+        min-height: 44px !important;
+
+        border-radius: 12px !important;
+
+        border: 1px solid #dbe2ea !important;
+
+        font-size: 12px !important;
+    }
+
+    .select2-container--bootstrap-5
+    .select2-selection--single {
+
+        padding-top: 6px !important;
+
+        padding-left: 12px !important;
+    }
+
+    .select2-container--bootstrap-5
+    .select2-selection__rendered {
+
+        color: #212529 !important;
+
+        line-height: 28px !important;
+
+        padding-left: 0 !important;
+    }
+
+    .select2-container--bootstrap-5
+    .select2-selection__arrow {
+
+        height: 42px !important;
+    }
+
+    .select2-dropdown {
+
+        z-index: 999999 !important;
+    }
+
+    .select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option {
+        line-height: 1;
+        font-size: 13px !important;
+    }
+
+    @media(max-width:768px){
+
+        .receive-card .modal-body{
+            padding:15px;
+        }
+
+        .receive-section{
+            padding:15px;
+        }
+
+        #receiveDetailTableAdd{
+            min-width:1600px;
+        }
+    }
 
 </style>
 
@@ -217,7 +449,7 @@ MODAL
     tabindex="-1"
     aria-hidden="true">
 
-    <div class="modal-dialog modal-fullscreen-lg-down modal-xl">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
 
         <form id="freceiveAdd"
             enctype="multipart/form-data">
@@ -256,7 +488,7 @@ MODAL
                                     Plant *
                                 </label>
 
-                                <select id="plantAdd"
+                                <select id="plantAdd" class="form-select"
                                     required></select>
 
                                 <input type="hidden"
@@ -295,7 +527,7 @@ MODAL
                                     PO *
                                 </label>
 
-                                <select id="poAdd"
+                                <select id="poAdd" class="form-select"
                                     required></select>
 
                                 <input type="hidden"
@@ -337,7 +569,7 @@ MODAL
                                     Pembayaran *
                                 </label>
 
-                                <select id="paymentAdd"
+                                <select id="paymentAdd" class="form-select"
                                     name="PEMBAYARAN"
                                     required>
 
@@ -363,7 +595,7 @@ MODAL
                                     Jenis Pay *
                                 </label>
 
-                                <select id="jenisPayAdd"
+                                <select id="jenisPayAdd" class="form-select"
                                     name="JENIS_PAY"
                                     required>
 
@@ -603,243 +835,672 @@ MODAL
 
 </div>
 
-<!-- MODAL EDIT RECEIVE (PO readonly style="background: #efefef") -->
-<div class="modal fade" id="receiveEdit" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <form id="freceiveEdit" enctype="multipart/form-data">
-            <div class="modal-content">
+<div class="modal fade"
+    id="receiveEdit"
+    tabindex="-1"
+    aria-hidden="true">
+
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+
+        <form id="freceiveEdit"
+            enctype="multipart/form-data">
+
+            <div class="modal-content receive-card">
+
+                <!-- HEADER -->
                 <div class="modal-header">
-                    <h5 class="modal-title">RECEIVE - EDIT</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+                    <h5 class="modal-title">
+                        RECEIVE - EDIT
+                    </h5>
+
+                    <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"></button>
+
                 </div>
 
                 <div class="modal-body">
 
-                    <!-- HEADER -->
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Plant</label>
-                            <input id="PLANT_EDIT_DISPLAY"
-                                class="form-control"
-                                readonly
-                                style="background:#efefef">
-                            <input type="hidden" id="PLANT_EDIT_HIDDEN" name="PLANT">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">No. Receive</label>
-                            <input name="RECEIVE" id="RECEIVE_EDIT" class="form-control" readonly style="background: #efefef">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Slip No</label>
-                            <input name="SLIP_NO" id="SLIP_NO_EDIT" class="form-control" readonly style="background: #efefef">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">PO</label>
-                            <input id="PO_EDIT_DISPLAY" class="form-control" readonly style="background: #efefef">
-                            <input type="hidden" id="PO_EDIT_HIDDEN" name="PO">
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Tanggal Receive *</label>
-                            <input name="RECEIVE_DATE" id="RECEIVE_DATE_EDIT" type="date" class="form-control" required>
-                        </div>
-                        <div class="col-md-2">
+                    <!-- =====================================
+                    HEADER SECTION
+                    ====================================== -->
 
-                            <label class="form-label">
-                                Pembayaran *
-                            </label>
+                    <div class="receive-section">
 
-                            <select id="paymentEdit"
-                                name="PEMBAYARAN_EDIT"
-                                class="form-control"
-                                required>
-
-                                <option value="">
-                                    -- PILIH --
-                                </option>
-
-                                <option value="CASH">
-                                    CASH
-                                </option>
-
-                                <option value="TRANSFER">
-                                    TRANSFER
-                                </option>
-
-                            </select>
-
+                        <div class="receive-section-title">
+                            HEADER RECEIVE
                         </div>
 
-                        <div class="col-md-2">
+                        <div class="row g-3">
 
-                            <label class="form-label">
-                                Jenis Pembayaran *
-                            </label>
+                            <!-- RECEIVE -->
+                            <div class="col-md-4">
 
-                            <select id="jenisPayEdit"
-                                name="JENIS_PAY_EDIT"
-                                class="form-control"
-                                required>
+                                <label class="form-label">
+                                    No Receive
+                                </label>
 
-                                <option value="">
-                                    -- PILIH --
-                                </option>
+                                <input type="text"
+                                    id="RECEIVE_EDIT_DISPLAY"
+                                    class="form-control"
+                                    readonly
+                                    style="background:#f1f5f9">
 
-                                <option value="LUNAS">
-                                    LUNAS
-                                </option>
+                                <input type="hidden"
+                                    id="RECEIVE_EDIT_HIDDEN"
+                                    name="RECEIVE">
 
-                                <option value="TEMPO">
-                                    TEMPO
-                                </option>
-
-                            </select>
-
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Supplier *</label>
-
-                            <input type="text"
-                                id="supplierEdit"
-                                class="form-control"
-                                readonly
-                                style="background:#efefef">
-
-                            <input type="hidden"
-                                id="hiddensupplierEdit"
-                                name="SUPPLIER">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">No. Nota</label>
-                            <input name="NOTA" id="NOTA_EDIT" class="form-control">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">No. Referensi</label>
-                            <input name="NO_REF" id="NO_REF_EDIT" class="form-control" placeholder="No DO / Invoice / dll">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Attachment</label>
-
-                            <input type="file" name="ATTACHMENT" id="ATTACHMENT_EDIT"
-                                class="form-control"
-                                accept=".jpg,.jpeg,.png,.pdf,.xlsx,.docx"><br>
-                            <div id="ATTACH_PREVIEW" class="mb-2"></div>
-                            <div class="form-text">
-                                Upload ulang untuk mengganti attachment
                             </div>
-                        </div>
-                        <div class="col-md-6 mt-2">
-                            <label class="form-label">Remark</label>
-                            <input name="REMARK" id="REMARK_EDIT" class="form-control" placeholder="Input disini..">
+
+                            <!-- PLANT -->
+                            <div class="col-md-4">
+
+                                <label class="form-label">
+                                    Plant
+                                </label>
+
+                                <input type="text"
+                                    id="PLANT_EDIT_DISPLAY"
+                                    class="form-control"
+                                    readonly
+                                    style="background:#f1f5f9">
+
+                                <input type="hidden"
+                                    id="PLANT_EDIT_HIDDEN"
+                                    name="PLANT">
+
+                            </div>
+
+                            <!-- PO -->
+                            <div class="col-md-4">
+
+                                <label class="form-label">
+                                    PO
+                                </label>
+
+                                <input type="text"
+                                    id="PO_EDIT_DISPLAY"
+                                    class="form-control"
+                                    readonly
+                                    style="background:#f1f5f9">
+
+                                <input type="hidden"
+                                    id="PO_EDIT_HIDDEN"
+                                    name="PO">
+
+                            </div>
+
+                            <!-- RECEIVE DATE -->
+                            <div class="col-md-3">
+
+                                <label class="form-label">
+                                    Receive Date *
+                                </label>
+
+                                <input type="date"
+                                    id="RECEIVE_DATE_EDIT"
+                                    name="RECEIVE_DATE"
+                                    class="form-control"
+                                    required>
+
+                            </div>
+
+                            <!-- SUPPLIER -->
+                            <div class="col-md-3">
+
+                                <label class="form-label">
+                                    Supplier
+                                </label>
+
+                                <input type="text"
+                                    id="SUPPLIER_EDIT_DISPLAY"
+                                    class="form-control"
+                                    readonly
+                                    style="background:#f1f5f9">
+
+                                <input type="hidden"
+                                    id="SUPPLIER_EDIT_HIDDEN"
+                                    name="SUPPLIER">
+
+                            </div>
+
+                            <!-- PAYMENT -->
+                            <div class="col-md-3">
+
+                                <label class="form-label">
+                                    Pembayaran *
+                                </label>
+
+                                <select id="paymentEdit"
+                                    name="PEMBAYARAN"
+                                    class="form-select"
+                                    required>
+
+                                    <option value="">
+                                        -- PILIH --
+                                    </option>
+
+                                    <option value="CASH">
+                                        CASH
+                                    </option>
+
+                                    <option value="TRANSFER">
+                                        TRANSFER
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                            <!-- JENIS PAY -->
+                            <div class="col-md-3">
+
+                                <label class="form-label">
+                                    Jenis Pay *
+                                </label>
+
+                                <select id="jenisPayEdit"
+                                    name="JENIS_PAY"
+                                    class="form-select"
+                                    required>
+
+                                    <option value="">
+                                        -- PILIH --
+                                    </option>
+
+                                    <option value="LUNAS">
+                                        LUNAS
+                                    </option>
+
+                                    <option value="TEMPO">
+                                        TEMPO
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                            <!-- NOTA -->
+                            <div class="col-md-3">
+
+                                <label class="form-label">
+                                    No Nota
+                                </label>
+
+                                <input type="text"
+                                    id="NOTA_EDIT"
+                                    name="NOTA"
+                                    class="form-control"
+                                    placeholder="Opsional..">
+
+                            </div>
+
+                            <!-- NO REF -->
+                            <div class="col-md-3">
+
+                                <label class="form-label">
+                                    No Ref
+                                </label>
+
+                                <input type="text"
+                                    id="NO_REF_EDIT"
+                                    name="NO_REF"
+                                    class="form-control"
+                                    placeholder="Opsional..">
+
+                            </div>
+
+                            <!-- ATTACHMENT -->
+                            <div class="col-md-6">
+
+                                <label class="form-label">
+                                    Attachment Baru
+                                </label>
+
+                                <input type="file"
+                                    id="ATTACHMENT_EDIT"
+                                    name="ATTACHMENT"
+                                    class="form-control">
+
+                            </div>
+
+                            <!-- REMARK -->
+                            <div class="col-md-12">
+
+                                <label class="form-label">
+                                    Remark
+                                </label>
+
+                                <textarea id="REMARK_EDIT"
+                                    name="REMARK"
+                                    rows="2"
+                                    class="form-control"
+                                    placeholder="Opsional.."></textarea>
+
+                            </div>
+                            
+                            <div class="col-md-12" style="margin-top: 0px">
+                                <!-- PREVIEW -->
+                                <div id="attachmentPreviewEdit"
+                                    class="mt-3 d-none">
+
+                                    <!-- IMAGE -->
+                                    <img id="attachmentImageEdit"
+                                        src=""
+                                        class="img-fluid rounded border d-none"
+                                        style="
+                                            max-height:220px;
+                                            object-fit:contain;
+                                            background:#fff;
+                                            padding:10px;
+                                        ">
+
+                                    <!-- PDF -->
+                                    <iframe id="attachmentPdfEdit"
+                                        class="w-100 border rounded d-none"
+                                        style="
+                                            height:320px;
+                                            background:#fff;
+                                        "></iframe>
+
+                                    <!-- FILE -->
+                                    <div id="attachmentFileEdit"
+                                        class="d-none">
+
+                                        <div class="alert alert-light border mb-0">
+
+                                            <div class="fw-semibold mb-1">
+                                                Attachment tersedia
+                                            </div>
+
+                                            <a href="#"
+                                                target="_blank"
+                                                id="ATTACHMENT_EDIT_LINK"
+                                                class="btn btn-sm btn-primary">
+
+                                                Download File
+
+                                            </a>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                            </div>
+
                         </div>
 
                     </div>
 
-                    <!-- DETAIL -->
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 style="margin-bottom:0px">Material</h5>
-                        <!-- <button type="button" class="btn btn-success btn-sm" id="addDetailRowEdit">Tambah Material</button> -->
+                    <!-- =====================================
+                    MASTER PO
+                    ====================================== -->
+
+                    <div class="po-master-card mb-3">
+
+                        <div class="po-master-title">
+                            MASTER PO INFORMATION
+                        </div>
+
+                        <div class="row g-3">
+
+                            <!-- MATERIAL -->
+                            <div class="col-md-4">
+
+                                <label class="form-label">
+                                    Material
+                                </label>
+
+                                <input type="text"
+                                    id="poMaterialEdit"
+                                    class="form-control"
+                                    readonly>
+
+                            </div>
+
+                            <!-- QTY -->
+                            <div class="col-md-2">
+
+                                <label class="form-label">
+                                    Qty
+                                </label>
+
+                                <input type="text"
+                                    id="poJumlahEdit"
+                                    class="form-control text-end"
+                                    readonly>
+
+                            </div>
+
+                            <!-- BERAT -->
+                            <div class="col-md-2">
+
+                                <label class="form-label">
+                                    Berat
+                                </label>
+
+                                <input type="text"
+                                    id="poBeratEdit"
+                                    class="form-control text-end"
+                                    readonly>
+
+                            </div>
+
+                            <!-- HARGA -->
+                            <div class="col-md-2">
+
+                                <label class="form-label">
+                                    Harga
+                                </label>
+
+                                <input type="text"
+                                    id="poHargaEdit"
+                                    class="form-control text-end"
+                                    readonly>
+
+                            </div>
+
+                            <!-- TOTAL -->
+                            <div class="col-md-2">
+
+                                <label class="form-label">
+                                    Total
+                                </label>
+
+                                <input type="text"
+                                    id="poTotalEdit"
+                                    class="form-control text-end"
+                                    readonly>
+
+                            </div>
+
+                            <!-- TRUCK -->
+                            <div class="col-md-6">
+
+                                <label class="form-label">
+                                    Truck
+                                </label>
+
+                                <input type="text"
+                                    id="poTruckEdit"
+                                    class="form-control"
+                                    readonly>
+
+                            </div>
+
+                            <!-- DRIVER -->
+                            <div class="col-md-6">
+
+                                <label class="form-label">
+                                    Driver
+                                </label>
+
+                                <input type="text"
+                                    id="poDriverEdit"
+                                    class="form-control"
+                                    readonly>
+
+                            </div>
+
+                        </div>
+
                     </div>
 
-                    <table class="table table-bordered" id="receiveDetailTableEdit">
-                        <thead>
-                            <tr>
-                                <th style="text-align:center">Customer</th>
-                                <th style="text-align:center">Jumlah</th>
-                                <th style="text-align:center">Berat</th>
-                                <th style="text-align:center">Harga</th>
-                                <th style="text-align:center">Total</th>
-                                <th style="text-align:center">Susut Jumlah</th>
-                                <th style="text-align:center">Susut Berat</th>
-                                <th style="text-align:center">Keterangan</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+                    <!-- =====================================
+                    DETAIL RECEIVE
+                    ====================================== -->
+
+                    <div class="receive-section">
+
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+
+                            <div class="receive-section-title mb-0">
+                                DETAIL RECEIVE
+                            </div>
+
+                            <button type="button"
+                                class="btn btn-warning btn-sm"
+                                id="btnAddRemainingRowEdit">
+
+                                + Remaining Row
+
+                            </button>
+
+                        </div>
+
+                        <div class="table-responsive">
+
+                            <table class="table table-bordered"
+                                id="receiveDetailTableEdit">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th>Customer</th>
+                                        <th>PO Type</th>
+                                        <th>Jumlah</th>
+                                        <th>Berat</th>
+                                        <th>Harga</th>
+                                        <th>Total</th>
+                                        <th>Susut Jumlah</th>
+                                        <th>Susut Berat</th>
+                                        <th>Keterangan</th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody></tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
 
                 </div>
 
+                <!-- FOOTER -->
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
+
+                    <button type="button"
+                        class="btn btn-light"
+                        data-bs-dismiss="modal">
+
+                        Tutup
+
+                    </button>
+
+                    <button type="submit"
+                        class="btn btn-primary">
+
+                        Update Receive
+
+                    </button>
+
                 </div>
 
             </div>
+
         </form>
+
     </div>
+
 </div>
 
 <!-- DETAIL modal -->
-<div class="modal fade" id="receiveDetail" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Detail Receive</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="receiveDetailBody">Loading...</div>
-        </div>
-    </div>
-</div>
+
 
 <style>
-    .table-box{
-        min-height:300px;
-    }
-
-    .table-loading{
-        position:absolute;
-        inset:0;
-        z-index:10;
-        background:rgba(255,255,255,.82);
-        backdrop-filter:blur(2px);
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        border-radius:12px;
-    }
-
-    .loading-card{
-        text-align:center;
-        padding:28px 40px;
-        background:#fff;
-        border-radius:18px;
-        box-shadow:0 10px 30px rgba(0,0,0,.08);
-    }
-
-    .loading-hide{
-        opacity:.35;
-        pointer-events:none;
-    }
-
-    .modal-content{
-        border:none;
-        border-radius:20px;
-        overflow:visible;
-    }
-
-    .modal-header{
-        background:#f8fafc;
-        border-bottom:1px solid #e5e7eb;
-    }
-
-    .modal-footer{
-        background:#f8fafc;
-        border-top:1px solid #e5e7eb;
-    }
+    
 </style>
 
 <script>
-    var state = { page: 1, limit: 10, search: '', order: 'RECEIVE', dir: 'DESC' };
+    const LOGIN_ROLE =
+        <?= (int)$this->session->userdata('role_id'); ?>;
 
-    $('#search').on('keyup', function(){
-        state.search = $(this).val();
+    const LOGIN_USER =
+        '<?= $this->session->userdata('username'); ?>';
+    let today = new Date();
+
+    let firstDay = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        1
+    );
+
+    let state = {
+
+        page : 1,
+
+        limit : 10,
+
+        search : '',
+
+        order : 'RECEIVE_DATE',
+
+        dir : 'DESC',
+
+        status : '',
+
+        date_from : convertDateToMysql(
+            $('#dateFrom').val()
+        ),
+
+        date_to : convertDateToMysql(
+            $('#dateTo').val()
+        )
+
+    };
+
+    $('#search').on(
+        'keyup',
+        debounce(function(){
+
+            state.search =
+                $('#search').val();
+
+            loadPage(1);
+
+        }, 400)
+    );
+
+    $('#filterStatus').change(function(){
+
+        state.status =
+            $(this).val();
+
         loadPage(1);
+
     });
+
+    $('#dateFrom, #dateTo').change(function(){
+
+        state.date_from =
+            convertDateToMysql(
+                $('#dateFrom').val()
+            );
+
+        state.date_to =
+            convertDateToMysql(
+                $('#dateTo').val()
+            );
+
+        loadPage(1);
+
+    });
+
+    $('#btnResetFilter').click(function(){
+
+        $('#search').val('');
+
+        $('#filterStatus').val('');
+
+        let firstDay =
+            new Date(
+                new Date().getFullYear(),
+                new Date().getMonth(),
+                1
+            )
+            .toISOString()
+            .split('T')[0];
+
+        let today =
+            new Date()
+            .toISOString()
+            .split('T')[0];
+
+        $('#dateFrom').val(firstDay);
+
+        $('#dateTo').val(today);
+
+        state.date_from =
+            convertDateToMysql(firstDay);
+
+        state.date_to =
+            convertDateToMysql(today);
+
+        state.search = '';
+
+        state.status = '';
+
+        loadPage(1);
+
+    });
+
+    function debounce(func, wait){
+
+        let timeout;
+
+        return function(){
+
+            let context = this;
+
+            let args = arguments;
+
+            clearTimeout(timeout);
+
+            timeout = setTimeout(function(){
+
+                func.apply(
+                    context,
+                    args
+                );
+
+            }, wait);
+
+        };
+
+    }
+
+    function convertDateToMysql(date){
+
+        if(!date){
+            return '';
+        }
+
+        // sudah format mysql
+        if(date.includes('-')){
+            return date;
+        }
+
+        // format dd/mm/yyyy
+        let split = date.split('/');
+
+        if(split.length !== 3){
+            return '';
+        }
+
+        return `${split[2]}-${split[1]}-${split[0]}`;
+    }
 
     function initPlantSelect2(selector, modalId){
 
         $(selector).select2({
-
+            theme:'bootstrap-5',
             placeholder:'-- PILIH PLANT --',
 
             dropdownParent: $(modalId),
@@ -899,31 +1560,41 @@ MODAL
         // ================= PAYMENT =================
 
         $('#paymentAdd').select2({
-
+            theme:'bootstrap-5',
             placeholder:'-- PILIH PAYMENT --',
-
-            dropdownParent: $('#receiveAdd'),
-
+            dropdownParent: $('#receiveAdd .modal-body'),
             width:'100%',
-
             minimumResultsForSearch: Infinity
-
         });
 
         // ================= JENIS PAY =================
 
         $('#jenisPayAdd').select2({
-
+            theme:'bootstrap-5',
             placeholder:'-- PILIH JENIS --',
-
-            dropdownParent: $('#receiveAdd'),
-
+            dropdownParent: $('#receiveAdd .modal-body'),
             width:'100%',
-
             minimumResultsForSearch: Infinity
-
         });
 
+    }
+
+    function initReceiveEditSelect2(){
+        $('#paymentEdit').select2({
+            theme:'bootstrap-5',
+            placeholder:'-- PILIH PAYMENT --',
+            dropdownParent: $('#receiveEdit .modal-body'),
+            width:'100%',
+            minimumResultsForSearch: Infinity
+        });
+
+        $('#jenisPayEdit').select2({
+            theme:'bootstrap-5',
+            placeholder:'-- PILIH JENIS --',
+            dropdownParent: $('#receiveEdit .modal-body'),
+            width:'100%',
+            minimumResultsForSearch: Infinity
+        });
     }
 
     function formatDate(dateString) {
@@ -940,6 +1611,82 @@ MODAL
         return `${day} ${month} ${year}`;
     }
 
+    function previewAttachmentEdit(fileName){
+
+        // RESET
+        $('#attachmentPreviewEdit').addClass('d-none');
+
+        $('#attachmentImageEdit')
+            .addClass('d-none')
+            .attr('src','');
+
+        $('#attachmentPdfEdit')
+            .addClass('d-none')
+            .attr('src','');
+
+        $('#attachmentFileEdit')
+            .addClass('d-none');
+
+        if(!fileName){
+            return;
+        }
+
+        let fileUrl =
+            '<?= base_url("uploads/receive/"); ?>' +
+            fileName;
+
+        let ext =
+            fileName
+                .split('.')
+                .pop()
+                .toLowerCase();
+
+        $('#attachmentPreviewEdit')
+            .removeClass('d-none');
+
+        // =========================
+        // IMAGE
+        // =========================
+
+        if(
+            ['jpg','jpeg','png','webp']
+            .includes(ext)
+        ){
+
+            $('#attachmentImageEdit')
+                .removeClass('d-none')
+                .attr('src', fileUrl);
+
+        }
+
+        // =========================
+        // PDF
+        // =========================
+
+        else if(ext === 'pdf'){
+
+            $('#attachmentPdfEdit')
+                .removeClass('d-none')
+                .attr('src', fileUrl);
+
+        }
+
+        // =========================
+        // OTHER FILE
+        // =========================
+
+        else{
+
+            $('#attachmentFileEdit')
+                .removeClass('d-none');
+
+            $('#ATTACHMENT_EDIT_LINK')
+                .attr('href', fileUrl);
+
+        }
+
+    }
+
     function showTableLoading(){
         $('#tableLoading').removeClass('d-none');
         $('#tableWrapper').addClass('loading-hide');
@@ -950,46 +1697,391 @@ MODAL
         $('#tableWrapper').removeClass('loading-hide');
     }
 
-    function loadPage(page = 1) {
+    function formatTanggalIndo(dateStr) {
+        if (!dateStr) return '';
+
+        const bulan = [
+            'Januari','Februari','Maret','April','Mei','Juni',
+            'Juli','Agustus','September','Oktober','November','Desember'
+        ];
+
+        const d = new Date(dateStr);
+        return d.getDate() + ' ' +
+            bulan[d.getMonth()] + ' ' +
+            d.getFullYear();
+    }
+
+    function loadPage(page = 1){
+
         state.page = page;
+
         showTableLoading();
-        $.get('<?= base_url("receive/load_data"); ?>', state, function(resp){
-            resp = typeof resp === 'string' ? JSON.parse(resp) : resp;
-            var tbody = $('#table-body').empty();
+        console.log(state);
 
-            resp.rows.forEach(function(row){
-                var tr = `<tr>
-                    <td style="text-align:center; vertical-align: middle"><b>${row.AJ_NAME}</b></td>
-                    <td style="text-align:center; vertical-align: middle"><b>#${row.RECEIVE}</b></td>
+        $.get(
+            '<?= base_url("receive/load_data"); ?>',
+            state,
+            function(resp){
 
-                    <!-- ===============================
-                        PO: jika null → Receive tanpa PO
-                    ================================ -->
-                    <td style="text-align:center; vertical-align: middle">
-                        ${(row.PO && row.PO !== "" && row.PO !== null) ? '#' + row.PO : 'Receive tanpa PO'}
-                    </td>
+                resp =
+                    typeof resp === 'string'
+                        ? JSON.parse(resp)
+                        : resp;
 
-                    <!-- ===============================
-                        Tanggal format d M Y
-                    ================================ -->
-                    <td style="text-align:center; vertical-align: middle">${formatDate(row.RECEIVE_DATE)}</td>
+                let tbody =
+                    $('#table-body');
 
-                    <td style="text-align:center; vertical-align: middle">${row.SUPPLIER_NAME}<br><b>${row.SUPPLIER}</b></td>
-                    <td style="text-align:center; vertical-align: middle">${row.REMARK ?? ''}</td>
-                    <td style="text-align:center; vertical-align: middle">
-                        <button class="btn btn-sm btn-primary me-1 exportPdf" data-receive="${row.RECEIVE}" data-plant="${row.PLANT}">SLIP</button>
-                        <button class="btn btn-sm btn-warning me-1 editBtn" data-receive="${row.RECEIVE}" data-plant="${row.PLANT}">Edit</button>
-                        <button class="btn btn-sm btn-danger deleteBtn" data-receive="${row.RECEIVE}" data-plant="${row.PLANT}">Hapus</button>
-                    </td>
-                </tr>`;
-                tbody.append(tr);
-            });
+                tbody.empty();
 
-            $('#pagination').html(resp.pagination);
-            $('#info').text(`Menampilkan halaman ${resp.page} dari ${Math.ceil(resp.total/state.limit)} (Total ${resp.total} data)`);
-        }).always(function(){
+                resp.rows.forEach(function(row){
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | STATUS BADGE
+                    |--------------------------------------------------------------------------
+                    */
+
+                    let statusBadge = `
+                        <span class="badge bg-warning text-dark">
+                            OPEN
+                        </span>
+                    `;
+
+                    if(
+                        row.STATUS_RECEIVE === 'POSTED'
+                    ){
+
+                        statusBadge = `
+                            <span class="badge bg-success">
+                                POSTED
+                            </span>
+                        `;
+
+                    }
+
+                    if(
+                        row.STATUS_RECEIVE === 'CANCEL'
+                    ){
+
+                        statusBadge = `
+                            <span class="badge bg-danger">
+                                CANCEL
+                            </span>
+                        `;
+
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | ATTACHMENT ICON
+                    |--------------------------------------------------------------------------
+                    */
+
+                    let attachmentIcon = '';
+
+                    if(
+                        row.ATTACH_FILE_NAME &&
+                        row.ATTACH_FILE_NAME !== ''
+                    ){
+
+                        attachmentIcon = `
+                            <i class="ti ti-paperclip text-primary ms-1"></i>
+                        `;
+
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | PO DISPLAY
+                    |--------------------------------------------------------------------------
+                    */
+
+                    let poDisplay = `
+                        <div class="fw-semibold text-muted">
+                            NON PO RECEIVE
+                        </div>
+                    `;
+
+                    if(
+                        row.PO &&
+                        row.PO !== ''
+                    ){
+
+                        poDisplay = `
+                            <div class="fw-bold text-primary">
+                                #${row.PO}
+                            </div>
+
+                            <small class="text-muted">
+                                ${row.PO_TYPE_NAME ?? '-'}
+                            </small>
+                        `;
+
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | ACTION BUTTON
+                    |--------------------------------------------------------------------------
+                    */
+
+                    let actionBtn = `
+                        <button
+                            class="btn btn-outline-primary exportPdf"
+                            data-receive="${row.RECEIVE}"
+                            data-plant="${row.PLANT}">
+
+                            Slip
+
+                        </button>
+                    `;
+
+                    if(
+                        LOGIN_ROLE == 1 ||
+                        row.CREATED_BY === LOGIN_USER
+                    ){
+
+                        actionBtn += `
+
+                            <button
+                                class="btn btn-outline-warning editBtn"
+                                data-receive="${row.RECEIVE}"
+                                data-plant="${row.PLANT}">
+
+                                Edit
+
+                            </button>
+
+                            <button
+                                class="btn btn-outline-danger deleteBtn"
+                                data-receive="${row.RECEIVE}"
+                                data-plant="${row.PLANT}">
+
+                                Hapus
+
+                            </button>
+
+                        `;
+
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | ROW
+                    |--------------------------------------------------------------------------
+                    */
+
+                    let tr = `
+
+                        <tr>
+
+                            <!-- =========================
+                            PLANT
+                            ========================== -->
+
+                            <td class="text-center align-middle">
+
+                                <div class="fw-semibold">
+
+                                    ${row.PLANT_NAME || '-'}
+
+                                </div>
+
+                            </td>
+
+                            <!-- =========================
+                            RECEIVE
+                            ========================== -->
+
+                            <td class="text-center align-middle">
+
+                                <div class="fw-bold text-primary">
+
+                                    #${row.RECEIVE}
+
+                                </div>
+
+                                <small class="text-muted">
+
+                                    ${row.SLIP_NO || '-'}
+
+                                </small>
+
+                            </td>
+
+                            <!-- =========================
+                            PO
+                            ========================== -->
+
+                            <td class="text-center align-middle">
+
+                                ${poDisplay}
+
+                            </td>
+
+                            <!-- =========================
+                            DATE
+                            ========================== -->
+
+                            <td class="text-center align-middle">
+
+                                ${formatTanggalIndo(
+                                    row.RECEIVE_DATE
+                                )}
+
+                            </td>
+
+                            <!-- =========================
+                            SUPPLIER
+                            ========================== -->
+
+                            <td class="text-center align-middle">
+
+                                <div class="fw-semibold">
+
+                                    ${row.SUPPLIER_NAME || '-'}
+
+                                </div>
+
+                                <small class="text-muted">
+
+                                    ${row.SUPPLIER || '-'}
+
+                                </small>
+
+                            </td>
+
+                            <!-- =========================
+                            MATERIAL
+                            ========================== -->
+
+                            <td class="text-center align-middle">
+
+                                <div class="fw-semibold">
+
+                                    ${row.MATERIAL_NAME || '-'}
+
+                                </div>
+
+                                <small class="text-muted">
+
+                                    ${row.MATERIAL || '-'}
+
+                                </small>
+
+                            </td>
+
+                            <!-- =========================
+                            QTY / WEIGHT
+                            ========================== -->
+
+                            <td class="text-end align-middle">
+
+                                <div>
+
+                                    <span class="fw-semibold">
+                                        Qty :
+                                    </span>
+
+                                    ${formatDecimalID(
+                                        row.TOTAL_QTY ?? 0
+                                    )}
+
+                                </div>
+
+                                <div>
+
+                                    <span class="fw-semibold">
+                                        Weight :
+                                    </span>
+
+                                    ${formatDecimalID(
+                                        row.TOTAL_BERAT ?? 0
+                                    )}
+
+                                </div>
+
+                            </td>
+
+                            <td class="text-center align-middle">
+
+                                <div>
+
+                                    <span class="badge bg-info">
+
+                                        ${row.TOTAL_CUSTOMER ?? 0}
+                                        Customer
+
+                                    </span>
+
+                                </div>
+
+                                <div class="mt-1">
+
+                                    <span class="badge bg-secondary">
+
+                                        ${row.TOTAL_SALES ?? 0}
+                                        Sales
+
+                                    </span>
+
+                                </div>
+
+                            </td>
+
+                            <!-- =========================
+                            STATUS
+                            ========================== -->
+
+                            <td class="text-center align-middle">
+
+                                ${statusBadge}
+
+                            </td>
+
+                            <!-- =========================
+                            ACTION
+                            ========================== -->
+
+                            <td class="text-center align-middle">
+
+                                <div class="btn-group btn-group-sm">
+
+                                    ${actionBtn}
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                    tbody.append(tr);
+
+                });
+
+                $('#pagination').html(
+                    resp.pagination
+                );
+
+                $('#info').text(
+                    `Menampilkan halaman ${resp.page} dari ${
+                        Math.ceil(
+                            resp.total /
+                            state.limit
+                        )
+                    } (Total ${resp.total} data)`
+                );
+
+            }
+
+        ).always(function(){
+
             hideTableLoading();
+
         });
+
     }
 
     /* -------------------------
@@ -997,9 +2089,10 @@ MODAL
     ------------------------- */
     function initSupplierSelect2(selector, modalId){
         $(selector).select2({
-            placeholder: "Pilih SUPPLIER",
-            dropdownParent: $(modalId),
-            width: "100%",
+            theme:'bootstrap-5',
+            placeholder:'-- PILIH PLANT --',
+            dropdownParent: $('#receiveAdd .modal-body'),
+            width:'100%',
             ajax: {
                 url: "<?= base_url('receive/get_supplier'); ?>",
                 dataType: "json",
@@ -1083,11 +2176,9 @@ MODAL
     function initPoSelect2(){
 
         $('#poAdd').select2({
-
+            theme:'bootstrap-5',
             placeholder:'-- PILIH PO --',
-
-            dropdownParent: $('#receiveAdd'),
-
+            dropdownParent: $('#receiveAdd .modal-body'),
             width:'100%',
 
             ajax:{
@@ -1319,10 +2410,11 @@ MODAL
     function initPoTypeSelect2(el, modal){
 
         $(el).select2({
+            theme:'bootstrap-5',
 
             placeholder:'-- PILIH TYPE --',
 
-            dropdownParent: $(modal),
+            dropdownParent: $(el).closest('tr'),
 
             width:'100%',
 
@@ -1357,10 +2449,11 @@ MODAL
     function initCustomerSelect2(el, modal){
 
         $(el).select2({
+            theme:'bootstrap-5',
 
             placeholder:'-- PILIH CUSTOMER --',
 
-            dropdownParent: $(modal),
+            dropdownParent: $('#receiveAdd .modal-body'),
 
             width:'100%',
 
@@ -1508,6 +2601,128 @@ MODAL
 
     }
 
+    function addRemainingRowEdit(data = null){
+
+        $('#receiveDetailTableEdit tbody').append(`
+
+            <tr class="receive-extra-row"
+                data-seq="${data?.SEQ_NO ?? ''}"
+                data-is-extra="1">
+
+                <td>
+                    <select class="customer-edit"></select>
+                </td>
+
+                <td>
+                    <select class="po-type-edit"></select>
+                </td>
+
+                <td>
+                    <input type="text"
+                        class="form-control text-end jumlah-edit"
+                        value="${formatDecimalID(data?.JUMLAH ?? 0)}">
+                </td>
+
+                <td>
+                    <input type="text"
+                        class="form-control text-end berat-edit"
+                        value="${formatDecimalID(data?.BERAT ?? 0)}">
+                </td>
+
+                <td>
+                    <input type="text"
+                        class="form-control text-end harga-edit"
+                        value="${formatMoneyID(data?.HARGA ?? 0)}">
+                </td>
+
+                <td>
+                    <input type="text"
+                        class="form-control text-end total-edit"
+                        value="${formatMoneyID(data?.TOTAL ?? 0)}">
+                </td>
+
+                <td>
+                    <input type="text"
+                        class="form-control text-end susut-jumlah"
+                        value="${formatDecimalID(data?.SUSUT_JUMLAH ?? 0)}">
+                </td>
+
+                <td>
+                    <input type="text"
+                        class="form-control text-end susut-berat"
+                        value="${formatDecimalID(data?.SUSUT_BERAT ?? 0)}">
+                </td>
+
+                <td>
+                    <input type="text"
+                        class="form-control keterangan"
+                        value="${data?.KETERANGAN ?? ''}">
+                </td>
+
+            </tr>
+
+        `);
+
+        let lastRow =
+            $('#receiveDetailTableEdit tbody tr:last');
+
+        initCustomerSelect2(
+            lastRow.find('.customer-edit'),
+            '#receiveEdit'
+        );
+
+        initPoTypeSelect2(
+            lastRow.find('.po-type-edit'),
+            '#receiveEdit'
+        );
+
+        // =========================
+        // CUSTOMER
+        // =========================
+
+        let customerOption = new Option(
+            data?.CUSTOMER_NAME ?? 'INTERNAL FARM',
+            data?.CUSTOMER ?? 'CS000001',
+            true,
+            true
+        );
+
+        lastRow
+            .find('.customer-edit')
+            .append(customerOption)
+            .trigger('change');
+
+        // =========================
+        // PO TYPE
+        // =========================
+
+        let poTypeText =
+            data?.PO_TYPE_NAME ?? '';
+
+        let poTypeValue =
+            data?.PO_TYPE ?? '';
+
+        if(
+            data?.PO_TYPE &&
+            data?.PO_TYPE_NAME
+        ){
+
+            let option = new Option(
+                data.PO_TYPE_NAME,
+                data.PO_TYPE,
+                true,
+                true
+            );
+
+            lastRow
+                .find('.po-type-edit')
+                .append(option)
+                .trigger('change');
+
+        }
+
+}
+
     function calculateReceiveSummary(){
 
         let qty = 0;
@@ -1525,7 +2740,9 @@ MODAL
             );
 
             berat += parseDecimalID(
-                $(this).find('.berat').val()
+                $(this)
+                    .find('.berat,.berat-extra')
+                    .val()
             );
 
             total += parseRupiah(
@@ -1552,6 +2769,8 @@ MODAL
     DOM Ready
     ------------------------- */
     $(function(){
+        $('#dateFrom').val(state.date_from);
+        $('#dateTo').val(state.date_to);
         loadPage(1);
 
         // init select2 supplier & PO
@@ -1561,6 +2780,7 @@ MODAL
         initPoSelect2();
 
         initReceiveAddSelect2();
+        initReceiveEditSelect2();
         $('#paymentAdd').val('').trigger('change');
         $('#jenisPayAdd').val('').trigger('change');
 
@@ -1611,9 +2831,11 @@ MODAL
         ========================================================= */
 
         $('#btnAddRemainingRow').click(function(){
-
             addRemainingRow();
+        });
 
+        $('#btnAddRemainingRowEdit').click(function(){
+            addRemainingRowEdit();
         });
 
         $(document).on(
@@ -1648,6 +2870,38 @@ MODAL
                 );
 
                 calculateReceiveSummary();
+
+            }
+        );
+
+        $(document).on(
+            'blur',
+            '.jumlah-edit,.berat-edit,.susut-jumlah,.susut-berat',
+            function(){
+
+                let val = parseDecimalID(
+                    $(this).val()
+                );
+
+                $(this).val(
+                    formatDecimalID(val)
+                );
+
+            }
+        );
+
+        $(document).on(
+            'blur',
+            '.harga-edit,.total-edit',
+            function(){
+
+                let val = parseRupiah(
+                    $(this).val()
+                );
+
+                $(this).val(
+                    formatMoneyID(val)
+                );
 
             }
         );
@@ -1829,195 +3083,587 @@ MODAL
 
         });
 
-        // Click edit
-        $(document).on('click','.editBtn', function(){ 
-            var receive = $(this).data('receive');
-            var plant   = $(this).data('plant'); // ambil plant dari row
-            $.get('<?= base_url("receive/edit"); ?>',{receive: receive, plant: plant}, function(resp){
-                resp = typeof resp==='string'?JSON.parse(resp):resp;
-                if(resp.status){
-                    var header = resp.header;
-                    var detail = resp.detail;
+        $(document).on('click','.editBtn', function(){
 
-                    // simpan plant di hidden input
-                    $('#PLANT_EDIT_HIDDEN').val(plant);
-                    $('#PLANT_EDIT_DISPLAY').val(
-                        header.PLANT_NAME
-                            ? header.PLANT + ' - ' + header.PLANT_NAME
-                            : header.PLANT
-                    );
+            let receive =
+                $(this).data('receive');
 
-                    // header
-                    $('#RECEIVE_EDIT').val(header.RECEIVE);
-                    $('#SLIP_NO_EDIT').val(header.SLIP_NO);
-                    $('#NOTA_EDIT').val(header.NOTA);
+            let plant =
+                $(this).data('plant');
 
-                    if (!header.PO) {
-                        $('#PO_EDIT_DISPLAY').val('-');
-                        $('#PO_EDIT_HIDDEN').val('');
-                    } else {
-                        $('#PO_EDIT_DISPLAY').val(
-                            `${header.PLANT_NAME} - ${header.PO} - ${header.SUPPLIER_NAME}`
+            $.get(
+                '<?= base_url("receive/edit"); ?>',
+                {
+                    receive: receive,
+                    plant: plant
+                },
+                function(resp){
+
+                    resp =
+                        typeof resp === 'string'
+                            ? JSON.parse(resp)
+                            : resp;
+
+                    if(!resp.status){
+
+                        alert(
+                            resp.message ||
+                            'Gagal mengambil data'
                         );
 
-                        $('#PO_EDIT_HIDDEN').val(header.PO);
+                        return;
                     }
 
-                    $('#RECEIVE_DATE_EDIT').val(header.RECEIVE_DATE ? header.RECEIVE_DATE.substr(0,10) : '');
-                    $('#NO_REF_EDIT').val(header.NO_REF);
-                    $('#REMARK_EDIT').val(header.REMARK);
+                    let header =
+                        resp.header;
 
-                    // pembayaran
-                    $('input[name="PEMBAYARAN_EDIT"]').prop('checked', false);
-                    if (header.PEMBAYARAN) $('#edit_pay_' + header.PEMBAYARAN.toLowerCase()).prop('checked', true);
+                    let detail =
+                        resp.detail;
 
-                    $('input[name="JENIS_PAY_EDIT"]').prop('checked', false);
-                    if (header.JENIS_PAY) $('#edit_pay_' + header.JENIS_PAY.toLowerCase()).prop('checked', true);
+                    // =================================================
+                    // RESET
+                    // =================================================
+
+                    $('#freceiveEdit')[0].reset();
+
+                    $('#receiveDetailTableEdit tbody')
+                        .empty();
+
+                    // =================================================
+                    // HEADER
+                    // =================================================
+
+                    $('#RECEIVE_EDIT_DISPLAY')
+                        .val(header.RECEIVE);
+
+                    $('#RECEIVE_EDIT_HIDDEN')
+                        .val(header.RECEIVE);
+
+                    $('#PLANT_EDIT_DISPLAY')
+                        .val(
+                            header.PLANT_NAME
+                                ? header.PLANT +
+                                    ' - ' +
+                                    header.PLANT_NAME
+                                : header.PLANT
+                        );
+
+                    $('#PLANT_EDIT_HIDDEN')
+                        .val(header.PLANT);
+
+                    $('#SLIP_NO_EDIT')
+                        .val(header.SLIP_NO ?? '');
+
+                    // =================================================
+                    // PO
+                    // =================================================
+
+                    if(!header.PO){
+
+                        $('#PO_EDIT_DISPLAY')
+                            .val('-');
+
+                        $('#PO_EDIT_HIDDEN')
+                            .val('');
+
+                    }else{
+
+                        $('#PO_EDIT_DISPLAY')
+                            .val(
+                                `${header.PO} - ${header.SUPPLIER_NAME}`
+                            );
+
+                        $('#PO_EDIT_HIDDEN')
+                            .val(header.PO);
+
+                    }
+
+                    // =================================================
+                    // DATE
+                    // =================================================
+
+                    $('#RECEIVE_DATE_EDIT')
+                        .val(
+                            header.RECEIVE_DATE
+                                ? header.RECEIVE_DATE.substr(0,10)
+                                : ''
+                        );
+
+                    // =================================================
+                    // PAYMENT
+                    // =================================================
+
+                    $('#paymentEdit')
+                        .val(header.PEMBAYARAN)
+                        .trigger('change');
+
+                    $('#jenisPayEdit')
+                        .val(header.JENIS_PAY)
+                        .trigger('change');
+
+                    // =================================================
+                    // SUPPLIER
+                    // =================================================
 
                     let supplierText =
                         `${header.SUPPLIER} - ${header.SUPPLIER_NAME}`;
 
-                    $('#supplierEdit').val(supplierText);
-                    $('#hiddensupplierEdit').val(header.SUPPLIER);
+                    $('#SUPPLIER_EDIT_DISPLAY')
+                        .val(supplierText);
 
-                    if (header.ATTACH_FILE_NAME) {
-                        let url = "<?= base_url(); ?>" + header.ATTACH_PATH;
-                        $('#ATTACH_PREVIEW').html(`
-                            <a href="${url}" target="_blank" class="btn btn-sm btn-info">
-                                Lihat Attachment
-                            </a>
-                        `);
-                    } else {
-                        $('#ATTACH_PREVIEW').html('<i>Tidak ada attachment</i>');
-                    }
+                    $('#SUPPLIER_EDIT_HIDDEN')
+                        .val(header.SUPPLIER);
 
-                    // detail
-                    $('#receiveDetailTableEdit tbody').empty();
+                    // =================================================
+                    // OTHER
+                    // =================================================
+
+                    $('#NOTA_EDIT')
+                        .val(header.NOTA ?? '');
+
+                    $('#NO_REF_EDIT')
+                        .val(header.NO_REF ?? '');
+
+                    $('#REMARK_EDIT')
+                        .val(header.REMARK ?? '');
+
+                    // =================================================
+                    // PO MASTER
+                    // =================================================
+
+                    $('#poMaterialEdit')
+                        .val(
+                            header.MATERIAL_NAME ?? '-'
+                        );
+
+                    $('#poJumlahEdit')
+                        .val(
+                            formatDecimalID(
+                                header.JUMLAH ?? 0
+                            )
+                        );
+
+                    $('#poBeratEdit')
+                        .val(
+                            formatDecimalID(
+                                header.BERAT ?? 0
+                            )
+                        );
+
+                    $('#poHargaEdit')
+                        .val(
+                            formatMoneyID(
+                                header.HARGA ?? 0
+                            )
+                        );
+
+                    $('#poTotalEdit')
+                        .val(
+                            formatMoneyID(
+                                header.TOTAL ?? 0
+                            )
+                        );
+
+                    $('#poTruckEdit')
+                        .val(
+                            header.NO_TRUCK ?? '-'
+                        );
+
+                    $('#poDriverEdit')
+                        .val(
+                            header.DRIVER ?? '-'
+                        );
+
+                    // =================================================
+                    // ATTACHMENT PREVIEW
+                    // =================================================
+
+                    previewAttachmentEdit(
+                        header.ATTACH_FILE_NAME
+                    );
+
+                    // =================================================
+                    // DETAIL
+                    // =================================================
 
                     detail.forEach(function(row){
 
+                        // =====================================================
+                        // EXTRA ROW
+                        // =====================================================
+
+                        if(parseInt(row.IS_EXTRA) === 1){
+
+                            addRemainingRowEdit(row);
+
+                            return;
+                        }
+
+                        
+
+                        // =====================================================
+                        // NORMAL ROW
+                        // =====================================================
+
                         $('#receiveDetailTableEdit tbody').append(`
-                            <tr data-po-seq="${row.PO_SEQ}" data-seq="${row.SEQ_NO}">
+
+                            <tr
+                                class="receive-po-row"
+                                data-po-seq="${row.PO_SEQ ?? ''}"
+                                data-seq="${row.SEQ_NO}"
+                                data-is-extra="0">
+
                                 <td>
-                                    <input type="hidden" class="customer-code" value="${row.CUSTOMER ?? ''}">
+
+                                    <input type="hidden"
+                                        class="customer-code"
+                                        value="${row.CUSTOMER ?? ''}">
+
                                     <input type="text"
                                         class="form-control"
-                                        value="${row.CUSTOMER_NAME ?? ''}"
-                                        readonly
-                                        style="background:#efefef">
+                                        value="${row.CUSTOMER_NAME ?? '-'}"
+                                        readonly>
+
                                 </td>
 
                                 <td>
+
                                     <input type="text"
-                                        class="form-control jumlah"
-                                        value="${formatDecimalID(row.JUMLAH,2)}"
-                                        readonly
-                                        style="background:#efefef;text-align:right">
+                                        class="form-control"
+                                        value="${
+                                            row.PO_TYPE_NAME &&
+                                            row.PO_TYPE_NAME !== ''
+                                                ? row.PO_TYPE_NAME
+                                                : '-'
+                                        }"
+                                        readonly>
+
                                 </td>
 
                                 <td>
+
                                     <input type="text"
-                                        class="form-control berat"
-                                        value="${formatDecimalID(row.BERAT,2)}"
-                                        readonly
-                                        style="background:#efefef;text-align:right">
+                                        class="form-control text-end jumlah-edit"
+                                        value="${formatDecimalID(row.JUMLAH)}">
+
                                 </td>
 
                                 <td>
+
                                     <input type="text"
-                                        class="form-control harga"
-                                        value="${formatDecimalID(row.HARGA,2)}"
-                                        readonly
-                                        style="background:#efefef;text-align:right">
+                                        class="form-control text-end berat-edit"
+                                        value="${formatDecimalID(row.BERAT)}">
+
                                 </td>
 
                                 <td>
+
                                     <input type="text"
-                                        class="form-control total"
-                                        value="${formatDecimalID(row.TOTAL,2)}"
-                                        readonly
-                                        style="background:#efefef;text-align:right">
+                                        class="form-control text-end harga-edit"
+                                        value="${formatMoneyID(row.HARGA)}">
+
                                 </td>
 
                                 <td>
+
                                     <input type="text"
-                                        class="form-control susut-jumlah"
-                                        value="${formatDecimalID(row.SUSUT_JUMLAH ?? 0,2)}"
-                                        style="text-align:right">
+                                        class="form-control text-end total-edit"
+                                        value="${formatMoneyID(row.TOTAL)}">
+
                                 </td>
 
                                 <td>
+
                                     <input type="text"
-                                        class="form-control susut-berat"
-                                        value="${formatDecimalID(row.SUSUT_BERAT ?? 0,2)}"
-                                        style="text-align:right">
+                                        class="form-control text-end susut-jumlah"
+                                        value="${formatDecimalID(row.SUSUT_JUMLAH ?? 0)}">
+
                                 </td>
 
                                 <td>
+
+                                    <input type="text"
+                                        class="form-control text-end susut-berat"
+                                        value="${formatDecimalID(row.SUSUT_BERAT ?? 0)}">
+
+                                </td>
+
+                                <td>
+
                                     <input type="text"
                                         class="form-control keterangan"
                                         value="${row.KETERANGAN ?? ''}">
+
                                 </td>
+
                             </tr>
+
                         `);
 
                     });
 
-                    $('#receiveEdit').modal('show');
-                } else {
-                    alert(resp.message || 'Gagal mengambil data RECEIVE');
+
+                    // =================================================
+                    // SHOW MODAL
+                    // =================================================
+
+                    $('#receiveEdit')
+                        .modal('show');
+
                 }
-            });
+            );
+
         });
 
-        // Submit edit
+        $('#ATTACHMENT_EDIT').change(function(){
+
+            let file = this.files[0];
+
+            if(!file){
+                return;
+            }
+
+            let ext =
+                file.name
+                    .split('.')
+                    .pop()
+                    .toLowerCase();
+
+            let objectUrl =
+                URL.createObjectURL(file);
+
+            // RESET
+            $('#attachmentPreviewEdit')
+                .removeClass('d-none');
+
+            $('#attachmentImageEdit')
+                .addClass('d-none');
+
+            $('#attachmentPdfEdit')
+                .addClass('d-none');
+
+            $('#attachmentFileEdit')
+                .addClass('d-none');
+
+            // IMAGE
+            if(
+                ['jpg','jpeg','png','webp']
+                .includes(ext)
+            ){
+
+                $('#attachmentImageEdit')
+                    .removeClass('d-none')
+                    .attr('src', objectUrl);
+
+            }
+
+            // PDF
+            else if(ext === 'pdf'){
+
+                $('#attachmentPdfEdit')
+                    .removeClass('d-none')
+                    .attr('src', objectUrl);
+
+            }
+
+            // OTHER
+            else{
+
+                $('#attachmentFileEdit')
+                    .removeClass('d-none');
+
+                $('#ATTACHMENT_EDIT_LINK')
+                    .attr('href', objectUrl);
+
+            }
+
+        });
+
         $('#freceiveEdit').submit(function(e){
+
             e.preventDefault();
 
-            let formData = new FormData(this); // <- penting
+            let formData =
+                new FormData(this);
 
             let DETAIL = [];
 
-            $('#receiveDetailTableEdit tbody tr').each(function(){
-                DETAIL.push({
-                    SEQ_NO       : $(this).data('seq'),
-                    PO_SEQ       : $(this).data('po-seq'),
-                    CUSTOMER     : $(this).find('.customer-code').val(),
-                    MATERIAL     : $(this).find('.material-code').val(),
-                    JUMLAH       : parseDecimalID($(this).find('.jumlah').val()),
-                    BERAT        : parseDecimalID($(this).find('.berat').val()),
-                    HARGA        : parseDecimalID($(this).find('.harga').val()),
-                    TOTAL        : parseDecimalID($(this).find('.total').val()),
-                    SUSUT_JUMLAH : parseDecimalID($(this).find('.susut-jumlah').val()),
-                    SUSUT_BERAT  : parseDecimalID($(this).find('.susut-berat').val()),
-                    KETERANGAN   : $(this).find('.keterangan').val()
-                });
-            });
+            $('#receiveDetailTableEdit tbody tr')
+                .each(function(){
 
-            formData.set('PLANT', $('#PLANT_EDIT_HIDDEN').val());
-            formData.set('PO', $('#PO_EDIT_HIDDEN').val());
-            formData.set('SUPPLIER', $('#hiddensupplierEdit').val());
-            formData.set('DETAIL', JSON.stringify(DETAIL));
+                    DETAIL.push({
+
+                        SEQ_NO :
+
+                            $(this).data('seq'),
+
+                        PO_SEQ :
+
+                            $(this).data('po-seq'),
+
+                        CUSTOMER :
+
+                            $(this)
+                                .find('.customer-code')
+                                .val()
+
+                            ||
+
+                            $(this)
+                                .find('.customer-edit')
+                                .val(),
+
+                        PO_TYPE :
+                            $(this)
+                                .find('.po-type-edit')
+                                .val()
+                            || null,
+
+                        JUMLAH :
+
+                            parseDecimalID(
+                                $(this)
+                                    .find('.jumlah-edit')
+                                    .val()
+                            ),
+
+                        BERAT :
+
+                            parseDecimalID(
+                                $(this)
+                                    .find('.berat-edit')
+                                    .val()
+                            ),
+
+                        HARGA :
+
+                            parseRupiah(
+                                $(this)
+                                    .find('.harga-edit')
+                                    .val()
+                            ),
+
+                        TOTAL :
+
+                            parseRupiah(
+                                $(this)
+                                    .find('.total-edit')
+                                    .val()
+                            ),
+
+                        SUSUT_JUMLAH :
+
+                            parseDecimalID(
+                                $(this)
+                                    .find('.susut-jumlah')
+                                    .val()
+                            ),
+
+                        SUSUT_BERAT :
+
+                            parseDecimalID(
+                                $(this)
+                                    .find('.susut-berat')
+                                    .val()
+                            ),
+
+                        KETERANGAN :
+
+                            $(this)
+                                .find('.keterangan')
+                                .val(),
+
+                        IS_EXTRA :
+
+                            $(this)
+                                .hasClass('receive-extra-row')
+                                    ? 1
+                                    : 0
+
+                    });
+
+                });
+
+            formData.set(
+                'RECEIVE',
+                $('#RECEIVE_EDIT_HIDDEN').val()
+            );
+
+            formData.set(
+                'PLANT',
+                $('#PLANT_EDIT_HIDDEN').val()
+            );
+
+            formData.set(
+                'PO',
+                $('#PO_EDIT_HIDDEN').val()
+            );
+
+            formData.set(
+                'SUPPLIER',
+                $('#SUPPLIER_EDIT_HIDDEN').val()
+            );
+
+            formData.set(
+                'DETAIL',
+                JSON.stringify(DETAIL)
+            );
 
             $.ajax({
-                url: "<?= base_url('receive/update'); ?>",
+
+                url:
+                    "<?= base_url('receive/update'); ?>",
+
                 type: "POST",
+
                 data: formData,
+
                 processData: false,
+
                 contentType: false,
+
                 dataType: "json",
-                success(resp){
-                    alert(resp.message);
-                    if(resp.status){
-                        $('#receiveEdit').modal('hide');
-                        loadPage(state.page);
-                    }
+
+                beforeSend(){
+
+                    $('#freceiveEdit button[type=submit]')
+                        .prop('disabled', true);
+
                 },
+
+                success(resp){
+
+                    $('#freceiveEdit button[type=submit]')
+                        .prop('disabled', false);
+
+                    alert(resp.message);
+
+                    if(resp.status){
+
+                        $('#receiveEdit')
+                            .modal('hide');
+
+                        loadPage(state.page);
+
+                    }
+
+                },
+
                 error(xhr){
+
+                    $('#freceiveEdit button[type=submit]')
+                        .prop('disabled', false);
+
                     console.log(xhr.responseText);
-                    alert('Gagal update receive');
+
+                    alert(
+                        'Gagal update receive'
+                    );
+
                 }
+
             });
+
         });
 
         // PDF

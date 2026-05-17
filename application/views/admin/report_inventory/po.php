@@ -4,6 +4,82 @@ $roleId    = $this->session->userdata('role_id');
 ?>
 
 <div class="po-report-wrap">
+    <!-- SUMMARY -->
+    <div class="row mb-4" id="summaryWrapper">
+
+        <div class="col-md-2">
+            <div class="summary-card">
+                <div class="summary-label">
+                    TOTAL PO
+                </div>
+
+                <div class="summary-value" id="sumPO">
+                    0
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="summary-card">
+                <div class="summary-label">
+                    SUPPLIER
+                </div>
+
+                <div class="summary-value" id="sumSupplier">
+                    0
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="summary-card">
+                <div class="summary-label">
+                    CUSTOMER
+                </div>
+
+                <div class="summary-value" id="sumCustomer">
+                    0
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="summary-card">
+                <div class="summary-label">
+                    TOTAL QTY
+                </div>
+
+                <div class="summary-value" id="sumQty">
+                    0
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="summary-card">
+                <div class="summary-label">
+                    TOTAL WEIGHT
+                </div>
+
+                <div class="summary-value" id="sumWeight">
+                    0
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="summary-card summary-money">
+                <div class="summary-label">
+                    TOTAL AMOUNT
+                </div>
+
+                <div class="summary-value" id="sumAmount">
+                    0
+                </div>
+            </div>
+        </div>
+
+    </div>
 
     <!-- FILTER -->
     <div class="report-filter-card">
@@ -163,7 +239,7 @@ $roleId    = $this->session->userdata('role_id');
 }
 
 .po-body{
-    padding:20px;
+    padding:10px;
     background:#fff;
 }
 
@@ -218,6 +294,37 @@ $roleId    = $this->session->userdata('role_id');
 .meta-value{
     font-weight:500;
     color:#fff;
+}
+.summary-card{
+    background:#fff;
+    border-radius:18px;
+    padding:20px;
+    border:1px solid #edf2f7;
+    box-shadow:0 8px 24px rgba(15,23,42,.05);
+    height:100%;
+    transition:.2s;
+}
+
+.summary-card:hover{
+    transform:translateY(-2px);
+}
+
+.summary-label{
+    font-size:12px;
+    font-weight:700;
+    color:#64748b;
+    letter-spacing:.5px;
+    margin-bottom:10px;
+}
+
+.summary-value{
+    font-size:18px;
+    font-weight:800;
+    color:#0f172a;
+}
+
+.summary-money .summary-value{
+    color:#0F4C81;
 }
 </style>
 
@@ -371,6 +478,39 @@ const POReport = {
         return `${String(d.getDate()).padStart(2,'0')} ${bulan[d.getMonth()]} ${d.getFullYear()}`;
     },
 
+    renderSummary(summary){
+
+        if(!summary){
+
+            return;
+
+        }
+
+        $('#sumPO').text(
+            this.money(summary.TOTAL_PO || 0)
+        );
+
+        $('#sumSupplier').text(
+            this.money(summary.TOTAL_SUPPLIER || 0)
+        );
+
+        $('#sumCustomer').text(
+            this.money(summary.TOTAL_CUSTOMER || 0)
+        );
+
+        $('#sumQty').text(
+            this.decimal(summary.TOTAL_QTY || 0)
+        );
+
+        $('#sumWeight').text(
+            this.decimal(summary.TOTAL_BERAT || 0)
+        );
+
+        $('#sumAmount').text(
+            'Rp ' + this.money(summary.TOTAL_AMOUNT || 0)
+        );
+    },
+
     render(rows){
         const wrap = $('#poReportWrapper').empty();
 
@@ -398,6 +538,15 @@ const POReport = {
                     SUPPLIER_NAME: r.SUPPLIER_NAME,
                     STATUS: r.STATUS,
                     REMARK: r.REMARK,
+
+                    NO_TRUCK: r.NO_TRUCK,
+                    DRIVER: r.DRIVER,
+
+                    HEADER_QTY: r.HEADER_QTY,
+                    HEADER_BERAT: r.HEADER_BERAT,
+                    HEADER_HARGA: r.HEADER_HARGA,
+                    HEADER_TOTAL: r.HEADER_TOTAL,
+
                     DETAIL:[]
                 };
             }
@@ -466,6 +615,40 @@ const POReport = {
                                 <span class="meta-label">REMARK</span>
                                 <span class="meta-value">: ${po.REMARK || '-'}</span>
                             </div>
+                            <div>
+                                <span class="meta-label">DRIVER / NO.</span>
+                                <span class="meta-value">
+                                    : ${po.DRIVER || '-'} / ${po.NO_TRUCK || '-'}
+                                </span>
+                            </div>
+
+                            <div>
+                                <span class="meta-label">QTY</span>
+                                <span class="meta-value">
+                                    : ${this.decimal(po.HEADER_QTY)}
+                                </span>
+                            </div>
+
+                            <div>
+                                <span class="meta-label">WEIGHT</span>
+                                <span class="meta-value">
+                                    : ${this.decimal(po.HEADER_BERAT)}
+                                </span>
+                            </div>
+
+                            <div>
+                                <span class="meta-label">PRICE</span>
+                                <span class="meta-value">
+                                    : Rp ${this.money(po.HEADER_HARGA)}
+                                </span>
+                            </div>
+
+                            <div>
+                                <span class="meta-label">TOTAL</span>
+                                <span class="meta-value">
+                                    : Rp ${this.money(po.HEADER_TOTAL)}
+                                </span>
+                            </div>
                         </div>
                     </div>
 
@@ -509,9 +692,13 @@ const POReport = {
                     ? JSON.parse(resp)
                     : resp;
 
+                this.renderSummary(resp.summary || {});
                 this.render(resp.rows || []);
                 $('#pagination').html(resp.pagination || '');
-                $('#pageInfo').html(resp.info || '');
+                $('#pageInfo').html(`
+                    Showing page ${resp.page} of ${resp.pages}
+                    (${this.money(resp.total)} PO)
+                `);
             }
         )
         .fail(()=>{

@@ -56,11 +56,14 @@
         flex-direction: row;
     }
     label {
-        width: 35%;
+        width: 50%;
     }
     .space-line {
         border-bottom: 5px double black;
         margin-bottom: 10px
+    }
+    .form-check.form-check-inline {
+        width: 100%
     }
 </style>
 
@@ -68,125 +71,334 @@
 <div class="modal fade" id="salesAdd" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <form id="fsalesAdd" enctype="multipart/form-data">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">SALES - TAMBAH</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+            <div class="modal-content border-0 shadow-lg">
+
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold" style="color: #fff">
+                        SALES - TAMBAH
+                    </h5>
+
+                    <button
+                        type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal">
+                    </button>
                 </div>
 
                 <div class="modal-body">
+
+                    <!-- ========================================= -->
                     <!-- HEADER -->
-                    <div class="row g-2 mb-3">
+                    <!-- ========================================= -->
 
-                        <div class="col-md-6 flex-inline">
-                            <label class="form-label">Plant *</label>
-                            <select id="plantAdd" name="PLANT" class="form-control" required></select>
+                    <div class="card border-0 shadow-sm mb-4">
+
+                        <div class="card-header bg-light fw-bold">
+                            INFORMASI SALES
                         </div>
 
-                        <div class="col-md-6 flex-inline">
-                            <label class="form-label">No. Sales</label>
-                            <input class="form-control" placeholder="Auto Generate" readonly style="background: #efefef">
-                        </div>
+                        <div class="card-body">
 
-                        <div class="col-md-6 flex-inline">
-                            <label class="form-label">Tanggal *</label>
-                            <input name="SALES_DATE" type="date" class="form-control" required>
-                        </div>
+                            <div class="row g-3">
 
-                        <div class="col-md-6 mt-2 flex-inline">
-                            <label class="form-label">Customer *</label>
-                            <select id="customerAdd" class="form-control" required></select>
-                            <input type="hidden" name="CUSTOMER" id="hiddenCustomerAdd">
-                        </div>
+                                <!-- PLANT -->
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">
+                                        Plant *
+                                    </label>
 
-                        <div class="col-md-3 flex-inline" style="padding: 2px 10px;">
-                            <label class="form-label">Pembayaran</label>
-                            <div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="PEMBAYARAN" id="pay_cash" value="CASH" required checked>
-                                    <label class="form-check-label" for="pay_cash">CASH</label>
+                                    <select
+                                        id="plantAdd"
+                                        name="PLANT"
+                                        class="form-control"
+                                        required>
+                                    </select>
                                 </div>
 
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="PEMBAYARAN" id="pay_transfer" value="TRANSFER" required>
-                                    <label class="form-check-label" for="pay_transfer">TRANSFER</label>
+                                <!-- SALES -->
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">
+                                        No. Sales
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        class="form-control bg-light"
+                                        readonly
+                                        placeholder="AUTO GENERATE">
                                 </div>
+
+                                <!-- DATE -->
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">
+                                        Tanggal *
+                                    </label>
+
+                                    <input
+                                        type="date"
+                                        name="SALES_DATE"
+                                        class="form-control"
+                                        required>
+                                </div>
+
+                                <!-- CUSTOMER -->
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">
+                                        Customer *
+                                    </label>
+
+                                    <select
+                                        id="customerAdd"
+                                        class="form-control"
+                                        required>
+                                    </select>
+
+                                    <input
+                                        type="hidden"
+                                        name="CUSTOMER"
+                                        id="hiddenCustomerAdd">
+                                </div>
+
+                                <!-- PAYMENT -->
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold d-block">
+                                        Pembayaran
+                                    </label>
+
+                                    <div class="mt-2" style="display: flex; width: 100%; padding-top: 10px">
+
+                                        <div class="form-check form-check-inline">
+                                            <input
+                                                class="form-check-input"
+                                                type="radio"
+                                                name="PEMBAYARAN"
+                                                value="CASH"
+                                                checked>
+
+                                            <label class="form-check-label">
+                                                CASH
+                                            </label>
+                                        </div>
+
+                                        <div class="form-check form-check-inline">
+                                            <input
+                                                class="form-check-input"
+                                                type="radio"
+                                                name="PEMBAYARAN"
+                                                value="TRANSFER">
+
+                                            <label class="form-check-label">
+                                                TRANSFER
+                                            </label>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <!-- JENIS PAY -->
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold d-block">
+                                        Jenis Pembayaran
+                                    </label>
+
+                                    <div class="mt-2" style="display: flex; width: 100%; padding-top: 10px">
+
+                                        <div class="form-check form-check-inline">
+                                            <input
+                                                class="form-check-input"
+                                                type="radio"
+                                                name="JENIS_PAY"
+                                                value="LUNAS"
+                                                checked>
+
+                                            <label class="form-check-label">
+                                                LUNAS
+                                            </label>
+                                        </div>
+
+                                        <div class="form-check form-check-inline">
+                                            <input
+                                                class="form-check-input"
+                                                type="radio"
+                                                name="JENIS_PAY"
+                                                value="TEMPO">
+
+                                            <label class="form-check-label">
+                                                TEMPO
+                                            </label>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <!-- DP -->
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">
+                                        DP Amount
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="DP_AMOUNT"
+                                        class="form-control text-end amount-field"
+                                        placeholder="0">
+                                </div>
+
+                                <!-- NOTA -->
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">
+                                        No. Nota
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="NOTA"
+                                        class="form-control"
+                                        placeholder="Opsional..">
+                                </div>
+
+                                <!-- ATTACH -->
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">
+                                        Attachment
+                                    </label>
+
+                                    <input
+                                        type="file"
+                                        name="ATTACHMENT"
+                                        class="form-control"
+                                        accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx">
+                                </div>
+
+                                <!-- REMARK -->
+                                <div class="col-md-12">
+                                    <label class="form-label fw-semibold">
+                                        Remark
+                                    </label>
+
+                                    <textarea
+                                        name="REMARK"
+                                        class="form-control"
+                                        placeholder="Opsional.."
+                                        rows="2"></textarea>
+                                </div>
+
                             </div>
+
                         </div>
-
-                        <div class="col-md-3 flex-inline" style="padding: 2px 10px;">
-                            <label class="form-label" style="width: 100%">Jenis Pembayaran</label>
-                            <div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="JENIS_PAY" id="pay_lunas" value="LUNAS" required checked>
-                                    <label class="form-check-label" for="pay_lunas">LUNAS</label>
-                                </div>
-
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="JENIS_PAY" id="pay_tempo" value="TEMPO" required>
-                                    <label class="form-check-label" for="pay_transfer">TEMPO</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6 mt-2 flex-inline">
-                            <label class="form-label">Bayar Awal</label>
-                            <input name="BAYAR_AWAL" class="form-control text-end" placeholder="0">
-                        </div>
-
-                        <div class="col-md-6 mt-2 flex-inline">
-                            <label class="form-label">Attachment</label>
-                            <input type="file" name="ATTACHMENT" class="form-control"
-                                   accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx">
-                        </div>
-
-                        <div class="col-md-6 mt-2 flex-inline">
-                            <label class="form-label">No. Nota *</label>
-                            <input name="NOTA" class="form-control" placeholder="Tulis disini..." required>
-                        </div>
-
-                        <div class="col-md-6 mt-2 flex-inline">
-                            <label class="form-label">Keterangan</label>
-                            <input name="REMARK" class="form-control" placeholder="Tulis disini...">
-                        </div>
-
                     </div>
 
+                    <!-- ========================================= -->
                     <!-- DETAIL -->
-                    <div class="d-flex justify-content-between mb-2">
-                        <h5>Item</h5>
-                        <button type="button" class="btn btn-success btn-sm" id="addDetailRowAdd">
-                            Tambah Item
-                        </button>
+                    <!-- ========================================= -->
+
+                    <div class="card border-0 shadow-sm">
+
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+
+                            <span class="fw-bold">
+                                DETAIL ITEM
+                            </span>
+
+                            <button
+                                type="button"
+                                class="btn btn-success btn-sm"
+                                id="addDetailRowAdd">
+
+                                <i class="fa fa-plus me-1"></i>
+                                Tambah Item
+
+                            </button>
+
+                        </div>
+
+                        <div class="card-body">
+
+                            <div class="table-responsive">
+
+                                <table class="table table-bordered align-middle" id="salesDetailTableAdd">
+
+                                    <thead class="table-light">
+                                        <tr>
+
+                                            <th width="28%" class="text-center">
+                                                MATERIAL
+                                            </th>
+
+                                            <th width="12%" class="text-center">
+                                                JUMLAH
+                                            </th>
+
+                                            <th width="12%" class="text-center">
+                                                BERAT
+                                            </th>
+
+                                            <th width="15%" class="text-center">
+                                                HARGA
+                                            </th>
+
+                                            <th width="12%" class="text-center">
+                                                DISCOUNT
+                                            </th>
+
+                                            <th width="18%" class="text-center">
+                                                TOTAL
+                                            </th>
+
+                                            <th width="3%" class="text-center">
+                                                #
+                                            </th>
+
+                                        </tr>
+                                    </thead>
+
+                                    <tbody></tbody>
+
+                                </table>
+
+                            </div>
+
+                            <div class="text-end mt-3">
+
+                                <h4 class="fw-bold text-primary mb-0">
+                                    GRAND TOTAL :
+                                    <span id="grandTotalDisplay">
+                                        0
+                                    </span>
+                                </h4>
+
+                            </div>
+
+                        </div>
                     </div>
 
-                    <table class="table table-bordered" id="salesDetailTableAdd">
-                        <thead>
-                            <tr>
-                                <th style="width:22%; text-align: center; vertical-align: middle">Item</th>
-                                <th style="width:10%; text-align: center; vertical-align: middle">Metode</th>
-                                <th style="width:10%; text-align: center; vertical-align: middle">BW (KG)</th>
-                                <th style="width:10%; text-align: center; vertical-align: middle">Qty</th>
-                                <th style="width:15%; text-align: center; vertical-align: middle">Harga</th>
-                                <th style="width:15%; text-align: center; vertical-align: middle">Discount</th>
-                                <th style="width:15%; text-align: center; vertical-align: middle">Total</th>
-                                <th style="width:3%; text-align: center; vertical-align: middle">#</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-
-                    <div class="text-end">
-                        <strong>Total Sales :</strong>
-                        <span id="grandTotalDisplay">0</span>
-                    </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
+
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+
+                        Tutup
+
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary">
+
+                        <i class="fa fa-save me-1"></i>
+                        Simpan Sales
+
+                    </button>
+
                 </div>
+
             </div>
+
         </form>
     </div>
 </div>
@@ -358,7 +570,7 @@
         $('#plantAdd').select2({
             placeholder: 'Pilih PLANT',
             width: '100%',
-            dropdownParent: $('#salesAdd'),
+            dropdownParent: $('#salesAdd .modal-body'),
             ajax: {
                 url: '<?= base_url("sales/get_plant_by_user"); ?>',
                 dataType: 'json',
@@ -381,7 +593,27 @@
         });
     }
 
-    $(document).on('input','input[name="BAYAR_AWAL"]', function(){
+    function setDefaultPlantAdd()
+    {
+        const $plant = $('#plantAdd');
+
+        const firstValid = $plant.find('option').filter(function () {
+
+            const val = ($(this).val() || '').trim();
+
+            return val !== '' && val !== '*';
+
+        }).first();
+
+        if(firstValid.length){
+
+            $plant
+                .val(firstValid.val())
+                .trigger('change.select2');
+        }
+    }
+
+    $(document).on('input','input[name="DP_AMOUNT"]', function(){
         let val = parseRupiah($(this).val());
         $(this).val(formatRupiah(val));
     });
@@ -488,6 +720,12 @@
         });
     }
 
+    $('#customerAdd').on('change', function () {
+        $('#hiddenCustomerAdd').val(
+            $(this).val()
+        );
+    });
+
     function setDefaultCustomer(selector, custId, custName) {
         let opt = new Option(
             custId + ' - ' + custName,
@@ -510,7 +748,7 @@
             dropdownParent: $(parentModal),
             minimumInputLength: 2,
             ajax:{
-                url:'<?= base_url("sales/get_item"); ?>',
+                url:'<?= base_url("sales/get_material"); ?>',
                 dataType:'json',
                 delay:400,
                 cache:true,
@@ -533,17 +771,33 @@
         return Number(val.toString().replace(/\./g, '').replace(',', '.'));
     }
 
-    $(document).on('input', '.qty, .harga, .discount', function () {
-        let row = $(this).closest('tr');
+    $(document).on(
+        'input',
+        '.qty, .berat, .harga, .discount',
+        function () {
 
-        let qty      = toNumber(row.find('.qty').val());
-        let harga    = toNumber(row.find('.harga').val());
-        let discount = toNumber(row.find('.discount').val());
+            let row = $(this).closest('tr');
 
-        let total = (qty * harga) - discount;
+            let qty      = toNumber(row.find('.qty').val());
+            let berat    = toNumber(row.find('.berat').val());
+            let harga    = toNumber(row.find('.harga').val());
+            let discount = toNumber(row.find('.discount').val());
 
-        row.find('.total').val(formatRupiah(total));
-    });
+            let method = row.find('.method').val();
+
+            let basis = method === 'BW'
+                ? berat
+                : qty;
+
+            let total = (basis * harga) - discount;
+
+            row.find('.total').val(
+                formatRupiah(total)
+            );
+
+            recalcGrandTotal();
+        }
+    );
 
     $(document).on('input', '.berat, .qty', function () {
         let val = $(this).val();
@@ -575,25 +829,55 @@
         return parseInt(value.toString().replace(/[^0-9]/g, '')) || 0;
     }
 
-    function recalcRowTotal(row) {
-        let method   = row.find('.method').val();
-        let harga    = parseRupiah(row.find('.harga').val());
-        let discount = parseRupiah(row.find('.discount').val());
+    function recalcRow(tr)
+    {
+        let jumlah   = parseFloat(
+            unformatNumber(
+                tr.find('.jumlah').val()
+            )
+        ) || 0;
 
-        let base = 0;
-        if (method === 'BW') {
-            let berat = parseDecimalID(row.find('.berat').val());
-            base = berat * harga;
-        } else {
-            let qty = parseDecimalID(row.find('.qty').val());
-            base = qty * harga;
+        let berat    = parseFloat(
+            unformatNumber(
+                tr.find('.berat').val()
+            )
+        ) || 0;
+
+        let harga    = parseFloat(
+            unformatNumber(
+                tr.find('.harga').val()
+            )
+        ) || 0;
+
+        let discount = parseFloat(
+            unformatNumber(
+                tr.find('.discount').val()
+            )
+        ) || 0;
+
+        /*
+        |--------------------------------------------------------------------------
+        | TOTAL
+        |--------------------------------------------------------------------------
+        | PRIORITAS:
+        | BERAT jika ada
+        | selain itu JUMLAH
+        */
+
+        let basis = berat > 0
+            ? berat
+            : jumlah;
+
+        let total = (basis * harga) - discount;
+
+        if(total < 0){
+            total = 0;
         }
 
-        let total = base - discount;
-        if (total < 0) total = 0;
+        tr.find('.total')
+            .val(formatNumber(total));
 
-        row.find('.total').val(formatRupiah(total));
-        return total;
+        recalcGrandTotal();
     }
 
     function recalcGrandTotalEdit() {
@@ -604,37 +888,37 @@
         $('#grandTotalDisplayEdit').text(formatRupiah(grand));
     }
 
-    function recalcGrandTotal(tableSelector, totalSelector) {
+    function recalcGrandTotal(){
         let grand = 0;
-        $(`${tableSelector} tbody tr`).each(function () {
-            grand += recalcRowTotal($(this));
+        $('#salesDetailTableAdd tbody tr').each(function(){
+            grand += clearFormat(
+                $(this).find('.total').val()
+            );
         });
-        $(totalSelector).text(formatRupiah(grand));
+
+        $('#grandTotalDisplay').html(
+            formatRupiah(grand)
+        );
     }
 
-    $(document).on('keyup change', '.qty, .berat, .harga, .discount', function () {
-        let table = $(this).closest('table').attr('id');
+    $(document).on(
+        'keyup change',
+        '.jumlah,.berat,.harga,.discount',
+        function(){
 
-        if (table === 'salesDetailTableEdit') {
-            recalcGrandTotal('#salesDetailTableEdit', '#grandTotalDisplayEdit');
-        } else {
-            recalcGrandTotal('#salesDetailTableAdd', '#grandTotalDisplay');
+            let tr = $(this).closest('tr');
+
+            recalcRow(tr);
         }
-    });
+    );
 
     $(document).on('keyup change', '#salesDetailTableEdit .qty, #salesDetailTableEdit .berat, #salesDetailTableEdit .harga, #salesDetailTableEdit .discount, #salesDetailTableEdit .method', function () {
         recalcGrandTotalEdit();
     });
 
-    $(document).on('click', '.removeRow', function () {
-        let table = $(this).closest('table').attr('id');
+    $(document).on('click', '.removeRow', function(){
         $(this).closest('tr').remove();
-
-        if (table === 'salesDetailTableEdit') {
-            recalcGrandTotal('#salesDetailTableEdit', '#grandTotalDisplayEdit');
-        } else {
-            recalcGrandTotal('#salesDetailTableAdd', '#grandTotalDisplay');
-        }
+        recalcGrandTotal();
     });
 
     $(document).on('change', '.method', function () {
@@ -649,145 +933,116 @@
             row.find('.berat').prop('disabled', true).val('');
         }
 
-        recalcRowTotal(row);
+        recalcRow(row);
 
         if (table === 'salesDetailTableEdit') {
-            recalcGrandTotal('#salesDetailTableEdit', '#grandTotalDisplayEdit');
+            recalcGrandTotalEdit();
         } else {
-            recalcGrandTotal('#salesDetailTableAdd', '#grandTotalDisplay');
+            recalcGrandTotal();
         }
     });
 
-    /* -------------------------
-    Add / remove detail rows
-    ------------------------- */
-    function addDetailRow(data, targetTable) {
+    function addDetailRow()
+    {
+        let tbody = $('#salesDetailTableAdd tbody');
 
-        let tbody = $(`${targetTable} tbody`);
-        if (!tbody.length) return;
-
-        data = data || {};
-
-        let method   = data.method || 'QTY';
-        let berat    = data.berat || '';
-        let qty      = data.qty || '';
-        let harga    = data.harga || '';
-        let discount = data.discount || '';
-        let total    = data.total || '';
-        let item     = data.item || '';
-        let itemText = data.item_text || '';
-
-        let modalParent = targetTable.includes('Edit')
-            ? '#salesEdit'
-            : '#salesAdd';
-
-        let row = `
+        let html = `
             <tr>
+
                 <td>
-                    <select class="form-control item-select"></select>
+                    <select class="form-control material-select"></select>
                 </td>
+
                 <td>
-                    <select class="form-control method">
-                        <option value="QTY">QTY</option>
-                        <option value="BW">BW</option>
-                    </select>
+                    <input
+                        type="text"
+                        class="form-control jumlah text-end amount-field"
+                        value="0">
                 </td>
-                <td><input class="form-control berat" style="text-align:right"></td>
-                <td><input class="form-control qty" style="text-align:right"></td>
-                <td><input class="form-control harga" style="text-align:right"></td>
-                <td><input class="form-control discount" style="text-align:right"></td>
-                <td><input class="form-control total" style="text-align:right" readonly></td>
-                <td><button class="btn btn-danger btn-sm removeRow">X</button></td>
+
+                <td>
+                    <input
+                        type="text"
+                        class="form-control berat text-end amount-field"
+                        value="0">
+                </td>
+
+                <td>
+                    <input
+                        type="text"
+                        class="form-control harga text-end amount-field"
+                        value="0">
+                </td>
+
+                <td>
+                    <input
+                        type="text"
+                        class="form-control discount text-end amount-field"
+                        value="0">
+                </td>
+
+                <td>
+                    <input
+                        type="text"
+                        class="form-control total text-end bg-light fw-bold"
+                        readonly
+                        value="0">
+                </td>
+
+                <td class="text-center">
+
+                    <button
+                        type="button"
+                        class="btn btn-danger btn-sm removeRow">
+
+                        <i class="fa fa-trash"></i>
+
+                    </button>
+
+                </td>
+
             </tr>
         `;
 
-        tbody.append(row);
+        tbody.append(html);
+
         let tr = tbody.find('tr').last();
 
-        /* ITEM SELECT2 */
-        tr.find('.item-select').select2({
-            placeholder: "Pilih ITEM",
-            width: '100%',
-            dropdownParent: $(modalParent),
-            ajax: {
-                url: '<?= base_url("sales/get_item"); ?>',
-                dataType: 'json',
-                delay: 250,
-                data: p => ({ q: p.term }),
-                processResults: d => ({ results: d })
+        /*
+        |--------------------------------------------------------------------------
+        | MATERIAL
+        |--------------------------------------------------------------------------
+        */
+
+        tr.find('.material-select').select2({
+
+            width:'100%',
+
+            dropdownParent: $('#salesAdd'),
+
+            placeholder:'Pilih Material',
+
+            minimumInputLength:2,
+
+            ajax:{
+
+                url:'<?= base_url("sales/get_material"); ?>',
+
+                dataType:'json',
+
+                delay:300,
+
+                data:params => ({
+                    q:params.term
+                }),
+
+                processResults:data => ({
+                    results:data
+                })
             }
         });
 
-        if (item && itemText) {
-            let opt = new Option(itemText, item, true, true);
-            tr.find('.item-select').append(opt).trigger('change');
-        }
-
-        tr.find('.method').val(method).trigger('change');
-        tr.find('.berat').val(formatDecimalID(berat));
-        tr.find('.qty').val(formatDecimalID(qty));
-        tr.find('.harga').val(formatRupiah(harga));
-        tr.find('.discount').val(formatRupiah(discount));
-        tr.find('.total').val(formatRupiah(total));
-
-        recalcGrandTotal(targetTable,
-            targetTable.includes('Edit')
-                ? '#grandTotalDisplayEdit'
-                : '#grandTotalDisplay'
-        );
-    }
-
-    function addDetailRowEdit(data = {}) {
-
-        let tbody = $('#salesDetailTableEdit tbody');
-
-        let row = `
-            <tr>
-                <td><select class="form-control item-select"></select></td>
-                <td>
-                    <select class="form-control method">
-                        <option value="QTY">QTY</option>
-                        <option value="BW">BW</option>
-                    </select>
-                </td>
-                <td><input class="form-control berat text-end"></td>
-                <td><input class="form-control qty text-end"></td>
-                <td><input class="form-control harga text-end"></td>
-                <td><input class="form-control discount text-end"></td>
-                <td><input class="form-control total text-end" readonly></td>
-                <td><button class="btn btn-danger btn-sm removeRow">X</button></td>
-            </tr>
-        `;
-
-        tbody.append(row);
-        let tr = tbody.find('tr').last();
-
-        tr.find('.item-select').select2({
-            placeholder: "Pilih ITEM",
-            width: '100%',
-            dropdownParent: $('#salesEdit'),
-            ajax: {
-                url: '<?= base_url("sales/get_item"); ?>',
-                dataType: 'json',
-                delay: 250,
-                data: p => ({ q: p.term }),
-                processResults: d => ({ results: d })
-            }
-        });
-
-        if (data.item && data.item_text) {
-            let opt = new Option(data.item_text, data.item, true, true);
-            tr.find('.item-select').append(opt).trigger('change');
-        }
-
-        tr.find('.method').val(data.method || 'QTY').trigger('change');
-        tr.find('.berat').val(formatDecimalID(data.berat || 0));
-        tr.find('.qty').val(formatDecimalID(data.qty || 0));
-        tr.find('.harga').val(formatRupiah(data.harga || 0));
-        tr.find('.discount').val(formatRupiah(data.discount || 0));
-        tr.find('.total').val(formatRupiah(data.total || 0));
-
-        recalcGrandTotalEdit();
+        recalcGrandTotal();
     }
 
     function updateTotalRow(row){
@@ -835,81 +1090,176 @@
         loadDefaultCustomer('#customerAdd');
         initCustomerSelect2('#customerEdit', '#salesEdit');
 
-        // add row
-        $('#addDetailRowAdd').click(function(){
-            addDetailRow(null, '#salesDetailTableAdd');
+        $('#addDetailRowAdd').on('click', function(){
+            addDetailRow();
         });
+
         $('#addDetailRowEdit').click(function(){
             addDetailRow({}, '#salesDetailTableEdit');
         });
 
-        // remove row
-        $('#salesDetailTableAdd, #salesDetailTableEdit').on('click','.removeRow', function(){ $(this).closest('tr').remove(); });
-
         // update total on input
         $('#salesDetailTableAdd, #salesDetailTableEdit').on('input','.qty, .harga, .discount', function(){ updateTotalRow($(this).closest('tr')); });
 
-        // Submit Add
         $('#fsalesAdd').submit(function (e) {
+
             e.preventDefault();
 
             let DETAIL = [];
 
-           $('#salesDetailTableAdd tbody tr').each(function () {
+            $('#salesDetailTableAdd tbody tr').each(function () {
 
-                let method = $(this).find('.method').val();
-                let qty    = parseDecimalID($(this).find('.qty').val());
-                let berat  = parseDecimalID($(this).find('.berat').val());
+                let material = $(this)
+                    .find('.material-select')
+                    .val();
 
-                if (method === 'BW' && berat <= 0) {
-                    alert('Berat wajib diisi jika metode BW');
-                    throw 'invalid';
+                let jumlah = parseDecimalID(
+                    $(this).find('.jumlah').val()
+                );
+
+                let berat = parseDecimalID(
+                    $(this).find('.berat').val()
+                );
+
+                let harga = parseRupiah(
+                    $(this).find('.harga').val()
+                );
+
+                let discount = parseRupiah(
+                    $(this).find('.discount').val()
+                );
+
+                let total = parseRupiah(
+                    $(this).find('.total').val()
+                );
+
+                /*
+                |--------------------------------------------------------------------------
+                | VALIDASI
+                |--------------------------------------------------------------------------
+                */
+
+                if (!material) {
+                    return;
                 }
 
-                if (method === 'QTY' && qty <= 0) {
-                    alert('Qty wajib diisi jika metode QTY');
+                if (jumlah <= 0 && berat <= 0) {
+
+                    alert(
+                        'Jumlah atau Berat wajib diisi'
+                    );
+
                     throw 'invalid';
                 }
 
                 DETAIL.push({
-                    ITEM     : $(this).find('.item-select').val(),
-                    METHOD   : method,
-                    QTY      : parseDecimalID($(this).find('.qty').val()),
-                    BERAT    : parseDecimalID($(this).find('.berat').val()),
-                    HARGA    : parseRupiah($(this).find('.harga').val()),
-                    DISCOUNT : parseRupiah($(this).find('.discount').val()),
-                    AMOUNT   : parseRupiah($(this).find('.total').val())
+
+                    MATERIAL : material,
+
+                    JUMLAH : jumlah,
+
+                    BERAT : berat,
+
+                    HARGA : harga,
+
+                    DISCOUNT : discount,
+
+                    TOTAL : total
                 });
             });
 
+            /*
+            |--------------------------------------------------------------------------
+            | DETAIL EMPTY
+            |--------------------------------------------------------------------------
+            */
+
             if (DETAIL.length === 0) {
-                alert('Detail item tidak boleh kosong');
+
+                alert(
+                    'Detail item tidak boleh kosong'
+                );
+
                 return;
             }
 
+            /*
+            |--------------------------------------------------------------------------
+            | FORM DATA
+            |--------------------------------------------------------------------------
+            */
+
             let formData = new FormData(this);
 
-            formData.append('CUSTOMER', $('#hiddenCustomerAdd').val());
-            formData.append('DETAIL', JSON.stringify(DETAIL));
+            formData.set(
+                'PLANT',
+                $('#plantAdd').val()
+            );
+
+            formData.set(
+                'CUSTOMER',
+                $('#hiddenCustomerAdd').val()
+            );
+
+            formData.set(
+                'SALES_DATE',
+                $('input[name="SALES_DATE"]').val()
+            );
+
+            formData.set(
+                'DETAIL',
+                JSON.stringify(DETAIL)
+            );
+
+            console.log(formData.get('PLANT'));
+            console.log(formData.get('CUSTOMER'));
+            console.log(formData.get('SALES_DATE'));
+            console.log(formData.get('DETAIL'));
 
             $.ajax({
-                url: '<?= base_url("sales/create"); ?>',
+
+                url:
+                    '<?= base_url("sales/create"); ?>',
+
                 method: 'POST',
+
                 data: formData,
+
                 processData: false,
+
                 contentType: false,
+
                 dataType: 'json',
+
                 success: function (resp) {
+
                     alert(resp.message);
+
                     if (resp.status) {
+
                         $('#salesAdd').modal('hide');
+
                         $('#fsalesAdd')[0].reset();
-                        $('#plantAdd').val(null).trigger('change');
-                        $('#customerAdd').val(null).trigger('change');
+
                         $('#salesDetailTableAdd tbody').empty();
-                        $('#grandTotalDisplay').text('0');
+
+                        $('#grandTotalDisplay').html('0');
+
+                        $('#customerAdd')
+                            .val(null)
+                            .trigger('change');
+
                         loadPage(state.page);
                     }
+                },
+
+                error: function(xhr){
+
+                    console.log(xhr.responseText);
+
+                    alert(
+                        'Terjadi error server'
+                    );
                 }
             });
         });
@@ -971,8 +1321,8 @@
                 /* ===== DETAIL ===== */
                 d.forEach(function(row){
                     addDetailRowEdit({
-                        item: row.ITEM,
-                        item_text: row.ITEM + ' - ' + row.ITEM_NAME,
+                        material: row.MATERIAL,
+                        material_text: row.MATERIAL + ' - ' + row.MATERIAL_NAME,
                         method: row.BERAT > 0 ? 'BW' : 'QTY',
                         berat: row.BERAT,
                         qty: row.QTY,
@@ -1008,7 +1358,7 @@
                 }
 
                 DETAIL.push({
-                    ITEM     : $(this).find('.item-select').val(),
+                    MATERIAL : $(this).find('.material-select').val(),
                     METHOD   : method,
                     QTY      : qty,
                     BERAT    : berat,
@@ -1109,14 +1459,16 @@
         return parseFloat(val) || 0;
     }
 
-    function formatRupiah(x){
-        if (x === null || x === undefined || x === '') return '';
-        let num = cleanNumber(x);
-        let parts = num.toString().split('.');
-        let integer = parts[0];
-        let decimal = parts.length > 1 ? '.' + parts[1] : '';
-        let ribuan = integer.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        return ribuan + decimal;
+    function formatRupiah(value){
+        value = parseFloat(value || 0);
+        return value.toLocaleString('id-ID');
+    }
+
+    function clearFormat(value){
+        value = String(value || '');
+        return parseFloat(
+            value.replace(/\./g,'').replace(/,/g,'.')
+        ) || 0;
     }
 
     function showToast(type, message) {
@@ -1138,6 +1490,12 @@
         if(dateInput){
             dateInput.value = today; // hari ini
         }
+        if(
+            $('#salesDetailTableAdd tbody tr').length === 0
+        ){
+            addDetailRow();
+        }
+        setDefaultPlantAdd();
     });
 
     $(document).on('input','#BAYAR_AWAL_EDIT', function(){
