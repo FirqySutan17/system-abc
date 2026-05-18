@@ -23,21 +23,16 @@ class ReportSales extends MY_Controller {
 
     public function index()
     {
-        $role_id  = $this->session->userdata('role_id');
-        $username = $this->session->userdata('username');
+        $data['plants'] = $this->db
+            ->where('HEAD_CODE', 'PLANT')
+            ->order_by('CODE_NAME', 'ASC')
+            ->get('abc_cd_code')
+            ->result();
 
-        if ($role_id == 1) {
-            $plants = $this->ReportSales_model->get_plant_list();
-        } else {
-            $plants = $this->ReportSales_model->get_plant_select2_by_user($username);
-        }
-
-        $data = [
-            'plants'    => $plants,
-            'suppliers' => $this->ReportSales_model->get_supplier_list(),
-            'customers' => $this->ReportSales_model->get_customer_list(),
-            'role_id'   => $role_id
-        ];
+        $data['customers'] = $this->db
+            ->order_by('FULL_NAME', 'ASC')
+            ->get('abc_cd_customer')
+            ->result();
 
         $this->load->view('templates/header', ['title' => 'Report Sales']);
         $this->load->view('templates/sidebar');
@@ -47,86 +42,134 @@ class ReportSales extends MY_Controller {
 
     public function load_sales()
     {
-        $role_id  = $this->session->userdata('role_id');
-        $username = $this->session->userdata('username');
+        ob_clean();
 
-        $page  = (int)$this->input->get('page') ?: 1;
-        $limit = (int)$this->input->get('limit') ?: 10;
-        $order = $this->input->get('order', TRUE) ?: 'SALES_DATE';
+        header('Content-Type: application/json');
 
-        $dirInput = $this->input->get('dir', TRUE) ?? 'DESC';
-        $dir = strtoupper($dirInput) === 'DESC' ? 'DESC' : 'ASC';
+        $page = (int)$this->input->get('page');
 
-        // ======================
-        // PLANT FILTER
-        // ======================
-
-        $userPlants = $this->ReportSales_model->get_user_plants($username);
-        $selectedPlant = $this->input->get('plant', TRUE);
-
-        if (!empty($selectedPlant)) {
-
-            if (!$this->ReportSales_model->user_has_plant($username, $selectedPlant)) {
-                show_error('Unauthorized plant access');
-            }
-
-            $plantFilter = [$selectedPlant];
-
-        } else {
-
-            $plantFilter = $userPlants;
+        if ($page <= 0) {
+            $page = 1;
         }
 
-        $filters = [
-            'plant'     => $plantFilter,
-            'customer'  => $this->input->get('customer', TRUE),
-            'sales'     => $this->input->get('sales', TRUE),
-            'item'      => $this->input->get('item', TRUE), // ✅ tambah
-            'status'    => $this->input->get('status', TRUE),
-            'date_from' => $this->input->get('date_from', TRUE),
-            'date_to'   => $this->input->get('date_to', TRUE),
-        ];
+        $limit = (int)$this->input->get('limit');
+
+        if ($limit <= 0) {
+            $limit = 10;
+        }
 
         $start = ($page - 1) * $limit;
 
-        $rows = $this->ReportSales_model->get_sales_report(
-            $limit,
-            $start,
-            $filters,
-            $order,
-            $dir,
-            $username
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        $filters = [
+
+            'search' => trim(
+                $this->input->get('search', true) ?? ''
+            ),
+
+            'plant' => trim(
+                $this->input->get('plant', true) ?? ''
+            ),
+
+            'customer' => trim(
+                $this->input->get('customer', true) ?? ''
+            ),
+
+            'status' => trim(
+                $this->input->get('status', true) ?? ''
+            ),
+
+            'date_from' => trim(
+                $this->input->get('date_from', true) ?? ''
+            ),
+
+            'date_to' => trim(
+                $this->input->get('date_to', true) ?? ''
+            )
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | ORDER
+        |--------------------------------------------------------------------------
+        */
+
+        $order = $this->input->get(
+            'order',
+            true
+        ) ?: 'SALES_DATE';
+
+        $dirInput = $this->input
+            ->get('dir', true) ?? '';
+
+        $dir = strtoupper($dirInput) === 'ASC'
+            ? 'ASC'
+            : 'DESC';
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATA
+        |--------------------------------------------------------------------------
+        */
+
+        $rows = $this->ReportSales_model
+            ->get_sales_report(
+                $limit,
+                $start,
+                $filters,
+                $order,
+                $dir
+            );
+
+        $total = $this->ReportSales_model
+            ->count_sales_report(
+                $filters
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | PAGINATION
+        |--------------------------------------------------------------------------
+        */
+
+        $pages = ceil($total / $limit);
+
+        $pagination = $this->build_pagination(
+            $pages,
+            $page
         );
 
-        $totalRows = $this->ReportSales_model->count_sales_report(
-            $filters,
-            $username
+        $start_data = $total > 0
+            ? (($page - 1) * $limit) + 1
+            : 0;
+
+        $end_data = min(
+            $page * $limit,
+            $total
         );
-
-        // ===== GRAND TOTAL =====
-
-        $allRows = $this->ReportSales_model->get_sales_report(
-            0, 0, $filters, $order, $dir, $username
-        );
-
-        $grand = ['qty'=>0,'berat'=>0,'amount'=>0];
-
-        foreach ($allRows as $r) {
-            $grand['qty']    += (float)$r->QTY;
-            $grand['berat']  += (float)$r->BERAT;
-            $grand['amount'] += (float)$r->DETAIL_AMOUNT;
-        }
-
-        $pages = $limit > 0 ? ceil($totalRows / $limit) : 1;
-        $pagination = $this->build_pagination($pages, $page, 'ajax');
 
         echo json_encode([
-            'rows'       => $rows,
-            'total'      => $totalRows,
-            'grand'      => $grand,
+
+            'rows' => $rows,
+
+            'total' => $total,
+
             'pagination' => $pagination,
-            'page'       => $page
+
+            'page' => $page,
+
+            'start' => $start_data,
+
+            'end' => $end_data
+
         ]);
+
+        exit;
     }
 
     public function export_excel_sales()

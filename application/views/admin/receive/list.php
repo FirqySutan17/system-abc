@@ -2174,45 +2174,30 @@ MODAL
     }
 
     function initPoSelect2(){
-
         $('#poAdd').select2({
             theme:'bootstrap-5',
             placeholder:'-- PILIH PO --',
             dropdownParent: $('#receiveAdd .modal-body'),
             width:'100%',
-
             ajax:{
-
                 url:'<?= base_url("receive/get_po"); ?>',
-
                 dataType:'json',
-
                 delay:250,
-
                 data:function(params){
-
                     return {
-
                         q: params.term,
-
                         plant: $('#hiddenPlantAdd').val()
 
                     };
-
                 },
 
                 processResults:function(data){
-
                     return {
                         results:data
                     };
-
                 }
-
             }
-
         });
-
     }
 
     function fillPoMaster(header){

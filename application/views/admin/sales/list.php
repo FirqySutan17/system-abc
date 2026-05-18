@@ -4,16 +4,98 @@
 
             <h5 class="card-title fw-semibold mb-4">SALES - INPUT</h5>
 
-            <!-- SEARCH + ADD SALES -->
-            <div class="row mb-3">
-                <div class="col-md-8">
-                    <input id="search" type="text" class="form-control" placeholder="Cari sales..." />
+            <div class="row g-2 mb-3">
+
+                <!-- SEARCH -->
+                <div class="col-md-3">
+
+                    <input
+                        id="search"
+                        type="text"
+                        class="form-control"
+                        placeholder="Cari sales, customer, nota...">
+
                 </div>
-                <div class="col-md-4 col-sm-12 text-end mt-2 mt-md-0">
-                    <button id="btnAdd" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#salesAdd">
-                        <i class="ti ti-plus"></i> Tambah Sales
+
+                <!-- STATUS -->
+                <div class="col-md-2">
+
+                    <select
+                        id="filterStatus"
+                        class="form-control">
+
+                        <option value="">
+                            Semua Status
+                        </option>
+
+                        <option value="OPEN">
+                            OPEN
+                        </option>
+
+                        <option value="UNPAID">
+                            UNPAID
+                        </option>
+
+                        <option value="PAID">
+                            PAID
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <!-- DATE FROM -->
+                <div class="col-md-2">
+
+                    <input
+                        type="date"
+                        id="dateFrom"
+                        class="form-control"
+                        value="<?= date('Y-m-01'); ?>">
+
+                </div>
+
+                <!-- DATE TO -->
+                <div class="col-md-2">
+
+                    <input
+                        type="date"
+                        id="dateTo"
+                        class="form-control"
+                        value="<?= date('Y-m-d'); ?>">
+
+                </div>
+
+                <!-- RESET -->
+                <div class="col-md-1">
+
+                    <button
+                        class="btn btn-light w-100"
+                        id="btnResetFilter">
+
+                        Reset
+
                     </button>
+
                 </div>
+
+                <!-- ADD -->
+                <div class="col-md-2 text-end">
+
+                    <button
+                        id="btnAdd"
+                        class="btn btn-primary w-100"
+                        data-bs-toggle="modal"
+                        data-bs-target="#salesAdd">
+
+                        <i class="ti ti-plus"></i>
+
+                        Tambah Sales
+
+                    </button>
+
+                </div>
+
             </div>
 
             <!-- Table -->
@@ -21,14 +103,47 @@
                 <table class="table table-striped table-hover" id="mainTable">
                     <thead>
                         <tr>
-                            <th data-order="PLANT" style="text-align:center;">Plant</th>
-                            <th data-order="SALES" style="text-align:center;">No. Sales</th>
-                            <th data-order="CUSTOMER" style="text-align:center;">Customer</th>
-                            <th data-order="SALES_DATE" style="text-align:center;">Tanggal</th>
-                            <th data-order="PEMBAYARAN" style="text-align:center;">Pembayaran</th>
-                            <th data-order="JENIS_PAY" style="text-align:center;">Jenis Payment</th>
-                            <th data-order="REMARK" style="text-align:center;">No. Nota / Ket.</th>
-                            <th style="text-align:center;">#</th>
+
+                            <th class="text-center">
+                                Plant
+                            </th>
+
+                            <th class="text-center">
+                                Sales
+                            </th>
+
+                            <th class="text-center">
+                                Date
+                            </th>
+
+                            <th class="text-center">
+                                Customer
+                            </th>
+
+                            <th class="text-center">
+                                Material
+                            </th>
+
+                            <th class="text-center">
+                                Qty / Weight
+                            </th>
+
+                            <th class="text-center">
+                                Payment
+                            </th>
+
+                            <th class="text-center">
+                                Status
+                            </th>
+
+                            <th class="text-center">
+                                Total
+                            </th>
+
+                            <th class="text-center">
+                                #
+                            </th>
+
                         </tr>
                     </thead>
                     <tbody id="table-body"></tbody>
@@ -65,6 +180,26 @@
     .form-check.form-check-inline {
         width: 100%
     }
+
+    .sales-card .select2-container{
+        width:100% !important;
+    }
+
+    .sales-card .select2-selection{
+        min-height:44px !important;
+    }
+    .sales-card .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered .select2-selection__placeholder {
+        line-height: 2;
+        font-size: 14px !important;
+    }
+    .select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option {
+        font-size: 1rem;
+        font-size: 14px;
+    }
+    .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+        line-height: 2;
+        font-size: 14PX;
+    }
 </style>
 
 <!-- MODAL ADD SALES -->
@@ -98,7 +233,7 @@
                             INFORMASI SALES
                         </div>
 
-                        <div class="card-body">
+                        <div class="card-body sales-card">
 
                             <div class="row g-3">
 
@@ -111,7 +246,7 @@
                                     <select
                                         id="plantAdd"
                                         name="PLANT"
-                                        class="form-control"
+                                        class="form-select"
                                         required>
                                     </select>
                                 </div>
@@ -150,7 +285,7 @@
 
                                     <select
                                         id="customerAdd"
-                                        class="form-control"
+                                        class="form-select"
                                         required>
                                     </select>
 
@@ -232,19 +367,6 @@
                                     </div>
                                 </div>
 
-                                <!-- DP -->
-                                <div class="col-md-4">
-                                    <label class="form-label fw-semibold">
-                                        DP Amount
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        name="DP_AMOUNT"
-                                        class="form-control text-end amount-field"
-                                        placeholder="0">
-                                </div>
-
                                 <!-- NOTA -->
                                 <div class="col-md-4">
                                     <label class="form-label fw-semibold">
@@ -259,7 +381,7 @@
                                 </div>
 
                                 <!-- ATTACH -->
-                                <div class="col-md-4">
+                                <div class="col-md-8">
                                     <label class="form-label fw-semibold">
                                         Attachment
                                     </label>
@@ -318,38 +440,26 @@
                             <div class="table-responsive">
 
                                 <table class="table table-bordered align-middle" id="salesDetailTableAdd">
-
                                     <thead class="table-light">
                                         <tr>
-
-                                            <th width="28%" class="text-center">
+                                            <th width="30%" class="text-center">
                                                 MATERIAL
                                             </th>
-
-                                            <th width="12%" class="text-center">
+                                            <th width="15%" class="text-center">
                                                 JUMLAH
                                             </th>
-
-                                            <th width="12%" class="text-center">
+                                            <th width="15%" class="text-center">
                                                 BERAT
                                             </th>
-
-                                            <th width="15%" class="text-center">
-                                                HARGA
+                                            <th width="18%" class="text-center">
+                                                HARGA / KG
                                             </th>
-
-                                            <th width="12%" class="text-center">
-                                                DISCOUNT
-                                            </th>
-
                                             <th width="18%" class="text-center">
                                                 TOTAL
                                             </th>
-
-                                            <th width="3%" class="text-center">
+                                            <th width="4%" class="text-center">
                                                 #
                                             </th>
-
                                         </tr>
                                     </thead>
 
@@ -405,172 +515,399 @@
 
 <!-- MODAL EDIT SALES -->
 <div class="modal fade" id="salesEdit" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <form id="fsalesEdit" enctype="multipart/form-data">
-            <div class="modal-content">
 
-                <div class="modal-header">
-                    <h5 class="modal-title">SALES - EDIT</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog modal-xl">
+
+        <form id="fsalesEdit" enctype="multipart/form-data">
+
+            <div class="modal-content border-0 shadow-lg">
+
+                <!-- ========================================= -->
+                <!-- HEADER -->
+                <!-- ========================================= -->
+
+                <div class="modal-header bg-warning text-dark">
+
+                    <h5 class="modal-title fw-bold" style="color: #fff">
+                        SALES - EDIT
+                    </h5>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                    </button>
+
                 </div>
 
                 <div class="modal-body">
-                    <!-- HEADER -->
-                    <div class="row g-2 mb-3">
 
-                        <!-- Plant (readonly) -->
-                        <div class="col-md-6 flex-inline">
-                            <label class="form-label">Plant</label>
-                            <input id="PLANT_NAME_EDIT" class="form-control" readonly style="background:#efefef">
-                            <input type="hidden" name="PLANT" id="PLANT_EDIT">
+                    <!-- ========================================= -->
+                    <!-- INFORMASI SALES -->
+                    <!-- ========================================= -->
+
+                    <div class="card border-0 shadow-sm mb-4">
+
+                        <div class="card-header bg-light fw-bold">
+                            INFORMASI SALES
                         </div>
 
-                        <!-- Sales No -->
-                        <div class="col-md-6 flex-inline">
-                            <label class="form-label">No. Sales</label>
-                            <input id="SALES_EDIT" name="SALES" class="form-control" readonly style="background:#efefef">
-                        </div>
+                        <div class="card-body sales-card">
 
-                        <!-- Tanggal -->
-                        <div class="col-md-6 flex-inline mt-2">
-                            <label class="form-label">Tanggal *</label>
-                            <input id="SALES_DATE_EDIT" name="SALES_DATE" type="date" class="form-control" required>
-                        </div>
+                            <div class="row g-3">
 
-                        <!-- Customer -->
-                        <div class="col-md-6 flex-inline mt-2">
-                            <label class="form-label">Customer *</label>
-                            <select id="customerEdit" class="form-control" required></select>
-                            <input type="hidden" name="CUSTOMER" id="hiddenCustomerEdit">
-                        </div>
+                                <!-- PLANT -->
+                                <div class="col-md-4">
 
-                        
+                                    <label class="form-label fw-semibold">
+                                        Plant
+                                    </label>
 
-                        <!-- Attachment -->
-                         
-                        <div class="col-md-6 mt-2 flex-inline">
-                            <label class="form-label">Attachment</label>
-                            <input type="file" name="ATTACHMENT" class="form-control"
-                                   accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx">
-                            <!-- <small class="text-muted">
-                                Kosongkan jika tidak ingin mengganti attachment
-                            </small> -->
-                        </div>
+                                    <input
+                                        id="PLANT_NAME_EDIT"
+                                        class="form-control bg-light"
+                                        readonly>
 
-                        <!-- Remark -->
-                        <div class="col-md-6 mt-2 flex-inline">
-                            <label class="form-label">No. Nota *</label>
-                            <input id="NOTA_EDIT" name="NOTA" class="form-control">
-                        </div>
+                                    <input
+                                        type="hidden"
+                                        name="PLANT"
+                                        id="PLANT_EDIT">
 
-                        <!-- Pembayaran -->
-                        <div class="col-md-6 mt-2 flex-inline">
-                            <label class="form-label d-block">Pembayaran</label>
-                            <div style="padding:0 10px">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio"
-                                           name="PEMBAYARAN_EDIT" value="CASH">
-                                    <label class="form-check-label">CASH</label>
                                 </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio"
-                                           name="PEMBAYARAN_EDIT" value="TRANSFER">
-                                    <label class="form-check-label">TRANSFER</label>
+
+                                <!-- SALES -->
+                                <div class="col-md-4">
+
+                                    <label class="form-label fw-semibold">
+                                        No. Sales
+                                    </label>
+
+                                    <input
+                                        id="SALES_EDIT"
+                                        name="SALES"
+                                        class="form-control bg-light"
+                                        readonly>
+
                                 </div>
+
+                                <!-- DATE -->
+                                <div class="col-md-4">
+
+                                    <label class="form-label fw-semibold">
+                                        Tanggal *
+                                    </label>
+
+                                    <input
+                                        id="SALES_DATE_EDIT"
+                                        name="SALES_DATE"
+                                        type="date"
+                                        class="form-control"
+                                        required>
+
+                                </div>
+
+                                <!-- CUSTOMER -->
+                                <div class="col-md-4">
+
+                                    <label class="form-label fw-semibold">
+                                        Customer *
+                                    </label>
+
+                                    <select
+                                        id="customerEdit"
+                                        class="form-select"
+                                        required>
+                                    </select>
+
+                                    <input
+                                        type="hidden"
+                                        name="CUSTOMER"
+                                        id="hiddenCustomerEdit">
+
+                                </div>
+
+                                <!-- PAYMENT -->
+                                <div class="col-md-4">
+
+                                    <label class="form-label fw-semibold d-block">
+                                        Pembayaran
+                                    </label>
+
+                                    <div
+                                        class="mt-2"
+                                        style="display:flex;width:100%;padding-top:10px">
+
+                                        <div class="form-check form-check-inline">
+
+                                            <input
+                                                class="form-check-input"
+                                                type="radio"
+                                                name="PEMBAYARAN_EDIT"
+                                                value="CASH">
+
+                                            <label class="form-check-label">
+                                                CASH
+                                            </label>
+
+                                        </div>
+
+                                        <div class="form-check form-check-inline">
+
+                                            <input
+                                                class="form-check-input"
+                                                type="radio"
+                                                name="PEMBAYARAN_EDIT"
+                                                value="TRANSFER">
+
+                                            <label class="form-check-label">
+                                                TRANSFER
+                                            </label>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <!-- JENIS PAY -->
+                                <div class="col-md-4">
+
+                                    <label class="form-label fw-semibold d-block">
+                                        Jenis Pembayaran
+                                    </label>
+
+                                    <div
+                                        class="mt-2"
+                                        style="display:flex;width:100%;padding-top:10px">
+
+                                        <div class="form-check form-check-inline">
+
+                                            <input
+                                                class="form-check-input"
+                                                type="radio"
+                                                name="JENIS_PAY_EDIT"
+                                                value="LUNAS">
+
+                                            <label class="form-check-label">
+                                                LUNAS
+                                            </label>
+
+                                        </div>
+
+                                        <div class="form-check form-check-inline">
+
+                                            <input
+                                                class="form-check-input"
+                                                type="radio"
+                                                name="JENIS_PAY_EDIT"
+                                                value="TEMPO">
+
+                                            <label class="form-check-label">
+                                                TEMPO
+                                            </label>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <!-- NOTA -->
+                                <div class="col-md-4">
+
+                                    <label class="form-label fw-semibold">
+                                        No. Nota
+                                    </label>
+
+                                    <input
+                                        id="NOTA_EDIT"
+                                        name="NOTA"
+                                        class="form-control"
+                                        placeholder="Opsional..">
+
+                                </div>
+
+                                <!-- ATTACH -->
+                                <div class="col-md-7">
+
+                                    <label class="form-label fw-semibold">
+                                        Attachment
+                                    </label>
+
+                                    <input
+                                        type="file"
+                                        name="ATTACHMENT"
+                                        class="form-control"
+                                        accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx">
+
+                                </div>
+
+                                <!-- ATTACHMENT PREVIEW -->
+                                <div class="col-md-1" style="display: flex; align-items: center; justify-content: center; padding-top: 19px">
+
+                                    <div id="attachmentPreviewEdit"></div>
+
+                                </div>
+
+                                <!-- REMARK -->
+                                <div class="col-md-12">
+
+                                    <label class="form-label fw-semibold">
+                                        Remark
+                                    </label>
+
+                                    <textarea
+                                        id="REMARK_EDIT"
+                                        name="REMARK"
+                                        class="form-control"
+                                        placeholder="Opsional.."
+                                        rows="2"></textarea>
+
+                                </div>
+
                             </div>
+
                         </div>
 
-                        <div class="col-md-6 mt-2 flex-inline">
-                            <label class="form-label">Bayar Awal</label>
-                            <input name="BAYAR_AWAL_EDIT" id="BAYAR_AWAL_EDIT" class="form-control text-end" placeholder="0">
-                        </div>
-
-                        <!-- Jenis Pembayaran -->
-                        <div class="col-md-6 mt-2 flex-inline">
-                            <label class="form-label d-block">Jenis Pembayaran</label>
-                            <div style="padding:0 10px">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio"
-                                           name="JENIS_PAY_EDIT" value="LUNAS">
-                                    <label class="form-check-label">LUNAS</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio"
-                                           name="JENIS_PAY_EDIT" value="TEMPO">
-                                    <label class="form-check-label">TEMPO</label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6 mt-2 flex-inline" style="justify-content: space-between">
-                            <label class="form-label">Attachment</label>
-                            <div id="attachmentPreviewEdit"></div>
-                        </div>
-
-                        <div class="col-md-6 mt-2 flex-inline">
-                            <label class="form-label">Keterangan</label>
-                            <input id="REMARK_EDIT" name="REMARK" class="form-control">
-                        </div>
                     </div>
 
-                    <!-- DETAIL -->
-                    <div class="d-flex justify-content-between mb-2">
-                        <h5>Item</h5>
-                        <button type="button"
+                    <!-- ========================================= -->
+                    <!-- DETAIL ITEM -->
+                    <!-- ========================================= -->
+
+                    <div class="card border-0 shadow-sm">
+
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+
+                            <span class="fw-bold">
+                                DETAIL ITEM
+                            </span>
+
+                            <button
+                                type="button"
                                 class="btn btn-success btn-sm"
                                 id="addDetailRowEdit">
-                            Tambah Item
-                        </button>
-                    </div>
 
-                    <table class="table table-bordered" id="salesDetailTableEdit">
-                        <thead>
-                            <tr>
-                                <th style="width:22%; text-align:center;">Item</th>
-                                <th style="width:10%; text-align:center;">Metode</th>
-                                <th style="width:10%; text-align:center;">BW (KG)</th>
-                                <th style="width:10%; text-align:center;">Qty</th>
-                                <th style="width:15%; text-align:center;">Harga</th>
-                                <th style="width:15%; text-align:center;">Discount</th>
-                                <th style="width:15%; text-align:center;">Total</th>
-                                <th style="width:3%;  text-align:center;">#</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+                                <i class="fa fa-plus me-1"></i>
+                                Tambah Item
 
-                    <div class="text-end">
-                        <strong>Total Sales :</strong>
-                        <span id="grandTotalDisplayEdit">0</span>
+                            </button>
+
+                        </div>
+
+                        <div class="card-body">
+
+                            <div class="table-responsive">
+
+                                <table
+                                    class="table table-bordered align-middle"
+                                    id="salesDetailTableEdit">
+
+                                    <thead class="table-light">
+
+                                        <tr>
+
+                                            <th width="30%" class="text-center">
+                                                MATERIAL
+                                            </th>
+
+                                            <th width="15%" class="text-center">
+                                                JUMLAH
+                                            </th>
+
+                                            <th width="15%" class="text-center">
+                                                BERAT
+                                            </th>
+
+                                            <th width="18%" class="text-center">
+                                                HARGA / KG
+                                            </th>
+
+                                            <th width="18%" class="text-center">
+                                                TOTAL
+                                            </th>
+
+                                            <th width="4%" class="text-center">
+                                                #
+                                            </th>
+
+                                        </tr>
+
+                                    </thead>
+
+                                    <tbody></tbody>
+
+                                </table>
+
+                            </div>
+
+                            <!-- GRAND TOTAL -->
+
+                            <div class="text-end mt-3">
+
+                                <h4 class="fw-bold text-warning mb-0">
+
+                                    GRAND TOTAL :
+
+                                    <span id="grandTotalDisplayEdit">
+                                        0
+                                    </span>
+
+                                </h4>
+
+                            </div>
+
+                        </div>
+
                     </div>
 
                 </div>
 
+                <!-- FOOTER -->
+
                 <div class="modal-footer">
-                    <button type="button"
-                            class="btn btn-secondary"
-                            data-bs-dismiss="modal">
+
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+
                         Tutup
+
                     </button>
-                    <button type="submit"
-                            class="btn btn-primary">
-                        Update
+
+                    <button
+                        type="submit"
+                        class="btn btn-warning">
+
+                        <i class="fa fa-save me-1"></i>
+
+                        Update Sales
+
                     </button>
+
                 </div>
 
             </div>
+
         </form>
+
     </div>
+
 </div>
 
 <script>
-    var state = { page: 1, limit: 10, search: '', order: 'SALES', dir: 'DESC' };
+    var state = { page: 1, limit: 10, search: '', order: 'SALES', dir: 'ASC' };
 
     function initPlantSelect2() {
         $('#plantAdd').select2({
-            placeholder: 'Pilih PLANT',
-            width: '100%',
+            theme:'bootstrap-5',
+
+            placeholder:'-- PILIH CUSTOMER --',
+
             dropdownParent: $('#salesAdd .modal-body'),
+
+            width:'100%',
             ajax: {
                 url: '<?= base_url("sales/get_plant_by_user"); ?>',
                 dataType: 'json',
@@ -618,6 +955,22 @@
         $(this).val(formatRupiah(val));
     });
 
+    $('#btnResetFilter').on('click', function(){
+
+        $('#search').val('');
+
+        $('#filterStatus').val('');
+
+        $('#dateFrom').val('<?= date('Y-m-01'); ?>');
+
+        $('#dateTo').val('<?= date('Y-m-d'); ?>');
+
+        state.search = '';
+
+        loadPage(1);
+
+    });
+
     let searchTimer = null;
 
     $('#search').on('keyup', function(){
@@ -635,12 +988,55 @@
         return parseFloat(val.toString().replace(/\./g, '').replace(',', '.')) || 0;
     }
 
-    function formatDecimalID(num, digit = 2) {
-        num = Number(num || 0);
-        return num.toLocaleString('id-ID', {
-            minimumFractionDigits: digit,
-            maximumFractionDigits: digit
-        });
+    function formatDecimalID(value){
+
+        value = parseFloat(value || 0);
+
+        if(isNaN(value)){
+            value = 0;
+        }
+
+        return value.toLocaleString(
+            'id-ID',
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }
+        );
+    }
+
+    function formatCurrencyID(value){
+
+        value = parseFloat(value || 0);
+
+        if(isNaN(value)){
+            value = 0;
+        }
+
+        return Math.round(value)
+            .toString()
+            .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    function parseNumber(value){
+
+        if(!value){
+            return 0;
+        }
+
+        value = value.toString();
+
+        // hapus titik ribuan
+        value = value.replace(/\./g, '');
+
+        // ubah koma decimal jadi titik
+        value = value.replace(',', '.');
+
+        let result = parseFloat(value);
+
+        return isNaN(result)
+            ? 0
+            : result;
     }
 
     function formatDate(dateString) {
@@ -654,10 +1050,32 @@
         return `${day} ${month} ${year}`;
     }
 
+    function formatTanggalIndo(dateStr) {
+        if (!dateStr) return '';
+
+        const bulan = [
+            'Januari','Februari','Maret','April','Mei','Juni',
+            'Juli','Agustus','September','Oktober','November','Desember'
+        ];
+
+        const d = new Date(dateStr);
+        return d.getDate() + ' ' +
+            bulan[d.getMonth()] + ' ' +
+            d.getFullYear();
+    }
+
+    $('#filterStatus, #dateFrom, #dateTo').on('change', function(){
+        loadPage(1);
+    });
+
     let ajaxListRequest = null;
 
     function loadPage(page = 1) {
         state.page = page;
+        state.search = $('#search').val();
+        state.status = $('#filterStatus').val();
+        state.date_from = $('#dateFrom').val();
+        state.date_to = $('#dateTo').val();
 
         if (ajaxListRequest) {
             ajaxListRequest.abort(); // batalkan request lama
@@ -670,21 +1088,240 @@
             var tbody = $('#table-body').empty();
 
             resp.rows.forEach(function(row){
-                var tr = `<tr>
-                    <td style="text-align:center; vertical-align: middle"><b>${row.PLANT_NAME}</b></td>
-                    <td style="text-align:center; vertical-align: middle"><b>#${row.SALES}</b></td>
-                    <td style="text-align:center; vertical-align: middle">${row.CUSTOMER_NAME || ''}<br><b>${row.CUSTOMER}</b></td>
-                    <td style="text-align:center; vertical-align: middle">${formatDate(row.SALES_DATE)}</td>
-                    <td style="text-align:center; vertical-align: middle">${row.PEMBAYARAN || ''}</td>
-                    <td style="text-align:center; vertical-align: middle">${row.JENIS_PAY || ''}</td>
-                    <td style="text-align:center; vertical-align: middle"><b>${row.NOTA ?? '-'}</b> <br> ${row.REMARK ?? ''}</td>
-                    <td style="text-align:center; vertical-align: middle">
-                        <button class="btn btn-sm btn-primary me-1 exportPdf" data-sales="${row.SALES}" data-plant="${row.PLANT}">Slip</button>
-                        <button class="btn btn-sm btn-primary me-1 exportInvoicePdf" data-sales="${row.SALES}" data-plant="${row.PLANT}">Invoice</button>
-                        <button class="btn btn-sm btn-warning me-1 editBtn" data-sales="${row.SALES}" data-plant="${row.PLANT}">Edit</button>
-                        <button class="btn btn-sm btn-danger deleteBtn" data-sales="${row.SALES}" data-plant="${row.PLANT}">Hapus</button>
-                    </td>
-                </tr>`;
+
+                console.log(row.AMOUNT);
+
+                let statusBadge = `
+                    <span class="badge bg-warning">
+                        OPEN
+                    </span>
+                `;
+
+                if(row.STATUS === 'PAID'){
+
+                    statusBadge = `
+                        <span class="badge bg-success">
+                            PAID
+                        </span>
+                    `;
+                }
+
+                if(row.STATUS === 'UNPAID'){
+
+                    statusBadge = `
+                        <span class="badge bg-info">
+                            UNPAID
+                        </span>
+                    `;
+                }
+
+                if(row.STATUS === 'OPEN'){
+
+                    statusBadge = `
+                        <span class="badge bg-warning">
+                            OPEN
+                        </span>
+                    `;
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | ATTACHMENT
+                |--------------------------------------------------------------------------
+                */
+
+                let attachmentIcon = '';
+
+                if(
+                    row.ATTACHMENT_NAME &&
+                    row.ATTACHMENT_NAME !== ''
+                ){
+
+                    attachmentIcon = `
+                        <i class="ti ti-paperclip text-primary ms-1"></i>
+                    `;
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | ROW
+                |--------------------------------------------------------------------------
+                */
+
+                let tr = `
+
+                    <tr>
+
+                        <!-- PLANT -->
+                        <td class="text-center align-middle">
+
+                            <div class="fw-semibold">
+                                ${row.PLANT_NAME || '-'}
+                            </div>
+
+                        </td>
+
+                        <!-- SALES -->
+                        <td class="text-center align-middle">
+
+                            <div class="fw-bold text-primary">
+                                #${row.SALES}
+                            </div>
+
+                            <small class="text-muted">
+                                ${row.NOTA || '-'}
+                            </small>
+
+                        </td>
+
+                        <!-- DATE -->
+                        <td class="text-center align-middle">
+
+                            ${formatTanggalIndo(
+                                row.SALES_DATE
+                            )}
+
+                        </td>
+
+                        <!-- CUSTOMER -->
+                        <td class="text-center align-middle">
+
+                            <div class="fw-semibold">
+                                ${row.CUSTOMER_NAME || '-'}
+                            </div>
+
+                            <small class="text-muted">
+                                ${row.CUSTOMER || '-'}
+                            </small>
+
+                        </td>
+
+                        <!-- MATERIAL -->
+                        <td class="text-center align-middle">
+
+                            <div class="fw-semibold">
+                                ${row.MATERIAL_NAME || '-'}
+                            </div>
+
+                            <small class="text-muted">
+                                ${row.MATERIAL || '-'}
+                            </small>
+
+                        </td>
+
+                        <!-- QTY -->
+                        <td class="text-end align-middle">
+
+                            <div>
+                                <span class="fw-semibold">
+                                    Qty :
+                                </span>
+
+                                ${formatDecimalID(
+                                    row.JUMLAH || 0
+                                )}
+                            </div>
+
+                            <div>
+                                <span class="fw-semibold">
+                                    Weight :
+                                </span>
+
+                                ${formatDecimalID(
+                                    row.BERAT || 0
+                                )}
+                            </div>
+
+                        </td>
+
+                        <!-- PAYMENT -->
+                        <td class="text-center align-middle">
+
+                            <div>
+                                <span class="badge bg-secondary">
+                                    ${row.PEMBAYARAN || '-'}
+                                </span>
+                            </div>
+
+                            <div class="mt-1">
+                                <span class="badge bg-info">
+                                    ${row.JENIS_PAY || '-'}
+                                </span>
+                            </div>
+
+                        </td>
+
+                        <!-- STATUS -->
+                        <td class="text-center align-middle">
+
+                            ${statusBadge}
+
+                        </td>
+
+                        <!-- TOTAL -->
+                        <td class="text-end align-middle">
+
+                            <div class="fw-bold text-success">
+
+                                ${formatRupiahSales(row.AMOUNT)}
+
+                            </div>
+
+                        </td>
+
+                        <!-- ACTION -->
+                        <td class="text-center align-middle">
+
+                            <div class="btn-group btn-group-sm">
+
+                                <!-- SLIP -->
+                                <button
+                                    class="btn btn-outline-primary exportPdf"
+                                    data-sales="${row.SALES}"
+                                    data-plant="${row.PLANT}">
+
+                                    Slip
+
+                                </button>
+
+                                <!-- INVOICE -->
+                                <button
+                                    class="btn btn-outline-success exportInvoicePdf"
+                                    data-sales="${row.SALES}"
+                                    data-plant="${row.PLANT}">
+
+                                    Invoice
+
+                                </button>
+
+                                <!-- EDIT -->
+                                <button
+                                    class="btn btn-outline-warning editBtn"
+                                    data-sales="${row.SALES}"
+                                    data-plant="${row.PLANT}">
+
+                                    Edit
+
+                                </button>
+
+                                <!-- DELETE -->
+                                <button
+                                    class="btn btn-outline-danger deleteBtn"
+                                    data-sales="${row.SALES}"
+                                    data-plant="${row.PLANT}">
+
+                                    Hapus
+
+                                </button>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                `;
+
                 tbody.append(tr);
             });
 
@@ -696,27 +1333,99 @@
         });
     }
 
-    /* -------------------------
-    Select2 inits
-    ------------------------- */
-    function initCustomerSelect2(selector, modalId){
-       $(selector).select2({
-        placeholder: "Pilih CUSTOMER",
-        dropdownParent: $(modalId),
-        width: "100%",
-        minimumInputLength: 2,
-        ajax: {
-                url: "<?= base_url('sales/get_customer'); ?>",
-                dataType: "json",
-                delay: 400,
-                cache: true,
-                data: params => ({ q: params.term }),
-                processResults: data => ({ results: data })
-        }
-        }).on('select2:select', function(e){
-            $(this).closest('form').find('input[name="CUSTOMER"]').val(e.params.data.id);
-        }).on('select2:clear', function(){
-            $(this).closest('form').find('input[name="CUSTOMER"]').val('');
+    function initCustomerSelect2(selector){
+
+        $(selector).select2({
+
+            theme:'bootstrap-5',
+
+            placeholder:'-- PILIH CUSTOMER --',
+
+            dropdownParent: $('#salesAdd .modal-body'),
+
+            width:'100%',
+
+            ajax:{
+
+                url:'<?= base_url("receive/get_customer"); ?>',
+
+                dataType:'json',
+
+                delay:250,
+
+                data:function(params){
+
+                    return {
+                        q: params.term
+                    };
+                },
+
+                processResults:function(data){
+
+                    return {
+                        results:data
+                    };
+                }
+            }
+        });
+
+        $(selector).on('change', function(){
+
+            $('#hiddenCustomerAdd').val(
+                $(this).val()
+            );
+        });
+    }
+
+    function initCustomerEditSelect2(selector)
+    {
+
+        $(selector).select2({
+
+            theme:'bootstrap-5',
+
+            placeholder:'-- PILIH CUSTOMER --',
+
+            dropdownParent: $('#salesEdit .modal-body'),
+
+            width:'100%',
+
+            ajax:{
+
+                url:'<?= base_url("receive/get_customer"); ?>',
+
+                dataType:'json',
+
+                delay:250,
+
+                data:function(params){
+
+                    return {
+                        q: params.term
+                    };
+                },
+
+                processResults:function(data){
+
+                    return {
+                        results:data
+                    };
+                }
+            }
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | CHANGE
+        |--------------------------------------------------------------------------
+        */
+
+        $(selector).on('change', function(){
+
+            $('#hiddenCustomerEdit').val(
+                $(this).val()
+            );
+
         });
     }
 
@@ -743,10 +1452,13 @@
 
     function initItemSelect2(el, parentModal){
         $(el).select2({
-            placeholder: "Pilih ITEM",
+            theme:'bootstrap-5',
+
+            placeholder:'-- PILIH CUSTOMER --',
+
+            dropdownParent: $('#salesAdd .modal-body'),
+
             width:'100%',
-            dropdownParent: $(parentModal),
-            minimumInputLength: 2,
             ajax:{
                 url:'<?= base_url("sales/get_material"); ?>',
                 dataType:'json',
@@ -831,61 +1543,60 @@
 
     function recalcRow(tr)
     {
-        let jumlah   = parseFloat(
-            unformatNumber(
-                tr.find('.jumlah').val()
-            )
-        ) || 0;
-
-        let berat    = parseFloat(
-            unformatNumber(
+        let berat = parseFloat(
+            clearFormat(
                 tr.find('.berat').val()
             )
         ) || 0;
 
-        let harga    = parseFloat(
-            unformatNumber(
+        let harga = parseFloat(
+            clearFormat(
                 tr.find('.harga').val()
             )
         ) || 0;
 
-        let discount = parseFloat(
-            unformatNumber(
-                tr.find('.discount').val()
-            )
-        ) || 0;
-
-        /*
-        |--------------------------------------------------------------------------
-        | TOTAL
-        |--------------------------------------------------------------------------
-        | PRIORITAS:
-        | BERAT jika ada
-        | selain itu JUMLAH
-        */
-
-        let basis = berat > 0
-            ? berat
-            : jumlah;
-
-        let total = (basis * harga) - discount;
-
-        if(total < 0){
-            total = 0;
-        }
+        let total = berat * harga;
 
         tr.find('.total')
-            .val(formatNumber(total));
+            .val(formatRupiah(total));
 
         recalcGrandTotal();
     }
 
-    function recalcGrandTotalEdit() {
+    function recalcRowEdit(tr)
+    {
+        let berat = parseNumber(
+            tr.find('.berat').val()
+        );
+
+        let harga = parseNumber(
+            tr.find('.harga').val()
+        );
+
+        let total = berat * harga;
+
+        tr.find('.total').val(
+            formatCurrencyID(total)
+        );
+
+        recalcGrandTotalEdit();
+    }
+
+    function recalcGrandTotalEdit()
+    {
         let grand = 0;
-        $('#salesDetailTableEdit tbody tr').each(function () {
-            grand += recalcRowTotal($(this));
+
+        $('#salesDetailTableEdit tbody tr').each(function(){
+
+            grand += parseNumber(
+                $(this).find('.total').val()
+            );
+
         });
-        $('#grandTotalDisplayEdit').text(formatRupiah(grand));
+
+        $('#grandTotalDisplayEdit').text(
+            formatCurrencyID(grand)
+        );
     }
 
     function recalcGrandTotal(){
@@ -903,7 +1614,7 @@
 
     $(document).on(
         'keyup change',
-        '.jumlah,.berat,.harga,.discount',
+        '.jumlah,.berat,.harga',
         function(){
 
             let tr = $(this).closest('tr');
@@ -912,9 +1623,18 @@
         }
     );
 
-    $(document).on('keyup change', '#salesDetailTableEdit .qty, #salesDetailTableEdit .berat, #salesDetailTableEdit .harga, #salesDetailTableEdit .discount, #salesDetailTableEdit .method', function () {
-        recalcGrandTotalEdit();
-    });
+    $(document).on(
+        'keyup change',
+        '#salesDetailTableEdit .jumlah, \
+        #salesDetailTableEdit .berat, \
+        #salesDetailTableEdit .harga',
+        function(){
+
+            let tr = $(this).closest('tr');
+
+            recalcRowEdit(tr);
+        }
+    );
 
     $(document).on('click', '.removeRow', function(){
         $(this).closest('tr').remove();
@@ -950,34 +1670,27 @@
             <tr>
 
                 <td>
-                    <select class="form-control material-select"></select>
+                    <select class="form-select material-select"></select>
                 </td>
 
                 <td>
                     <input
                         type="text"
-                        class="form-control jumlah text-end amount-field"
+                        class="form-control jumlah text-end"
                         value="0">
                 </td>
 
                 <td>
                     <input
                         type="text"
-                        class="form-control berat text-end amount-field"
+                        class="form-control berat text-end"
                         value="0">
                 </td>
 
                 <td>
                     <input
                         type="text"
-                        class="form-control harga text-end amount-field"
-                        value="0">
-                </td>
-
-                <td>
-                    <input
-                        type="text"
-                        class="form-control discount text-end amount-field"
+                        class="form-control harga text-end"
                         value="0">
                 </td>
 
@@ -994,7 +1707,7 @@
                     <button
                         type="button"
                         class="btn btn-danger btn-sm removeRow">
-
+                        X
                         <i class="fa fa-trash"></i>
 
                     </button>
@@ -1008,19 +1721,15 @@
 
         let tr = tbody.find('tr').last();
 
-        /*
-        |--------------------------------------------------------------------------
-        | MATERIAL
-        |--------------------------------------------------------------------------
-        */
-
         tr.find('.material-select').select2({
+
+            theme:'bootstrap-5',
 
             width:'100%',
 
-            dropdownParent: $('#salesAdd'),
+            dropdownParent: $('#salesAdd .modal-body'),
 
-            placeholder:'Pilih Material',
+            placeholder:'-- PILIH MATERIAL --',
 
             minimumInputLength:2,
 
@@ -1045,14 +1754,105 @@
         recalcGrandTotal();
     }
 
-    function updateTotalRow(row){
-        var qty = parseFloat(cleanNumber(row.find('.qty').val())) || 0;
-        var harga = parseFloat(cleanNumber(row.find('.harga').val())) || 0;
-        var disc = parseFloat(cleanNumber(row.find('.discount').val())) || 0;
+    function addDetailRowEdit(data = {})
+    {
+        let tbody = $('#salesDetailTableEdit tbody');
 
-        // jika discount disimpan sebagai jumlah (bukan persen)
-        var total = (qty * harga) - disc;
-        row.find('.total').val(formatRupiah(total.toString()));
+        let html = `
+            <tr>
+
+                <td>
+                    <select class="form-select material-select"></select>
+                </td>
+
+                <td>
+                    <input
+                        type="text"
+                        class="form-control jumlah text-end"
+                        value="${formatDecimalID(data.jumlah || 0)}">
+                </td>
+
+                <td>
+                    <input
+                        type="text"
+                        class="form-control berat text-end"
+                        value="${formatDecimalID(data.berat || 0)}">
+                </td>
+
+                <td>
+                    <input
+                        type="text"
+                        class="form-control harga text-end"
+                        value="${formatCurrencyID(data.harga || 0)}">
+                </td>
+
+                <td>
+                    <input
+                        type="text"
+                        class="form-control total text-end bg-light fw-bold"
+                        readonly
+                        value="${formatCurrencyID(data.total || 0)}">
+                </td>
+
+                <td class="text-center">
+
+                    <button
+                        type="button"
+                        class="btn btn-danger btn-sm removeRow">
+
+                        X
+
+                    </button>
+
+                </td>
+
+            </tr>
+        `;
+
+        tbody.append(html);
+
+        let tr = tbody.find('tr').last();
+
+        tr.find('.material-select').select2({
+
+            theme:'bootstrap-5',
+
+            width:'100%',
+
+            dropdownParent: $('#salesEdit .modal-body'),
+
+            placeholder:'-- PILIH MATERIAL --',
+
+            minimumInputLength:2,
+
+            ajax:{
+                url:'<?= base_url("sales/get_material"); ?>',
+                dataType:'json',
+                delay:300,
+                data:params => ({
+                    q:params.term
+                }),
+                processResults:data => ({
+                    results:data
+                })
+            }
+        });
+
+        if(data.material){
+
+            let opt = new Option(
+                data.material_text,
+                data.material,
+                true,
+                true
+            );
+
+            tr.find('.material-select')
+                .append(opt)
+                .trigger('change');
+        }
+
+        recalcGrandTotalEdit();
     }
 
     function loadDefaultCustomer(selector) {
@@ -1088,18 +1888,18 @@
         initPlantSelect2('#plantAdd', '#salesAdd');
         initCustomerSelect2('#customerAdd', '#salesAdd');
         loadDefaultCustomer('#customerAdd');
-        initCustomerSelect2('#customerEdit', '#salesEdit');
+        initCustomerEditSelect2('#customerEdit', '#salesEdit');
 
         $('#addDetailRowAdd').on('click', function(){
             addDetailRow();
         });
 
         $('#addDetailRowEdit').click(function(){
-            addDetailRow({}, '#salesDetailTableEdit');
+            addDetailRowEdit({}, '#salesDetailTableEdit');
         });
 
         // update total on input
-        $('#salesDetailTableAdd, #salesDetailTableEdit').on('input','.qty, .harga, .discount', function(){ updateTotalRow($(this).closest('tr')); });
+        // $('#salesDetailTableAdd, #salesDetailTableEdit').on('input','.qty, .harga, .discount', function(){ updateTotalRow($(this).closest('tr')); });
 
         $('#fsalesAdd').submit(function (e) {
 
@@ -1125,29 +1925,17 @@
                     $(this).find('.harga').val()
                 );
 
-                let discount = parseRupiah(
-                    $(this).find('.discount').val()
-                );
-
                 let total = parseRupiah(
                     $(this).find('.total').val()
                 );
-
-                /*
-                |--------------------------------------------------------------------------
-                | VALIDASI
-                |--------------------------------------------------------------------------
-                */
 
                 if (!material) {
                     return;
                 }
 
-                if (jumlah <= 0 && berat <= 0) {
+                if (berat <= 0) {
 
-                    alert(
-                        'Jumlah atau Berat wajib diisi'
-                    );
+                    alert('Berat wajib diisi');
 
                     throw 'invalid';
                 }
@@ -1162,32 +1950,16 @@
 
                     HARGA : harga,
 
-                    DISCOUNT : discount,
-
                     TOTAL : total
                 });
             });
 
-            /*
-            |--------------------------------------------------------------------------
-            | DETAIL EMPTY
-            |--------------------------------------------------------------------------
-            */
-
             if (DETAIL.length === 0) {
 
-                alert(
-                    'Detail item tidak boleh kosong'
-                );
+                alert('Detail item tidak boleh kosong');
 
                 return;
             }
-
-            /*
-            |--------------------------------------------------------------------------
-            | FORM DATA
-            |--------------------------------------------------------------------------
-            */
 
             let formData = new FormData(this);
 
@@ -1211,31 +1983,25 @@
                 JSON.stringify(DETAIL)
             );
 
-            console.log(formData.get('PLANT'));
-            console.log(formData.get('CUSTOMER'));
-            console.log(formData.get('SALES_DATE'));
-            console.log(formData.get('DETAIL'));
-
             $.ajax({
 
-                url:
-                    '<?= base_url("sales/create"); ?>',
+                url:'<?= base_url("sales/create"); ?>',
 
-                method: 'POST',
+                method:'POST',
 
-                data: formData,
+                data:formData,
 
-                processData: false,
+                processData:false,
 
-                contentType: false,
+                contentType:false,
 
-                dataType: 'json',
+                dataType:'json',
 
-                success: function (resp) {
+                success:function(resp){
 
                     alert(resp.message);
 
-                    if (resp.status) {
+                    if(resp.status){
 
                         $('#salesAdd').modal('hide');
 
@@ -1253,13 +2019,11 @@
                     }
                 },
 
-                error: function(xhr){
+                error:function(xhr){
 
                     console.log(xhr.responseText);
 
-                    alert(
-                        'Terjadi error server'
-                    );
+                    alert('Terjadi error server');
                 }
             });
         });
@@ -1304,10 +2068,23 @@
                 $('input[name="PEMBAYARAN_EDIT"][value="'+h.PEMBAYARAN+'"]').prop('checked', true);
                 $('input[name="JENIS_PAY_EDIT"][value="'+h.JENIS_PAY+'"]').prop('checked', true);
 
-                // customer select2
-                let opt = new Option(h.CUSTOMER + ' - ' + h.CUSTOMER_NAME, h.CUSTOMER, true, true);
-                $('#customerEdit').append(opt).trigger('change');
-                $('#hiddenCustomerEdit').val(h.CUSTOMER);
+                $('#customerEdit')
+                    .empty()
+                    .trigger('change');
+
+                let customerOption = new Option(
+                    h.CUSTOMER_NAME + ' - ' + h.CUSTOMER,
+                    h.CUSTOMER,
+                    true,
+                    true
+                );
+
+                $('#customerEdit')
+                    .append(customerOption)
+                    .trigger('change');
+
+                $('#hiddenCustomerEdit')
+                    .val(h.CUSTOMER);
 
                 // attachment preview
                 if (h.ATTACHMENT_PATH) {
@@ -1318,17 +2095,15 @@
                     );
                 }
 
-                /* ===== DETAIL ===== */
                 d.forEach(function(row){
                     addDetailRowEdit({
                         material: row.MATERIAL,
-                        material_text: row.MATERIAL + ' - ' + row.MATERIAL_NAME,
-                        method: row.BERAT > 0 ? 'BW' : 'QTY',
+                        material_text:
+                            row.MATERIAL + ' - ' + row.MATERIAL_NAME,
+                        jumlah: row.JUMLAH,
                         berat: row.BERAT,
-                        qty: row.QTY,
                         harga: row.HARGA,
-                        discount: row.DISCOUNT,
-                        total: row.AMOUNT
+                        total: row.TOTAL
                     });
                 });
 
@@ -1344,27 +2119,41 @@
 
             $('#salesDetailTableEdit tbody tr').each(function () {
 
-                let method = $(this).find('.method').val();
-                let qty    = parseDecimalID($(this).find('.qty').val());
-                let berat  = parseDecimalID($(this).find('.berat').val());
+                let material = $(this)
+                    .find('.material-select')
+                    .val();
 
-                if (method === 'BW' && berat <= 0) {
-                    alert('Berat wajib diisi (BW)');
-                    throw 'invalid';
-                }
-                if (method === 'QTY' && qty <= 0) {
-                    alert('Qty wajib diisi (QTY)');
-                    throw 'invalid';
+                let jumlah = parseDecimalID(
+                    $(this).find('.jumlah').val()
+                );
+
+                let berat = parseDecimalID(
+                    $(this).find('.berat').val()
+                );
+
+                let harga = parseRupiah(
+                    $(this).find('.harga').val()
+                );
+
+                let total = parseRupiah(
+                    $(this).find('.total').val()
+                );
+
+                if (!material) {
+                    return;
                 }
 
                 DETAIL.push({
-                    MATERIAL : $(this).find('.material-select').val(),
-                    METHOD   : method,
-                    QTY      : qty,
-                    BERAT    : berat,
-                    HARGA    : parseRupiah($(this).find('.harga').val()),
-                    DISCOUNT : parseRupiah($(this).find('.discount').val()),
-                    AMOUNT   : parseRupiah($(this).find('.total').val())
+
+                    MATERIAL : material,
+
+                    JUMLAH : jumlah,
+
+                    BERAT : berat,
+
+                    HARGA : harga,
+
+                    TOTAL : total
                 });
             });
 
@@ -1396,27 +2185,45 @@
             });
         });
 
-        // PDF
-        $(document).on("click", ".exportPdf", function () {
-            let sales    = $(this).data("sales");
-            let plant = $(this).data("plant");
+        $(document).on(
+            'click',
+            '.exportPdf',
+            function(){
 
-            window.open(
-                "<?= base_url('sales/print_pdf'); ?>?sales=" + sales + "&plant=" + plant,
-                "_blank"
-            );
-        });
+                let sales = $(this).data('sales');
 
-        $(document).on("click", ".exportInvoicePdf", function () {
-            let sales = $(this).data("sales");
-            let plant = $(this).data("plant");
+                let plant = $(this).data('plant');
 
-            window.open(
-                "<?= base_url('sales/print_invoice_pdf'); ?>?sales=" 
-                + sales + "&plant=" + plant,
-                "_blank"
-            );
-        });
+                window.open(
+
+                    '<?= base_url("sales/print_pdf"); ?>'
+                    + '?sales=' + sales
+                    + '&plant=' + plant,
+
+                    '_blank'
+                );
+            }
+        );
+
+        $(document).on(
+            'click',
+            '.exportInvoicePdf',
+            function(){
+
+                let sales = $(this).data('sales');
+
+                let plant = $(this).data('plant');
+
+                window.open(
+
+                    '<?= base_url("sales/print_invoice_pdf"); ?>'
+                    + '?sales=' + sales
+                    + '&plant=' + plant,
+
+                    '_blank'
+                );
+            }
+        );
 
         // Delete
         $(document).on('click', '.deleteBtn', function() {
@@ -1460,8 +2267,35 @@
     }
 
     function formatRupiah(value){
+
         value = parseFloat(value || 0);
-        return value.toLocaleString('id-ID');
+
+        if (isNaN(value)) {
+            value = 0;
+        }
+
+        value = Math.round(value).toString();
+
+        return value.replace(
+            /\B(?=(\d{3})+(?!\d))/g,
+            '.'
+        );
+    }
+
+    function formatRupiahSales(value){
+
+        value = parseFloat(value || 0);
+
+        if (isNaN(value)) {
+            value = 0;
+        }
+
+        value = Math.round(value).toString();
+
+        return value.replace(
+            /\B(?=(\d{3})+(?!\d))/g,
+            '.'
+        );
     }
 
     function clearFormat(value){

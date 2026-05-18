@@ -341,7 +341,7 @@
                                     type="text"
                                     id="masterTotal"
                                     class="form-control po-input rupiah-input"
-                                    placeholder="0">
+                                    placeholder="0" readonly>
                             </div>
 
                             <div class="col-md-6">
@@ -706,7 +706,9 @@
                                         type="text"
                                         id="masterTotalEdit"
                                         class="form-control rupiah-input text-end"
-                                        placeholder="0">
+                                        placeholder="0"
+                                        readonly
+                                        style="background:#f5f6f8">
                                 </div>
 
                                 <div class="col-md-2">
@@ -1330,6 +1332,47 @@
         });
     }
 
+    function setDefaultMaterial(selector, hiddenInput){
+
+        $.ajax({
+
+            url: "<?= base_url('po/get_material'); ?>",
+
+            dataType: "json",
+
+            data: {
+                q: '01220021'
+            },
+
+            success: function(data){
+
+                if(data.length > 0){
+
+                    let material = data.find(x => x.id == '01220021');
+
+                    if(!material){
+                        material = data[0];
+                    }
+
+                    $(selector).empty();
+
+                    let option = new Option(
+                        material.text,
+                        material.id,
+                        true,
+                        true
+                    );
+
+                    $(selector)
+                        .append(option)
+                        .trigger('change');
+
+                    $(hiddenInput).val(material.id);
+                }
+            }
+        });
+    }
+
     $(document).on('input', '.rupiah-input', function(){
 
         let value = $(this).val().replace(/\D/g,'');
@@ -1647,6 +1690,24 @@
             calculateSummaryEdit();
         }
     );
+
+    $(document).on(
+        'input',
+        '#masterBerat, #masterHarga',
+        function(){
+
+            calculateMasterTotal();
+        }
+    );
+
+    $(document).on(
+        'input',
+        '#masterBeratEdit, #masterHargaEdit',
+        function(){
+
+            calculateMasterTotalEdit();
+        }
+    );
     
 
     $(document).on('blur', '.decimal-input', function () {
@@ -1662,6 +1723,40 @@
             value.replace(/\./g,'')
                 .replace(',', '.')
         ) || 0;
+    }
+
+    function calculateMasterTotal(){
+
+        let berat = parseDecimalID(
+            $('#masterBerat').val()
+        );
+
+        let harga = parseRupiah(
+            $('#masterHarga').val()
+        );
+
+        let total = berat * harga;
+
+        $('#masterTotal').val(
+            total.toLocaleString('id-ID')
+        );
+    }
+
+    function calculateMasterTotalEdit(){
+
+        let berat = parseDecimalID(
+            $('#masterBeratEdit').val()
+        );
+
+        let harga = parseRupiah(
+            $('#masterHargaEdit').val()
+        );
+
+        let total = berat * harga;
+
+        $('#masterTotalEdit').val(
+            total.toLocaleString('id-ID')
+        );
     }
 
     $(function(){
@@ -1681,6 +1776,10 @@
         initMaterialSelect2Header(
             '#materialEdit',
             '#poEdit'
+        );
+        setDefaultMaterial(
+            '#materialAdd',
+            '#hiddenMaterialAdd'
         );
         $('#addDetailRowAdd').click(function(){ addDetailRow('#poDetailTableAdd','#poAdd'); });
 

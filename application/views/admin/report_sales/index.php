@@ -13,14 +13,6 @@
                         Report Sales
                     </a>
                 </li>
-
-                <li class="nav-item">
-                    <a class="nav-link"
-                       data-bs-toggle="tab"
-                       href="#tab-item">
-                        Report Sales by Item
-                    </a>
-                </li>
             </ul>
 
             <!-- TAB CONTENT -->
@@ -28,10 +20,6 @@
 
                 <div class="tab-pane fade show active" id="tab-sales">
                     <?php $this->load->view('admin/report_sales/sales'); ?>
-                </div>
-
-                <div class="tab-pane fade" id="tab-item">
-                    <?php $this->load->view('admin/report_sales/tab_item');?>
                 </div>
 
             </div>
@@ -46,10 +34,5 @@ document.addEventListener('shown.bs.tab', function (event) {
 
     console.log('TAB AKTIF:', target);
 
-    if (target === '#tab-item') {
-        if (typeof loadPageItem === 'function') {
-            loadPageItem(1);
-        }
-    }
 });
 </script>

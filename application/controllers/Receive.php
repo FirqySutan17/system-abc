@@ -268,6 +268,11 @@ class Receive extends MY_Controller {
 
         $this->db->or_where(
             'p.STATUS',
+            '0'
+        );
+
+        $this->db->or_where(
+            'p.STATUS',
             'OPEN'
         );
 

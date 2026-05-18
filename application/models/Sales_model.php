@@ -8,79 +8,369 @@ class Sales_model extends CI_Model {
         date_default_timezone_set('Asia/Jakarta');
     }
 
-    public function get_data($limit, $start, $role_id, $plants, $search = '', $order = 'SALES_DATE', $dir = 'DESC')
+    public function get_data(
+        $limit,
+        $start,
+        $role_id,
+        $plants,
+        $filters = [],
+        $order = 'SALES_DATE',
+        $dir = 'DESC'
+    )
     {
         $allowedOrder = [
+
             'SALES'      => 's.SALES',
+
             'SALES_DATE' => 's.SALES_DATE',
+
             'CUSTOMER'   => 's.CUSTOMER',
+
             'PEMBAYARAN' => 's.PEMBAYARAN',
+
             'JENIS_PAY'  => 's.JENIS_PAY',
+
             'PLANT'      => 's.PLANT',
+
             'CREATED_AT' => 's.CREATED_AT'
         ];
 
-        $order = $allowedOrder[$order] ?? 's.SALES_DATE';
-        $dir   = strtoupper($dir) === 'ASC' ? 'ASC' : 'DESC';
+        $order = $allowedOrder[$order]
+            ?? 's.SALES_DATE';
+
+        $dir = strtoupper($dir) === 'DESC'
+            ? 'DESC'
+            : 'ASC';
+
+        /*
+        |--------------------------------------------------------------------------
+        | SELECT
+        |--------------------------------------------------------------------------
+        */
 
         $this->db->select('
+
             s.SALES,
+
             s.PLANT,
+
             cc.CODE_NAME AS PLANT_NAME,
+
             s.CUSTOMER,
+
             c.FULL_NAME AS CUSTOMER_NAME,
+
             s.SALES_DATE,
+
             s.PEMBAYARAN,
+
             s.JENIS_PAY,
+
+            s.STATUS,
+
             s.REMARK,
+
             s.NOTA,
-            s.AMOUNT
+
+            s.AMOUNT,
+
+            s.ATTACHMENT_NAME,
+
+            SUM(d.JUMLAH) AS JUMLAH,
+
+            SUM(d.BERAT) AS BERAT,
+
+            MAX(d.MATERIAL) AS MATERIAL,
+
+            MAX(m.material_name) AS MATERIAL_NAME
+
         ', false);
 
+        /*
+        |--------------------------------------------------------------------------
+        | FROM
+        |--------------------------------------------------------------------------
+        */
+
         $this->db->from('abc_mst_sales s');
-        $this->db->join('abc_cd_code cc', "cc.CODE = s.PLANT AND cc.HEAD_CODE='AJ'", 'left');
-        $this->db->join('abc_cd_customer c', 'c.CUST = s.CUSTOMER', 'left');
-        $this->db->where('s.DELETED IS NULL', null, false);
+
+        $this->db->join(
+            'abc_mst_sales_detail d',
+            'd.SALES = s.SALES
+            AND d.PLANT = s.PLANT',
+            'left'
+        );
+
+        $this->db->join(
+            'abc_cd_code cc',
+            "cc.CODE = s.PLANT
+            AND cc.HEAD_CODE='PLANT'",
+            'left'
+        );
+
+        $this->db->join(
+            'abc_cd_customer c',
+            'c.CUST = s.CUSTOMER',
+            'left'
+        );
+
+        $this->db->join(
+            'abc_cd_material m',
+            'm.MATERIAL = d.MATERIAL',
+            'left'
+        );
+
+        $this->db->where(
+            's.DELETED IS NULL',
+            null,
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | ROLE FILTER
+        |--------------------------------------------------------------------------
+        */
 
         if ($role_id !== 1) {
-            if (empty($plants)) return [];
-            $this->db->where_in('s.PLANT', $plants);
+
+            if (empty($plants)) {
+                return [];
+            }
+
+            $this->db->where_in(
+                's.PLANT',
+                $plants
+            );
         }
 
-        if ($search !== '') {
-            $this->db->group_start()
-                ->like('s.SALES', $search, 'after')   // 🔥 lebih cepat dari both side
-                ->or_like('s.CUSTOMER', $search, 'after')
-                ->or_like('s.REMARK', $search, 'after')
-                ->or_like('s.NOTA', $search, 'after')
-                ->group_end();
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        */
+
+        if (!empty($filters['search'])) {
+
+            $search = trim(
+                $filters['search']
+            );
+
+            $this->db->group_start();
+
+            $this->db->like(
+                's.SALES',
+                $search
+            );
+
+            $this->db->or_like(
+                's.CUSTOMER',
+                $search
+            );
+
+            $this->db->or_like(
+                'c.FULL_NAME',
+                $search
+            );
+
+            $this->db->or_like(
+                's.NOTA',
+                $search
+            );
+
+            $this->db->group_end();
         }
 
-        $this->db->order_by($order, $dir);
-        $this->db->limit($limit, $start);
+        /*
+        |--------------------------------------------------------------------------
+        | STATUS
+        |--------------------------------------------------------------------------
+        */
 
-        return $this->db->get()->result_array();
+        if (!empty($filters['status'])) {
+
+            $this->db->where(
+                's.STATUS',
+                $filters['status']
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATE
+        |--------------------------------------------------------------------------
+        */
+
+        if (!empty($filters['date_from'])) {
+
+            $this->db->where(
+                'DATE(s.SALES_DATE) >=',
+                $filters['date_from']
+            );
+        }
+
+        if (!empty($filters['date_to'])) {
+
+            $this->db->where(
+                'DATE(s.SALES_DATE) <=',
+                $filters['date_to']
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | GROUP
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->group_by([
+            's.PLANT',
+            's.SALES'
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | ORDER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->order_by(
+            $order,
+            $dir
+        );
+
+        $this->db->limit(
+            $limit,
+            $start
+        );
+
+        return $this->db
+            ->get()
+            ->result_array();
     }
 
-    public function count_data($role_id, $plants, $search = '')
+    public function count_data(
+        $role_id,
+        $plants,
+        $filters = []
+    )
     {
-        $role_id = (int)$role_id;
-
         $this->db->from('abc_mst_sales s');
-        $this->db->where('s.DELETED IS NULL', null, false);
+
+        $this->db->join(
+            'abc_cd_customer c',
+            'c.CUST = s.CUSTOMER',
+            'left'
+        );
+
+        $this->db->join(
+            'abc_mst_sales_detail d',
+            'd.SALES = s.SALES
+            AND d.PLANT = s.PLANT',
+            'left'
+        );
+
+        $this->db->join(
+            'abc_cd_material m',
+            'm.MATERIAL = d.MATERIAL',
+            'left'
+        );
+
+        $this->db->where(
+            's.DELETED IS NULL',
+            null,
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | ROLE
+        |--------------------------------------------------------------------------
+        */
 
         if ($role_id !== 1) {
-            if (empty($plants)) return 0;
-            $this->db->where_in('s.PLANT', $plants);
+
+            if (empty($plants)) {
+                return 0;
+            }
+
+            $this->db->where_in(
+                's.PLANT',
+                $plants
+            );
         }
 
-        if ($search !== '') {
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        */
+
+        if (!empty($filters['search'])) {
+
+            $search = trim(
+                $filters['search']
+            );
+
             $this->db->group_start();
-            $this->db->like('s.SALES', $search);
-            $this->db->or_like('s.CUSTOMER', $search);
-            $this->db->or_like('s.REMARK', $search);
-            $this->db->or_like('s.NOTA', $search);
+
+            $this->db->like(
+                's.SALES',
+                $search
+            );
+
+            $this->db->or_like(
+                's.CUSTOMER',
+                $search
+            );
+
+            $this->db->or_like(
+                'c.FULL_NAME',
+                $search
+            );
+
+            $this->db->or_like(
+                's.NOTA',
+                $search
+            );
+
             $this->db->group_end();
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | STATUS
+        |--------------------------------------------------------------------------
+        */
+
+        if (!empty($filters['status'])) {
+
+            $this->db->where(
+                's.STATUS',
+                $filters['status']
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATE
+        |--------------------------------------------------------------------------
+        */
+
+        if (!empty($filters['date_from'])) {
+
+            $this->db->where(
+                'DATE(s.SALES_DATE) >=',
+                $filters['date_from']
+            );
+        }
+
+        if (!empty($filters['date_to'])) {
+
+            $this->db->where(
+                'DATE(s.SALES_DATE) <=',
+                $filters['date_to']
+            );
         }
 
         return $this->db->count_all_results();
@@ -201,18 +491,31 @@ class Sales_model extends CI_Model {
         }
     }
 
-    public function update_sales_amount_full($plant, $sales, $total, $dp, $remain, $status)
+    public function update_sales_amount_full(
+        $plant,
+        $sales,
+        $amount,
+        $dp,
+        $remain,
+        $status
+    )
     {
-        return $this->db->where([
-                'PLANT' => $plant,
-                'SALES' => $sales
-            ])->update('abc_mst_sales', [
-                'AMOUNT'     => $total,
-                'DP_AMOUNT'  => $dp,        // ✅ FIX
-                'REMAIN'     => $remain,
-                'STATUS'     => $status,
-                'UPDATED_AT' => date('Y-m-d H:i:s')
-            ]);
+        return $this->db
+            ->where('PLANT', $plant)
+            ->where('SALES', $sales)
+            ->update(
+                'abc_mst_sales',
+                [
+
+                    'AMOUNT'    => $amount,
+
+                    'DP_AMOUNT' => $dp,
+
+                    'REMAIN'    => $remain,
+
+                    'STATUS'    => $status
+                ]
+            );
     }
 
     private function recalculate_cash_in_header($cashIn, $plant)
@@ -259,7 +562,7 @@ class Sales_model extends CI_Model {
         | 20260517SO0001
         */
 
-        $prefix = $today . 'SO';
+        $prefix = $today . 'SLS';
 
         $this->db->select('SALES');
 
@@ -380,50 +683,120 @@ class Sales_model extends CI_Model {
             );
     }
 
-    public function get_sales_header($sales, $plant)
+    public function get_sales_header(
+        $sales,
+        $plant
+    )
     {
         return $this->db
             ->select('
-                s.*,
+
+                s.PLANT,
+
+                s.SALES,
+
+                s.CUSTOMER,
+
                 c.FULL_NAME AS CUSTOMER_NAME,
+
+                s.SALES_DATE,
+
+                s.PEMBAYARAN,
+
+                s.JENIS_PAY,
+
+                s.STATUS,
+
+                s.NOTA,
+
+                s.REMARK,
+
+                s.AMOUNT,
+
+                s.DP_AMOUNT,
+
+                s.REMAIN,
+
+                s.ATTACHMENT_NAME,
+
+                s.ATTACHMENT_PATH,
+
+                s.ATTACHMENT_TYPE,
+
                 cc.CODE_NAME AS PLANT_NAME
-            ')
+
+            ', false)
+
             ->from('abc_mst_sales s')
+
             ->join(
                 'abc_cd_customer c',
-                's.CUSTOMER COLLATE utf8mb4_unicode_ci = c.CUST COLLATE utf8mb4_unicode_ci',
-                'left',
-                false
-            )
-            ->join(
-                'abc_cd_code cc',
-                "cc.CODE = s.PLANT AND cc.HEAD_CODE = 'AJ'",
+                'c.CUST = s.CUSTOMER',
                 'left'
             )
-            ->where('s.SALES', $sales)
+
+            ->join(
+                'abc_cd_code cc',
+                "cc.CODE = s.PLANT
+                AND cc.HEAD_CODE='PLANT'",
+                'left'
+            )
+
             ->where('s.PLANT', $plant)
+
+            ->where('s.SALES', $sales)
+
+            ->where(
+                's.DELETED IS NULL',
+                null,
+                false
+            )
+
             ->get()
+
             ->row_array();
     }
 
-    public function get_sales_detail($sales, $plant)
+    public function get_sales_detail(
+        $sales,
+        $plant
+    )
     {
         return $this->db
             ->select('
-                d.*,
-                i.FULL_NAME AS ITEM_NAME
-            ')
+
+                d.SEQ_NO,
+
+                d.MATERIAL,
+
+                m.MATERIAL_NAME,
+
+                d.JUMLAH,
+
+                d.BERAT,
+
+                d.HARGA,
+
+                d.TOTAL
+
+            ', false)
+
             ->from('abc_mst_sales_detail d')
+
             ->join(
-                'abc_cd_item i',
-                'd.ITEM COLLATE utf8mb4_unicode_ci = i.ITEM COLLATE utf8mb4_unicode_ci',
-                'left',
-                false
+                'abc_cd_material m',
+                'm.MATERIAL = d.MATERIAL',
+                'left'
             )
-            ->where('d.SALES', $sales)
+
             ->where('d.PLANT', $plant)
-            ->order_by('d.SEQ_NO', 'ASC') // 🔥 PENTING
+
+            ->where('d.SALES', $sales)
+
+            ->order_by('d.SEQ_NO', 'ASC')
+
             ->get()
+
             ->result_array();
     }
 
@@ -431,7 +804,8 @@ class Sales_model extends CI_Model {
         $plant,
         $sales,
         $data
-    ){
+    )
+    {
         return $this->db
             ->where('PLANT', $plant)
             ->where('SALES', $sales)
@@ -441,7 +815,10 @@ class Sales_model extends CI_Model {
             );
     }
 
-    public function delete_sales_detail($plant, $sales)
+    public function delete_sales_detail(
+        $plant,
+        $sales
+    )
     {
         return $this->db
             ->where('PLANT', $plant)

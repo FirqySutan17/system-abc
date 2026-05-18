@@ -58,398 +58,398 @@ class ReportSales_model extends CI_Model {
         return $d ? $d->format('Y-m-d') : null;
     }
 
-    public function get_sales_report($limit, $start, $filters, $order='SALES_DATE', $dir='DESC', $username=null)
-    {
-        $plants = $filters['plant'] ?? [];
+    public function get_sales_report(
+        $limit = 0,
+        $start = 0,
+        $filters = [],
+        $order = 'SALES_DATE',
+        $dir = 'DESC'
+    ){
 
-        if (empty($plants)) return [];
+        $allowedOrder = [
 
-        $escapedPlants = array_map([$this->db, 'escape'], $plants);
+            'SALES'      => 's.SALES',
+            'PLANT'      => 's.PLANT',
+            'SALES_DATE' => 's.SALES_DATE',
+            'CUSTOMER'   => 's.CUSTOMER'
 
-        // ================= HEADER =================
-        $sqlHeader = "
-            SELECT a.SALES, a.PLANT
-            FROM mst_sales a
-            WHERE a.DELETED IS NULL
-            AND a.PLANT IN (" . implode(',', $escapedPlants) . ")
-        ";
+        ];
+
+        $orderBy = $allowedOrder[$order]
+            ?? 's.SALES_DATE';
+
+        $dir = strtoupper($dir) === 'ASC'
+            ? 'ASC'
+            : 'DESC';
+
+        /*
+        |--------------------------------------------------------------------------
+        | HEADER QUERY
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db
+            ->select('s.SALES, s.PLANT')
+            ->from('abc_mst_sales s')
+            ->where('s.DELETED IS NULL', null, false);
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        if (!empty($filters['plant'])) {
+
+            $this->db->where(
+                's.PLANT',
+                $filters['plant']
+            );
+        }
 
         if (!empty($filters['customer'])) {
-            $sqlHeader .= " AND a.CUSTOMER LIKE " . $this->db->escape('%'.$filters['customer'].'%');
+
+            $this->db->where(
+                's.CUSTOMER',
+                $filters['customer']
+            );
         }
 
-        if (!empty($filters['sales'])) {
-            $sqlHeader .= " AND a.SALES LIKE " . $this->db->escape('%'.$filters['sales'].'%');
+        if (!empty($filters['status'])) {
+
+            $this->db->where(
+                's.STATUS',
+                $filters['status']
+            );
         }
 
-        if (!empty($filters['item'])) {
-            $sqlHeader .= "
-                AND EXISTS (
+        if (!empty($filters['search'])) {
 
-                    SELECT 1
-                    FROM mst_sales_detail b
+            $this->db->group_start();
 
-                    WHERE b.SALES = a.SALES
-                    AND b.PLANT = a.PLANT
-                    AND b.ITEM = ".$this->db->escape($filters['item'])."
+            $this->db->like(
+                's.SALES',
+                $filters['search']
+            );
 
-                )
-            ";
+            $this->db->or_like(
+                's.NOTA',
+                $filters['search']
+            );
+
+            $this->db->group_end();
         }
-
-        // ================= DATE RANGE =================
 
         if (!empty($filters['date_from'])) {
-            $sqlHeader .= " AND DATE(a.SALES_DATE) >= " . $this->db->escape($filters['date_from']);
+
+            $this->db->where(
+                'DATE(s.SALES_DATE) >=',
+                $filters['date_from']
+            );
         }
 
         if (!empty($filters['date_to'])) {
-            $sqlHeader .= " AND DATE(a.SALES_DATE) <= " . $this->db->escape($filters['date_to']);
+
+            $this->db->where(
+                'DATE(s.SALES_DATE) <=',
+                $filters['date_to']
+            );
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | ORDER
+        |--------------------------------------------------------------------------
+        */
 
-        if (!empty($filters['status']) && $filters['status'] !== 'ALL') {
-
-            $sqlHeader .= "
-                AND (
-                    CASE
-                        WHEN a.JENIS_PAY = 'LUNAS' THEN 'LUNAS'
-                        WHEN a.JENIS_PAY = 'TEMPO' AND a.STATUS = 'PAID' THEN 'LUNAS'
-                        WHEN a.JENIS_PAY = 'TEMPO' AND a.STATUS = 'UNPAID' THEN 'TEMPO'
-                        ELSE 'TEMPO'
-                    END
-                ) = ".$this->db->escape($filters['status'])."
-            ";
-
-        }
-
-        $allowed_order = ['SALES','PLANT','SALES_DATE','CUSTOMER','STATUS'];
-        if (!in_array($order, $allowed_order)) $order = 'SALES_DATE';
-        $dir = strtoupper($dir) === 'DESC' ? 'DESC' : 'ASC';
-
-        $sqlHeader .= " ORDER BY a.$order $dir";
-
-        if ($limit > 0) {
-            $sqlHeader .= " LIMIT " . (int)$start . ", " . (int)$limit;
-        }
-
-        $headers = $this->db->query($sqlHeader)->result();
-        if (empty($headers)) return [];
-
-        // ================= DETAIL =================
-        $whereIn = [];
-        foreach ($headers as $h) {
-            $whereIn[] = "(".$this->db->escape($h->SALES).",".$this->db->escape($h->PLANT).")";
-        }
-
-        $sql = "
-            SELECT
-                a.SALES,
-                a.NOTA,
-                a.PLANT,
-                c.CODE_NAME AS PLANT_NAME,
-                a.SALES_DATE,
-                a.CUSTOMER,
-                a.REMAIN,
-
-                CASE
-                    WHEN a.JENIS_PAY = 'LUNAS' THEN 'LUNAS'
-                    WHEN a.JENIS_PAY = 'TEMPO' AND a.STATUS = 'PAID' THEN 'LUNAS'
-                    WHEN a.JENIS_PAY = 'TEMPO' AND a.STATUS = 'UNPAID' THEN 'TEMPO'
-                    ELSE 'TEMPO'
-                END AS STATUS_REPORT,
-
-                d.FULL_NAME AS CUSTOMER_NAME,
-                b.SEQ_NO,
-                b.ITEM,
-                b.QTY,
-                b.BERAT,
-                b.HARGA,
-                b.DISCOUNT,
-                b.AMOUNT AS DETAIL_AMOUNT,
-                z.FULL_NAME
-
-            FROM mst_sales a
-            JOIN mst_sales_detail b
-                ON a.SALES=b.SALES
-                AND a.PLANT=b.PLANT
-
-            LEFT JOIN cd_code c
-                ON c.HEAD_CODE='AJ'
-                AND c.CODE=a.PLANT
-
-            LEFT JOIN cd_item z
-                ON z.ITEM=b.ITEM
-
-            LEFT JOIN cd_customer d
-                ON d.CUST=a.CUSTOMER
-
-            WHERE (a.SALES, a.PLANT) IN (" . implode(',', $whereIn) . ")
-
-            ORDER BY a.$order $dir, b.SEQ_NO ASC
-        ";
-
-        return $this->db->query($sql)->result();
-    }
-
-    public function count_sales_report($filters, $username=null)
-    {
-        $plants = $filters['plant'] ?? [];
-        if (empty($plants)) return 0;
-
-        $escapedPlants = array_map([$this->db, 'escape'], $plants);
-
-        $sql = "
-            SELECT COUNT(DISTINCT a.SALES, a.PLANT) AS total
-            FROM mst_sales a
-            WHERE a.DELETED IS NULL
-            AND a.PLANT IN (" . implode(',', $escapedPlants) . ")
-        ";
-
-        if (!empty($filters['customer'])) {
-            $sql .= " AND a.CUSTOMER LIKE " . $this->db->escape('%'.$filters['customer'].'%');
-        }
-
-        if (!empty($filters['sales'])) {
-            $sql .= " AND a.SALES LIKE " . $this->db->escape('%'.$filters['sales'].'%');
-        }
-
-        if (!empty($filters['item'])) {
-            $sql .= "
-                AND EXISTS (
-
-                    SELECT 1
-                    FROM mst_sales_detail b
-
-                    WHERE b.SALES = a.SALES
-                    AND b.PLANT = a.PLANT
-                    AND b.ITEM = ".$this->db->escape($filters['item'])."
-
-                )
-            ";
-        }
-
-        // ================= DATE RANGE =================
-
-        if (!empty($filters['date_from'])) {
-            $sql .= " AND DATE(a.SALES_DATE) >= " . $this->db->escape($filters['date_from']);
-        }
-
-        if (!empty($filters['date_to'])) {
-            $sql .= " AND DATE(a.SALES_DATE) <= " . $this->db->escape($filters['date_to']);
-        }
-
-        if (!empty($filters['status']) && $filters['status'] !== 'ALL') {
-
-            $sql .= "
-                AND (
-                    CASE
-                        WHEN a.JENIS_PAY = 'LUNAS' THEN 'LUNAS'
-                        WHEN a.JENIS_PAY = 'TEMPO' AND a.STATUS = 'PAID' THEN 'LUNAS'
-                        WHEN a.JENIS_PAY = 'TEMPO' AND a.STATUS = 'UNPAID' THEN 'TEMPO'
-                        ELSE 'TEMPO'
-                    END
-                ) = ".$this->db->escape($filters['status'])."
-            ";
-
-        }
-
-        return (int)$this->db->query($sql)->row()->total;
-    }
-
-    public function get_sales_item($limit, $start, $filters)
-    {
-        $plants = $filters['plant'] ?? [];
-
-        if (empty($plants)) return [];
-
-        $escapedPlants = array_map(
-            [$this->db, 'escape'],
-            $plants
+        $this->db->order_by(
+            $orderBy,
+            $dir
         );
 
+        $this->db->order_by(
+            's.SALES',
+            'DESC'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | LIMIT
+        |--------------------------------------------------------------------------
+        */
+
+        if ($limit > 0) {
+
+            $this->db->limit(
+                $limit,
+                $start
+            );
+        }
+
+        $headers = $this->db
+            ->get()
+            ->result();
+
+        if (!$headers) {
+
+            return [];
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | BUILD PAIRS
+        |--------------------------------------------------------------------------
+        */
+
+        $pairs = [];
+
+        foreach ($headers as $h) {
+
+            $pairs[] = "("
+                .$this->db->escape($h->SALES)
+                .","
+                .$this->db->escape($h->PLANT)
+                .")";
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL QUERY
+        |--------------------------------------------------------------------------
+        */
 
         $sql = "
 
             SELECT
 
-                b.PLANT,
-                c.CODE_NAME AS PLANT_NAME,
+                s.SALES,
+                s.PLANT,
 
-                b.ITEM,
-                i.FULL_NAME AS ITEM_NAME,
+                plant.CODE_NAME AS PLANT_NAME,
 
-                SUM(b.QTY)   AS QTY,
-                SUM(b.BERAT) AS BERAT,
-                SUM(b.AMOUNT) AS AMOUNT
+                s.SALES_DATE,
 
-            FROM mst_sales a
+                s.CUSTOMER,
+                customer.FULL_NAME AS CUSTOMER_NAME,
 
-            JOIN mst_sales_detail b
-                ON a.SALES=b.SALES
-                AND a.PLANT=b.PLANT
+                s.PEMBAYARAN,
+                s.JENIS_PAY,
 
-            LEFT JOIN cd_code c
-                ON c.HEAD_CODE='AJ'
-                AND c.CODE=b.PLANT
+                s.STATUS,
 
-            LEFT JOIN cd_item i
-                ON i.ITEM=b.ITEM
+                s.NOTA,
 
-            WHERE a.DELETED IS NULL
-            AND b.DELETED IS NULL
+                s.REMARK,
 
-            AND a.PLANT IN (".implode(',', $escapedPlants).")
+                s.AMOUNT,
 
-        ";
+                s.ATTACHMENT_NAME,
+                s.ATTACHMENT_PATH,
 
+                d.SEQ_NO,
 
-        // ITEM FILTER
-        if (!empty($filters['item'])) {
+                d.MATERIAL,
 
-            $sql .= "
-                AND b.ITEM LIKE
-                ".$this->db->escape(
-                    '%'.$filters['item'].'%'
-                )."
-            ";
-        }
+                material.MATERIAL_NAME,
 
+                d.JUMLAH,
 
-        // DATE
-        if (!empty($filters['date1'])) {
+                d.BERAT,
 
-            $sql .= "
-                AND DATE(a.SALES_DATE) >=
-                ".$this->db->escape(
-                    $filters['date1']
-                )."
-            ";
-        }
+                d.HARGA,
 
-        if (!empty($filters['date2'])) {
+                d.TOTAL
 
-            $sql .= "
-                AND DATE(a.SALES_DATE) <=
-                ".$this->db->escape(
-                    $filters['date2']
-                )."
-            ";
-        }
+            FROM abc_mst_sales s
 
+            INNER JOIN abc_mst_sales_detail d
+                ON d.SALES = s.SALES
+                AND d.PLANT = s.PLANT
 
-        $sql .= "
+            LEFT JOIN abc_cd_code plant
+                ON plant.HEAD_CODE = 'PLANT'
+                AND plant.CODE COLLATE utf8mb4_unicode_ci =
+                s.PLANT COLLATE utf8mb4_unicode_ci
 
-            GROUP BY
-                b.PLANT,
-                b.ITEM
+            LEFT JOIN abc_cd_customer customer
+                ON customer.CUST COLLATE utf8mb4_unicode_ci =
+                s.CUSTOMER COLLATE utf8mb4_unicode_ci
+
+            LEFT JOIN abc_cd_material material
+                ON material.MATERIAL COLLATE utf8mb4_unicode_ci =
+                d.MATERIAL COLLATE utf8mb4_unicode_ci
+
+            WHERE (s.SALES,s.PLANT)
+            IN (".implode(',', $pairs).")
 
             ORDER BY
-                b.PLANT ASC,
-                b.ITEM ASC
+
+                {$orderBy} {$dir},
+
+                s.SALES DESC,
+
+                d.SEQ_NO ASC
 
         ";
 
+        $details = $this->db
+            ->query($sql)
+            ->result_array();
 
-        if ($limit > 0) {
+        /*
+        |--------------------------------------------------------------------------
+        | GROUP HEADER + DETAILS
+        |--------------------------------------------------------------------------
+        */
 
-            $sql .= "
-                LIMIT ".(int)$start.",
-                    ".(int)$limit."
-            ";
+        $grouped = [];
+
+        foreach($details as $row){
+
+            $key = $row['SALES'].'|'.$row['PLANT'];
+
+            /*
+            |--------------------------------------------------------------------------
+            | HEADER
+            |--------------------------------------------------------------------------
+            */
+
+            if(!isset($grouped[$key])){
+
+                $grouped[$key] = [
+
+                    'SALES'            => $row['SALES'],
+                    'PLANT'            => $row['PLANT'],
+                    'PLANT_NAME'       => $row['PLANT_NAME'],
+
+                    'SALES_DATE'       => $row['SALES_DATE'],
+
+                    'CUSTOMER'         => $row['CUSTOMER'],
+                    'CUSTOMER_NAME'    => $row['CUSTOMER_NAME'],
+
+                    'PEMBAYARAN'       => $row['PEMBAYARAN'],
+                    'JENIS_PAY'        => $row['JENIS_PAY'],
+
+                    'STATUS'           => $row['STATUS'],
+
+                    'NOTA'             => $row['NOTA'],
+
+                    'REMARK'           => $row['REMARK'],
+
+                    'AMOUNT'           => $row['AMOUNT'],
+
+                    'ATTACHMENT_NAME'  => $row['ATTACHMENT_NAME'],
+
+                    'ATTACHMENT_PATH'  => $row['ATTACHMENT_PATH'],
+
+                    'DETAILS' => []
+                ];
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | DETAILS
+            |--------------------------------------------------------------------------
+            */
+
+            $grouped[$key]['DETAILS'][] = [
+
+                'SEQ_NO'        => $row['SEQ_NO'],
+
+                'MATERIAL'      => $row['MATERIAL'],
+
+                'MATERIAL_NAME' => $row['MATERIAL_NAME'],
+
+                'JUMLAH'        => $row['JUMLAH'],
+
+                'BERAT'         => $row['BERAT'],
+
+                'HARGA'         => $row['HARGA'],
+
+                'TOTAL'         => $row['TOTAL']
+            ];
         }
 
-
-        return $this->db
-            ->query($sql)
-            ->result();
+        return array_values($grouped);
     }
 
-    public function count_sales_item($filters)
+    public function count_sales_report($filters = [])
     {
-        $plants = $filters['plant'] ?? [];
+        $this->db
+            ->from('abc_mst_sales s')
+            ->where('s.DELETED IS NULL', null, false);
 
-        if (empty($plants)) return 0;
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER
+        |--------------------------------------------------------------------------
+        */
 
-        $escapedPlants = array_map(
-            [$this->db, 'escape'],
-            $plants
-        );
+        if (!empty($filters['plant'])) {
 
+            $this->db->where(
+                's.PLANT',
+                $filters['plant']
+            );
 
-        $sql = "
-
-            SELECT COUNT(*) AS total
-
-            FROM (
-
-                SELECT
-                    b.PLANT,
-                    b.ITEM
-
-                FROM mst_sales a
-
-                JOIN mst_sales_detail b
-                    ON a.SALES=b.SALES
-                    AND a.PLANT=b.PLANT
-
-                WHERE a.DELETED IS NULL
-                AND b.DELETED IS NULL
-
-                AND a.PLANT IN (".implode(',', $escapedPlants).")
-
-        ";
-
-
-        if (!empty($filters['item'])) {
-
-            $sql .= "
-                AND b.ITEM LIKE
-                ".$this->db->escape(
-                    '%'.$filters['item'].'%'
-                )."
-            ";
         }
 
+        if (!empty($filters['customer'])) {
 
-        if (!empty($filters['date1'])) {
+            $this->db->where(
+                's.CUSTOMER',
+                $filters['customer']
+            );
 
-            $sql .= "
-                AND DATE(a.SALES_DATE) >=
-                ".$this->db->escape(
-                    $filters['date1']
-                )."
-            ";
         }
 
+        if (!empty($filters['status'])) {
 
-        if (!empty($filters['date2'])) {
+            $this->db->where(
+                's.STATUS',
+                $filters['status']
+            );
 
-            $sql .= "
-                AND DATE(a.SALES_DATE) <=
-                ".$this->db->escape(
-                    $filters['date2']
-                )."
-            ";
         }
 
+        if (!empty($filters['sales'])) {
 
-        $sql .= "
+            $this->db->group_start();
 
-                GROUP BY
-                    b.PLANT,
-                    b.ITEM
+            $this->db->like(
+                's.SALES',
+                $filters['sales']
+            );
 
-            ) x
+            $this->db->or_like(
+                's.NOTA',
+                $filters['sales']
+            );
 
-        ";
+            $this->db->group_end();
 
+        }
 
-        return (int)
-            $this->db
-            ->query($sql)
-            ->row()
-            ->total;
+        if (!empty($filters['date_from'])) {
+
+            $this->db->where(
+                'DATE(s.SALES_DATE) >=',
+                $filters['date_from']
+            );
+
+        }
+
+        if (!empty($filters['date_to'])) {
+
+            $this->db->where(
+                'DATE(s.SALES_DATE) <=',
+                $filters['date_to']
+            );
+
+        }
+
+        return $this->db
+            ->count_all_results();
     }
 
     public function get_items($q = null)
