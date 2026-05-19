@@ -38,9 +38,9 @@ class Sales_model extends CI_Model {
         $order = $allowedOrder[$order]
             ?? 's.SALES_DATE';
 
-        $dir = strtoupper($dir) === 'DESC'
-            ? 'DESC'
-            : 'ASC';
+        $dir = strtoupper($dir) === 'ASC'
+            ? 'ASC'
+            : 'DESC';
 
         /*
         |--------------------------------------------------------------------------
@@ -834,39 +834,54 @@ class Sales_model extends CI_Model {
             ->delete('abc_mst_sales');
     }
 
-    /* ---------------------------------------------------------
-       SELECT2 HELPERS
-    --------------------------------------------------------- */
     public function search_customer($q = null, $limit = 20)
     {
         $this->db->select('CUST as id, FULL_NAME as name');
+
         $this->db->from('abc_cd_customer');
 
         // hanya yang aktif
         $this->db->where('STATUS', 'Y');
 
+        // exclude customer tertentu
+        $this->db->where('CUST !=', 'CS000001');
+
         // hanya CUSTOMER
         $this->db->group_start();
+
         $this->db->where('CUST_KIND', 'CUSTOMER');
+
         $this->db->or_where('CUST_CLASS', 'CUSTOMER');
+
         $this->db->group_end();
 
         if ($q) {
+
             $this->db->group_start();
+
             $this->db->like('CUST', $q);
+
             $this->db->or_like('FULL_NAME', $q);
+
             $this->db->group_end();
         }
 
         $this->db->order_by('CUST', 'ASC');
+
         $this->db->limit($limit);
 
-        $rows = $this->db->get()->result_array();
+        $rows = $this->db
+            ->get()
+            ->result_array();
 
         $out = [];
+
         foreach ($rows as $r) {
+
             $out[] = [
+
                 'id'   => $r['id'],
+
                 'text' => $r['id'] . ' - ' . $r['name']
             ];
         }
@@ -874,20 +889,28 @@ class Sales_model extends CI_Model {
         return $out;
     }
 
-    public function get_customer_by_id($cust)
+    public function get_customer_default()
     {
-        $this->db->select('CUST, FULL_NAME');
-        $this->db->from('abc_cd_customer');
+        $cust = 'CS000002';
 
-        $this->db->where('CUST', $cust);
-        $this->db->where('STATUS', 'Y');
+        $row = $this->Sales_model
+            ->get_customer_by_id($cust);
 
-        $this->db->group_start();
-        $this->db->where('CUST_KIND', 'CUSTOMER');
-        $this->db->or_where('CUST_CLASS', 'CUSTOMER');
-        $this->db->group_end();
+        if ($row) {
 
-        return $this->db->get()->row_array();
+            echo json_encode([
+
+                'id'   => $row['CUST'],
+
+                'text' => $row['CUST']
+                    .' - '.
+                    $row['FULL_NAME']
+            ]);
+
+        } else {
+
+            echo json_encode(null);
+        }
     }
 
     public function search_material($q = null, $limit = 20)

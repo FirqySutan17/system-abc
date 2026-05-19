@@ -340,6 +340,7 @@
                                 <input
                                     type="text"
                                     id="masterTotal"
+                                    style="background:#f5f6f8"
                                     class="form-control po-input rupiah-input"
                                     placeholder="0" readonly>
                             </div>
@@ -969,6 +970,55 @@
     .summary-over{
         color:#dc3545;
     }
+    .select2-container {
+        width: 100% !important;
+    }
+
+    .select2-container--bootstrap-5
+    .select2-selection {
+
+        min-height: 44px !important;
+
+        border-radius: 12px !important;
+
+        border: 1px solid #dbe2ea !important;
+
+        font-size: 12px !important;
+    }
+
+    .select2-container--bootstrap-5
+    .select2-selection--single {
+
+        padding-top: 6px !important;
+
+        padding-left: 12px !important;
+    }
+
+    .select2-container--bootstrap-5
+    .select2-selection__rendered {
+
+        color: #212529 !important;
+
+        line-height: 28px !important;
+
+        padding-left: 0 !important;
+    }
+
+    .select2-container--bootstrap-5
+    .select2-selection__arrow {
+
+        height: 42px !important;
+    }
+
+    .select2-dropdown {
+
+        z-index: 999999 !important;
+    }
+
+    .select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option {
+        line-height: 1;
+        font-size: 13px !important;
+    }
 </style>
 
 <script>
@@ -1000,10 +1050,10 @@
 
     function initPlantSelect2(selector, modalId){
         $(selector).select2({
-            placeholder: "-- PILIH PLANT --",
-            allowClear: true,
-            dropdownParent: $(modalId),
-            width: "100%",
+            theme:'bootstrap-5',
+            placeholder:'-- PILIH PLANT --',
+            dropdownParent: $(modalId + ' .modal-body'),
+            width:'100%',
             ajax: {
                 url: "<?= base_url('po/get_plant'); ?>",
                 dataType: "json",
@@ -1056,10 +1106,10 @@
 
     function initTypeSelect2(selector, modalId, hiddenInput){
         $(selector).select2({
-            placeholder: "-- PILIH PO TYPE --",
-            allowClear: true,
-            dropdownParent: $(modalId),
-            width: "100%",
+            theme:'bootstrap-5',
+            placeholder:'-- PILIH PO TYPE --',
+            dropdownParent: $(modalId + ' .modal-body'),
+            width:'100%',
             ajax: {
                 url: "<?= base_url('po/get_po_type'); ?>",
                 dataType: "json",
@@ -1243,10 +1293,10 @@
     // Inisialisasi select2 supplier
     function initSupplierSelect2(selector, modalId, hiddenInput){
         $(selector).select2({
-            placeholder: "-- PILIH SUPPLIER --",
-            allowClear: true,
-            dropdownParent: $(modalId),
-            width: "100%",
+            theme:'bootstrap-5',
+            placeholder:'-- PILIH SUPPLIER --',
+            dropdownParent: $(modalId + ' .modal-body'),
+            width:'100%',
             ajax: {
                 url: "<?= base_url('po/get_supplier'); ?>",
                 dataType: "json",
@@ -1273,12 +1323,12 @@
         });
     }
 
-    function initCustomerSelect2(el, parentModal){
+    function initCustomerSelect2(el, modalId){
         $(el).select2({
-            placeholder: "-- PILIH CUSTOMER --",
-            allowClear: true,
-            width: "100%",
-            dropdownParent: $(parentModal),
+            theme:'bootstrap-5',
+            placeholder:'-- PILIH CUSTOMER --',
+            dropdownParent: $(modalId + ' .modal-body'),
+            width:'100%',
             ajax: {
                 url: "<?= base_url('po/get_customer'); ?>",
                 dataType: "json",
@@ -1302,10 +1352,10 @@
     function initMaterialSelect2Header(selector, modalId){
 
         $(selector).select2({
-            placeholder: "-- PILIH MATERIAL --",
-            allowClear: true,
-            dropdownParent: $(modalId),
-            width: "100%",
+            theme:'bootstrap-5',
+            placeholder:'-- PILIH MATERIAL --',
+            dropdownParent: $(modalId + ' .modal-body'),
+            width:'100%',
             ajax: {
                 url: "<?= base_url('po/get_material'); ?>",
                 dataType: "json",
@@ -1430,6 +1480,7 @@
     function addDetailRow(tableId, modalId, data = null){
 
         let customer = data?.CUSTOMER ?? '';
+
         let customerText = customer && data?.CUSTOMER_NAME
             ? customer + ' - ' + data.CUSTOMER_NAME
             : '';
@@ -1491,7 +1542,8 @@
                     class="form-control total rupiah-input"
                     style="text-align:right;background:#f5f6f8"
                     value="${data ? formatMoneyID(data.TOTAL) : ''}"
-                    placeholder="0">
+                    placeholder="0"
+                    readonly>
 
             </td>
 
@@ -1502,6 +1554,7 @@
                     class="btn btn-danger btn-sm removeRow">
 
                     <i class="ti ti-trash"></i>
+
                 </button>
 
             </td>
@@ -1528,7 +1581,48 @@
             $customer.append(opt).trigger('change');
         }
 
-        calculateSummary();
+        function calculateRowTotal(row){
+
+            let berat = parseDecimalID(
+                row.find('.berat').val()
+            ) || 0;
+
+            let harga = parseRupiah(
+                row.find('.harga').val()
+            ) || 0;
+
+            let total = berat * harga;
+
+            row.find('.total').val(
+                formatMoneyID(total)
+            );
+
+            calculateSummary();
+
+            calculateSummaryEdit();
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | EVENT AUTO CALCULATE
+        |--------------------------------------------------------------------------
+        */
+
+        $last.find('.berat, .harga').on(
+            'input keyup change',
+            function(){
+
+                calculateRowTotal($last);
+            }
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | INITIAL CALCULATE
+        |--------------------------------------------------------------------------
+        */
+
+        calculateRowTotal($last);
     }
 
     function calculateSummary(){
@@ -1759,6 +1853,24 @@
         );
     }
 
+    $(document).on(
+        'input keyup change',
+        '#masterBerat, #masterHarga',
+        function(){
+
+            calculateMasterTotal();
+        }
+    );
+
+    $(document).on(
+        'input keyup change',
+        '#masterBeratEdit, #masterHargaEdit',
+        function(){
+
+            calculateMasterTotalEdit();
+        }
+    );
+
     $(function(){
         loadPage(1);
 
@@ -1792,225 +1904,196 @@
         $('#addDetailRowEdit').click(function(){ addDetailRow('#poDetailTableEdit','#poEdit'); });
 
         // Remove row
-        $('#poDetailTableAdd, #poDetailTableEdit').on('click','.removeRow', function(){ $(this).closest('tr').remove(); calculateSummary(); });
+        $('#poDetailTableAdd, #poDetailTableEdit').on(
+            'click',
+            '.removeRow',
+            function(){
 
-        // Submit Add
-        // $('#fpoAdd').submit(function(e){
-        //     e.preventDefault();
-        //     var DETAIL = [];
-        //     $('#poDetailTableAdd tbody tr').each(function(){
-        //         DETAIL.push({
-        //             CUSTOMER : $(this).find('.customerSelect').val(),
-        //             MATERIAL : $(this).find('.materialSelect').val(),
-        //             JUMLAH   : parseDecimalID($(this).find('.jumlah').val()),
-        //             BERAT    : parseDecimalID($(this).find('.berat').val()),
-        //             HARGA    : parseDecimalID($(this).find('.harga').val()),
-        //             TOTAL    : parseDecimalID($(this).find('.total').val())
-        //         });
-        //     });
-        //     $.post('<?= base_url("po/create"); ?>',{
-        //         PLANT   : $('#hiddenPlantAdd').val(),
-        //         TYPE     : $('#hiddenTypeAdd').val(),
-        //         PO_DATE: $('input[name="PO_DATE"]').val(),
-        //         SUPPLIER: $('#hiddensupplierAdd').val(),
-        //         REMARK: $('input[name="REMARK"]').val(),
-        //         DETAIL: DETAIL
-        //     }, function(resp){
-        //         resp = typeof resp==='string'?JSON.parse(resp):resp;
-        //         alert(resp.message);
-        //         if(resp.status){
-        //             $('#PO_ADD_AUTO').val(resp.po);
-        //             $('#poAdd').modal('hide');
-        //             $('#fpoAdd')[0].reset();
-        //             $('#poDetailTableAdd tbody').empty();
-        //             loadPage(state.page);
-        //             $('#plantAdd').val(null).trigger('change');
-        //             $('#supplierAdd').val(null).trigger('change');
-        //             $('#hiddenPlantAdd').val('');
-        //             $('#hiddensupplierAdd').val('');
-        //             $('#fpoAdd')[0].reset();
-        //         }
+                $(this).closest('tr').remove();
 
-        //     },'json');
-        // });
+                calculateSummary();
+
+                calculateSummaryEdit();
+            }
+        );
 
         $('#fpoAdd').submit(function(e){
 
-        e.preventDefault();
-        let masterJumlah = parseDecimalID(
-            $('#masterJumlah').val()
-        );
-
-        let masterBerat = parseDecimalID(
-            $('#masterBerat').val()
-        );
-
-        if($('#poDetailTableAdd tbody tr').length === 0){
-
-            alert('Minimal 1 detail customer');
-
-            return;
-        }
-
-        if(!$('#hiddenMaterialAdd').val()){
-            alert('Material wajib dipilih');
-            return;
-        }
-
-        if(!$('#hiddensupplierAdd').val()){
-            alert('Supplier wajib dipilih');
-            return;
-        }
-
-        if(masterJumlah <= 0){
-            alert('Jumlah master harus lebih dari 0');
-            return;
-        }
-
-        if(masterBerat <= 0){
-            alert('Berat master harus lebih dari 0');
-            return;
-        }
-
-        
-
-        let totalJumlah = 0;
-        let totalBerat  = 0;
-
-        let DETAIL = [];
-        let hasError = false;
-
-        $('#poDetailTableAdd tbody tr').each(function(){
-
-            let jumlah = parseDecimalID(
-                $(this).find('.jumlah').val()
+            e.preventDefault();
+            let masterJumlah = parseDecimalID(
+                $('#masterJumlah').val()
             );
 
-            let berat = parseDecimalID(
-                $(this).find('.berat').val()
+            let masterBerat = parseDecimalID(
+                $('#masterBerat').val()
             );
 
-            let customer = $(this)
-                .find('.customerSelect')
-                .val();
+            if($('#poDetailTableAdd tbody tr').length === 0){
 
-            if(!customer){
-                alert('Customer detail wajib dipilih');
-                hasError = true;
-                return false;
+                alert('Minimal 1 detail customer');
+
+                return;
             }
 
-            totalJumlah += jumlah;
-            totalBerat += berat;
+            if(!$('#hiddenMaterialAdd').val()){
+                alert('Material wajib dipilih');
+                return;
+            }
 
-            DETAIL.push({
+            if(!$('#hiddensupplierAdd').val()){
+                alert('Supplier wajib dipilih');
+                return;
+            }
 
-                CUSTOMER : $(this)
+            if(masterJumlah <= 0){
+                alert('Jumlah master harus lebih dari 0');
+                return;
+            }
+
+            if(masterBerat <= 0){
+                alert('Berat master harus lebih dari 0');
+                return;
+            }
+
+            
+
+            let totalJumlah = 0;
+            let totalBerat  = 0;
+
+            let DETAIL = [];
+            let hasError = false;
+
+            $('#poDetailTableAdd tbody tr').each(function(){
+
+                let jumlah = parseDecimalID(
+                    $(this).find('.jumlah').val()
+                );
+
+                let berat = parseDecimalID(
+                    $(this).find('.berat').val()
+                );
+
+                let customer = $(this)
                     .find('.customerSelect')
-                    .val(),
+                    .val();
 
-                JUMLAH : jumlah,
+                if(!customer){
+                    alert('Customer detail wajib dipilih');
+                    hasError = true;
+                    return false;
+                }
 
-                BERAT : berat,
+                totalJumlah += jumlah;
+                totalBerat += berat;
 
-                HARGA : parseRupiah(
-                    $(this).find('.harga').val()
-                ),
+                DETAIL.push({
 
-                TOTAL : parseRupiah(
-                    $(this).find('.total').val()
-                )
+                    CUSTOMER : $(this)
+                        .find('.customerSelect')
+                        .val(),
+
+                    JUMLAH : jumlah,
+
+                    BERAT : berat,
+
+                    HARGA : parseRupiah(
+                        $(this).find('.harga').val()
+                    ),
+
+                    TOTAL : parseRupiah(
+                        $(this).find('.total').val()
+                    )
+                });
             });
-        });
 
-        if(hasError){
+            if(hasError){
+                return;
+            }
+
+        // ================= VALIDATION =================
+        if(totalJumlah > masterJumlah){
+
+            alert(
+                'Total jumlah detail melebihi master jumlah'
+            );
+
             return;
         }
 
-    // ================= VALIDATION =================
-    if(totalJumlah > masterJumlah){
+        if(totalBerat > masterBerat){
 
-        alert(
-            'Total jumlah detail melebihi master jumlah'
-        );
+            alert(
+                'Total berat detail melebihi master berat'
+            );
 
-        return;
-    }
-
-    if(totalBerat > masterBerat){
-
-        alert(
-            'Total berat detail melebihi master berat'
-        );
-
-        return;
-    }
-
-    // ================= SUBMIT =================
-    $('#fpoAdd button[type=submit]')
-        .prop('disabled', true);
-
-    $.post('<?= base_url("po/create"); ?>', {
-
-        PLANT : $('#hiddenPlantAdd').val(),
-
-        TYPE : $('#hiddenTypeAdd').val(),
-
-        MATERIAL : $('#hiddenMaterialAdd').val(),
-
-        PO_DATE : $('input[name="PO_DATE"]').val(),
-
-        SUPPLIER : $('#hiddensupplierAdd').val(),
-
-        JUMLAH : masterJumlah,
-
-        BERAT : masterBerat,
-
-        HARGA : parseRupiah($('#masterHarga').val()),
-        TOTAL : parseRupiah($('#masterTotal').val()),
-
-        NO_TRUCK : $('#masterTruck').val(),
-
-        DRIVER : $('#masterDriver').val(),
-
-        REMARK : $('textarea[name="REMARK"]').val(),
-
-        DETAIL : DETAIL
-
-    }, function(resp){
-
-        $('#fpoAdd button[type=submit]')
-            .prop('disabled', false);
-
-        resp = typeof resp === 'string'
-            ? JSON.parse(resp)
-            : resp;
-
-        alert(resp.message);
-
-        if(resp.status){
-
-            $('#poAdd').modal('hide');
-
-            $('#fpoAdd')[0].reset();
-
-            $('#poDetailTableAdd tbody').empty();
-
-            $('#plantAdd').val(null).trigger('change');
-            $('#supplierAdd').val(null).trigger('change');
-            $('#materialAdd').val(null).trigger('change');
-            $('#hiddenMaterialAdd').val('');
-            $('#hiddenTypeAdd').val('');
-            $('#hiddenPlantAdd').val('');
-            $('#hiddensupplierAdd').val('');
-
-            calculateSummary();
-
-            loadPage(state.page);
+            return;
         }
 
-    }, 'json');
-});
+        // ================= SUBMIT =================
+        $('#fpoAdd button[type=submit]')
+            .prop('disabled', true);
+
+        $.post('<?= base_url("po/create"); ?>', {
+
+            PLANT : $('#hiddenPlantAdd').val(),
+
+            TYPE : $('#hiddenTypeAdd').val(),
+
+            MATERIAL : $('#hiddenMaterialAdd').val(),
+
+            PO_DATE : $('input[name="PO_DATE"]').val(),
+
+            SUPPLIER : $('#hiddensupplierAdd').val(),
+
+            JUMLAH : masterJumlah,
+
+            BERAT : masterBerat,
+
+            HARGA : parseRupiah($('#masterHarga').val()),
+            TOTAL : parseRupiah($('#masterTotal').val()),
+
+            NO_TRUCK : $('#masterTruck').val(),
+
+            DRIVER : $('#masterDriver').val(),
+
+            REMARK : $('textarea[name="REMARK"]').val(),
+
+            DETAIL : DETAIL
+
+        }, function(resp){
+
+            $('#fpoAdd button[type=submit]')
+                .prop('disabled', false);
+
+            resp = typeof resp === 'string'
+                ? JSON.parse(resp)
+                : resp;
+
+            alert(resp.message);
+
+            if(resp.status){
+
+                $('#poAdd').modal('hide');
+
+                $('#fpoAdd')[0].reset();
+
+                $('#poDetailTableAdd tbody').empty();
+
+                $('#plantAdd').val(null).trigger('change');
+                $('#supplierAdd').val(null).trigger('change');
+                $('#materialAdd').val(null).trigger('change');
+                $('#hiddenMaterialAdd').val('');
+                $('#hiddenTypeAdd').val('');
+                $('#hiddenPlantAdd').val('');
+                $('#hiddensupplierAdd').val('');
+
+                calculateSummary();
+
+                loadPage(state.page);
+            }
+
+        }, 'json');
+    });
 
         // Click edit
         $(document).on('click','.editBtn', function(){

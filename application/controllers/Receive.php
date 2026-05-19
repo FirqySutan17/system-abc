@@ -1031,10 +1031,10 @@ class Receive extends MY_Controller {
                         'SEQ_NO' =>
                             $salesSeqNo,
 
-                        'ITEM' =>
+                        'MATERIAL' =>
                             $it['material'],
 
-                        'QTY' =>
+                        'JUMLAH' =>
                             $it['jumlah'],
 
                         'BERAT' =>
@@ -1045,7 +1045,7 @@ class Receive extends MY_Controller {
 
                         'DISCOUNT' => 0,
 
-                        'AMOUNT' =>
+                        'TOTAL' =>
                             $it['total'],
 
                         'CREATED_BY' =>
@@ -1898,10 +1898,10 @@ class Receive extends MY_Controller {
 
                         'SEQ_NO' => $salesSeqNo,
 
-                        'ITEM' =>
+                        'MATERIAL' =>
                             $it['material'],
 
-                        'QTY' =>
+                        'JUMLAH' =>
                             $it['jumlah'],
 
                         'BERAT' =>
@@ -1912,7 +1912,7 @@ class Receive extends MY_Controller {
 
                         'DISCOUNT' => 0,
 
-                        'AMOUNT' =>
+                        'TOTAL' =>
                             $it['total'],
 
                         'CREATED_BY' =>

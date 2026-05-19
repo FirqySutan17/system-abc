@@ -440,10 +440,6 @@ STYLE
 
 </style>
 
-<!-- =========================================
-MODAL
-========================================= -->
-
 <div class="modal fade"
     id="receiveAdd"
     tabindex="-1"
@@ -1330,13 +1326,6 @@ MODAL
     </div>
 
 </div>
-
-<!-- DETAIL modal -->
-
-
-<style>
-    
-</style>
 
 <script>
     const LOGIN_ROLE =
@@ -2503,7 +2492,9 @@ MODAL
 
                 <td>
                     <input type="text"
-                        class="form-control text-end total-extra">
+                        class="form-control text-end total-extra"
+                        readonly
+                        style="background:#f1f5f9">
                 </td>
 
                 <td>
@@ -2584,9 +2575,33 @@ MODAL
             .append(typeOption)
             .trigger('change');
 
+        lastRow.on(
+            'keyup input change',
+            '.berat-extra, .harga-extra',
+            function(){
+
+                calculateReceiveRowTotal(
+                    lastRow,
+                    'add'
+                );
+            }
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | INITIAL
+        |--------------------------------------------------------------------------
+        */
+
+        calculateReceiveRowTotal(
+            lastRow,
+            'add'
+        );
+
     }
 
-    function addRemainingRowEdit(data = null){
+    function addRemainingRowEdit(data = null)
+    {
 
         $('#receiveDetailTableEdit tbody').append(`
 
@@ -2623,6 +2638,7 @@ MODAL
                 <td>
                     <input type="text"
                         class="form-control text-end total-edit"
+                        readonly style="background:#f1f5f9"
                         value="${formatMoneyID(data?.TOTAL ?? 0)}">
                 </td>
 
@@ -2706,7 +2722,64 @@ MODAL
 
         }
 
-}
+        lastRow.on(
+            'keyup input change',
+            '.berat-edit, .harga-edit',
+            function(){
+
+                calculateReceiveRowTotal(
+                    lastRow,
+                    'edit'
+                );
+            }
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | INITIAL
+        |--------------------------------------------------------------------------
+        */
+
+        calculateReceiveRowTotal(
+            lastRow,
+            'edit'
+        );
+
+    }
+
+    function calculateReceiveRowTotal(row, mode = 'add')
+    {
+        let beratSelector =
+            mode === 'edit'
+            ? '.berat-edit'
+            : '.berat-extra';
+
+        let hargaSelector =
+            mode === 'edit'
+            ? '.harga-edit'
+            : '.harga-extra';
+
+        let totalSelector =
+            mode === 'edit'
+            ? '.total-edit'
+            : '.total-extra';
+
+        let berat = parseDecimalID(
+            row.find(beratSelector).val()
+        ) || 0;
+
+        let harga = parseRupiah(
+            row.find(hargaSelector).val()
+        ) || 0;
+
+        let total = berat * harga;
+
+        row.find(totalSelector).val(
+            formatMoneyID(total)
+        );
+
+        calculateReceiveSummary();
+    }
 
     function calculateReceiveSummary(){
 
@@ -2731,7 +2804,9 @@ MODAL
             );
 
             total += parseRupiah(
-                $(this).find('.total').val()
+                $(this)
+                    .find('.total,.total-extra,.total-edit')
+                    .val()
             );
 
         });

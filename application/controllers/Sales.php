@@ -1,5 +1,6 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
+use Mpdf\Mpdf;
 
 class Sales extends MY_Controller {
 
@@ -220,16 +221,24 @@ class Sales extends MY_Controller {
 
     public function get_customer_default()
     {
-        $cust = 'CC000001';
+        $cust = 'CS000002';
 
-        $row = $this->Sales_model->get_customer_by_id($cust);
+        $row = $this->Sales_model
+            ->get_customer_by_id($cust);
 
         if ($row) {
+
             echo json_encode([
+
                 'id'   => $row['CUST'],
-                'text' => $row['CUST'].' - '.$row['FULL_NAME']
+
+                'text' => $row['CUST']
+                    .' - '.
+                    $row['FULL_NAME']
             ]);
+
         } else {
+
             echo json_encode(null);
         }
     }
@@ -1293,11 +1302,32 @@ class Sales extends MY_Controller {
 
     public function print_pdf()
     {
-        $sales = $this->input->get('sales');
-        $plant = $this->input->get('plant');
+        require_once APPPATH . '../vendor/autoload.php';
 
-        if (!$sales || !$plant) {
-            show_error('Parameter SALES atau PLANT tidak lengkap');
+        $this->load->helper('terbilang');
+
+        $sales = trim(
+            $this->input->get('sales')
+        );
+
+        $plant = trim(
+            $this->input->get('plant')
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDATION
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            empty($sales) ||
+            empty($plant)
+        ) {
+
+            show_error(
+                'Parameter SALES atau PLANT tidak lengkap'
+            );
         }
 
         /*
@@ -1310,37 +1340,67 @@ class Sales extends MY_Controller {
             ->select('
                 s.SALES,
                 s.PLANT,
-                aj.CODE_NAME AS PLANT_NAME,
+
+                plant.CODE_NAME AS PLANT_NAME,
+
                 s.SALES_DATE,
+
                 s.CUSTOMER,
-                c.FULL_NAME AS CUSTOMER_NAME,
+
+                customer.FULL_NAME AS CUSTOMER_NAME,
+
                 s.JENIS_PAY,
                 s.PEMBAYARAN,
+
                 s.NOTA,
+
                 s.AMOUNT,
+
                 s.REMAIN,
+
                 s.STATUS,
+
                 s.REMARK
             ')
             ->from('abc_mst_sales s')
+
             ->join(
-                'abc_cd_code aj',
-                "aj.CODE = s.PLANT
-                AND aj.HEAD_CODE = 'PLANT'",
+                'abc_cd_code plant',
+                "plant.CODE = s.PLANT
+                AND plant.HEAD_CODE = 'PLANT'",
                 'left'
             )
+
             ->join(
-                'abc_cd_customer c',
-                'c.CUST = s.CUSTOMER',
+                'abc_cd_customer customer',
+                'customer.CUST = s.CUSTOMER',
                 'left'
             )
-            ->where('s.SALES', $sales)
-            ->where('s.PLANT', $plant)
+
+            ->where(
+                's.SALES',
+                $sales
+            )
+
+            ->where(
+                's.PLANT',
+                $plant
+            )
+
             ->get()
             ->row();
 
+        /*
+        |--------------------------------------------------------------------------
+        | NOT FOUND
+        |--------------------------------------------------------------------------
+        */
+
         if (!$header) {
-            show_error('Data SALES tidak ditemukan');
+
+            show_error(
+                'Data SALES tidak ditemukan'
+            );
         }
 
         /*
@@ -1352,33 +1412,61 @@ class Sales extends MY_Controller {
         $detail = $this->db
             ->select('
                 d.SEQ_NO,
+
                 d.MATERIAL,
-                m.MATERIAL_NAME,
+
+                material.MATERIAL_NAME,
+
                 d.JUMLAH,
+
                 d.BERAT,
+
                 d.HARGA,
+
                 d.TOTAL
             ')
             ->from('abc_mst_sales_detail d')
+
             ->join(
-                'abc_cd_material m',
-                'm.MATERIAL = d.MATERIAL',
+                'abc_cd_material material',
+                'material.MATERIAL = d.MATERIAL',
                 'left'
             )
-            ->where('d.SALES', $sales)
-            ->where('d.PLANT', $plant)
-            ->order_by('d.SEQ_NO', 'ASC')
+
+            ->where(
+                'd.SALES',
+                $sales
+            )
+
+            ->where(
+                'd.PLANT',
+                $plant
+            )
+
+            ->order_by(
+                'd.SEQ_NO',
+                'ASC'
+            )
+
             ->get()
             ->result();
 
-        $data = compact(
-            'header',
-            'detail'
-        );
+        /*
+        |--------------------------------------------------------------------------
+        | DATA
+        |--------------------------------------------------------------------------
+        */
+
+        $data = [
+
+            'header' => $header,
+
+            'detail' => $detail
+        ];
 
         /*
         |--------------------------------------------------------------------------
-        | PDF
+        | HTML VIEW
         |--------------------------------------------------------------------------
         */
 
@@ -1388,20 +1476,66 @@ class Sales extends MY_Controller {
             true
         );
 
-        $this->load->library('pdf');
+        /*
+        |--------------------------------------------------------------------------
+        | MPDF
+        |--------------------------------------------------------------------------
+        */
 
-        $this->pdf->loadHtml($html);
+        $mpdf = new \Mpdf\Mpdf([
 
-        $this->pdf->setPaper(
-            [0, 0, 165, 800],
-            'portrait'
-        );
+            'mode' => 'utf-8',
 
-        $this->pdf->render();
+            /*
+            |--------------------------------------------------------------------------
+            | CONTINUOUS FORM LANDSCAPE
+            |--------------------------------------------------------------------------
+            |
+            | 24.13 cm x 13.97 cm
+            |
+            */
 
-        $this->pdf->stream(
+            'format' => [139.7, 241.3],
+
+            'orientation' => 'L',
+
+            'margin_left'   => 0,
+            'margin_right'  => 0,
+            'margin_top'    => 0,
+            'margin_bottom' => 0
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | IMPORTANT
+        |--------------------------------------------------------------------------
+        */
+
+        $mpdf->shrink_tables_to_fit = 0;
+
+        $mpdf->SetDisplayMode('fullpage');
+
+        $mpdf->SetTitle('Sales Print');
+
+        $mpdf->SetJS('this.print();');
+
+        /*
+        |--------------------------------------------------------------------------
+        | WRITE HTML
+        |--------------------------------------------------------------------------
+        */
+
+        $mpdf->WriteHTML($html);
+
+        /*
+        |--------------------------------------------------------------------------
+        | OUTPUT
+        |--------------------------------------------------------------------------
+        */
+
+        $mpdf->Output(
             "SALES_{$sales}.pdf",
-            ['Attachment' => false]
+            'I'
         );
     }
 

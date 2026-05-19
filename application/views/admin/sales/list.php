@@ -1280,7 +1280,7 @@
                                     data-sales="${row.SALES}"
                                     data-plant="${row.PLANT}">
 
-                                    Slip
+                                    Invoice
 
                                 </button>
 
@@ -1290,7 +1290,7 @@
                                     data-sales="${row.SALES}"
                                     data-plant="${row.PLANT}">
 
-                                    Invoice
+                                    Slip
 
                                 </button>
 
@@ -1347,7 +1347,7 @@
 
             ajax:{
 
-                url:'<?= base_url("receive/get_customer"); ?>',
+                url:'<?= base_url("sales/get_customer"); ?>',
 
                 dataType:'json',
 
@@ -1731,8 +1731,6 @@
 
             placeholder:'-- PILIH MATERIAL --',
 
-            minimumInputLength:2,
-
             ajax:{
 
                 url:'<?= base_url("sales/get_material"); ?>',
@@ -1750,6 +1748,23 @@
                 })
             }
         });
+
+        /*
+        |--------------------------------------------------------------------------
+        | DEFAULT MATERIAL
+        |--------------------------------------------------------------------------
+        */
+
+        let defaultMaterial = new Option(
+            '01220021 - COMMON MATERIAL',
+            '01220021',
+            true,
+            true
+        );
+
+        tr.find('.material-select')
+            .append(defaultMaterial)
+            .trigger('change');
 
         recalcGrandTotal();
     }
@@ -1886,7 +1901,20 @@
 
         // init select2 customer
         initPlantSelect2('#plantAdd', '#salesAdd');
-        initCustomerSelect2('#customerAdd', '#salesAdd');
+        initCustomerSelect2('#customerAdd');
+        let defaultOption = new Option(
+            'CS000002 - COMMON CUSTOMER',
+            'CS000002',
+            true,
+            true
+        );
+
+        $('#customerAdd')
+            .append(defaultOption)
+            .trigger('change');
+
+        $('#hiddenCustomerAdd')
+            .val('CS000002');
         loadDefaultCustomer('#customerAdd');
         initCustomerEditSelect2('#customerEdit', '#salesEdit');
 
