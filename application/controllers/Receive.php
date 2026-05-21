@@ -16,14 +16,6 @@ class Receive extends MY_Controller {
         ini_set('display_errors', 1);
     }
 
-    public function index()
-    {
-        $this->load->view('templates/header', ['title' => 'Receive']);
-        $this->load->view('templates/sidebar');
-        $this->load->view('admin/receive/list');   // your list view (the one you provided)
-        $this->load->view('templates/footer');
-    }
-
     public function get_customer()
     {
         $term = $this->input->get('q');
@@ -55,6 +47,14 @@ class Receive extends MY_Controller {
         }
 
         echo json_encode($data);
+    }
+
+    public function index()
+    {
+        $this->load->view('templates/header', ['title' => 'Receive']);
+        $this->load->view('templates/sidebar');
+        $this->load->view('admin/receive/list');   // your list view (the one you provided)
+        $this->load->view('templates/footer');
     }
 
     public function load_data()

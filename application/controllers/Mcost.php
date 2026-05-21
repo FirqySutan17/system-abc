@@ -27,31 +27,174 @@ class Mcost extends MY_Controller {
 
     public function load_data()
     {
-        $allowedOrder = ['COST','COST_DATE','PEMBAYARAN','SLIP_NO','PLANT'];
+        /*
+        |--------------------------------------------------------------------------
+        | ALLOWED ORDER
+        |--------------------------------------------------------------------------
+        */
 
-        $page   = (int)$this->input->get('page') ?: 1;
-        $limit  = (int)$this->input->get('limit') ?: 10;
-        $search = $this->input->get('search', TRUE);
+        $allowedOrder = [
+            'COST',
+            'COST_DATE',
+            'PEMBAYARAN',
+            'SLIP_NO',
+            'PLANT'
+        ];
 
-        $orderInput = $this->input->get('order', TRUE);
-        $order = in_array($orderInput, $allowedOrder) ? $orderInput : 'COST_DATE';
-        $dir   = strtoupper($this->input->get('dir', TRUE)) === 'ASC' ? 'ASC' : 'DESC';
+        /*
+        |--------------------------------------------------------------------------
+        | GET PARAMETER
+        |--------------------------------------------------------------------------
+        */
+
+        $page = max(
+            1,
+            (int)$this->input->get('page')
+        );
+
+        $limit = max(
+            1,
+            (int)$this->input->get('limit')
+        );
+
+        $search = trim(
+            $this->input->get('search', true)
+        );
+
+        $pembayaran = trim(
+            $this->input->get('pembayaran', true)
+        );
+
+        $dateFrom = trim(
+            $this->input->get('date_from', true)
+        );
+
+        $dateTo = trim(
+            $this->input->get('date_to', true)
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | ORDER
+        |--------------------------------------------------------------------------
+        */
+
+        $orderInput = trim(
+            $this->input->get('order', true)
+        );
+
+        $order = in_array(
+            $orderInput,
+            $allowedOrder
+        )
+            ? $orderInput
+            : 'COST_DATE';
+
+        $dir = strtoupper(
+            $this->input->get('dir', true)
+        );
+
+        if(
+            $dir !== 'ASC' &&
+            $dir !== 'DESC'
+        ){
+
+            $dir = 'DESC';
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | OFFSET
+        |--------------------------------------------------------------------------
+        */
 
         $start = ($page - 1) * $limit;
 
-        $username = $this->session->userdata('username');
-        $role_id  = (int)$this->session->userdata('role_id');
+        /*
+        |--------------------------------------------------------------------------
+        | SESSION
+        |--------------------------------------------------------------------------
+        */
 
-        $plants = ($role_id === 1) ? [] : $this->Mcost_model->get_user_plants($username);
+        $username = $this->session
+            ->userdata('username');
 
-        $rows  = $this->Mcost_model->get_data($limit,$start,$role_id,$plants,$search,$order,$dir);
-        $total = $this->Mcost_model->count_data($role_id,$plants,$search);
+        $role_id = (int)$this->session
+            ->userdata('role_id');
+
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        $plants = ($role_id === 1)
+            ? []
+            : $this->Mcost_model
+                ->get_user_plants($username);
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATA
+        |--------------------------------------------------------------------------
+        */
+
+        $rows = $this->Mcost_model->get_data(
+            $limit,
+            $start,
+            $role_id,
+            $plants,
+            $search,
+            $order,
+            $dir,
+            $pembayaran,
+            $dateFrom,
+            $dateTo
+        );
+
+        $total = $this->Mcost_model->count_data(
+            $role_id,
+            $plants,
+            $search,
+            $pembayaran,
+            $dateFrom,
+            $dateTo
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | PAGINATION
+        |--------------------------------------------------------------------------
+        */
+
+        $pages = $total > 0
+            ? ceil($total / $limit)
+            : 1;
+
+        /*
+        |--------------------------------------------------------------------------
+        | RESPONSE
+        |--------------------------------------------------------------------------
+        */
 
         echo json_encode([
-            'rows'       => $rows,
-            'total'      => $total,
-            'pagination' => $this->build_pagination(ceil($total/$limit),$page),
-            'page'       => $page
+
+            'status' => true,
+
+            'rows' => $rows,
+
+            'total' => (int)$total,
+
+            'page' => (int)$page,
+
+            'pages' => (int)$pages,
+
+            'pagination' => $this->build_pagination(
+                $pages,
+                $page
+            )
+
         ]);
     }
 
@@ -79,6 +222,13 @@ class Mcost extends MY_Controller {
             $this->Mcost_model->get_plant_select2_by_user(
                 $this->session->userdata('username')
             )
+        );
+    }
+
+    public function get_plant()
+    {
+        echo json_encode(
+            $this->Mcost_model->get_plant_select2()
         );
     }
 
@@ -169,8 +319,8 @@ class Mcost extends MY_Controller {
             }
         }
 
-        if($detailRows) $this->db->insert_batch('mst_cost_detail',$detailRows);
-        if($attachmentRows) $this->db->insert_batch('mst_cost_attachment',$attachmentRows);
+        if($detailRows) $this->db->insert_batch('abc_mst_cost_detail',$detailRows);
+        if($attachmentRows) $this->db->insert_batch('abc_mst_cost_attachment',$attachmentRows);
 
         if ($this->db->trans_status()===FALSE){
             $this->db->trans_rollback();
@@ -201,8 +351,8 @@ class Mcost extends MY_Controller {
 
         $header = $this->db
             ->select('c.*, cd.CODE_NAME AS PLANT_NAME')
-            ->from('mst_cost c')
-            ->join('cd_code cd', "cd.CODE=c.PLANT AND cd.HEAD_CODE='AJ'", 'left')
+            ->from('abc_mst_cost c')
+            ->join('abc_cd_code cd', "cd.CODE=c.PLANT AND cd.HEAD_CODE='PLANT'", 'left')
             ->where('c.PLANT',$plant)
             ->where('c.COST',$cost)
             ->where('c.DELETED IS NULL',null,false)
@@ -268,7 +418,7 @@ class Mcost extends MY_Controller {
         /* ================= SOFT DELETE DETAIL LAMA ================= */
         $this->db->where(['PLANT'=>$plant,'COST'=>$oldCost])
                 ->where('DELETED IS NULL',null,false)
-                ->update('mst_cost_detail',[
+                ->update('abc_mst_cost_detail',[
                     'DELETED'=>date('Y-m-d H:i:s'),
                     'UPDATED_AT'=>date('Y-m-d H:i:s'),
                     'UPDATED_BY'=>$username
@@ -279,7 +429,7 @@ class Mcost extends MY_Controller {
             ->where('PLANT',$plant)
             ->where('COST',$oldCost)
             ->where('DELETED IS NULL',null,false)
-            ->get('mst_cost_attachment')
+            ->get('abc_mst_cost_attachment')
             ->result_array();
 
         $oldById = [];
@@ -295,7 +445,7 @@ class Mcost extends MY_Controller {
             $seq = (int)$row['SEQ_NO'];
 
             /* ===== INSERT DETAIL BARU ===== */
-            $this->db->insert('mst_cost_detail',[
+            $this->db->insert('abc_mst_cost_detail',[
                 'PLANT'=>$plant,
                 'COST'=>$newCost,
                 'SEQ_NO'=>$seq,
@@ -328,7 +478,7 @@ class Mcost extends MY_Controller {
                     rename($oldFile,$newFile);
                 }
 
-                $this->db->where('ID',$attId)->update('mst_cost_attachment',[
+                $this->db->where('ID',$attId)->update('abc_mst_cost_attachment',[
                     'COST'=>$newCost,
                     'SEQ_NO'=>$seq,
                     'FILE_PATH'=>"uploads/{$plant}/cost/{$newCost}/{$seq}/"
@@ -350,7 +500,7 @@ class Mcost extends MY_Controller {
                     $this->db->where_not_in('ID',$keepAttachmentIds);
                 }
 
-                $toDelete = $this->db->get('mst_cost_attachment')->result_array();
+                $toDelete = $this->db->get('abc_mst_cost_attachment')->result_array();
 
                 foreach ($toDelete as $del) {
                     $file = rtrim($del['FILE_PATH'],'/').'/'.$del['FILE_NAME'];
@@ -359,7 +509,7 @@ class Mcost extends MY_Controller {
 
                 if ($toDelete) {
                     $this->db->where_in('ID',array_column($toDelete,'ID'))
-                            ->update('mst_cost_attachment',['DELETED'=>date('Y-m-d H:i:s')]);
+                            ->update('abc_mst_cost_attachment',['DELETED'=>date('Y-m-d H:i:s')]);
                 }
 
                 foreach ($_FILES['ATTACHMENT']['name'][$seq] as $i=>$name) {
@@ -375,7 +525,7 @@ class Mcost extends MY_Controller {
                     $upload = $this->Mcost_model->upload_cost_file('file',$plant,$newCost,$seq,$username);
 
                     if ($upload) {
-                        $this->db->insert('mst_cost_attachment',[
+                        $this->db->insert('abc_mst_cost_attachment',[
                             'PLANT'=>$plant,
                             'COST'=>$newCost,
                             'SEQ_NO'=>$seq,
@@ -396,7 +546,7 @@ class Mcost extends MY_Controller {
             $this->db->where('PLANT',$plant)
                     ->where('COST',$newCost)
                     ->where_not_in('ID',$keepAttachmentIds)
-                    ->update('mst_cost_attachment',['DELETED'=>date('Y-m-d H:i:s')]);
+                    ->update('abc_mst_cost_attachment',['DELETED'=>date('Y-m-d H:i:s')]);
         }
 
         if ($this->db->trans_status()===FALSE){
@@ -483,92 +633,232 @@ class Mcost extends MY_Controller {
 
     public function print_pdf()
     {
-        $cost  = $this->input->get('cost', true);
-        $plant = $this->input->get('plant', true);
+        $cost = trim(
+            $this->input->get('cost', true)
+        );
 
-        if (!$cost || !$plant) {
-            show_error('Parameter COST atau PLANT tidak lengkap');
+        $plant = trim(
+            $this->input->get('plant', true)
+        );
+
+        if (
+            empty($cost) ||
+            empty($plant)
+        ) {
+
+            show_error(
+                'Parameter COST / PLANT tidak lengkap'
+            );
         }
 
-        $username = $this->session->userdata('username');
-        $role_id  = (int)$this->session->userdata('role_id');
+        /*
+        |--------------------------------------------------------------------------
+        | HEADER
+        |--------------------------------------------------------------------------
+        */
 
-        if ($role_id !== 1 && !$this->Mcost_model->user_has_plant($username, $plant)) {
-            show_error('Tidak punya akses ke plant ini');
-        }
-
-        /* ================= HEADER ================= */
         $header = $this->db
-            ->select('
+            ->select("
                 c.COST,
+
                 c.PLANT,
-                aj.CODE_NAME AS PLANT_NAME,
+
+                plant.CODE_NAME AS PLANT_NAME,
+
                 c.COST_DATE,
+
                 c.PEMBAYARAN,
+
                 c.SLIP_NO,
-                c.REMARK
-            ')
-            ->from('mst_cost c')
+
+                c.REMARK,
+
+                c.CREATED_BY,
+
+                c.CREATED_AT
+            ", false)
+
+            ->from('abc_mst_cost c')
+
             ->join(
-                'cd_code aj',
-                "aj.CODE = c.PLANT AND aj.HEAD_CODE = 'AJ'",
-                'left'
+                'abc_cd_code plant',
+                "
+                    plant.HEAD_CODE='PLANT'
+
+                    AND plant.CODE COLLATE utf8mb4_unicode_ci =
+                    c.PLANT COLLATE utf8mb4_unicode_ci
+                ",
+                'left',
+                false
             )
+
             ->where('c.COST', $cost)
+
             ->where('c.PLANT', $plant)
-            ->where('c.DELETED IS NULL', null, false)
+
+            ->where(
+                'c.DELETED IS NULL',
+                null,
+                false
+            )
+
             ->get()
+
             ->row();
 
         if (!$header) {
-            show_error('Data COST tidak ditemukan');
+
+            show_error(
+                'Data COST tidak ditemukan'
+            );
         }
 
-        /* ================= DETAIL ================= */
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
+
         $detail = $this->db
-            ->select('
+            ->select("
                 d.SEQ_NO,
-                cc.COST_NAME,
+
                 d.TIPE_COST,
+
+                cost_type.COST_NAME AS TIPE_COST_NAME,
+
                 d.QTY,
+
                 d.JUMLAH,
+
                 d.TOTAL,
+
                 d.REMARK
-            ')
-            ->from('mst_cost_detail d')
+            ", false)
+
+            ->from('abc_mst_cost_detail d')
+
             ->join(
-                'cd_cost cc',
-                'cc.COST = d.TIPE_COST',
-                'left'
+                'abc_cd_cost cost_type',
+                "
+                    cost_type.COST COLLATE utf8mb4_unicode_ci =
+                    d.TIPE_COST COLLATE utf8mb4_unicode_ci
+                ",
+                'left',
+                false
             )
+
             ->where('d.COST', $cost)
+
             ->where('d.PLANT', $plant)
-            ->where('d.DELETED IS NULL', null, false)
+
+            ->where(
+                'd.DELETED IS NULL',
+                null,
+                false
+            )
+
             ->order_by('d.SEQ_NO', 'ASC')
+
             ->get()
+
             ->result();
 
-        $data = [
-            'header' => $header,
-            'detail' => $detail
+        if (empty($detail)) {
+
+            show_error(
+                'Detail COST tidak ditemukan'
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | SUMMARY
+        |--------------------------------------------------------------------------
+        */
+
+        $summary = [
+
+            'qty' => 0,
+
+            'total' => 0,
+
+            'item' => 0
         ];
 
-        /* ================= PDF ================= */
+        foreach ($detail as $d) {
+
+            $summary['qty'] +=
+                (float)$d->QTY;
+
+            $summary['total'] +=
+                (float)$d->TOTAL;
+
+            $summary['item']++;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | VIEW DATA
+        |--------------------------------------------------------------------------
+        */
+
+        $data = [
+
+            'header' => $header,
+
+            'detail' => $detail,
+
+            'summary' => $summary
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | HTML
+        |--------------------------------------------------------------------------
+        */
+
         $html = $this->load->view(
             'admin/mcost/pdf_template',
             $data,
             true
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | PDF
+        |--------------------------------------------------------------------------
+        */
+
         $this->load->library('pdf');
+
         $this->pdf->loadHtml($html);
-        $this->pdf->setPaper('A4', 'portrait');
+
+        $this->pdf->setPaper(
+            'A4',
+            'landscape'
+        );
+
         $this->pdf->render();
 
+        /*
+        |--------------------------------------------------------------------------
+        | STREAM
+        |--------------------------------------------------------------------------
+        */
+
         $this->pdf->stream(
-            "COST_{$cost}.pdf",
-            ['Attachment' => false] // inline
+
+            'COST_' .
+            $header->COST .
+            '.pdf',
+
+            [
+                'Attachment' => false
+            ]
         );
+
+        exit;
     }
 
     function format_decimal_id($number, $dec = 2)

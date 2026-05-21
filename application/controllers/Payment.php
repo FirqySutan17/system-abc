@@ -68,8 +68,8 @@ class Payment extends MY_Controller {
         }
 
         $this->db->select('r.RECEIVE as id, r.RECEIVE as text, r.SUPPLIER, c.FULL_NAME as supplier_name');
-        $this->db->from('mst_receive r');
-        $this->db->join('cd_customer c', 'r.SUPPLIER = c.CUST', 'left');
+        $this->db->from('abc_mst_receive r');
+        $this->db->join('abc_cd_customer c', 'r.SUPPLIER = c.CUST', 'left');
         $this->db->where('r.SUPPLIER', $supplier);
         $this->db->where('r.DELETED IS NULL', null, false);
 
@@ -126,19 +126,19 @@ class Payment extends MY_Controller {
                         * REPLACE(r.PRICE,'.','')
                     ) AS TOTAL
                 ")
-                ->from('mst_receive_lb r')
+                ->from('abc_mst_receive_lb r')
 
                 /* 🔹 JOIN PLANT */
                 ->join(
-                    'cd_code aj',
-                    "aj.CODE = r.PLANT AND aj.HEAD_CODE = 'AJ'",
+                    'abc_cd_code aj',
+                    "aj.CODE = r.PLANT AND aj.HEAD_CODE = 'PLANT'",
                     'left',
                     false
                 )
 
                 /* 🔹 JOIN SUPPLIER */
                 ->join(
-                    'cd_customer s',
+                    'abc_cd_customer s',
                     's.CUST = r.SUPPLIER',
                     'left'
                 )
@@ -180,6 +180,47 @@ class Payment extends MY_Controller {
         echo json_encode($data);
     }
 
+    public function load_receive_picker()
+    {
+        $search = trim(
+            $this->input->get('search', true)
+        );
+
+        $plant = trim(
+            $this->input->get('plant', true)
+        );
+
+        $supplier = trim(
+            $this->input->get('supplier', true)
+        );
+
+        if (
+            empty($plant) ||
+            empty($supplier)
+        ) {
+
+            echo json_encode([]);
+
+            return;
+        }
+
+        $rows = $this->Payment_model
+            ->get_receive_picker(
+                $plant,
+                $supplier,
+                $search
+            );
+
+        echo json_encode($rows);
+    }
+
+    public function get_plant()
+    {
+        echo json_encode(
+            $this->Payment_model->get_plant_select2()
+        );
+    }
+
     public function get_user_plants()
     {
         $userPlants = json_decode($this->session->userdata('plant'), true);
@@ -188,8 +229,8 @@ class Payment extends MY_Controller {
 
         $plants = $this->db
             ->select('CODE as id, CODE_NAME as text')
-            ->from('cd_code')
-            ->where('HEAD_CODE','AJ')
+            ->from('abc_cd_code')
+            ->where('HEAD_CODE','PLANT')
             ->where_in('CODE', $userPlants)
             ->order_by('CODE_NAME','ASC')
             ->get()
@@ -200,114 +241,255 @@ class Payment extends MY_Controller {
 
     public function create()
     {
-        $data        = $this->input->post(NULL, TRUE);
-        $paymentType = $data['PAYMENT_TYPE'] ?? 'RECEIVE';
-        $plant       = $data['PLANT'] ?? null;
+        $data = $this->input->post(NULL, TRUE);
 
-        $userPlants = json_decode($this->session->userdata('plant'), true);
-        $username   = $this->session->userdata('username');
+        $plant = $data['PLANT'] ?? null;
 
-        if (!$plant || !in_array($plant, $userPlants)) {
-            echo json_encode(['status'=>false,'message'=>'Unauthorized plant access']);
+        $username = $this->session
+            ->userdata('username');
+
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDASI HEADER
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            empty($plant) ||
+            empty($data['PAYMENT_DATE']) ||
+            empty($data['PEMBAYARAN'])
+        ) {
+
+            echo json_encode([
+                'status' => false,
+                'message' => 'Header payment belum lengkap'
+            ]);
+
             return;
         }
 
-        if (!in_array($paymentType, ['RECEIVE','RECEIVE_LB'])) {
-            echo json_encode(['status'=>false,'message'=>'Type payment tidak valid']);
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDASI DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            empty($data['DETAIL']) ||
+            !is_array($data['DETAIL'])
+        ) {
+
+            echo json_encode([
+                'status' => false,
+                'message' => 'Detail payment kosong'
+            ]);
+
             return;
         }
 
-        if (empty($data['PAYMENT_DATE']) || empty($data['PEMBAYARAN'])) {
-            echo json_encode(['status'=>false,'message'=>'Header belum lengkap']);
-            return;
-        }
+        /*
+        |--------------------------------------------------------------------------
+        | GENERATE NUMBER
+        |--------------------------------------------------------------------------
+        */
 
-        if (empty($data['DETAIL'])) {
-            echo json_encode(['status'=>false,'message'=>'Detail payment kosong']);
-            return;
-        }
+        $paymentNo = $this->Payment_model
+            ->generate_payment_no($plant);
 
-        $paymentNo = $this->Payment_model->generate_payment_no($plant);
-        $slipNo    = $this->Payment_model->generate_slip_no($plant);
+        $slipNo = $this->Payment_model
+            ->generate_slip_no($plant);
+
+        /*
+        |--------------------------------------------------------------------------
+        | TRANSACTION
+        |--------------------------------------------------------------------------
+        */
 
         $this->db->trans_begin();
 
-        /* HEADER */
+        /*
+        |--------------------------------------------------------------------------
+        | HEADER
+        |--------------------------------------------------------------------------
+        */
+
         $header = [
-            'PLANT'        => $plant,
-            'PAYMENT'      => $paymentNo,
-            'PAYMENT_DATE' => date('Y-m-d H:i:s', strtotime($data['PAYMENT_DATE'])),
-            'PEMBAYARAN'   => $data['PEMBAYARAN'],
-            'PAYMENT_TYPE' => $paymentType,
-            'SLIP_NO'      => $slipNo,
-            'SUPPLIER'     => $data['SUPPLIER'] ?? null,
-            'REMARK'       => $data['REMARK'] ?? null,
-            'CREATED_AT'   => date('Y-m-d H:i:s'),
-            'CREATED_BY'   => $username
+
+            'PLANT' => $plant,
+
+            'PAYMENT' => $paymentNo,
+
+            'PAYMENT_DATE' => date(
+                'Y-m-d H:i:s',
+                strtotime($data['PAYMENT_DATE'])
+            ),
+
+            'PEMBAYARAN' => $data['PEMBAYARAN'],
+
+            'SLIP_NO' => $slipNo,
+
+            'SUPPLIER' => $data['SUPPLIER'] ?? null,
+
+            'REMARK' => $data['REMARK'] ?? null,
+
+            'TOTAL' => 0,
+
+            'CREATED_AT' => date('Y-m-d H:i:s'),
+
+            'CREATED_BY' => $username
         ];
 
-        $this->Payment_model->insert_header($header);
+        $this->Payment_model
+            ->insert_header($header);
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
 
         $grandTotal = 0;
-        $seqNo      = 1;
+
+        $seqNo = 1;
 
         foreach ($data['DETAIL'] as $row) {
 
-            $qty   = (float)$row['JUMLAH'];
+            $qty = (float)$row['JUMLAH'];
+
             $berat = (float)$row['BERAT'];
+
             $harga = (float)$row['HARGA'];
+
             $total = $qty * $harga;
 
-            if ($qty <= 0 || $harga <= 0) continue;
+            /*
+            |--------------------------------------------------------------------------
+            | SKIP INVALID
+            |--------------------------------------------------------------------------
+            */
 
-            $this->Payment_model->insert_detail([
-                'PLANT'      => $plant,
-                'PAYMENT'    => $paymentNo,
-                'SEQ_NO'     => $seqNo,
-                'RECEIVE_NO' => $row['RECEIVE_NO'],
-                'MATERIAL'   => $row['MATERIAL'],
-                'BERAT'      => $berat,
-                'JUMLAH'     => $qty,
-                'HARGA'      => $harga,
-                'TOTAL'      => $total,
-                'REMARK'     => $row['REMARK'] ?? null,
-                'CREATED_AT' => date('Y-m-d H:i:s'),
-                'CREATED_BY' => $username
-            ]);
+            if (
+                $qty <= 0 ||
+                $harga <= 0
+            ) {
 
-            /* UPDATE SOURCE */
-            if ($paymentType === 'RECEIVE_LB') {
-                $this->db->where('PLANT',$plant)
-                         ->where('RECEIVE',$row['RECEIVE_NO'])
-                         ->update('mst_receive_lb',[
-                             'PAYMENT_STATUS'=>'PAID',
-                             'PAYMENT_NO'=>$paymentNo
-                         ]);
-            } else {
-                $this->db->where('PLANT',$plant)
-                         ->where('RECEIVE',$row['RECEIVE_NO'])
-                         ->where('MATERIAL',$row['MATERIAL'])
-                         ->update('mst_receive_detail',['STATUS'=>'Y']);
+                continue;
             }
 
+            /*
+            |--------------------------------------------------------------------------
+            | INSERT DETAIL
+            |--------------------------------------------------------------------------
+            */
+
+            $detail = [
+
+                'PLANT' => $plant,
+
+                'PAYMENT' => $paymentNo,
+
+                'SEQ_NO' => $seqNo,
+
+                'RECEIVE_NO' => $row['RECEIVE_NO'],
+
+                'MATERIAL' => $row['MATERIAL'],
+
+                'BERAT' => $berat,
+
+                'JUMLAH' => $qty,
+
+                'HARGA' => $harga,
+
+                'TOTAL' => $total,
+
+                'REMARK' => $row['REMARK'] ?? null,
+
+                'CREATED_AT' => date('Y-m-d H:i:s'),
+
+                'CREATED_BY' => $username
+            ];
+
+            $this->Payment_model
+                ->insert_detail($detail);
+
+            /*
+            |--------------------------------------------------------------------------
+            | UPDATE RECEIVE DETAIL
+            |--------------------------------------------------------------------------
+            */
+
+            $this->db
+                ->where('PLANT', $plant)
+
+                ->where('RECEIVE', $row['RECEIVE_NO'])
+
+                ->where('MATERIAL', $row['MATERIAL'])
+
+                ->update(
+                    'abc_mst_receive_detail',
+                    [
+                        'STATUS' => 'Y'
+                    ]
+                );
+
+            /*
+            |--------------------------------------------------------------------------
+            | TOTAL
+            |--------------------------------------------------------------------------
+            */
+
             $grandTotal += $total;
+
             $seqNo++;
         }
 
-        $this->Payment_model->update_header_total_by_key($paymentNo,$plant,$grandTotal);
+        /*
+        |--------------------------------------------------------------------------
+        | UPDATE HEADER TOTAL
+        |--------------------------------------------------------------------------
+        */
+
+        $this->Payment_model
+            ->update_header_total_by_key(
+                $paymentNo,
+                $plant,
+                $grandTotal,
+                $username
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | TRANSACTION CHECK
+        |--------------------------------------------------------------------------
+        */
 
         if ($this->db->trans_status() === FALSE) {
+
             $this->db->trans_rollback();
-            echo json_encode(['status'=>false,'message'=>'Gagal menyimpan payment']);
+
+            echo json_encode([
+                'status' => false,
+                'message' => 'Gagal menyimpan payment'
+            ]);
+
             return;
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | COMMIT
+        |--------------------------------------------------------------------------
+        */
 
         $this->db->trans_commit();
 
         echo json_encode([
-            'status'=>true,
-            'payment'=>$paymentNo,
-            'message'=>'Payment berhasil disimpan'
+
+            'status' => true,
+
+            'payment' => $paymentNo,
+
+            'message' => 'Payment berhasil disimpan'
         ]);
     }
 
@@ -420,7 +602,7 @@ class Payment extends MY_Controller {
             if ($newType === 'RECEIVE_LB') {
                 $this->db->where('PLANT',$plant)
                          ->where('RECEIVE',$row['RECEIVE_NO'])
-                         ->update('mst_receive_lb',[
+                         ->update('abc_mst_receive_lb',[
                              'PAYMENT_STATUS'=>'PAID',
                              'PAYMENT_NO'=>$payment
                          ]);
@@ -428,7 +610,7 @@ class Payment extends MY_Controller {
                 $this->db->where('PLANT',$plant)
                          ->where('RECEIVE',$row['RECEIVE_NO'])
                          ->where('MATERIAL',$row['MATERIAL'])
-                         ->update('mst_receive_detail',['STATUS'=>'Y']);
+                         ->update('abc_mst_receive_detail',['STATUS'=>'Y']);
             }
 
             $grandTotal += $total;
@@ -482,7 +664,7 @@ class Payment extends MY_Controller {
 
         // CEK DATA MASIH ADA
         $exists = $this->db
-            ->from('mst_payment')
+            ->from('abc_mst_payment')
             ->where('PAYMENT', $payment)
             ->where('PLANT', $plant)
             ->where('DELETED IS NULL', null, false)
@@ -514,7 +696,7 @@ class Payment extends MY_Controller {
                 foreach ($details as $d) {
                     $this->db->where('PLANT', $d['PLANT']);
                     $this->db->where('RECEIVE', $d['RECEIVE_NO']);
-                    $this->db->update('mst_receive_lb', [
+                    $this->db->update('abc_mst_receive_lb', [
                         'PAYMENT_STATUS' => 'UNPAID',
                         'PAYMENT_NO'     => null
                     ]);
@@ -526,7 +708,7 @@ class Payment extends MY_Controller {
                     $this->db->where('PLANT', $d['PLANT']);
                     $this->db->where('RECEIVE', $d['RECEIVE_NO']);
                     $this->db->where('MATERIAL', $d['MATERIAL']);
-                    $this->db->update('mst_receive_detail', [
+                    $this->db->update('abc_mst_receive_detail', [
                         'STATUS' => null
                     ]);
                 }
@@ -580,9 +762,9 @@ class Payment extends MY_Controller {
                 p.REMARK,
                 p.TOTAL
             ')
-            ->from('mst_payment p')
-            ->join('cd_code aj', "aj.CODE = p.PLANT AND aj.HEAD_CODE = 'AJ'", 'left')
-            ->join('cd_customer c', "c.CUST = p.SUPPLIER", 'left')
+            ->from('abc_mst_payment p')
+            ->join('abc_cd_code aj', "aj.CODE = p.PLANT AND aj.HEAD_CODE = 'PLANT'", 'left')
+            ->join('abc_cd_customer c', "c.CUST = p.SUPPLIER", 'left')
             ->where('p.PAYMENT', $payment)
             ->where('p.PLANT', $plant)
             ->where('p.DELETED IS NULL')
@@ -606,8 +788,8 @@ class Payment extends MY_Controller {
                 d.TOTAL,
                 d.REMARK
             ')
-            ->from('mst_payment_detail d')
-            ->join('cd_material m', "m.material = d.MATERIAL", 'left')
+            ->from('abc_mst_payment_detail d')
+            ->join('abc_cd_material m', "m.material = d.MATERIAL", 'left')
             ->where('d.PAYMENT', $payment)
             ->where('d.PLANT', $plant)
             ->where('d.DELETED IS NULL')

@@ -13,59 +13,436 @@ class Mcost_model extends CI_Model {
        LIST / COUNT  (PO PATTERN)
     ========================================================= */
 
-    public function get_data($limit,$start,$role_id,$plants,$search='',$order='COST_DATE',$dir='DESC')
+    public function get_data(
+        $limit,
+        $start,
+        $role_id,
+        $plants,
+        $search = '',
+        $order = 'COST_DATE',
+        $dir = 'DESC',
+        $pembayaran = '',
+        $dateFrom = '',
+        $dateTo = ''
+    )
     {
-        $allowedOrder = ['COST','COST_DATE','PEMBAYARAN','SLIP_NO','PLANT','CREATED_AT'];
-        if (!in_array($order,$allowedOrder)) $order='COST_DATE';
-        $dir = strtoupper($dir)==='ASC'?'ASC':'DESC';
+        /*
+        |--------------------------------------------------------------------------
+        | ALLOWED ORDER
+        |--------------------------------------------------------------------------
+        */
 
-        $this->db->select('mst_cost.*, cd_code.CODE_NAME AS PLANT_NAME')
-                 ->from('mst_cost')
-                 ->join('cd_code',"cd_code.CODE = mst_cost.PLANT AND cd_code.HEAD_CODE='AJ'",'left')
-                 ->where('mst_cost.DELETED IS NULL',null,false);
+        $allowedOrder = [
+            'COST',
+            'COST_DATE',
+            'PEMBAYARAN',
+            'SLIP_NO',
+            'PLANT',
+            'CREATED_AT'
+        ];
 
-        if ($role_id!=1){
-            if (empty($plants)) return [];
-            $this->db->where_in('mst_cost.PLANT',$plants);
+        if(!in_array($order, $allowedOrder)){
+
+            $order = 'COST_DATE';
+
         }
 
-        if ($search!=''){
-            $this->db->group_start()
-                ->like('mst_cost.COST',$search)
-                ->or_like('mst_cost.PEMBAYARAN',$search)
-                ->or_like('mst_cost.SLIP_NO',$search)
-                ->or_like('mst_cost.REMARK',$search)
-                ->or_like('cd_code.CODE_NAME',$search)
-                ->group_end();
+        $dir = strtoupper($dir) === 'ASC'
+            ? 'ASC'
+            : 'DESC';
+
+        /*
+        |--------------------------------------------------------------------------
+        | SELECT
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->select("
+            c.*,
+
+            plant.CODE_NAME AS PLANT_NAME,
+
+            COUNT(DISTINCT d.SEQ_NO)
+                AS TOTAL_ITEM,
+
+            SUM(d.QTY)
+                AS TOTAL_QTY,
+
+            SUM(d.TOTAL)
+                AS GRAND_TOTAL
+        ", false);
+
+        /*
+        |--------------------------------------------------------------------------
+        | FROM
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->from('abc_mst_cost c');
+
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+            'abc_cd_code plant',
+            "
+                plant.CODE COLLATE utf8mb4_unicode_ci =
+                c.PLANT COLLATE utf8mb4_unicode_ci
+                AND plant.HEAD_CODE = 'PLANT'
+            ",
+            'left',
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+            'abc_mst_cost_detail d',
+            '
+                d.COST = c.COST
+                AND d.PLANT = c.PLANT
+                AND d.DELETED IS NULL
+            ',
+            'left',
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER DELETED
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->where(
+            'c.DELETED IS NULL',
+            null,
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | ROLE FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        if($role_id != 1){
+
+            if(empty($plants)){
+
+                return [];
+
+            }
+
+            $this->db->where_in(
+                'c.PLANT',
+                $plants
+            );
+
         }
 
-        return $this->db->order_by("mst_cost.$order",$dir)
-                        ->limit((int)$limit,(int)$start)
-                        ->get()->result_array();
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        */
+
+        if($search != ''){
+
+            $this->db->group_start();
+
+            $this->db->like(
+                'c.COST',
+                $search
+            );
+
+            $this->db->or_like(
+                'c.PEMBAYARAN',
+                $search
+            );
+
+            $this->db->or_like(
+                'c.SLIP_NO',
+                $search
+            );
+
+            $this->db->or_like(
+                'c.REMARK',
+                $search
+            );
+
+            $this->db->or_like(
+                'plant.CODE_NAME',
+                $search
+            );
+
+            $this->db->or_like(
+                'd.TIPE_COST',
+                $search
+            );
+
+            $this->db->group_end();
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | PAYMENT FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($pembayaran)){
+
+            $this->db->where(
+                'c.PEMBAYARAN',
+                $pembayaran
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATE RANGE
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($dateFrom)){
+
+            $this->db->where(
+                'c.COST_DATE >=',
+                $dateFrom . ' 00:00:00'
+            );
+
+        }
+
+        if(!empty($dateTo)){
+
+            $this->db->where(
+                'c.COST_DATE <=',
+                $dateTo . ' 23:59:59'
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | GROUP BY
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->group_by('c.COST');
+
+        /*
+        |--------------------------------------------------------------------------
+        | ORDER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->order_by(
+            'c.' . $order,
+            $dir
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | LIMIT
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->limit(
+            (int)$limit,
+            (int)$start
+        );
+
+        return $this->db
+            ->get()
+            ->result_array();
     }
 
-    public function count_data($role_id,$plants,$search='')
+    public function count_data(
+        $role_id,
+        $plants,
+        $search = '',
+        $pembayaran = '',
+        $dateFrom = '',
+        $dateTo = ''
+    )
     {
-        $this->db->from('mst_cost')
-                 ->join('cd_code',"cd_code.CODE = mst_cost.PLANT AND cd_code.HEAD_CODE='AJ'",'left')
-                 ->where('mst_cost.DELETED IS NULL',null,false);
+        /*
+        |--------------------------------------------------------------------------
+        | FROM
+        |--------------------------------------------------------------------------
+        */
 
-        if ($role_id!=1){
-            if (empty($plants)) return 0;
-            $this->db->where_in('mst_cost.PLANT',$plants);
+        $this->db->from('abc_mst_cost c');
+
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+            'abc_cd_code plant',
+            "
+                plant.CODE COLLATE utf8mb4_unicode_ci =
+                c.PLANT COLLATE utf8mb4_unicode_ci
+                AND plant.HEAD_CODE = 'PLANT'
+            ",
+            'left',
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+            'abc_mst_cost_detail d',
+            '
+                d.COST = c.COST
+                AND d.PLANT = c.PLANT
+                AND d.DELETED IS NULL
+            ',
+            'left',
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER DELETED
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->where(
+            'c.DELETED IS NULL',
+            null,
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | ROLE FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        if($role_id != 1){
+
+            if(empty($plants)){
+
+                return 0;
+
+            }
+
+            $this->db->where_in(
+                'c.PLANT',
+                $plants
+            );
+
         }
 
-        if ($search!=''){
-            $this->db->group_start()
-                ->like('mst_cost.COST',$search)
-                ->or_like('mst_cost.PEMBAYARAN',$search)
-                ->or_like('mst_cost.SLIP_NO',$search)
-                ->or_like('mst_cost.REMARK',$search)
-                ->or_like('cd_code.CODE_NAME',$search)
-                ->group_end();
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        */
+
+        if($search != ''){
+
+            $this->db->group_start();
+
+            $this->db->like(
+                'c.COST',
+                $search
+            );
+
+            $this->db->or_like(
+                'c.PEMBAYARAN',
+                $search
+            );
+
+            $this->db->or_like(
+                'c.SLIP_NO',
+                $search
+            );
+
+            $this->db->or_like(
+                'c.REMARK',
+                $search
+            );
+
+            $this->db->or_like(
+                'plant.CODE_NAME',
+                $search
+            );
+
+            $this->db->or_like(
+                'd.TIPE_COST',
+                $search
+            );
+
+            $this->db->group_end();
+
         }
 
-        return $this->db->count_all_results();
+        /*
+        |--------------------------------------------------------------------------
+        | PAYMENT FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($pembayaran)){
+
+            $this->db->where(
+                'c.PEMBAYARAN',
+                $pembayaran
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATE RANGE
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($dateFrom)){
+
+            $this->db->where(
+                'c.COST_DATE >=',
+                $dateFrom . ' 00:00:00'
+            );
+
+        }
+
+        if(!empty($dateTo)){
+
+            $this->db->where(
+                'c.COST_DATE <=',
+                $dateTo . ' 23:59:59'
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | COUNT DISTINCT
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->group_by('c.COST');
+
+        return $this->db
+            ->get()
+            ->num_rows();
     }
 
     /* =========================================================
@@ -84,10 +461,22 @@ class Mcost_model extends CI_Model {
         $plants=$this->get_user_plants($username);
         if(empty($plants)) return [];
         return $this->db->select('CODE as id, CODE_NAME as text')
-                        ->where('HEAD_CODE','AJ')
+                        ->where('HEAD_CODE','PLANT')
                         ->where_in('CODE',$plants)
                         ->order_by('CODE_NAME','ASC')
-                        ->get('cd_code')->result_array();
+                        ->get('abc_cd_code')->result_array();
+    }
+
+    public function get_plant_select2()
+    {
+        return $this->db
+            ->select('CODE as id, CODE_NAME as text')
+            ->from('abc_cd_code')
+            ->where('HEAD_CODE', 'PLANT')
+            ->where('CODE !=', '*')
+            ->order_by('CODE_NAME', 'ASC')
+            ->get()
+            ->result_array();
     }
 
     public function user_has_plant($username,$plant)
@@ -99,12 +488,12 @@ class Mcost_model extends CI_Model {
        COST HEADER
     ========================================================= */
 
-    public function insert_cost_header($data){ return $this->db->insert('mst_cost',$data); }
+    public function insert_cost_header($data){ return $this->db->insert('abc_mst_cost',$data); }
 
     public function get_cost_header($plant, $cost)
     {
         return $this->db
-            ->from('mst_cost')
+            ->from('abc_mst_cost')
             ->where('PLANT', $plant)
             ->where('COST', $cost)
             ->where('DELETED IS NULL', null, false)
@@ -115,7 +504,7 @@ class Mcost_model extends CI_Model {
     public function check_cost_exist($plant, $cost)
     {
         return $this->db
-            ->from('mst_cost')
+            ->from('abc_mst_cost')
             ->where('PLANT', $plant)
             ->where('COST', $cost)
             ->where('DELETED IS NULL', null, false)
@@ -123,7 +512,7 @@ class Mcost_model extends CI_Model {
     }
 
     public function update_cost_header($plant,$cost,$data){
-        return $this->db->where(['PLANT'=>$plant,'COST'=>$cost])->update('mst_cost',$data);
+        return $this->db->where(['PLANT'=>$plant,'COST'=>$cost])->update('abc_mst_cost',$data);
     }
 
     /* =========================================================
@@ -133,13 +522,13 @@ class Mcost_model extends CI_Model {
     public function insert_cost_detail_batch($rows)
     {
         if (empty($rows)) return false;
-        return $this->db->insert_batch('mst_cost_detail', $rows);
+        return $this->db->insert_batch('abc_mst_cost_detail', $rows);
     }
 
     public function get_cost_detail($plant,$cost){
         return $this->db->select('d.*,c.COST_NAME AS TIPE_COST_TEXT')
-                        ->from('mst_cost_detail d')
-                        ->join('cd_cost c','c.COST=d.TIPE_COST','left')
+                        ->from('abc_mst_cost_detail d')
+                        ->join('abc_cd_cost c','c.COST=d.TIPE_COST','left')
                         ->where(['d.PLANT'=>$plant,'d.COST'=>$cost])
                         ->where('d.DELETED IS NULL',null,false)
                         ->order_by('d.SEQ_NO','ASC')
@@ -149,7 +538,7 @@ class Mcost_model extends CI_Model {
     public function delete_cost_detail($plant,$cost,$username){
         return $this->db->where(['PLANT'=>$plant,'COST'=>$cost])
                         ->where('DELETED IS NULL',null,false)
-                        ->update('mst_cost_detail',[
+                        ->update('abc_mst_cost_detail',[
                             'DELETED'=>date('Y-m-d H:i:s'),
                             'UPDATED_AT'=>date('Y-m-d H:i:s'),
                             'UPDATED_BY'=>$username
@@ -160,7 +549,7 @@ class Mcost_model extends CI_Model {
     {
         $rows=$this->db->where(['PLANT'=>$plant,'COST'=>$cost])
                        ->where('DELETED IS NULL',null,false)
-                       ->get('mst_cost_attachment')->result_array();
+                       ->get('abc_mst_cost_attachment')->result_array();
 
         foreach($rows as $r){
             $file=rtrim($r['FILE_PATH'],'/').'/'.$r['FILE_NAME'];
@@ -168,7 +557,7 @@ class Mcost_model extends CI_Model {
         }
 
         return $this->db->where(['PLANT'=>$plant,'COST'=>$cost])
-                        ->update('mst_cost_attachment',['DELETED'=>date('Y-m-d H:i:s')]);
+                        ->update('abc_mst_cost_attachment',['DELETED'=>date('Y-m-d H:i:s')]);
     }
 
     public function delete_cost_folder($plant,$cost)
@@ -182,7 +571,7 @@ class Mcost_model extends CI_Model {
 
     public function delete_cost_header($plant,$cost,$username){
         return $this->db->where(['PLANT'=>$plant,'COST'=>$cost,'DELETED'=>null])
-                        ->update('mst_cost',[
+                        ->update('abc_mst_cost',[
                             'DELETED'=>date('Y-m-d H:i:s'),
                             'UPDATED_AT'=>date('Y-m-d H:i:s'),
                             'UPDATED_BY'=>$username
@@ -214,7 +603,7 @@ class Mcost_model extends CI_Model {
     public function get_cost_attachments_by_seq($plant,$cost,$seq){
         return $this->db->where(['PLANT'=>$plant,'COST'=>$cost,'SEQ_NO'=>$seq])
                         ->where('DELETED IS NULL',null,false)
-                        ->get('mst_cost_attachment')->result_array();
+                        ->get('abc_mst_cost_attachment')->result_array();
     }
 
     public function search_cost($q = null, $limit = 20)
@@ -223,7 +612,7 @@ class Mcost_model extends CI_Model {
         $this->db->reset_query();
 
         $this->db->select('COST, COST_NAME, CLASS');
-        $this->db->from('cd_cost');
+        $this->db->from('abc_cd_cost');
 
         if (!empty($q)) {
             $this->db->group_start();
@@ -260,7 +649,7 @@ class Mcost_model extends CI_Model {
                 FILE_ORIGINAL,
                 FILE_PATH
             ')
-            ->from('mst_cost_attachment')
+            ->from('abc_mst_cost_attachment')
             ->where('PLANT', $plant)
             ->where('COST', $cost)
             ->where('DELETED IS NULL', null, false)
@@ -276,7 +665,7 @@ class Mcost_model extends CI_Model {
             ->where('COST', $cost)
             ->where('SEQ_NO', $seq)
             ->where('DELETED IS NULL', null, false)
-            ->get('mst_cost_attachment')
+            ->get('abc_mst_cost_attachment')
             ->result_array();
 
         foreach ($rows as $r) {
@@ -290,7 +679,7 @@ class Mcost_model extends CI_Model {
             ->where('PLANT', $plant)
             ->where('COST', $cost)
             ->where('SEQ_NO', $seq)
-            ->update('mst_cost_attachment', [
+            ->update('abc_mst_cost_attachment', [
                 'DELETED'    => date('Y-m-d H:i:s')
             ]);
     }
@@ -303,17 +692,17 @@ class Mcost_model extends CI_Model {
 
         $this->db->where('PLANT', $plant)
                 ->where('COST', $cost)
-                ->update('mst_cost_attachment', [
+                ->update('abc_mst_cost_attachment', [
                     'DELETED' => date('Y-m-d H:i:s')
                 ]);
     }
 
-    public function insert_cost_attachment($data){ return $this->db->insert('mst_cost_attachment',$data); }
+    public function insert_cost_attachment($data){ return $this->db->insert('abc_mst_cost_attachment',$data); }
 
     public function generate_cost_no($plant)
     {
         $prefix=date('Ymd').'CS';
-        $row=$this->db->select('COST')->from('mst_cost')
+        $row=$this->db->select('COST')->from('abc_mst_cost')
                       ->where('PLANT',$plant)->like('COST',$prefix,'after')
                       ->order_by('COST','DESC')->limit(1)->get()->row();
         $seq=$row?((int)substr($row->COST,-4)+1):1;
@@ -325,7 +714,7 @@ class Mcost_model extends CI_Model {
         $code=strtoupper($pembayaran)==='CASH'?'AC':'AB';
         $prefix=date('Ymd').$code;
 
-        $row=$this->db->select('SLIP_NO')->from('mst_cost')
+        $row=$this->db->select('SLIP_NO')->from('abc_mst_cost')
                       ->where('PLANT',$plant)->like('SLIP_NO',$prefix,'after')
                       ->order_by('SLIP_NO','DESC')->limit(1)->get()->row();
         $seq=$row?((int)substr($row->SLIP_NO,-4)+1):1;

@@ -1,162 +1,480 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>COST</title>
+<?php
+$logo = FCPATH . 'assets/img/abc-trans.png';
 
-    <style>
-        body {
-            font-family: DejaVu Sans;
-            font-size: 10px;
-            color: #000;
-        }
+$logo64 = file_exists($logo)
+    ? 'data:image/png;base64,' . base64_encode(file_get_contents($logo))
+    : '';
+?>
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+<style>
 
-        .header-table td {
-            vertical-align: top;
-        }
+body{
+    font-family:sans-serif;
+    font-size:11px;
+    color:#222;
+}
 
-        .logo {
-            width: 180px;
-        }
+.header{
+    margin-bottom:20px;
+}
 
-        .title {
-            font-size: 16px;
-            font-weight: bold;
-            text-align: right;
-        }
+.title{
+    text-align:center;
+    font-size:22px;
+    font-weight:bold;
+    margin-bottom:4px;
+}
 
-        .info-table td {
-            padding: 3px 5px;
-        }
+.subtitle{
+    text-align:center;
+    font-size:12px;
+    color:#666;
+}
 
-        .info-label {
-            width: 110px;
-            font-weight: bold;
-        }
+.card{
+    border:1px solid #dfe7ef;
+    border-radius:12px;
+    overflow:hidden;
+}
 
-        .detail-table th,
-        .detail-table td {
-            border: 1px solid #000;
-            padding: 5px;
-        }
+.card-head{
+    background:#0F4C81;
+    color:#fff;
+    padding:12px 15px;
+    font-size:14px;
+    font-weight:bold;
+}
 
-        .detail-table th {
-            background-color: #eee;
-            text-align: center;
-        }
+.meta{
+    padding:15px;
+    background:#f8fafc;
+    border-bottom:1px solid #e5e7eb;
+}
 
-        .text-right { text-align: right; }
-        .text-center { text-align: center; }
+.meta-table{
+    width:100%;
+    border-collapse:collapse;
+}
 
-        .total-box {
-            margin-top: 10px;
-            width: 40%;
-            float: right;
-        }
+.meta-table td{
+    border:none;
+    padding:4px 0;
+    vertical-align:top;
+}
 
-        .remark {
-            margin-top: 30px;
-            clear: both;
-        }
-    </style>
-</head>
+.label{
+    width:110px;
+    font-weight:bold;
+    white-space:nowrap;
+}
 
-<body>
+.sep{
+    width:10px;
+    text-align:center;
+    font-weight:bold;
+}
 
-<!-- ================= HEADER ================= -->
-<table class="header-table">
-    <tr>
-        <td>
-            <img src="https://apja.co.id/assets/img/apja-logo.png"
-                 class="logo"
-                 style="margin-bottom: 15px">
-        </td>
-        <td class="title" style="vertical-align: middle">
-            COST
-        </td>
-    </tr>
-</table>
+.gap{
+    width:30px;
+}
 
-<hr>
+.summary-box{
+    padding:5px 15px;
+    border-bottom:1px solid #e5e7eb;
+    background:#fff;
+}
 
-<!-- ================= INFO ================= -->
-<table class="info-table" style="margin-top: 15px">
-    <tr>
-        <td class="info-label">Plant</td>
-        <td colspan="3">: <?= $header->PLANT_NAME; ?></td>
-        <td class="info-label">Cost Date</td>
-        <td>: <?= date('d-M-Y', strtotime($header->COST_DATE)); ?></td>
-    </tr>
-    <tr>
-        <td class="info-label">Payment</td>
-        <td colspan="3">: <?= $header->PEMBAYARAN; ?></td>
-        <td class="info-label">Cost No</td>
-        <td>: #<?= $header->COST; ?></td>
-    </tr>
-    <tr>
-        <td class="info-label">Slip No</td>
-        <td colspan="5">: #<?= $header->SLIP_NO ?: '-'; ?></td>
-    </tr>
-</table>
+.summary-table{
+    width:100%;
+    border-collapse:collapse;
+}
 
-<br>
+.summary-table td{
+    border:none;
+    text-align:center;
+    padding:10px;
+}
 
-<!-- ================= DETAIL ================= -->
-<table class="detail-table">
-    <thead>
+.summary-value{
+    font-size:22px;
+    font-weight:bold;
+    color:#0F4C81;
+}
+
+.summary-label{
+    font-size:11px;
+    color:#666;
+    margin-top:4px;
+}
+
+.table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.table th,
+.table td{
+    border:1px solid #d9dee5;
+    padding:7px;
+    font-size:10px;
+}
+
+.table th{
+    background:#eef2f7;
+    text-align:center;
+    font-weight:bold;
+}
+
+.right{
+    text-align:right;
+}
+
+.center{
+    text-align:center;
+}
+
+.subtotal{
+    background:#f8fafc;
+    font-weight:bold;
+}
+
+.remark-box{
+    margin-top:18px;
+    padding:12px;
+    border:1px dashed #cbd5e1;
+    border-radius:10px;
+    background:#fcfcfc;
+}
+
+.remark-title{
+    font-weight:bold;
+    margin-bottom:6px;
+}
+
+.sign{
+    margin-top:55px;
+    width:100%;
+}
+
+.sign td{
+    width:50%;
+    text-align:center;
+    border:none;
+}
+
+.sign-line{
+    margin-top:55px;
+    font-weight:bold;
+}
+
+.badge{
+    display:inline-block;
+    padding:3px 8px;
+    border-radius:10px;
+    font-size:9px;
+    font-weight:bold;
+}
+
+.badge-success{
+    background:#d1fae5;
+    color:#065f46;
+}
+
+.badge-primary{
+    background:#dbeafe;
+    color:#1d4ed8;
+}
+
+</style>
+
+<div class="header">
+
+    <table width="100%">
+
         <tr>
-            <th width="5%">No</th>
-            <th>Cost Type</th>
-            <th width="8%">Qty</th>
-            <th width="15%">Jumlah</th>
-            <th width="18%">Total</th>
-            <th>Remark</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php
-        $grandTotal = 0;
-        $no = 1;
 
-        foreach ($detail as $d):
-            $grandTotal += (float)$d->TOTAL;
-        ?>
-        <tr>
-            <td class="text-center"><?= $no++; ?></td>
-            <td><?= $d->TIPE_COST; ?> - <?= $d->COST_NAME; ?></td>
-            <td class="text-center"><?= (int)$d->QTY; ?></td>
-            <td class="text-right">
-                Rp <?= number_format($d->JUMLAH, 0, ',', '.'); ?>
+            <td width="70">
+
+                <?php if($logo64): ?>
+
+                    <img src="<?= $logo64 ?>" height="60">
+
+                <?php endif; ?>
+
             </td>
-            <td class="text-right">
-                Rp <?= number_format($d->TOTAL, 0, ',', '.'); ?>
+
+            <td>
+
+                <div class="title">
+                    PT. Abadi Bersama Cerah
+                </div>
+
+                <div class="subtitle">
+                    COST SLIP
+                </div>
+
             </td>
-            <td><?= $d->REMARK ?: '-'; ?></td>
+
         </tr>
-        <?php endforeach; ?>
-    </tbody>
-</table>
 
-<!-- ================= TOTAL ================= -->
-<table class="total-box">
-    <tr>
-        <td><b>Grand Total</b></td>
-        <td class="text-right">
-            <b>Rp <?= number_format($grandTotal, 0, ',', '.'); ?></b>
-        </td>
-    </tr>
-</table>
+    </table>
 
-<!-- ================= REMARK ================= -->
-<div class="remark">
-    <b>Remark:</b><br>
-    <?= $header->REMARK ?: '-'; ?>
 </div>
 
-</body>
-</html>
+<div class="card">
+
+    <div class="card-head">
+
+        #<?= $header->COST ?>
+
+    </div>
+
+    <!-- META -->
+    <div class="meta">
+
+        <table class="meta-table">
+
+            <tr>
+
+                <td class="label">PLANT</td>
+                <td class="sep">:</td>
+                <td><?= $header->PLANT_NAME ?: '-' ?></td>
+
+                <td class="gap"></td>
+
+                <td class="label">PAYMENT</td>
+                <td class="sep">:</td>
+                <td><?= $header->PEMBAYARAN ?: '-' ?></td>
+
+            </tr>
+
+            <tr>
+
+                <td class="label">COST DATE</td>
+                <td class="sep">:</td>
+
+                <td>
+                    <?= strtoupper(date('d F Y', strtotime($header->COST_DATE))) ?>
+                </td>
+
+                <td class="gap"></td>
+
+                <td class="label">SLIP NO</td>
+                <td class="sep">:</td>
+
+                <td>
+                    <?= $header->SLIP_NO ?: '-' ?>
+                </td>
+
+            </tr>
+
+            <tr>
+
+                <td class="label">CREATED BY</td>
+                <td class="sep">:</td>
+
+                <td>
+                    <?= strtoupper($header->CREATED_BY) ?>
+                </td>
+
+                <td class="gap"></td>
+
+                <td class="label">STATUS</td>
+                <td class="sep">:</td>
+
+                <td>
+
+                    <span class="badge badge-success">
+                        POSTED
+                    </span>
+
+                </td>
+
+            </tr>
+
+        </table>
+
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="summary-box">
+
+        <table class="summary-table">
+
+            <tr>
+
+                <td>
+
+                    <div class="summary-value">
+                        <?= number_format($summary['item'],0,',','.') ?>
+                    </div>
+
+                    <div class="summary-label">
+                        Total Item
+                    </div>
+
+                </td>
+
+                <td>
+
+                    <div class="summary-value">
+                        <?= number_format($summary['qty'],0,',','.') ?>
+                    </div>
+
+                    <div class="summary-label">
+                        Total Qty
+                    </div>
+
+                </td>
+
+                <td>
+
+                    <div class="summary-value">
+                        Rp <?= number_format($summary['total'],0,',','.') ?>
+                    </div>
+
+                    <div class="summary-label">
+                        Grand Total
+                    </div>
+
+                </td>
+
+            </tr>
+
+        </table>
+
+    </div>
+
+    <!-- DETAIL -->
+    <table class="table">
+
+        <thead>
+
+            <tr>
+
+                <th width="5%">NO</th>
+
+                <th width="35%">
+                    COST TYPE
+                </th>
+
+                <th width="10%">
+                    QTY
+                </th>
+
+                <th width="20%">
+                    PRICE
+                </th>
+
+                <th width="20%">
+                    TOTAL
+                </th>
+
+                <th width="10%">
+                    REMARK
+                </th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            <?php foreach($detail as $i => $d): ?>
+
+                <tr>
+
+                    <td class="center">
+                        <?= $i + 1 ?>
+                    </td>
+
+                    <td>
+                        <?= $d->TIPE_COST_NAME ?: '-' ?>
+                    </td>
+
+                    <td class="right">
+                        <?= number_format($d->QTY,2,',','.') ?>
+                    </td>
+
+                    <td class="right">
+                        <?= number_format($d->JUMLAH,0,',','.') ?>
+                    </td>
+
+                    <td class="right">
+                        <?= number_format($d->TOTAL,0,',','.') ?>
+                    </td>
+
+                    <td>
+                        <?= $d->REMARK ?: '-' ?>
+                    </td>
+
+                </tr>
+
+            <?php endforeach; ?>
+
+            <tr class="subtotal">
+
+                <td colspan="2">
+                    GRAND TOTAL
+                </td>
+
+                <td class="right">
+                    <?= number_format($summary['qty'],2,',','.') ?>
+                </td>
+
+                <td></td>
+
+                <td class="right">
+                    <?= number_format($summary['total'],0,',','.') ?>
+                </td>
+
+                <td></td>
+
+            </tr>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<div class="remark-box">
+
+    <div class="remark-title">
+        Remark
+    </div>
+
+    <?= !empty($header->REMARK)
+        ? nl2br($header->REMARK)
+        : '-'
+    ?>
+
+</div>
+
+<table class="sign">
+
+    <tr>
+
+        <td>
+            Prepared By
+        </td>
+
+        <td>
+            Approved By
+        </td>
+
+    </tr>
+
+    <tr>
+
+        <td class="sign-line">
+            (_____________________)
+        </td>
+
+        <td class="sign-line">
+            (_____________________)
+        </td>
+
+    </tr>
+
+</table>

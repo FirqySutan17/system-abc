@@ -114,7 +114,6 @@
 
             <!-- Table -->
              <div class="table-box position-relative">
-
                 <div id="tableLoading" class="table-loading d-none">
                     <div class="loading-card">
                         <div class="spinner-border text-primary"></div>
@@ -174,8 +173,6 @@
                         </table>
                     </div>
                 </div>
-                
-
             </div>
             
 

@@ -12,6 +12,22 @@ class Dashboard extends MY_Controller {
     public function index()
     {
         $data['plants'] = $this->Dashboard_model->get_plant_list();
+        $data['summary'] = [
+
+            'po' => $this->Dashboard_model->summary_po(),
+
+            'receive' => $this->Dashboard_model->summary_receive(),
+
+            'sales' => $this->Dashboard_model->summary_sales()
+
+        ];
+
+        $data['top_material'] =
+            $this->Dashboard_model->top_material();
+
+        $data['monthly_trend'] =
+            $this->Dashboard_model
+                ->monthly_trend();
 
         $this->load->view('templates/header', ['title' => 'Dashboard']);
         $this->load->view('templates/sidebar');

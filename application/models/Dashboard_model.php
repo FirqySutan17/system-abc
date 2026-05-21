@@ -4,6 +4,156 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class Dashboard_model extends CI_Model
 {
 
+    public function summary_po()
+{
+    return $this->db
+        ->query("
+            SELECT
+                COUNT(*) total_po,
+                SUM(TOTAL) total_nominal
+            FROM abc_mst_po
+            WHERE MONTH(PO_DATE)=MONTH(CURDATE())
+        ")
+        ->row_array();
+}
+
+public function summary_receive()
+{
+    return $this->db
+        ->query("
+            SELECT
+                COUNT(*) total_receive
+            FROM abc_mst_receive
+        ")
+        ->row_array();
+}
+
+public function summary_sales()
+{
+    return $this->db
+        ->query("
+            SELECT
+                COUNT(*) total_sales,
+                SUM(AMOUNT) omzet
+            FROM abc_mst_sales
+        ")
+        ->row_array();
+}
+
+public function top_material()
+{
+    return $this->db
+        ->query("
+            SELECT
+                d.MATERIAL,
+
+                m.MATERIAL_NAME,
+
+                SUM(d.JUMLAH) qty
+
+            FROM abc_mst_receive_detail d
+
+            LEFT JOIN abc_cd_material m
+                ON m.MATERIAL = d.MATERIAL
+
+            GROUP BY d.MATERIAL
+
+            ORDER BY qty DESC
+
+            LIMIT 10
+        ")
+        ->result_array();
+}
+
+public function monthly_trend()
+{
+    $sql = "
+
+        SELECT
+            bulan,
+
+            SUM(po_total) po_total,
+
+            SUM(receive_total) receive_total,
+
+            SUM(sales_total) sales_total
+
+        FROM (
+
+            /*
+            |--------------------------------------------------------------------------
+            | PO
+            |--------------------------------------------------------------------------
+            */
+
+            SELECT
+                DATE_FORMAT(PO_DATE,'%Y-%m') bulan,
+
+                SUM(TOTAL) po_total,
+
+                0 receive_total,
+
+                0 sales_total
+
+            FROM abc_mst_po
+
+            GROUP BY bulan
+
+            UNION ALL
+
+            /*
+            |--------------------------------------------------------------------------
+            | RECEIVE
+            |--------------------------------------------------------------------------
+            */
+
+            SELECT
+                DATE_FORMAT(RECEIVE_DATE,'%Y-%m') bulan,
+
+                0 po_total,
+
+                COUNT(*) receive_total,
+
+                0 sales_total
+
+            FROM abc_mst_receive
+
+            GROUP BY bulan
+
+            UNION ALL
+
+            /*
+            |--------------------------------------------------------------------------
+            | SALES
+            |--------------------------------------------------------------------------
+            */
+
+            SELECT
+                DATE_FORMAT(SALES_DATE,'%Y-%m') bulan,
+
+                0 po_total,
+
+                0 receive_total,
+
+                SUM(AMOUNT) sales_total
+
+            FROM abc_mst_sales
+
+            GROUP BY bulan
+
+        ) x
+
+        GROUP BY bulan
+
+        ORDER BY bulan ASC
+
+    ";
+
+    return $this->db
+        ->query($sql)
+        ->result_array();
+}
+
     /* ================= KPI ================= */
     public function get_kpi($year, $plant = null)
     {

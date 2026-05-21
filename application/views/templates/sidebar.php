@@ -473,7 +473,7 @@
             has_permission('report_accounting_payment') ||
             has_permission('report_accounting_cash_in')
         ): ?>
-          <!-- <li class="sidebar-item nav-small-cap" style="padding: 0px; margin-top: 15px">
+          <li class="sidebar-item nav-small-cap" style="padding: 0px; margin-top: 15px">
               <a class="sidebar-link custom-arrow-toggle" href="javascript:void(0)" style="border-radius: 10px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
                   <div style="display: flex; align-items: center;">
                       <span class="sidebar-icon"><i class="ti ti-database"></i></span>
@@ -512,15 +512,15 @@
                 <?php endif; ?>
 
                 <?php if (has_permission('report_accounting_cost') || has_permission('report_accounting_payment') || has_permission('report_accounting_cash_in')): ?>
-                  <li class="sidebar-item child-drop">
+                  <!-- <li class="sidebar-item child-drop">
                       <a href="<?= base_url('report-accounting'); ?>" class="sidebar-link">
                           <i class="ti ti-dots"></i>
                           <span class="hide-menu">Report Accounting</span>
                       </a>
-                  </li>
+                  </li> -->
                 <?php endif; ?>
               </ul>
-          </li> -->
+          </li>
         <?php endif; ?>
 
         <?php if (

@@ -26,7 +26,6 @@
                             <th data-order="PAYMENT" style="text-align:center;">No Payment</th>
                             <th data-order="SUPPLIER" style="text-align:center;">Supplier</th>
                             <th data-order="PEMBAYARAN" style="text-align:center;">Pembayaran</th>
-                            <th data-order="PAYMENT_TYPE" style="text-align:center;">Type</th>
                             <th data-order="SLIP_NO" style="text-align:center;">Slip</th>
                             <th style="text-align:center;">#</th>
                         </tr>
@@ -105,29 +104,6 @@
                         </div>
 
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label">Type *</label>
-                            <div style="width:100%">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input"
-                                        type="radio"
-                                        name="PAYMENT_TYPE"
-                                        value="RECEIVE"
-                                        checked
-                                        required>
-                                    <label class="form-check-label">Receive</label>
-                                </div>
-                                <div class="form-check form-check-inline" style="width: 46%">
-                                    <input class="form-check-input"
-                                        type="radio"
-                                        name="PAYMENT_TYPE"
-                                        value="RECEIVE_LB"
-                                        required>
-                                    <label class="form-check-label">Receive LB</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6 flex-inline">
                             <label class="form-label">No. Slip</label>
                             <input name="SLIP_NO" class="form-control" readonly placeholder="Auto Generate" style="background:#efefef">
                         </div>
@@ -146,7 +122,9 @@
 
                     <!-- DETAIL -->
                      <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 style="margin-bottom: 0px" id="detailTitleAdd">Receive</h5>
+                        <h5 style="margin-bottom: 0px">
+                            Receive
+                        </h5>
                         <div>
                             <button type="button" class="btn btn-success btn-sm" id="addRow">Pilih Receive</button>
                         </div>
@@ -253,14 +231,6 @@
                         </div>
 
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label">Type *</label>
-                            <select name="PAYMENT_TYPE" id="paymentTypeEdit" class="form-control" required>
-                                <option value="RECEIVE">Receive</option>
-                                <option value="RECEIVE_LB">Receive LB</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6 flex-inline">
                             <label class="form-label">No. Slip</label>
                             <input name="SLIP_NO"
                                    class="form-control"
@@ -353,43 +323,136 @@
     }
 </style>
 
-<div class="modal fade" id="modalReceive" tabindex="-1" aria-hidden="true">
+```html
+<!-- =========================================
+MODAL PICK RECEIVE
+========================================== -->
+
+<div class="modal fade"
+    id="modalPickReceive"
+    tabindex="-1"
+    aria-hidden="true">
+
     <div class="modal-dialog modal-xl">
+
         <div class="modal-content">
 
             <div class="modal-header">
-                <h5 class="modal-title">Pilih Receive</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+                <h5 class="modal-title">
+                    PILIH RECEIVE
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+
             </div>
 
             <div class="modal-body">
-                <table class="table table-bordered table-striped" id="tableReceive">
-                    <thead>
-                        <tr>
-                            <th style="text-align:center;">Plant</th>
-                            <th style="text-align:center;">Tanggal</th>
-                            <th style="text-align:center;">Receive</th>
-                            <th style="text-align:center;">Supplier</th>
-                            <th style="text-align:center;">Material</th>
-                            <th style="text-align:center;">Berat</th>
-                            <th style="text-align:center;">Jumlah</th>
-                            <th style="text-align:center;">Harga</th>
-                            <th style="text-align:center;">Total</th>
-                            <th style="text-align:center; width:100px;">#</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+
+                <!-- SEARCH -->
+                <div class="row mb-3">
+
+                    <div class="col-md-6">
+
+                        <input
+                            type="text"
+                            id="searchReceive"
+                            class="form-control"
+                            placeholder="Cari receive / material / supplier...">
+
+                    </div>
+
+                </div>
+
+                <!-- TABLE -->
+                <div class="table-responsive">
+
+                    <table class="table table-bordered table-hover">
+
+                        <thead>
+
+                            <tr>
+
+                                <th width="5%">
+                                    #
+                                </th>
+
+                                <th>
+                                    Receive
+                                </th>
+
+                                <th>
+                                    Supplier
+                                </th>
+
+                                <th>
+                                    Material
+                                </th>
+
+                                <th class="text-center">
+                                    Qty
+                                </th>
+
+                                <th class="text-center">
+                                    Berat
+                                </th>
+
+                                <th class="text-end">
+                                    Harga
+                                </th>
+
+                                <th class="text-end">
+                                    Total
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="receiveListBody"></tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+
+                    Tutup
+
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    id="btnChooseReceive">
+
+                    Pilih Data
+
+                </button>
+
             </div>
 
         </div>
+
     </div>
+
 </div>
+```
+
 
 <script>
     var state = { page: 1, limit: 10, search: '', order: 'PAYMENT', dir: 'DESC' };
     let detailIndex = 0;
-    let activePaymentType = 'RECEIVE';
 
     $('#search').on('keyup', function(){
         state.search = $(this).val();
@@ -421,30 +484,6 @@
         return n[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.') + (n[1] ? '.'+n[1] : '');
     }
 
-    $(document).on('change','input[name="PAYMENT_TYPE"]', function(){
-
-        let type = $(this).val();
-
-        $('#detailTitleAdd').text(
-            type === 'RECEIVE_LB' ? 'Receive LB' : 'Receive'
-        );
-
-        $('#detailTable tbody').empty();
-        calculateGrandTotal('#detailTable');
-    });
-
-    $(document).on('change','#paymentEdit input[name="PAYMENT_TYPE"]', function(){
-
-        let type = $(this).val();
-
-        $('#detailTitleEdit').text(
-            type === 'RECEIVE_LB' ? 'Receive LB' : 'Receive'
-        );
-
-        $('#detailTableEdit tbody').empty();
-        calculateGrandTotal('#detailTableEdit');
-    });
-
     /* =========================
     LOAD DATA
     ========================= */
@@ -463,12 +502,6 @@
                         <td class="text-center" style="vertical-align: middle">#${r.PAYMENT}</td>
                         <td class="text-center" style="vertical-align: middle">${r.SUPPLIER_NAME}</td>
                         <td class="text-center" style="vertical-align: middle">${r.PEMBAYARAN}</td>
-                        <td class="text-center" style="vertical-align: middle">
-                            ${r.PAYMENT_TYPE === 'RECEIVE_LB'
-                                ? '<span class="badge bg-warning">RECEIVE LB</span>'
-                                : '<span class="badge bg-primary">RECEIVE</span>'
-                            }
-                        </td>
                         <td class="text-center" style="vertical-align: middle">#${r.SLIP_NO ?? '-'}</td>
                         <td class="text-center" style="vertical-align: middle">
                             <button class="btn btn-sm btn-primary exportPdf" data-payment="${r.PAYMENT}" data-plant="${r.PLANT}">PDF</button>
@@ -482,6 +515,184 @@
             $('#pagination').html(resp.pagination);
         });
     }
+
+    function updateGrandTotal()
+    {
+        let total = 0;
+
+        $('#detailTable tbody tr').each(function(){
+
+            let rowTotal =
+                cleanNumber(
+                    $(this)
+                        .find('.total-cell')
+                        .text()
+                );
+
+            total += rowTotal;
+        });
+
+        $('#grandTotal')
+            .val(
+                formatRupiah(total)
+            );
+    }
+
+    $('#btnChooseReceive').click(function(){
+
+        $('.pickReceive:checked').each(function(){
+
+            let id = $(this).data('id');
+
+            let receive = $(this).data('receive');
+
+            let material = $(this).data('material');
+
+            /*
+            |--------------------------------------------------------------------------
+            | PREVENT DUPLICATE
+            |--------------------------------------------------------------------------
+            */
+
+            let exists = false;
+
+            $('#detailTable tbody tr').each(function(){
+
+                if (
+                    $(this).data('id') == id &&
+                    $(this).data('receive') == receive &&
+                    $(this).data('material') == material
+                ) {
+
+                    exists = true;
+                }
+            });
+
+            if (exists) {
+                return;
+            }
+
+            let qty =
+                parseFloat($(this).data('qty')) || 0;
+
+            let harga =
+                parseFloat($(this).data('harga')) || 0;
+
+            let total =
+                parseFloat($(this).data('total')) || 0;
+
+            let row = `
+                <tr
+                    data-receive="${receive}"
+                    data-material="${material}">
+
+                    <td>
+                        ${receive}
+
+                        <input type="hidden"
+                            name="DETAIL[][RECEIVE_NO]"
+                            value="${receive}">
+                    </td>
+
+                    <td>
+                        ${$(this).data('material-name')}
+
+                        <input type="hidden"
+                            name="DETAIL[][MATERIAL]"
+                            value="${material}">
+                    </td>
+
+                    <td class="text-center">
+
+                        ${formatRupiah(
+                            $(this).data('berat')
+                        )}
+
+                        <input type="hidden"
+                            name="DETAIL[][BERAT]"
+                            value="${$(this).data('berat')}">
+                    </td>
+
+                    <td class="text-center">
+
+                        ${formatRupiah(qty)}
+
+                        <input type="hidden"
+                            name="DETAIL[][JUMLAH]"
+                            value="${qty}">
+                    </td>
+
+                    <td class="text-end">
+
+                        ${formatRupiah(harga)}
+
+                        <input type="hidden"
+                            name="DETAIL[][HARGA]"
+                            value="${harga}">
+                    </td>
+
+                    <td class="text-end total-cell">
+
+                        ${formatRupiah(total)}
+
+                    </td>
+
+                    <td>
+
+                        <input
+                            type="text"
+                            class="form-control"
+                            name="DETAIL[][REMARK]">
+                    </td>
+
+                    <td class="text-center">
+
+                        <button
+                            type="button"
+                            class="btn btn-danger btn-sm removeDetail">
+
+                            X
+
+                        </button>
+
+                    </td>
+
+                </tr>
+            `;
+
+            $('#detailTable tbody')
+                .append(row);
+
+            /*
+            |--------------------------------------------------------------------------
+            | AUTO SUPPLIER
+            |--------------------------------------------------------------------------
+            */
+
+            $('#hiddensupplierAdd')
+                .val($(this).data('supplier'));
+
+        });
+
+        updateGrandTotal();
+
+        $('#modalPickReceive')
+            .modal('hide');
+
+    });
+
+    $(document).on(
+        'click',
+        '.removeDetail',
+        function(){
+
+            $(this)
+                .closest('tr')
+                .remove();
+
+            updateGrandTotal();
+        }
+    );
 
     $(document).on("click", ".exportPdf", function () {
         let payment    = $(this).data("payment");
@@ -557,27 +768,41 @@
         });
     });
 
-    $('#addRow').on('click', function () {
+    $('#supplierAdd').on('change', function(){
 
-        let supplier = $('#hiddensupplierAdd').val();
-        let plant    = $('#plantAdd').val();
+        $('#detailTable tbody')
+            .html('');
+    
+        updateGrandTotal();
 
-        if (!plant) {
-            alert('Pilih plant terlebih dahulu');
-            return;
-        }
-
-        if (!supplier) {
-            alert('Pilih supplier terlebih dahulu');
-            return;
-        }
-
-        loadReceiveModal({
-            supplier: supplier,
-            plant: plant,
-            targetTable: '#detailTable'
-        });
     });
+
+    $('#addRow').click(function(){
+
+        let supplier =
+            $('#hiddensupplierAdd').val();
+
+        if(!supplier){
+
+            alert(
+                'Pilih supplier terlebih dahulu'
+            );
+
+            return;
+        }
+
+        loadReceivePicker();
+
+        $('#modalPickReceive')
+            .modal('show');
+
+    });
+
+    
+    let searchReceiveTimer; $('#searchReceive').on('keyup', function(){ clearTimeout(searchReceiveTimer); searchReceiveTimer = setTimeout(() => { loadReceivePicker(); }, 400); });
+
+    function loadReceivePicker() { $.get( '<?= base_url("payment/load_receive_picker"); ?>', { plant : $('#plantAdd').val(),supplier :
+                $('#hiddensupplierAdd').val(), search : $('#searchReceive').val() }, function(rows){ let tbody = $('#receiveListBody'); tbody.html(''); rows.forEach(function(r){ let tr = ` <tr> <td class="text-center"> <input type="checkbox" class="pickReceive" data-id="${r.ID}" data-receive="${r.RECEIVE}" data-material="${r.MATERIAL}" data-material-name="${r.MATERIAL_NAME}" data-qty="${r.JUMLAH}" data-berat="${r.BERAT}" data-harga="${r.HARGA}" data-total="${r.TOTAL}" data-supplier="${r.SUPPLIER}" data-supplier-name="${r.SUPPLIER_NAME}"> </td> <td> ${r.RECEIVE} </td> <td> ${r.SUPPLIER_NAME || '-'} </td> <td> ${r.MATERIAL_NAME || '-'} </td> <td class="text-center"> ${formatRupiah(r.JUMLAH)} </td> <td class="text-center"> ${formatRupiah(r.BERAT)} </td> <td class="text-end"> ${formatRupiah(r.HARGA)} </td> <td class="text-end"> ${formatRupiah(r.TOTAL)} </td> </tr> `; tbody.append(tr); }); }, 'json' ); }
 
     $('#addRowEdit').on('click', function () {
 
@@ -735,17 +960,11 @@
             return;
         }
 
-        let paymentType =
-        targetTable === '#detailTableEdit'
-            ? $('#paymentTypeEdit').val()
-            : $('input[name="PAYMENT_TYPE"]:checked').val();
-
         $.get(
             '<?= base_url("payment/load_receive_modal"); ?>',
             {
                 supplier: supplier,
-                plant: plant,
-                type: paymentType
+                plant: plant
             },
             function (res) {
 
@@ -920,22 +1139,93 @@
         });
     }
 
-    function initPlantSelect2(selector, modal){
+    function initPlantSelect2(selector, modalId){
+
+        if ($(selector).hasClass("select2-hidden-accessible")) {
+
+            $(selector).select2('destroy');
+
+        }
+
         $(selector).select2({
-            placeholder:'Pilih Plant',
-            dropdownParent:$(modal),
-            width:'100%',
-            ajax:{
-                url:'<?= base_url("payment/get_user_plants"); ?>',
-                dataType:'json',
-                delay:250,
-                processResults:function(data){
+
+            placeholder: "Pilih PLANT",
+
+            dropdownParent: $(modalId),
+
+            width: "100%",
+
+            multiple: false,
+
+            ajax: {
+
+                url: "<?= base_url('mcost/get_plant'); ?>",
+
+                dataType: "json",
+
+                delay: 250,
+
+                processResults: function (data) {
+
                     return {
-                        results:data
+
+                        results: data.map(p => ({
+
+                            id: p.id,
+
+                            text: p.text
+
+                        }))
+
                     };
+
                 }
+
             }
+
         });
+
+        $(selector).on(
+            'select2:select',
+            function(e){
+
+                $('#PLANT_ADD').val(
+                    e.params.data.id
+                );
+            }
+        );
+
+        $.getJSON(
+            "<?= base_url('mcost/get_plant'); ?>",
+            function(data){
+
+                if(
+                    data &&
+                    data.length > 0
+                ){
+
+                    let first = data[0];
+
+                    let option = new Option(
+
+                        first.text,
+                        first.id,
+                        true,
+                        true
+
+                    );
+
+                    $(selector)
+                        .append(option)
+                        .trigger('change');
+
+                    $('#PLANT_ADD').val(
+                        first.id
+                    );
+                }
+
+            }
+        );
     }
 
     $(function(){

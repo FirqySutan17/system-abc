@@ -6,32 +6,155 @@
 
             <!-- SEARCH + ADD -->
             <div class="row mb-3">
-                <div class="col-md-8">
-                    <input id="search" type="text" class="form-control" placeholder="Cari cost..." />
-                </div>
-                <div class="col-md-4 col-sm-12 text-end mt-2 mt-md-0">
-                    <button id="btnAdd" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#costAdd">
-                        <i class="ti ti-plus"></i> Tambah Cost
-                    </button>
-                </div>
-            </div>
+                <div class="row g-2 mb-3">
 
-            <!-- TABLE -->
-            <div class="table-responsive">
-                <table class="table table-striped table-hover" id="mainTable">
-                    <thead>
-                        <tr>
-                            <th data-order="PLANT" style="text-align:center;">Plant</th>
-                            <th data-order="COST" style="text-align:center;">COST</th>
-                            <th data-order="COST_DATE" style="text-align:center;">Tanggal</th>
-                            <th data-order="PEMBAYARAN" style="text-align:center;">Pembayaran</th>
-                            <th data-order="SLIP_NO" style="text-align:center;">Slip No</th>
-                            <th data-order="REMARK" style="text-align:center;">Remark</th>
-                            <th style="text-align:center;">#</th>
-                        </tr>
-                    </thead>
-                    <tbody id="table-body"></tbody>
-                </table>
+                    <!-- SEARCH -->
+                    <div class="col-md-3">
+
+                        <input
+                            id="search"
+                            type="text"
+                            class="form-control"
+                            placeholder="Cari cost, slip, remark...">
+
+                    </div>
+
+                    <!-- PAYMENT -->
+                    <div class="col-md-2">
+
+                        <select
+                            id="filterPembayaran"
+                            class="form-control">
+
+                            <option value="">
+                                Semua Pembayaran
+                            </option>
+
+                            <option value="CASH">
+                                CASH
+                            </option>
+
+                            <option value="TRANSFER">
+                                TRANSFER
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <!-- DATE FROM -->
+                    <div class="col-md-2">
+
+                        <input
+                            type="date"
+                            id="dateFrom"
+                            class="form-control"
+                            value="<?= date('Y-m-01'); ?>">
+
+                    </div>
+
+                    <!-- DATE TO -->
+                    <div class="col-md-2">
+
+                        <input
+                            type="date"
+                            id="dateTo"
+                            class="form-control"
+                            value="<?= date('Y-m-d'); ?>">
+
+                    </div>
+
+                    <!-- RESET -->
+                    <div class="col-md-1">
+
+                        <button
+                            class="btn btn-light w-100"
+                            id="btnResetFilter">
+
+                            Reset
+
+                        </button>
+
+                    </div>
+
+                    <!-- ADD -->
+                    <div class="col-md-2 text-end">
+
+                        <button
+                            id="btnAdd"
+                            class="btn btn-primary w-100"
+                            data-bs-toggle="modal"
+                            data-bs-target="#costAdd">
+
+                            <i class="ti ti-plus"></i>
+
+                            Tambah Cost
+
+                        </button>
+
+                    </div>
+
+                 </div>
+
+            </div>
+            <div class="table-box position-relative">
+                <div id="tableLoading" class="table-loading d-none">
+                    <div class="loading-card">
+                        <div class="spinner-border text-primary"></div>
+                        <div class="mt-3 fw-semibold">Loading data...</div>
+                        <small class="text-muted">Please wait a moment</small>
+                    </div>
+                </div>
+
+                <div id="tableWrapper">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle table-modern" id="mainTable">
+                            <thead>
+                                <thead>
+                                    <tr>
+
+                                        <th class="text-center">
+                                            Plant
+                                        </th>
+
+                                        <th class="text-center">
+                                            Cost
+                                        </th>
+
+                                        <th class="text-center">
+                                            Date
+                                        </th>
+
+                                        <th class="text-center">
+                                            Payment
+                                        </th>
+
+                                        <th class="text-center">
+                                            Slip
+                                        </th>
+
+                                        <th class="text-center">
+                                            Item
+                                        </th>
+
+                                        <th class="text-center">
+                                            Total
+                                        </th>
+
+                                        <th class="text-center">
+                                            Remark
+                                        </th>
+
+                                        <th class="text-center">
+                                            #
+                                        </th>
+
+                                    </tr>
+                                </thead>
+                            <tbody id="table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
             <div class="d-flex justify-content-between mt-3">
@@ -44,6 +167,39 @@
 </div>
 
 <style>
+    .table-modern td,
+    .table-modern th{
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+    .table-box{
+        min-height:300px;
+    }
+
+    .table-loading{
+        position:absolute;
+        inset:0;
+        z-index:10;
+        background:rgba(255,255,255,.82);
+        backdrop-filter:blur(2px);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        border-radius:12px;
+    }
+
+    .loading-card{
+        text-align:center;
+        padding:28px 40px;
+        background:#fff;
+        border-radius:18px;
+        box-shadow:0 10px 30px rgba(0,0,0,.08);
+    }
+
+    .loading-hide{
+        opacity:.35;
+        pointer-events:none;
+    }
     .flex-inline {
         padding: 2px 10px;
         margin-bottom: 5px;
@@ -313,7 +469,22 @@
 
 <script>
     const BASE_URL = "<?= base_url(); ?>";
-    var state = { page: 1, limit: 10, search: '', order: 'COST', dir: 'DESC' };
+    var state = {
+
+        page: 1,
+        limit: 10,
+
+        search: '',
+
+        pembayaran: '',
+
+        date_from: '<?= date('Y-m-01'); ?>',
+        date_to: '<?= date('Y-m-d'); ?>',
+
+        order: 'COST_DATE',
+        dir: 'DESC'
+
+    };
 
     /* ======================
     SEARCH
@@ -327,32 +498,122 @@
         }, 500); // delay 500ms setelah berhenti mengetik
     });
 
+    $('#filterPembayaran').change(function(){
+        state.pembayaran = $(this).val();
+        loadPage(1);
+    });
+
+    $('#dateFrom, #dateTo').change(function(){
+        state.date_from = $('#dateFrom').val();
+
+        state.date_to = $('#dateTo').val();
+
+        loadPage(1);
+    });
+
+    $('#btnResetFilter').click(function(){
+
+        $('#search').val('');
+        $('#filterPembayaran').val('');
+        $('#dateFrom').val('<?= date('Y-m-01'); ?>');
+        $('#dateTo').val('<?= date('Y-m-d'); ?>');
+
+        state.search = '';
+        state.pembayaran = '';
+        state.date_from = $('#dateFrom').val();
+        state.date_to = $('#dateTo').val();
+
+        loadPage(1);
+
+    });
+
     function initPlantSelect2(selector, modalId){
+
         if ($(selector).hasClass("select2-hidden-accessible")) {
+
             $(selector).select2('destroy');
+
         }
+
         $(selector).select2({
+
             placeholder: "Pilih PLANT",
+
             dropdownParent: $(modalId),
+
             width: "100%",
-            multiple: false, // 🔥 WAJIB
+
+            multiple: false,
+
             ajax: {
-                url: "<?= base_url('mcost/get_plant_by_user'); ?>",
+
+                url: "<?= base_url('mcost/get_plant'); ?>",
+
                 dataType: "json",
+
                 delay: 250,
+
                 processResults: function (data) {
-                    // 🔒 pastikan format select2
+
                     return {
+
                         results: data.map(p => ({
+
                             id: p.id,
+
                             text: p.text
+
                         }))
+
                     };
+
                 }
+
             }
-        }).on('select2:select', function(e){
-            $('#PLANT_ADD').val(e.params.data.id); // STRING
+
         });
+
+        $(selector).on(
+            'select2:select',
+            function(e){
+
+                $('#PLANT_ADD').val(
+                    e.params.data.id
+                );
+            }
+        );
+
+        $.getJSON(
+            "<?= base_url('mcost/get_plant'); ?>",
+            function(data){
+
+                if(
+                    data &&
+                    data.length > 0
+                ){
+
+                    let first = data[0];
+
+                    let option = new Option(
+
+                        first.text,
+                        first.id,
+                        true,
+                        true
+
+                    );
+
+                    $(selector)
+                        .append(option)
+                        .trigger('change');
+
+                    $('#PLANT_ADD').val(
+                        first.id
+                    );
+                }
+
+            }
+        );
     }
 
     /* ======================
@@ -399,53 +660,204 @@
         document.querySelector('.select2-container--open .select2-search__field').focus();
     });
 
+    function showTableLoading(){
+
+    $('#tableLoading').removeClass('d-none');
+
+    }
+
+    function hideTableLoading(){
+
+    $('#tableLoading').addClass('d-none');
+
+    }
+
     /* ======================
     LOAD TABLE
     ====================== */
     let ajaxListRequest = null;
 
     function loadPage(page = 1){
+        showTableLoading();
         state.page = page;
 
         if (ajaxListRequest) {
             ajaxListRequest.abort(); // batalkan request sebelumnya
         }
 
-        ajaxListRequest = $.get('<?= base_url("mcost/load_data"); ?>', state, function(resp){
+        ajaxListRequest = $.get(
+        '<?= base_url("mcost/load_data"); ?>',
+        state,
+        function(resp){
             ajaxListRequest = null;
-            resp = typeof resp === 'string' ? JSON.parse(resp) : resp;
+
+            resp = typeof resp === 'string'
+                ? JSON.parse(resp)
+                : resp;
 
             let tbody = $('#table-body').empty();
 
-            let currentUser = "<?= $this->session->userdata('username'); ?>".toLowerCase();
-            let hideEdit = ['adelia','hellen'].includes(currentUser);
-
             resp.rows.forEach(function(row){
-                let editBtn = hideEdit ? '' :
-                `<button class="btn btn-sm btn-warning me-1 editBtn" data-cost="${row.COST}" data-plant="${row.PLANT}">Edit</button>`;
+
                 let tr = `
+
                     <tr>
-                        <td style="text-align:center;"><b>${row.PLANT_NAME}</b></td>
-                        <td style="text-align:center;"><b>#${row.COST}</b></td>
-                        <td style="text-align:center;">${formatDate(row.COST_DATE)}</td>
-                        <td style="text-align:center;">${row.PEMBAYARAN}</td>
-                        <td style="text-align:center;">${row.SLIP_NO ?? '-'}</td>
-                        <td style="text-align:center;">${row.REMARK ?? ''}</td>
-                        <td style="text-align:center;">
-                            <button class="btn btn-sm btn-primary me-1 exportPdf" data-cost="${row.COST}" data-plant="${row.PLANT}">SLIP</button>
-                            ${editBtn}
-                            <button class="btn btn-sm btn-danger deleteBtn" data-cost="${row.COST}" data-plant="${row.PLANT}">Hapus</button>
+
+                        <!-- PLANT -->
+                        <td class="text-center align-middle">
+
+                            <div class="fw-semibold">
+
+                                ${row.PLANT_NAME || '-'}
+
+                            </div>
+
                         </td>
+
+                        <!-- COST -->
+                        <td class="text-center align-middle">
+
+                            <div class="fw-bold text-primary">
+
+                                #${row.COST}
+
+                            </div>
+
+                        </td>
+
+                        <!-- DATE -->
+                        <td class="text-center align-middle">
+
+                            ${formatDate(row.COST_DATE)}
+
+                        </td>
+
+                        <!-- PAYMENT -->
+                        <td style="text-align:center;">
+
+                            <span class="
+                                badge
+                                ${row.PEMBAYARAN === 'CASH'
+                                    ? 'bg-primary'
+                                    : 'bg-success'}
+                            ">
+
+                                ${row.PEMBAYARAN ?? '-'}
+
+                            </span>
+
+                        </td>
+
+                        <!-- SLIP -->
+                        <td class="text-center align-middle">
+
+                            ${row.SLIP_NO || '-'}
+
+                        </td>
+
+                        <!-- ITEM -->
+                        <td class="text-center align-middle">
+
+                            <div>
+
+                                <span class="badge bg-primary">
+
+                                    ${row.TOTAL_ITEM || 0}
+                                    Item
+
+                                </span>
+
+                            </div>
+
+                            <div class="mt-1">
+
+                                <small class="text-muted">
+
+                                    Qty :
+                                    ${formatRupiah(row.TOTAL_QTY || 0)}
+
+                                </small>
+
+                            </div>
+
+                        </td>
+
+                        <!-- TOTAL -->
+                        <td class="text-end align-middle">
+
+                            <div class="fw-bold text-success">
+
+                                Rp
+                                ${formatRupiah(row.GRAND_TOTAL || 0)}
+
+                            </div>
+
+                        </td>
+
+                        <!-- REMARK -->
+                        <td class="align-middle">
+
+                            ${row.REMARK || '-'}
+
+                        </td>
+
+                        <!-- ACTION -->
+                        <td class="text-center align-middle">
+
+                            <div class="btn-group btn-group-sm">
+
+                                <button
+                                    class="btn btn-outline-primary exportPdf"
+                                    data-cost="${row.COST}"
+                                    data-plant="${row.PLANT}">
+
+                                    Slip
+
+                                </button>
+
+                                <button
+                                    class="btn btn-outline-warning editBtn"
+                                    data-cost="${row.COST}"
+                                    data-plant="${row.PLANT}">
+
+                                    Edit
+
+                                </button>
+
+                                <button
+                                    class="btn btn-outline-danger deleteBtn"
+                                    data-cost="${row.COST}"
+                                    data-plant="${row.PLANT}">
+
+                                    Hapus
+
+                                </button>
+
+                            </div>
+
+                        </td>
+
                     </tr>
+
                 `;
+
                 tbody.append(tr);
+
             });
 
             $('#pagination').html(resp.pagination);
+
             $('#info').text(
                 `Menampilkan halaman ${resp.page} dari ${Math.ceil(resp.total/state.limit)} (Total ${resp.total} data)`
             );
+
+        },
+        'json'
+
+        ).always(function(){
+            hideTableLoading();
         });
+
     }
 
     function unformatRupiah(angka) {
