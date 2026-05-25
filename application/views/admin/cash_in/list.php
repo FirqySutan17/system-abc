@@ -1,70 +1,471 @@
 <div class="container-fluid">
+
     <div class="card w-100">
+
         <div class="card-body">
 
-            <h5 class="card-title fw-semibold mb-4">CASH IN</h5>
+            <h5 class="card-title fw-semibold mb-4">
+                CASH IN
+            </h5>
 
-            <!-- SEARCH + ADD ROW -->
+            <!-- FILTER -->
             <div class="row mb-3">
-                <div class="col-md-8">
-                    <input id="search" type="text" class="form-control" placeholder="Cari Cash In..." />
+
+                <div class="row g-2 mb-3">
+
+                    <!-- SEARCH -->
+                    <div class="col-md-3">
+
+                        <input
+                            id="search"
+                            type="text"
+                            class="form-control"
+                            placeholder="Cari cash in, customer, bon...">
+
+                    </div>
+
+                    <!-- PAYMENT -->
+                    <div class="col-md-2">
+
+                        <select
+                            id="filterPembayaran"
+                            class="form-control">
+
+                            <option value="">
+                                Semua Pembayaran
+                            </option>
+
+                            <option value="CASH">
+                                CASH
+                            </option>
+
+                            <option value="TRANSFER">
+                                TRANSFER
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <!-- DATE FROM -->
+                    <div class="col-md-2">
+
+                        <input
+                            type="date"
+                            id="dateFrom"
+                            class="form-control"
+                            value="<?= date('Y-m-01'); ?>">
+
+                    </div>
+
+                    <!-- DATE TO -->
+                    <div class="col-md-2">
+
+                        <input
+                            type="date"
+                            id="dateTo"
+                            class="form-control"
+                            value="<?= date('Y-m-d'); ?>">
+
+                    </div>
+
+                    <!-- RESET -->
+                    <div class="col-md-1">
+
+                        <button
+                            class="btn btn-light w-100"
+                            id="btnResetFilter">
+
+                            Reset
+
+                        </button>
+
+                    </div>
+
+                    <!-- ADD -->
+                    <div class="col-md-2 text-end">
+
+                        <button
+                            id="btnAdd"
+                            class="btn btn-primary w-100"
+                            data-bs-toggle="modal"
+                            data-bs-target="#CashInAdd">
+
+                            <i class="ti ti-plus"></i>
+
+                            Tambah Cash In
+
+                        </button>
+
+                    </div>
+
                 </div>
-                <div class="col-md-4 col-sm-12 text-end mt-2 mt-md-0">
-                    <div class="btn-group "></div>
-                    <button id="btnAdd" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#CashInAdd">
-                        <i class="ti ti-plus"></i> Tambah Cash In
-                    </button>
-                </div>
+
             </div>
 
-            <!-- Table -->
-            <div class="table-responsive">
-                <table class="table table-striped table-hover" id="mainTable">
-                    <thead>
-                        <tr>
-                            <th data-order="PLANT" style="text-align: center;">Plant</th>
-                            <th data-order="CASH_IN" style="text-align: center;">No. Cash In</th>
-                            <th data-order="CASHIN_DATE" style="text-align: center;">Tanggal</th>
-                            <th data-order="CUSTOMER" style="text-align: center;">Customer</th>
-                            <th data-order="AMOUNT" style="text-align: center;">Jumlah</th>
-                            <th data-order="REMARK" style="text-align: center;">No. Bon / Remark</th>
-                            <th style="text-align: center;">#</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+            <!-- TABLE -->
+            <div class="table-box position-relative">
+
+                <!-- LOADING -->
+                <div id="tableLoading" class="table-loading d-none">
+
+                    <div class="loading-card">
+
+                        <div class="spinner-border text-primary"></div>
+
+                        <div class="mt-3 fw-semibold">
+                            Loading data...
+                        </div>
+
+                        <small class="text-muted">
+                            Please wait a moment
+                        </small>
+
+                    </div>
+
+                </div>
+
+                <!-- WRAPPER -->
+                <div id="tableWrapper">
+
+                    <div class="table-responsive">
+
+                        <table
+                            class="table table-hover align-middle table-modern"
+                            id="mainTable">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th class="text-center" data-sort="PLANT">
+                                        Plant
+                                    </th>
+
+                                    <th class="text-center" data-sort="CASH_IN">
+                                        Cash In
+                                    </th>
+
+                                    <th class="text-center" data-sort="CASHIN_DATE">
+                                        Date
+                                    </th>
+
+                                    <th class="text-center">
+                                        Customer
+                                    </th>
+
+                                    <th class="text-center" data-sort="PEMBAYARAN">
+                                        Payment
+                                    </th>
+
+                                    <th class="text-center">
+                                        Invoice
+                                    </th>
+
+                                    <th class="text-center" data-sort="TOTAL">
+                                        Total
+                                    </th>
+
+                                    <th class="text-center">
+                                        Status
+                                    </th>
+
+                                    <th class="text-center">
+                                        Remark
+                                    </th>
+
+                                    <th class="text-center">
+                                        #
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="table-body"></tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
             </div>
 
+            <!-- PAGINATION -->
             <div class="d-flex justify-content-between mt-3">
+
                 <div id="info"></div>
+
                 <div id="pagination"></div>
+
             </div>
 
         </div>
+
     </div>
+
 </div>
 
 <style>
-    .flex-inline {
-        padding: 2px 10px;
-        margin-bottom: 5px;
+    #mainTable thead th[data-sort]{
+
+        cursor: pointer;
+
+        user-select: none;
+
+        position: relative;
+
+    }
+
+    #mainTable thead th[data-sort]:hover{
+
+        background: #f8f9fa;
+
+    }
+    .table-modern td,
+    .table-modern th{
+
+        white-space: nowrap;
+
+        vertical-align: middle;
+
+    }
+
+    .table-box{
+
+        min-height: 300px;
+
+    }
+
+    .table-loading{
+
+        position: absolute;
+
+        inset: 0;
+
+        z-index: 10;
+
+        background: rgba(255,255,255,.82);
+
+        backdrop-filter: blur(2px);
+
         display: flex;
+
         align-items: center;
+
+        justify-content: center;
+
+        border-radius: 12px;
+
+    }
+
+    .loading-card{
+
+        text-align: center;
+
+        padding: 28px 40px;
+
+        background: #fff;
+
+        border-radius: 18px;
+
+        box-shadow: 0 10px 30px rgba(0,0,0,.08);
+
+    }
+
+    .loading-hide{
+
+        opacity: .35;
+
+        pointer-events: none;
+
+    }
+
+    .flex-inline {
+
+        padding: 2px 10px;
+
+        margin-bottom: 5px;
+
+        display: flex;
+
+        align-items: center;
+
         justify-content: flex-start;
+
         align-content: center;
+
         flex-wrap: nowrap;
+
         flex-direction: row;
+
     }
+
     label {
+
         width: 35%;
+
     }
+
     .space-line {
+
         border-bottom: 5px double black;
+
         margin-bottom: 10px
+
     }
+
     .modal-xl {
+
         --bs-modal-width: 90%;
+
     }
+
+    .detail-row {
+
+        border: 2px solid #efefef !important;
+
+    }
+
+    .select2-container--open {
+
+        z-index: 999999 !important;
+
+    }
+
+    .select2-dropdown {
+
+        position: absolute !important;
+
+    }
+
+    .mode-wrapper{
+
+        display:flex;
+
+        gap:15px;
+
+    }
+
+    .mode-card{
+
+        flex:1;
+
+        border:2px solid #e5e7eb;
+
+        border-radius:16px;
+
+        padding:20px;
+
+        cursor:pointer;
+
+        transition:.2s;
+
+        position:relative;
+
+    }
+
+    .mode-card:hover{
+
+        border-color:#2563eb;
+
+    }
+
+    .mode-card input{
+
+        position:absolute;
+
+        opacity:0;
+
+    }
+
+    .mode-card input:checked + .mode-content{
+
+        color:#2563eb;
+
+    }
+
+    .mode-card:has(input:checked){
+
+        border-color:#2563eb;
+
+        background:#eff6ff;
+
+    }
+
+    .mode-title{
+
+        font-weight:700;
+
+        font-size:16px;
+
+    }
+
+    .mode-sub{
+
+        margin-top:5px;
+
+        font-size:13px;
+
+        color:#6b7280;
+
+    }
+
+    .summary-card{
+
+        border-radius:18px;
+
+        padding:20px;
+
+        color:white;
+
+        box-shadow:0 10px 25px rgba(0,0,0,0.08);
+
+    }
+
+    .summary-label{
+
+        font-size:13px;
+
+        opacity:.9;
+
+        margin-bottom:10px;
+
+    }
+
+    .summary-value{
+
+        font-size:24px;
+
+        font-weight:bold;
+
+    }
+
+    .summary-blue{
+
+        background:linear-gradient(135deg,#2563eb,#1d4ed8);
+
+    }
+
+    .summary-green{
+
+        background:linear-gradient(135deg,#10b981,#059669);
+
+    }
+
+    .summary-orange{
+
+        background:linear-gradient(135deg,#f59e0b,#d97706);
+
+    }
+
+    .summary-red{
+
+        background:linear-gradient(135deg,#ef4444,#dc2626);
+
+    }
+
 </style>
 
 <!-- MODAL ADD CASH IN -->
@@ -80,133 +481,387 @@
 
                     <!-- HEADER -->
                     <div class="row g-2 mb-3">
+
+                        <!-- PLANT -->
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label">Plant *</label>
-                            <select id="PLANT_ADD" name="PLANT_SELECT" class="form-control"></select>
-                            <input type="hidden" name="PLANT" id="PLANT_HIDDEN">
+
+                            <label class="form-label">
+                                Plant *
+                            </label>
+
+                            <select
+                                name="PLANT"
+                                id="plantAdd"
+                                class="form-control"
+                                required>
+                            </select>
+
                         </div>
+
+                        <!-- CASH IN -->
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label">Customer *</label>
-                            <select id="CUSTOMER" name="CUSTOMER" class="form-control" required></select>
+
+                            <label class="form-label">
+                                Cash In
+                            </label>
+
+                            <input
+                                class="form-control"
+                                readonly
+                                placeholder="Auto Generate"
+                                style="background:#efefef">
+
                         </div>
+
+                        <!-- DATE -->
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label">No. Transaksi</label>
-                            <input class="form-control" placeholder="Auto Generate" readonly style="background: #efefef">
+
+                            <label class="form-label">
+                                Tanggal *
+                            </label>
+
+                            <input
+                                type="date"
+                                name="CASHIN_DATE"
+                                class="form-control"
+                                required>
+
                         </div>
+
+                        <!-- PAYMENT -->
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label d-block">Pembayaran</label>
-                            <div style="padding:5px 0px; width: 100%">
+
+                            <label class="form-label">
+                                Pembayaran *
+                            </label>
+
+                            <div style="width:100%">
+
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="PEMBAYARAN" value="CASH">
-                                    <label class="form-check-label">CASH</label>
+
+                                    <input
+                                        class="form-check-input"
+                                        type="radio"
+                                        name="PEMBAYARAN"
+                                        value="CASH">
+
+                                    <label class="form-check-label">
+                                        CASH
+                                    </label>
+
                                 </div>
+
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="PEMBAYARAN" value="TRANSFER">
-                                    <label class="form-check-label">TRANSFER</label>
+
+                                    <input
+                                        class="form-check-input"
+                                        type="radio"
+                                        name="PEMBAYARAN"
+                                        value="TRANSFER">
+
+                                    <label class="form-check-label">
+                                        TRANSFER
+                                    </label>
+
                                 </div>
+
                             </div>
-                        </div>
-                        <div class="col-md-6 flex-inline">
-                            <label class="form-label">Slip No *</label>
-                            <input class="form-control" placeholder="Auto Generate" readonly style="background: #efefef">
-                        </div>
-                        <div class="col-md-6 flex-inline">
-                            <label class="form-label">No. Rekening *</label>
-                            <select id="NO_REK" name="NO_REK" class="form-control" required></select>
-                        </div>
-                        
-                        
-                        
-                        <div class="col-md-6 flex-inline">
-                            <label class="form-label">Tanggal *</label>
-                            <input id="CASHIN_DATE" name="CASHIN_DATE" type="date" class="form-control" required>
+
                         </div>
 
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label d-block">Metode</label>
-                            <div style="padding:5px 0px; width: 100%">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="mode_cash_in" value="FIFO" checked>
-                                    <label class="form-check-label">AUTO</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="mode_cash_in" value="MANUAL">
-                                    <label class="form-check-label">MANUAL</label>
-                                </div>
-                            </div>
+
+                            <label class="form-label">
+                                Total Cash In *
+                            </label>
+
+                            <input
+                                type="text"
+                                id="cashInAmount"
+                                name="TOTAL_INPUT"
+                                class="form-control text-end"
+                                placeholder="0"
+                                required>
+
                         </div>
 
+                        <!-- SLIP -->
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label">No. Bon *</label>
-                            <input name="BON" id="BON" class="form-control" placeholder="Tulis disini..." required>
+
+                            <label class="form-label">
+                                Slip No
+                            </label>
+
+                            <input
+                                name="SLIP_NO"
+                                class="form-control"
+                                readonly
+                                placeholder="Auto Generate"
+                                style="background:#efefef">
+
                         </div>
 
+                        <!-- CUSTOMER -->
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label">Jumlah</label>
-                            <input name="JUMLAH" id="JUMLAH_INPUT" class="form-control" placeholder="Masukkan jumlah cash in">
+
+                            <label class="form-label">
+                                Customer *
+                            </label>
+
+                            <select
+                                id="customerAdd"
+                                class="form-control">
+                            </select>
+
+                            <input
+                                type="hidden"
+                                name="CUSTOMER"
+                                id="hiddenCustomerAdd">
+
                         </div>
 
-                        <div class="col-md-6 flex-inline">
-                            <label class="form-label">Attachment</label>
-                            <input type="file" name="ATTACHMENT" class="form-control" accept=".jpg,.jpeg,.png,.pdf">
+                        <!-- REMARK -->
+                        <div class="col-md-12 flex-inline">
+
+                            <label
+                                style="width:14.5%"
+                                class="form-label">
+
+                                Remark
+                            </label>
+
+                            <input
+                                name="REMARK"
+                                class="form-control"
+                                placeholder="Keterangan..">
+
                         </div>
-                        
-                        <div class="col-md-6 mt-2 flex-inline">
-                            <div id="depositInfoBox" class="alert alert-info py-2 px-3" style="display:none; margin-bottom: 0px">
-                                💰 Saldo Deposit Customer: <b id="depositAmount">0</b>
-                            </div>
-                        </div>
-                        
+
                     </div>
 
-                    <div id="previewFifoBox">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h5 style="margin-bottom: 0px">Preview Alokasi Otomatis (FIFO)</h5>
-                            <!-- <button type="button" class="btn btn-warning btn-sm" id="btnOverrideInvoice">
-                                Override Manual
-                            </button> -->
-                        </div>
+                    <div class="row mb-4">
 
-                        <table class="table table-bordered" id="stockActualDetailTableAdd">
-                            <thead>
-                                <tr>
-                                    <th style="text-align:center;">No. Invoice</th>
-                                    <th style="text-align:center;">Tanggal offset</th>
-                                    <th style="text-align:center;">Invoice</th>
-                                    <th style="text-align:center;">Remain</th>
-                                    <th style="text-align:center;">Offset</th>
-                                    
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
+                        <div class="col-md-12">
 
-                    <div id="manualModeBox" style="display:none">
+                            <div class="mode-wrapper">
 
-                        <div style="display: flex; flex-direction: row; align-content: center; justify-content: space-between; align-items: center;">
-                            <div class="alert alert-warning" style="padding: 5px 15px;">
-                                Mode Manual Aktif — Silakan pilih invoice dan isi offset secara manual
+                                <!-- FIFO -->
+                                <label class="mode-card">
+
+                                    <input
+                                        type="radio"
+                                        name="MODE_CASH_IN"
+                                        value="FIFO"
+                                        checked>
+
+                                    <div class="mode-content">
+
+                                        <div class="mode-title">
+                                            FIFO AUTO
+                                        </div>
+
+                                        <div class="mode-sub">
+                                            System otomatis offset invoice tertua
+                                        </div>
+
+                                    </div>
+
+                                </label>
+
+                                <!-- MANUAL -->
+                                <label class="mode-card">
+
+                                    <input
+                                        type="radio"
+                                        name="MODE_CASH_IN"
+                                        value="MANUAL">
+
+                                    <div class="mode-content">
+
+                                        <div class="mode-title">
+                                            MANUAL
+                                        </div>
+
+                                        <div class="mode-sub">
+                                            User pilih invoice secara manual
+                                        </div>
+
+                                    </div>
+
+                                </label>
+
                             </div>
 
-                            <button type="button" class="btn btn-primary btn-sm mb-2" id="btnAddManualRow" style="padding: 10px 20px; font-size: 13px">
-                                Tambah Invoice
-                            </button>
                         </div>
 
-                        <table class="table table-bordered" id="manualDetailTable">
-                            <thead>
+                    </div>
+
+                    <div class="row mb-4">
+
+                        <!-- TOTAL INPUT -->
+                        <div class="col-md-3">
+
+                            <div class="summary-card summary-blue">
+
+                                <div class="summary-label">
+                                    TOTAL CASH IN
+                                </div>
+
+                                <div
+                                    class="summary-value"
+                                    id="summaryTotalInput">
+
+                                    Rp 0
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- ALLOCATED -->
+                        <div class="col-md-3">
+
+                            <div class="summary-card summary-green">
+
+                                <div class="summary-label">
+                                    ALLOCATED
+                                </div>
+
+                                <div
+                                    class="summary-value"
+                                    id="summaryAllocated">
+
+                                    Rp 0
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- REMAINING -->
+                        <div class="col-md-3">
+
+                            <div class="summary-card summary-orange">
+
+                                <div class="summary-label">
+                                    REMAINING
+                                </div>
+
+                                <div
+                                    class="summary-value"
+                                    id="summaryRemaining">
+
+                                    Rp 0
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- DEPOSIT -->
+                        <div class="col-md-3">
+
+                            <div class="summary-card summary-red">
+
+                                <div class="summary-label">
+                                    DEPOSIT
+                                </div>
+
+                                <div
+                                    class="summary-value"
+                                    id="summaryDeposit">
+
+                                    Rp 0
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="table-responsive">
+
+                        <table
+                            class="table table-bordered align-middle"
+                            id="detailTable">
+
+                            <thead class="table-light">
+
                                 <tr>
-                                    <th class="text-center">No. Invoice</th>
-                                    <th class="text-center">Tanggal</th>
-                                    <th class="text-center">Invoice</th>
-                                    <th class="text-center">Remain</th>
-                                    <th class="text-center">Offset</th>
-                                    <th class="text-center">#</th>
+
+                                    <th style="width:15%">
+                                        Sales
+                                    </th>
+
+                                    <th>
+                                        Customer
+                                    </th>
+
+                                    <th style="width:12%" class="text-end">
+                                        Outstanding
+                                    </th>
+
+                                    <th style="width:12%" class="text-end">
+                                        Bayar
+                                    </th>
+
+                                    <th style="width:12%" class="text-end">
+                                        Sisa
+                                    </th>
+
+                                    <th style="width:10%" class="text-center">
+                                        Status
+                                    </th>
+
+                                    <th style="width:20%">
+                                        Remark
+                                    </th>
+
+                                    <th style="width:5%" class="text-center">
+                                        #
+                                    </th>
+
                                 </tr>
+
                             </thead>
+
                             <tbody></tbody>
+
                         </table>
+
+                    </div>
+
+                    <div class="row mt-3">
+
+                        <div class="col-md-6"></div>
+
+                        <div class="col-md-6">
+
+                            <div class="input-group">
+
+                                <span class="input-group-text fw-bold">
+
+                                    Grand Total
+
+                                </span>
+
+                                <input
+                                    type="text"
+                                    id="grandTotal"
+                                    class="form-control text-end fw-bold"
+                                    readonly
+                                    style="background:#efefef">
+
+                            </div>
+
+                        </div>
+
+                    </div>
 
                     </div>
 
@@ -346,37 +1001,128 @@
     }
 </style>
 
-<div class="modal fade" id="modalPickInvoice" tabindex="-1">
-  <div class="modal-dialog modal-xl">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5>Pilih Invoice Tempo</h5>
-        <button class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <table class="table table-bordered" id="invoiceTempoTable">
-          <thead>
-            <tr>
-              <th style="text-align: center">PLANT</th>
-              <th style="text-align: center">DATE</th>
-              <th style="text-align: center">NO. INVOICE</th>
-              <th style="text-align: center">CUSTOMER</th>
-              <th style="text-align: center">METODE</th>
-              <th style="text-align: center">BERAT</th>
-              <th style="text-align: center">QTY</th>
-              <th style="text-align: center">HARGA (Qty)</th>
-              <th style="text-align: center">DISC</th>
-              <th style="text-align: center">AMOUNT</th>
-              <th style="text-align: center">TOTAL AMOUNT</th>
-              <th style="text-align: center">REMAIN</th>
-              <th style="text-align: center">#</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
+<div
+    class="modal fade"
+    id="modalPickInvoice"
+    tabindex="-1"
+    aria-hidden="true">
+
+    <div class="modal-dialog modal-xl">
+
+        <div class="modal-content">
+
+            <!-- HEADER -->
+            <div class="modal-header">
+
+                <h5 class="modal-title">
+
+                    PILIH INVOICE SALES
+
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <!-- BODY -->
+            <div class="modal-body">
+
+                <!-- SEARCH -->
+                <div class="row mb-3">
+
+                    <div class="col-md-4">
+
+                        <input
+                            type="text"
+                            id="searchInvoice"
+                            class="form-control"
+                            placeholder="Cari sales / customer">
+
+                    </div>
+
+                </div>
+
+                <!-- TABLE -->
+                <div class="table-responsive">
+
+                    <table
+                        class="table table-bordered table-hover align-middle">
+
+                        <thead class="table-light">
+
+                            <tr>
+
+                                <th width="5%" class="text-center">
+                                    #
+                                </th>
+
+                                <th width="15%">
+                                    Sales
+                                </th>
+
+                                <th>
+                                    Customer
+                                </th>
+
+                                <th width="10%" class="text-end">
+                                    Total
+                                </th>
+
+                                <th width="10%" class="text-end">
+                                    Paid
+                                </th>
+
+                                <th width="10%" class="text-end">
+                                    Outstanding
+                                </th>
+
+                                <th width="10%" class="text-center">
+                                    Date
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="invoiceListBody"></tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+            <!-- FOOTER -->
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+
+                    Tutup
+
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    id="btnChooseInvoice">
+
+                    Pilih Invoice
+
+                </button>
+
+            </div>
+
+        </div>
+
     </div>
-  </div>
+
 </div>
 
 <style>
@@ -386,16 +1132,970 @@
 </style>
 
 <script>
-    var state = { page: 1, limit: 10, search: '', order: 'CASHIN_DATE', dir: 'DESC' };
+    let ajaxListRequest = null;
 
-    let timer;
-    $('#search').on('keyup', function(){
-        clearTimeout(timer);
-        timer = setTimeout(() => {
-            state.search = $(this).val();
-            loadPage(1);
-        }, 500);
+    const state = {
+
+        page  : 1,
+
+        limit : 10,
+
+        order : 'CASHIN_DATE',
+
+        dir   : 'DESC'
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | FORMAT NUMBER
+    |--------------------------------------------------------------------------
+    */
+
+    function formatNumber(value)
+    {
+        return Number(value || 0)
+            .toLocaleString(
+                'id-ID',
+                {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2
+                }
+            );
+    }
+
+    function cleanNumber(value)
+    {
+        if(!value){
+
+            return 0;
+
+        }
+
+        return parseFloat(
+            value
+                .toString()
+                .replace(/\./g,'')
+                .replace(/,/g,'.')
+        ) || 0;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | FORMAT RUPIAH
+    |--------------------------------------------------------------------------
+    */
+
+    function formatRupiah(value)
+    {
+        return Number(value || 0)
+            .toLocaleString(
+                'id-ID',
+                {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 2
+                }
+            );
+    }
+
+    $(document).on(
+        'keyup',
+        '#cashInAmount',
+        function(){
+
+            let value =
+                cleanNumber($(this).val());
+
+            $(this).val(
+                formatRupiah(value)
+            );
+
+            updateSummary();
+
+        }
+    );
+
+    function updateSummary()
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | TOTAL INPUT
+        |--------------------------------------------------------------------------
+        */
+
+        let totalInput =
+            cleanNumber(
+                $('#cashInAmount').val()
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | ALLOCATED
+        |--------------------------------------------------------------------------
+        */
+
+        let allocated = 0;
+
+        $('#detailTable tbody tr').each(function(){
+
+            let bayar =
+                cleanNumber(
+                    $(this)
+                        .find('.pay-input')
+                        .val()
+                );
+
+            allocated += bayar;
+
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | REMAINING
+        |--------------------------------------------------------------------------
+        */
+
+        let remaining =
+            totalInput - allocated;
+
+        /*
+        |--------------------------------------------------------------------------
+        | DEPOSIT
+        |--------------------------------------------------------------------------
+        */
+
+        let deposit = 0;
+
+        if(remaining > 0){
+
+            deposit = remaining;
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | UPDATE CARD
+        |--------------------------------------------------------------------------
+        */
+
+        $('#summaryTotalInput').html(
+            'Rp ' + formatRupiah(totalInput)
+        );
+
+        $('#summaryAllocated').html(
+            'Rp ' + formatRupiah(allocated)
+        );
+
+        $('#summaryRemaining').html(
+            'Rp ' + formatRupiah(remaining)
+        );
+
+        $('#summaryDeposit').html(
+            'Rp ' + formatRupiah(deposit)
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | GRAND TOTAL
+        |--------------------------------------------------------------------------
+        */
+
+        $('#grandTotal').val(
+            'Rp ' + formatRupiah(allocated)
+        );
+    }
+
+    $(document).on(
+        'keyup change',
+        '.pay-input',
+        function(){
+
+            updateDetailRow($(this));
+
+            updateSummary();
+
+        }
+    );
+
+    function updateDetailRow(el)
+    {
+        let tr = el.closest('tr');
+
+        let outstanding =
+            cleanNumber(
+                tr.find('.outstanding-value').val()
+            );
+
+        let bayar =
+            cleanNumber(
+                tr.find('.pay-input').val()
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | LIMIT PAYMENT
+        |--------------------------------------------------------------------------
+        */
+
+        if(bayar > outstanding){
+
+            bayar = outstanding;
+
+            tr.find('.pay-input').val(
+                formatRupiah(bayar)
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | SISA
+        |--------------------------------------------------------------------------
+        */
+
+        let sisa =
+            outstanding - bayar;
+
+        tr.find('.remaining-text').html(
+            'Rp ' + formatRupiah(sisa)
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | STATUS
+        |--------------------------------------------------------------------------
+        */
+
+        let status = 'OPEN';
+
+        let badge = 'bg-warning';
+
+        if(bayar > 0){
+
+            status = 'PARTIAL';
+
+            badge = 'bg-primary';
+
+        }
+
+        if(sisa <= 0){
+
+            status = 'PAID';
+
+            badge = 'bg-success';
+
+        }
+
+        tr.find('.status-cell').html(
+            `
+                <span class="badge ${badge}">
+                    ${status}
+                </span>
+            `
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | ADD DETAIL ROW
+    |--------------------------------------------------------------------------
+    */
+
+    function addDetailRow(data = {})
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | DEFAULT
+        |--------------------------------------------------------------------------
+        */
+
+        let salesNo =
+            data.SALES || '-';
+
+        let customer =
+            data.CUSTOMER_NAME || '-';
+
+        let outstanding =
+            parseFloat(data.OUTSTANDING || 0);
+
+        let bayar =
+            parseFloat(data.BAYAR || 0);
+
+        let remaining =
+            outstanding - bayar;
+
+        /*
+        |--------------------------------------------------------------------------
+        | STATUS
+        |--------------------------------------------------------------------------
+        */
+
+        let status = 'OPEN';
+
+        let badge = 'bg-warning';
+
+        if(bayar > 0){
+
+            status = 'PARTIAL';
+
+            badge = 'bg-primary';
+
+        }
+
+        if(remaining <= 0){
+
+            status = 'PAID';
+
+            badge = 'bg-success';
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | ROW
+        |--------------------------------------------------------------------------
+        */
+
+        let row = `
+
+            <tr class="detail-row">
+
+                <!-- SALES -->
+                <td>
+
+                    <div class="fw-semibold text-primary">
+
+                        #${salesNo}
+
+                    </div>
+
+                    <input
+                        type="hidden"
+                        name="DETAIL[][SALES]"
+                        value="${salesNo}">
+
+                </td>
+
+                <!-- CUSTOMER -->
+                <td>
+
+                    ${customer}
+
+                </td>
+
+                <!-- OUTSTANDING -->
+                <td class="text-end">
+
+                    <div class="fw-semibold">
+
+                        Rp ${formatRupiah(outstanding)}
+
+                    </div>
+
+                    <input
+                        type="hidden"
+                        class="outstanding-value"
+                        value="${outstanding}">
+
+                </td>
+
+                <!-- BAYAR -->
+                <td>
+
+                    <input
+                        type="text"
+                        class="form-control text-end pay-input"
+                        name="DETAIL[][BAYAR]"
+                        value="${formatRupiah(bayar)}">
+
+                </td>
+
+                <!-- SISA -->
+                <td class="text-end">
+
+                    <div class="remaining-text">
+
+                        Rp ${formatRupiah(remaining)}
+
+                    </div>
+
+                </td>
+
+                <!-- STATUS -->
+                <td class="text-center status-cell">
+
+                    <span class="badge ${badge}">
+
+                        ${status}
+
+                    </span>
+
+                </td>
+
+                <!-- REMARK -->
+                <td>
+
+                    <input
+                        type="text"
+                        class="form-control"
+                        name="DETAIL[][REMARK]"
+                        value="${data.REMARK || ''}">
+
+                </td>
+
+                <!-- ACTION -->
+                <td class="text-center">
+
+                    <button
+                        type="button"
+                        class="btn btn-danger btn-sm removeRow">
+
+                        X
+
+                    </button>
+
+                </td>
+
+            </tr>
+
+        `;
+
+        $('#detailTable tbody')
+            .append(row);
+
+        /*
+        |--------------------------------------------------------------------------
+        | UPDATE
+        |--------------------------------------------------------------------------
+        */
+
+        updateSummary();
+    }
+
+    $(document).on(
+        'click',
+        '.removeRow',
+        function(){
+
+            $(this)
+                .closest('tr')
+                .remove();
+
+            updateSummary();
+
+        }
+    );
+
+    $('#btnPickInvoice').click(function(){
+
+        loadInvoicePicker();
+
+        $('#modalPickInvoice')
+            .modal('show');
+
     });
+
+    function loadInvoicePicker()
+    {
+        $.get(
+
+            '<?= base_url("cash_in/load_sales_picker"); ?>',
+
+            {
+
+                plant   : $('#plantAdd').val(),
+
+                customer:
+                    $('#hiddenCustomerAdd').val(),
+
+                search  :
+                    $('#searchInvoice').val()
+
+            },
+
+            function(rows){
+
+                let tbody =
+                    $('#invoiceListBody');
+
+                tbody.html('');
+
+                /*
+                |--------------------------------------------------------------------------
+                | EMPTY
+                |--------------------------------------------------------------------------
+                */
+
+                if(rows.length === 0){
+
+                    tbody.html(`
+
+                        <tr>
+
+                            <td
+                                colspan="7"
+                                class="text-center text-muted py-4">
+
+                                Tidak ada invoice outstanding
+
+                            </td>
+
+                        </tr>
+
+                    `);
+
+                    return;
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | LOOP
+                |--------------------------------------------------------------------------
+                */
+
+                rows.forEach(function(r){
+
+                    let tr = `
+
+                        <tr>
+
+                            <!-- CHECK -->
+                            <td class="text-center">
+
+                                <input
+                                    type="checkbox"
+                                    class="pickInvoice"
+
+                                    data-sales="${r.SALES}"
+
+                                    data-customer="${r.CUSTOMER}"
+
+                                    data-customer-name="${r.CUSTOMER_NAME}"
+
+                                    data-total="${r.TOTAL}"
+
+                                    data-paid="${r.TOTAL_PAID}"
+
+                                    data-outstanding="${r.OUTSTANDING}"
+
+                                    data-date="${r.SALES_DATE}">
+
+                            </td>
+
+                            <!-- SALES -->
+                            <td>
+
+                                <div class="fw-semibold text-primary">
+
+                                    #${r.SALES}
+
+                                </div>
+
+                            </td>
+
+                            <!-- CUSTOMER -->
+                            <td>
+
+                                ${r.CUSTOMER_NAME || '-'}
+
+                            </td>
+
+                            <!-- TOTAL -->
+                            <td class="text-end">
+
+                                Rp
+                                ${formatRupiah(r.TOTAL)}
+
+                            </td>
+
+                            <!-- PAID -->
+                            <td class="text-end">
+
+                                Rp
+                                ${formatRupiah(r.TOTAL_PAID)}
+
+                            </td>
+
+                            <!-- OUTSTANDING -->
+                            <td class="text-end">
+
+                                <div class="fw-bold text-danger">
+
+                                    Rp
+                                    ${formatRupiah(r.OUTSTANDING)}
+
+                                </div>
+
+                            </td>
+
+                            <!-- DATE -->
+                            <td class="text-center">
+
+                                ${formatDate(r.SALES_DATE)}
+
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                    tbody.append(tr);
+
+                });
+
+            },
+
+            'json'
+        );
+    }
+
+    let searchInvoiceTimer = null;
+
+    $('#searchInvoice').on(
+        'keyup',
+        function(){
+
+            clearTimeout(searchInvoiceTimer);
+
+            searchInvoiceTimer = setTimeout(function(){
+
+                loadInvoicePicker();
+
+            }, 400);
+
+        }
+    );
+
+    $('#btnChooseInvoice').click(function(){
+
+        $('.pickInvoice:checked').each(function(){
+
+            let sales =
+                $(this).data('sales');
+
+            /*
+            |--------------------------------------------------------------------------
+            | PREVENT DUPLICATE
+            |--------------------------------------------------------------------------
+            */
+
+            let exists = false;
+
+            $('#detailTable tbody tr').each(function(){
+
+                let currentSales =
+                    $(this)
+                        .find('[name="DETAIL[][SALES]"]')
+                        .val();
+
+                if(currentSales === sales){
+
+                    exists = true;
+
+                }
+
+            });
+
+            if(exists){
+
+                return;
+
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | ADD ROW
+            |--------------------------------------------------------------------------
+            */
+
+            addDetailRow({
+
+                SALES :
+                    $(this).data('sales'),
+
+                CUSTOMER_NAME :
+                    $(this).data('customer-name'),
+
+                OUTSTANDING :
+                    $(this).data('outstanding'),
+
+                BAYAR :
+                    $(this).data('outstanding')
+
+            });
+
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | CLOSE
+        |--------------------------------------------------------------------------
+        */
+
+        $('#modalPickInvoice')
+            .modal('hide');
+
+    });
+
+    $(document).on(
+        'change',
+        '[name="MODE_CASH_IN"]',
+        function(){
+
+            let mode = $(this).val();
+
+            /*
+            |--------------------------------------------------------------------------
+            | FIFO
+            |--------------------------------------------------------------------------
+            */
+
+            if(mode === 'FIFO'){
+
+                $('#btnPickInvoice')
+                    .prop('disabled', true);
+
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | MANUAL
+            |--------------------------------------------------------------------------
+            */
+
+            else{
+
+                $('#btnPickInvoice')
+                    .prop('disabled', false);
+
+            }
+
+        }
+    );
+
+    $(document).on(
+        'keyup change',
+        '#cashInAmount',
+        function(){
+
+            let mode =
+                $('[name="MODE_CASH_IN"]:checked')
+                    .val();
+
+            if(mode !== 'FIFO'){
+
+                return;
+
+            }
+
+            runFIFOAllocation();
+
+        }
+    );
+
+    function runFIFOAllocation()
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDASI
+        |--------------------------------------------------------------------------
+        */
+
+        let plant =
+            $('#plantAdd').val();
+
+        let customer =
+            $('#hiddenCustomerAdd').val();
+
+        let totalInput =
+            cleanNumber(
+                $('#cashInAmount').val()
+            );
+
+        if(
+            !plant ||
+            !customer ||
+            totalInput <= 0
+        ){
+
+            return;
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | RESET TABLE
+        |--------------------------------------------------------------------------
+        */
+
+        $('#detailTable tbody')
+            .html('');
+
+        /*
+        |--------------------------------------------------------------------------
+        | GET FIFO DATA
+        |--------------------------------------------------------------------------
+        */
+
+        $.get(
+
+            '<?= base_url("cash_in/load_sales_picker"); ?>',
+
+            {
+
+                plant   : plant,
+
+                customer: customer
+
+            },
+
+            function(rows){
+
+                let remainingCash =
+                    totalInput;
+
+                /*
+                |--------------------------------------------------------------------------
+                | LOOP INVOICE
+                |--------------------------------------------------------------------------
+                */
+
+                rows.forEach(function(r){
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | STOP
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if(remainingCash <= 0){
+
+                        return;
+
+                    }
+
+                    let outstanding =
+                        parseFloat(
+                            r.OUTSTANDING || 0
+                        );
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | ALLOCATE
+                    |--------------------------------------------------------------------------
+                    */
+
+                    let bayar =
+                        0;
+
+                    if(
+                        remainingCash >= outstanding
+                    ){
+
+                        bayar = outstanding;
+
+                    }else{
+
+                        bayar = remainingCash;
+
+                    }
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | PUSH ROW
+                    |--------------------------------------------------------------------------
+                    */
+
+                    addDetailRow({
+
+                        SALES :
+                            r.SALES,
+
+                        CUSTOMER_NAME :
+                            r.CUSTOMER_NAME,
+
+                        OUTSTANDING :
+                            outstanding,
+
+                        BAYAR :
+                            bayar
+
+                    });
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | REDUCE
+                    |--------------------------------------------------------------------------
+                    */
+
+                    remainingCash -= bayar;
+
+                });
+
+                /*
+                |--------------------------------------------------------------------------
+                | UPDATE SUMMARY
+                |--------------------------------------------------------------------------
+                */
+
+                updateSummary();
+
+            },
+
+            'json'
+        );
+    }
+
+    $('#customerAdd').change(function(){
+
+        let mode =
+            $('[name="MODE_CASH_IN"]:checked')
+                .val();
+
+        if(mode === 'FIFO'){
+
+            runFIFOAllocation();
+
+        }
+
+    });
+
+    $('#plantAdd').change(function(){
+
+        let mode =
+            $('[name="MODE_CASH_IN"]:checked')
+                .val();
+
+        if(mode === 'FIFO'){
+
+            runFIFOAllocation();
+
+        }
+
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | LOADING
+    |--------------------------------------------------------------------------
+    */
+
+    function showTableLoading()
+    {
+        $('#tableLoading')
+            .removeClass('d-none');
+
+        $('#tableWrapper')
+            .addClass('loading-hide');
+    }
+
+    function hideTableLoading()
+    {
+        $('#tableLoading')
+            .addClass('d-none');
+
+        $('#tableWrapper')
+            .removeClass('loading-hide');
+    }
 
     function initPlantSelect(){
 
@@ -418,20 +2118,6 @@
             }
         });
 
-        $el.on('change', function(){
-            $('#PLANT_HIDDEN').val(this.value);
-
-            pickedInvoices = {};
-            $('#stockActualDetailTableAdd tbody').empty();
-            recalcTotal();
-            loadCustomerDeposit();
-
-            let customer = $('#CUSTOMER').val();
-            let plant    = this.value;
-
-            loadFifoSource(customer, plant); // 🔥 TAMBAH INI
-        });
-
         // 🔥 AUTO SELECT kalau cuma 1 plant
         $.getJSON('<?= base_url("cash-in/get_user_plant_select2"); ?>', function(rows){
 
@@ -445,198 +2131,8 @@
         });
     }
 
-    // let manualMode = false;
-
-    $('#btnOverrideInvoice').on('click', function(){
-
-        if (!manualMode) {
-            // manualMode = true;
-
-            $('#stockActualDetailTableAdd tbody').empty();
-            pickedInvoices = {};
-            detailIndexAdd = 0;
-            addDetailRow(null, '#stockActualDetailTableAdd');
-
-            $(this).removeClass('btn-warning').addClass('btn-danger')
-                .text('Kembali ke Auto FIFO');
-        } else {
-            // manualMode = false;
-
-            $('#stockActualDetailTableAdd tbody').empty();
-            let customer = $('#CUSTOMER').val();
-            let plant    = $('#PLANT_HIDDEN').val();
-            let amount   = toNumber($('input[name="JUMLAH"]').val());
-
-            renderFifoPreview();
-
-            $(this).removeClass('btn-danger').addClass('btn-warning')
-                .text('Override Manual');
-        }
-    });
-
-    let modeCashIn = 'FIFO';
-
-    $('input[name="mode_cash_in"]').on('change', function(){
-
-        modeCashIn = $(this).val();
-
-        if(modeCashIn === 'FIFO'){
-
-            $('#manualModeBox').hide();
-            $('#previewFifoBox').show();
-
-            $('#JUMLAH_INPUT').prop('readonly', false).val('');
-
-            renderFifoPreview();
-        } 
-        else {
-
-            $('#previewFifoBox').hide();
-            $('#manualModeBox').show();
-
-            $('#JUMLAH_INPUT')
-                .prop('readonly', true)
-                .val('0');
-
-            $('#manualDetailTable tbody').empty();
-            pickedInvoices = {};
-            detailIndexAdd = 0;
-        }
-    });
-
     $('#btnAddManualRow').on('click', function(){
         addDetailRow(null, '#manualDetailTable');
-    });
-
-    let fifoSourceInvoices = [];
-
-    function loadFifoSource(customer, plant) {
-
-        if (!customer || !plant) return;
-
-        $('#stockActualDetailTableAdd tbody').html(`
-            <tr><td colspan="5" class="text-center text-muted">Loading invoice...</td></tr>
-        `);
-
-        $.get('<?= base_url("cash-in/get_invoice_fifo_source") ?>', {
-            customer: customer,
-            plant: plant
-        }, function(res){
-
-            fifoSourceInvoices = res || [];
-            console.log("FIFO SOURCE:", fifoSourceInvoices);
-            renderFifoPreview();
-
-        }, 'json');
-        
-    }
-
-    $('#CUSTOMER, #PLANT_ADD').on('change', function(){
-
-        fifoSourceInvoices = [];
-        $('#stockActualDetailTableAdd tbody').empty();
-
-        let customer = $('#CUSTOMER').val();
-        let plant    = $('#PLANT_HIDDEN').val();
-
-        loadCustomerDeposit();
-        loadFifoSource(customer, plant);
-    });
-
-    function calculateFifoAllocations(amount) {
-        let sisa = parseFloat(amount) || 0;
-        let allocations = [];
-
-        fifoSourceInvoices.forEach(inv => {
-            let remain = parseFloat(inv.REMAIN);
-            let offset = 0;
-
-            if (sisa > 0) {
-                offset = Math.min(remain, sisa);
-                sisa -= offset;
-            }
-
-            allocations.push({
-                sales: inv.SALES,
-                sales_date: inv.SALES_DATE,
-                invoice_amount: inv.AMOUNT,
-                invoice_remain_before: inv.REMAIN,
-                offset: offset
-            });
-        });
-
-        return {
-            rows: allocations,
-            deposit: sisa // 🔥 SISA UANG = DEPOSIT
-        };
-    }
-
-    function renderFifoPreview() {
-
-        if (modeCashIn !== 'FIFO') return;
-        if (!fifoSourceInvoices.length) return;
-
-        let jumlah = toNumber($('#JUMLAH_INPUT').val());
-        let tbody  = $('#stockActualDetailTableAdd tbody');
-        tbody.empty();
-
-        // 🔥 kalau jumlah belum diisi, hanya tampilkan daftar invoice tanpa offset
-        if (jumlah <= 0) {
-            fifoSourceInvoices.forEach(inv => {
-                tbody.append(`
-                    <tr class="table-light">
-                        <td class="text-center"><b>#${inv.SALES}</b></td>
-                        <td class="text-center">${formatDate(inv.SALES_DATE)}</td>
-                        <td class="text-end">${formatRupiah(inv.AMOUNT)}</td>
-                        <td class="text-end text-danger">${formatRupiah(inv.REMAIN)}</td>
-                        <td class="text-center text-muted">Menunggu jumlah</td>
-                    </tr>
-                `);
-            });
-            return;
-        }
-
-        let result = calculateFifoAllocations(jumlah);
-        let rows   = result.rows;
-        let sisa   = result.deposit;
-
-        rows.forEach((r,i) => {
-
-            if (r.offset <= 0) return;
-
-            tbody.append(`
-                <tr>
-                    <td class="text-center">
-                        <input type="hidden" name="DETAIL[${i}][SALES]" value="${r.sales}">
-                        <input type="hidden" name="DETAIL[${i}][PLANT]" value="${$('#PLANT_HIDDEN').val()}">
-                        <b>#${r.sales}</b>
-                    </td>
-                    <td class="text-center">${formatDate(r.sales_date)}</td>
-                    <td class="text-end">${formatRupiah(r.invoice_amount)}</td>
-                    <td class="text-end">${formatRupiah(r.invoice_remain_before)}</td>
-                    <td class="text-end">
-                        ${formatRupiah(r.offset)}
-                        <input type="hidden" name="DETAIL[${i}][AMOUNT_OFFSET]" value="${r.offset}">
-                    </td>
-                </tr>
-            `);
-        });
-
-        if (sisa > 0) {
-            tbody.append(`
-                <tr class="table-warning">
-                    <td colspan="5" class="text-center">
-                        💰 Sisa ${formatRupiah(sisa)} akan menjadi DEPOSIT CUSTOMER
-                    </td>
-                </tr>
-            `);
-        }
-    }
-
-    $('#JUMLAH_INPUT').on('input', function(){
-        if (modeCashIn === 'FIFO') {
-            renderFifoPreview();
-        }
     });
 
     $(document).on('input', '#JUMLAH_EDIT', function(){
@@ -662,84 +2158,475 @@
         return `${day} ${month} ${year}`;
     }
 
-    function formatRupiahView(val) {
-        if (!val) return '0';
+    function loadPage(page = 1)
+    {
+        state.page = page;
 
-        // "2000000.00" → 2000000
-        let num = parseFloat(val);
+        showTableLoading();
 
-        if (isNaN(num)) return '0';
+        /*
+        |--------------------------------------------------------------------------
+        | ABORT PREVIOUS AJAX
+        |--------------------------------------------------------------------------
+        */
 
-        return num.toLocaleString('id-ID', {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0
+        if(ajaxListRequest){
+
+            ajaxListRequest.abort();
+
+        }
+
+        ajaxListRequest = $.get(
+
+            '<?= base_url("cash_in/load_data"); ?>',
+
+            {
+
+                page        : state.page,
+
+                limit       : state.limit,
+
+                search      : $('#search').val(),
+
+                pembayaran  : $('#filterPembayaran').val(),
+
+                date_from   : $('#dateFrom').val(),
+
+                date_to     : $('#dateTo').val(),
+
+                order       : state.order,
+
+                dir         : state.dir
+
+            },
+
+            function(res){
+
+                ajaxListRequest = null;
+
+                if(typeof res === 'string'){
+
+                    res = JSON.parse(res);
+
+                }
+
+                renderTable(res.rows);
+
+                $('#pagination')
+                    .html(res.pagination);
+
+                $('#info').html(
+                    `
+                        Menampilkan halaman
+                        <b>${res.page}</b>
+                        dari
+                        <b>${Math.ceil(res.total / state.limit)}</b>
+
+                        (Total
+                        <b>${res.total}</b>
+                        data)
+                    `
+                );
+
+            },
+
+            'json'
+
+        ).always(function(){
+
+            hideTableLoading();
+
         });
     }
 
-    function loadPage(page = 1) {
-        state.page = page;
+    /*
+    |--------------------------------------------------------------------------
+    | RENDER TABLE
+    |--------------------------------------------------------------------------
+    */
 
-        $.get('<?= base_url("cash-in/load_data"); ?>', state, function (resp) {
+    function renderTable(rows)
+    {
+        let tbody = $('#table-body');
 
-            resp = typeof resp === 'string' ? JSON.parse(resp) : resp;
+        tbody.html('');
 
-            let tbody = $('#mainTable tbody');
-            tbody.empty();
+        /*
+        |--------------------------------------------------------------------------
+        | EMPTY
+        |--------------------------------------------------------------------------
+        */
 
-            resp.rows.forEach(function (row) {
+        if(rows.length === 0){
 
-            let actionButtons = '';
+            tbody.html(`
 
-            if (CURRENT_USER === 'admin') {
+                <tr>
 
-                if (row.IS_LOCKED > 0) {
-                    actionButtons += `<button class="btn btn-sm btn-secondary" disabled>Locked</button>`;
-                } else {
-                    actionButtons += `<button class="btn btn-sm btn-warning editBtn" data-id="${row.CASH_IN}" data-plant="${row.PLANT}">Edit</button>`;
-                }
+                    <td
+                        colspan="10"
+                        class="text-center text-muted py-5">
 
-                actionButtons += `
-                    <button class="btn btn-sm btn-danger deleteBtn"
-                        data-id="${row.CASH_IN}"
-                        data-plant="${row.PLANT}">
-                        Hapus
-                    </button>
+                        <div class="mb-2">
+
+                            <i
+                                class="ti ti-database-off"
+                                style="font-size:40px">
+                            </i>
+
+                        </div>
+
+                        Tidak ada data cash in
+
+                    </td>
+
+                </tr>
+
+            `);
+
+            return;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | LOOP
+        |--------------------------------------------------------------------------
+        */
+
+        rows.forEach(function(row){
+
+            /*
+            |--------------------------------------------------------------------------
+            | STATUS BADGE
+            |--------------------------------------------------------------------------
+            */
+
+            let statusBadge = `
+                <span class="badge bg-warning">
+                    OPEN
+                </span>
+            `;
+
+            if(row.STATUS === 'PAID'){
+
+                statusBadge = `
+                    <span class="badge bg-success">
+                        PAID
+                    </span>
+                `;
+            }
+            else if(row.STATUS === 'PARTIAL'){
+
+                statusBadge = `
+                    <span class="badge bg-primary">
+                        PARTIAL
+                    </span>
+                `;
+            }
+            else if(row.STATUS === 'DEPOSIT'){
+
+                statusBadge = `
+                    <span class="badge bg-info">
+                        DEPOSIT
+                    </span>
                 `;
             }
 
-                let tr = `
-                    <tr>
-                        <td style="text-align:center; vertical-align: middle"><b>${row.PLANT_NAME}</b></td>
-                        <td style="text-align:center; vertical-align: middle"><b>#${row.CASH_IN}</b></td>
-                        <td style="text-align:center; vertical-align: middle">${formatTanggalIndo(row.CASHIN_DATE)}</td>
-                        <td style="text-align:center; vertical-align: middle">
-                            ${row.CUSTOMER_NAME ?? '-'}<br>
-                            <b>${row.CUSTOMER}</b>
-                        </td>
-                        <td style="text-align:right; vertical-align: middle">${formatRupiahView(row.AMOUNT)}</td>
-                        <td style="text-align:center; vertical-align: middle">
-                            ${row.BON ?? '-'} <br> ${row.PEMBAYARAN ?? '-'}
-                        </td>
-                        <td style="text-align:center; vertical-align: middle">
-                            <button class="btn btn-sm btn-primary exportPdf"
-                                data-cash_in="${row.CASH_IN}"
-                                data-plant="${row.PLANT}">
-                                PDF
-                            </button>
-                            ${actionButtons}
-                        </td>
-                    </tr>
-                `;
+            /*
+            |--------------------------------------------------------------------------
+            | ACTION
+            |--------------------------------------------------------------------------
+            */
 
-                tbody.append(tr);
-            });
+            let actionBtn = `
 
-            $('#pagination').html(resp.pagination);
-            $('#info').text(
-                `Menampilkan halaman ${resp.page} dari ${Math.ceil(resp.total / state.limit)} (Total ${resp.total} data)`
-            );
+                <div class="btn-group btn-group-sm">
+
+                    <!-- PDF -->
+                    <button
+                        class="btn btn-outline-primary btnPdf"
+                        data-cashin="${row.CASH_IN}"
+                        data-plant="${row.PLANT}">
+
+                        Slip
+
+                    </button>
+
+                    <!-- EDIT -->
+                    <button
+                        class="btn btn-outline-warning btnEdit"
+                        data-cashin="${row.CASH_IN}"
+                        data-plant="${row.PLANT}">
+
+                        Edit
+
+                    </button>
+
+                    <!-- DELETE -->
+                    <button
+                        class="btn btn-outline-danger btnDelete"
+                        data-cashin="${row.CASH_IN}"
+                        data-plant="${row.PLANT}">
+
+                        Hapus
+
+                    </button>
+
+                </div>
+
+            `;
+
+            /*
+            |--------------------------------------------------------------------------
+            | ROW
+            |--------------------------------------------------------------------------
+            */
+
+            let tr = `
+
+                <tr>
+
+                    <!-- PLANT -->
+                    <td class="text-center">
+
+                        <div class="fw-semibold">
+
+                            ${row.PLANT_NAME || '-'}
+
+                        </div>
+
+                    </td>
+
+                    <!-- CASH IN -->
+                    <td class="text-center">
+
+                        <div class="fw-bold text-primary">
+
+                            #${row.CASH_IN}
+
+                        </div>
+
+                    </td>
+
+                    <!-- DATE -->
+                    <td class="text-center">
+
+                        ${formatDate(row.CASHIN_DATE)}
+
+                    </td>
+
+                    <!-- CUSTOMER -->
+                    <td>
+
+                        ${row.CUSTOMER_NAME || '-'}
+
+                    </td>
+
+                    <!-- PAYMENT -->
+                    <td class="text-center">
+
+                        <span class="
+                            badge
+                            ${row.PEMBAYARAN === 'CASH'
+                                ? 'bg-success'
+                                : 'bg-primary'}
+                        ">
+
+                            ${row.PEMBAYARAN || '-'}
+
+                        </span>
+
+                    </td>
+
+                    <!-- INVOICE -->
+                    <td class="text-center">
+
+                        <div>
+
+                            <span class="badge bg-primary">
+
+                                ${formatNumber(
+                                    row.TOTAL_ITEM || 0
+                                )}
+
+                                Invoice
+
+                            </span>
+
+                        </div>
+
+                        <div class="mt-1">
+
+                            <small class="text-muted">
+
+                                Offset :
+                                Rp
+                                ${formatNumber(
+                                    row.TOTAL_OFFSET || 0
+                                )}
+
+                            </small>
+
+                        </div>
+
+                    </td>
+
+                    <!-- TOTAL -->
+                    <td class="text-end">
+
+                        <div class="fw-bold text-success">
+
+                            Rp
+                            ${formatNumber(
+                                row.TOTAL || 0
+                            )}
+
+                        </div>
+
+                    </td>
+
+                    <!-- STATUS -->
+                    <td class="text-center">
+
+                        ${statusBadge}
+
+                    </td>
+
+                    <!-- REMARK -->
+                    <td>
+
+                        ${row.REMARK || '-'}
+
+                    </td>
+
+                    <!-- ACTION -->
+                    <td class="text-center">
+
+                        ${actionBtn}
+
+                    </td>
+
+                </tr>
+
+            `;
+
+            tbody.append(tr);
+
         });
     }
+
+    let searchTimer = null;
+
+    $('#search').on('keyup', function(){
+
+        clearTimeout(searchTimer);
+
+        searchTimer = setTimeout(function(){
+
+            loadPage(1);
+
+        }, 400);
+
+    });
+
+    $('#filterPembayaran').change(function(){
+
+        loadPage(1);
+
+    });
+
+    $('#dateFrom').change(function(){
+
+        loadPage(1);
+
+    });
+
+    $('#dateTo').change(function(){
+
+        loadPage(1);
+
+    });
+
+    $('#btnResetFilter').click(function(){
+
+        $('#search').val('');
+
+        $('#filterPembayaran').val('');
+
+        $('#dateFrom').val(
+            '<?= date('Y-m-01'); ?>'
+        );
+
+        $('#dateTo').val(
+            '<?= date('Y-m-d'); ?>'
+        );
+
+        state.order = 'CASHIN_DATE';
+
+        state.dir = 'DESC';
+
+        loadPage(1);
+
+    });
+
+    $(document).on(
+        'click',
+        '#mainTable thead th',
+        function(){
+
+            let field =
+                $(this).data('sort');
+
+            if(!field){
+
+                return;
+
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | TOGGLE DIR
+            |--------------------------------------------------------------------------
+            */
+
+            if(state.order === field){
+
+                state.dir =
+                    state.dir === 'ASC'
+                        ? 'DESC'
+                        : 'ASC';
+
+            }else{
+
+                state.order = field;
+
+                state.dir = 'ASC';
+
+            }
+
+            loadPage(1);
+
+        }
+    );
+
+    $(document).on(
+        'click',
+        '.page-link',
+        function(e){
+
+            e.preventDefault();
+
+            let page =
+                $(this).data('page');
+
+            if(page){
+
+                loadPage(page);
+
+            }
+
+        }
+    );
 
     $(document).on("click", ".exportPdf", function () {
         let cash_in    = $(this).data("cash_in");
@@ -758,174 +2645,14 @@
         $('input[name="mode_cash_in"][value="FIFO"]').prop('checked', true).trigger('change');
     });
 
-    $('#CashInAdd').on('hidden.bs.modal', function () {
-        pickedInvoices = {};
-        $('#stockActualDetailTableAdd tbody').empty();
-        recalcTotal();
-        $('#depositInfoBox').hide();
-    });
-
     $('#CashInEdit').on('shown.bs.modal', function () {
         initRekeningSelect2('#NO_REK_EDIT', '#CashInEdit');
-    });
-
-    $('#CashInEdit').on('hidden.bs.modal', function () {
-        pickedInvoices = {};
-    });
-
-    let activeRow = null;
-    let pickedInvoices = {};
-
-    $(document).on('click', '.pickInvoiceBtn', function () {
-        let row = $(this).closest('tr');
-
-        $('#modalPickInvoice')
-            .data('targetRow', row)
-            .modal('show');
-
-        loadInvoiceTempo();
-    });
-
-    $(document).on('click', '.pickInvoice', function () {
-
-        let row    = $('#modalPickInvoice').data('targetRow');
-        let sales  = $(this).data('sales');
-        let plant  = $(this).data('plant');
-        let slip   = $(this).data('slip');
-
-        if (pickedInvoices[sales]) {
-            alert('Invoice ini sudah dipilih');
-            return;
-        }
-
-        $.get('<?= base_url("cash-in/validate_invoice_remain"); ?>', {
-            sales: sales,
-            plant: plant
-        }, function(resp){
-
-            if (typeof resp === 'string') resp = JSON.parse(resp);
-
-            if (!resp.status) {
-                alert(resp.message);
-                return;
-            }
-
-            pickedInvoices[sales] = true;
-
-            row.find('.sales-id').val(sales);
-            row.find('.plant-id').val(plant);
-            row.find('.invoice-text').html(`<b>#${sales}</b>`);
-
-            row.find('.amount-invoice-val').val(resp.amount);
-            row.find('.amount-invoice-text').text(formatRupiah(resp.amount));
-
-            row.find('.remain-val').val(resp.remain);
-            row.find('.remain-text').text(formatRupiah(resp.remain));
-
-            row.find('.slip-no-val').val(slip);
-            row.find('.slip-no-text').text(slip);
-
-            row.find('.offset-date').val(new Date().toISOString().slice(0,10));
-
-            $('#modalPickInvoice').modal('hide');
-
-        }, 'json');
-    });
-
-    $(document).on('click', '.removeRow', function () {
-        let row = $(this).closest('tr');
-        let sales = row.find('.sales-id').val();
-
-        if (sales) {
-            delete pickedInvoices[sales];
-        }
-
-        row.remove();
-        recalcTotal();
     });
 
     $(document).on('input', '.amount-offset', function () {
         let raw = this.value.replace(/[^\d]/g, '');
         this.value = raw;
     });
-
-    // Saat keluar field → baru format & batasi remain
-    $(document).on('blur', '.amount-offset', function () {
-
-        let row    = $(this).closest('tr');
-        let remain = toNumber(row.find('.remain-val').val());
-        let val    = toNumber(this.value);
-
-        if (val > remain) {
-            alert('Offset melebihi sisa invoice');
-            val = remain;
-        }
-
-        this.value = formatRupiah(val);
-
-        recalcTotal();
-    });
-
-    function recalcTotal(){
-
-        let total = 0;
-
-        $('.amount-offset').each(function(){
-            total += toNumber($(this).val());
-        });
-
-        // ❌ JANGAN sentuh JUMLAH kalau MANUAL
-        if (modeCashIn === 'FIFO') {
-            $('#JUMLAH_INPUT').val(formatRupiah(total));
-        }
-
-        if ($('#CashInEdit').hasClass('show')) {
-            $('#JUMLAH_EDIT').val(formatRupiah(total));
-        }
-    }
-
-    function validateManualTotal() {
-        if (modeCashIn !== 'MANUAL') return true;
-
-        let totalOffset = 0;
-
-        $('.amount-offset').each(function(){
-            totalOffset += toNumber(this.value);
-        });
-
-        if (totalOffset <= 0) {
-            alert('Offset belum diisi');
-            return false;
-        }
-
-        return true; // ❌ jangan bandingkan dengan JUMLAH
-    }
-
-    function showManualDepositInfo() {
-
-        // if (modeCashIn !== 'MANUAL') return;
-
-        // let jumlah = toNumber($('input[name="JUMLAH"]').val());
-        // let totalOffset = 0;
-
-        // $('.amount-offset').each(function(){
-        //     totalOffset += toNumber(this.value);
-        // });
-
-        // let sisa = jumlah - totalOffset;
-
-        // $('#manualDetailTable tbody tr#manualDepositInfo').remove();
-
-        // if (sisa > 0) {
-        //     $('#manualDetailTable tbody').append(`
-        //         <tr id="manualDepositInfo" class="table-warning">
-        //             <td colspan="6" class="text-center">
-        //                 💰 Sisa ${formatRupiah(sisa)} akan menjadi DEPOSIT CUSTOMER
-        //             </td>
-        //         </tr>
-        //     `);
-        // }
-    }
 
     function formatTanggalIndo(dateString) {
         if (!dateString) return '';
@@ -941,145 +2668,6 @@
         const year = d.getFullYear();
 
         return `${day} ${month} ${year}`;
-    }
-
-    function formatDecimal(value, digit = 2) {
-        return Number(value || 0)
-            .toLocaleString('id-ID', {
-                minimumFractionDigits: digit,
-                maximumFractionDigits: digit
-            });
-    }
-
-    function loadInvoiceTempo() {
-
-        let customer = $('#CUSTOMER').val();
-        let plant    = $('#PLANT_HIDDEN').val(); // ✅ dari hidden
-
-        if (!customer) {
-            alert('Pilih customer terlebih dahulu');
-            return;
-        }
-
-        if (!plant) {
-            alert('Plant belum dipilih');
-            return;
-        }
-
-        $.getJSON(
-            '<?= base_url("cash-in/get_invoice_tempo"); ?>',
-            { customer: customer, plant: plant },
-            function (rows) {
-
-                let tbody = $('#invoiceTempoTable tbody');
-                tbody.empty();
-
-                if (!rows.length) {
-                    tbody.append(`
-                        <tr>
-                            <td colspan="14" class="text-center text-muted">
-                                Tidak ada invoice tempo
-                            </td>
-                        </tr>
-                    `);
-                    return;
-                }
-
-                // GROUP BY SALES + PLANT
-                const grouped = {};
-                rows.forEach(r => {
-                    const key = `${r.SALES}_${r.PLANT}`;
-                    if (!grouped[key]) grouped[key] = [];
-                    grouped[key].push(r);
-                });
-
-                Object.values(grouped).forEach(items => {
-                    const rowspan = items.length;
-
-                    items.forEach((r, index) => {
-                        let tr = '<tr>';
-
-                        if (index === 0) {
-                            tr += `
-                                <td style="vertical-align: middle" rowspan="${rowspan}" class="detail-row text-center"><b>${r.PLANT_NAME}</b></td>
-                                <td style="vertical-align: middle" rowspan="${rowspan}" class="detail-row text-center">${formatTanggalIndo(r.SALES_DATE)}</td>
-                                <td style="vertical-align: middle" rowspan="${rowspan}" class="detail-row text-center"><b>#${r.SALES}</b></td>
-                                <td style="vertical-align: middle" rowspan="${rowspan}" class="detail-row text-center">
-                                    ${r.CUSTOMER_NAME}<br><b>${r.CUSTOMER}</b>
-                                </td>
-                                <td style="vertical-align: middle" rowspan="${rowspan}" class="detail-row text-center">${r.JENIS_PAY}</td>
-                            `;
-                        }
-
-                        tr += `
-                            <td style="vertical-align: middle" class="detail-row text-center">${formatDecimal(r.BERAT)}</td>
-                            <td style="vertical-align: middle" class="detail-row text-end">${r.QTY}</td>
-                            <td style="vertical-align: middle" class="detail-row text-end">${formatRupiah(r.HARGA)}</td>
-                            <td style="vertical-align: middle" class="detail-row text-end">${formatRupiah(r.DISCOUNT)}</td>
-                            <td style="vertical-align: middle" class="detail-row text-end">${formatRupiah(r.DETAIL_AMOUNT)}</td>
-                        `;
-
-                        if (index === 0) {
-                            tr += `
-                                <td style="vertical-align: middle" rowspan="${rowspan}" class="text-end detail-row">${formatDecimal(r.AMOUNT)}</td>
-                                <td style="vertical-align: middle" rowspan="${rowspan}" class="text-end detail-row">${formatDecimal(r.REMAIN)}</td>
-                                <td style="vertical-align: middle" rowspan="${rowspan}" class="text-center detail-row">
-                                    <button class="btn btn-success btn-sm pickInvoice"
-                                        data-sales="${r.SALES}"
-                                        data-plant="${r.PLANT}"
-                                        data-amount="${parseFloat(r.AMOUNT)}"
-                                        data-remain="${parseFloat(r.REMAIN)}"
-                                        data-slip="${r.SLIP_NO}">
-                                        Pilih
-                                    </button>
-                                </td>
-                            `;
-                        }
-
-                        tr += '</tr>';
-                        tbody.append(tr);
-                    });
-                });
-            }
-        );
-    }
-
-    function loadCustomerDeposit() {
-
-        let customer = $('#CUSTOMER').val();
-        let plant    = $('#PLANT_HIDDEN').val();
-
-        if (!customer || !plant) {
-            $('#depositInfoBox').hide();
-            return;
-        }
-
-        $.getJSON('<?= base_url("cash-in/get_customer_deposit"); ?>', {
-            customer: customer,
-            plant: plant
-        }, function(resp){
-
-            if (resp.amount > 0) {
-                $('#depositAmount').text(formatRupiah(resp.amount));
-                $('#depositInfoBox').show();
-            } else {
-                $('#depositInfoBox').hide();
-            }
-        });
-    }
-
-    function loadCustomerDepositEdit(customer, plant) {
-        $.getJSON('<?= base_url("cash-in/get_customer_deposit"); ?>', {
-            customer: customer,
-            plant: plant
-        }, function(resp){
-            if (resp.amount > 0) {
-                $('#depositAmountEdit').text(formatRupiah(resp.amount));
-                $('#depositInfoBoxEdit').show();
-            } else {
-                $('#depositInfoBoxEdit').hide();
-            }
-        });
     }
 
     function initCustomerSelect2(selector, modalId){
@@ -1140,98 +2728,11 @@
         ) || 0;
     }
 
-    function formatRupiah(val) {
-        let num = Number(val) || 0;
-        return num.toLocaleString('id-ID');
-    }
-
-    /* -------------------------
-    Add / remove detail rows
-    ------------------------- */
-    let detailIndexAdd = 0;
-
-    function addDetailRow(data, targetTable) {
-
-        let tbody = $(`${targetTable} tbody`);
-        let index = detailIndexAdd++;
-        if (!tbody.length) return;
-
-        data = data || {};
-        let today = new Date().toISOString().slice(0, 10);
-
-        let row = `
-        <tr>
-            <!-- NO INVOICE -->
-            <td style="display:flex; align-items:center;">
-                <input type="hidden" name="DETAIL[${index}][SALES]" class="sales-id">
-                <input type="hidden" name="DETAIL[${index}][PLANT]" class="plant-id">
-                <div class="invoice-text me-2 text-center">-</div>
-                <button type="button" class="btn btn-sm btn-primary pickInvoiceBtn">
-                    Pilih Invoice
-                </button>
-            </td>
-
-            <!-- DATE -->
-            <td>
-                <input type="date"
-                    name="DETAIL[${index}][DATE_OFFSET]"
-                    class="text-center form-control form-control-sm offset-date"
-                    value="${data.DATE_OFFSET ?? today}">
-            </td>
-
-            <!-- TOTAL INVOICE -->
-            <td class="text-end">
-                <input type="hidden" name="DETAIL[${index}][AMOUNT_INVOICE]" class="amount-invoice-val">
-                <span class="text-end amount-invoice-text">0</span>
-            </td>
-
-            <!-- 🔥 REMAIN -->
-            <td class="text-end">
-                <input type="hidden" class="remain-val">
-                <span class=" text-end remain-text text-danger fw-bold">0</span>
-            </td>
-
-            <!-- OFFSET -->
-            <td>
-                <input type="text"
-                    name="DETAIL[${index}][AMOUNT_OFFSET]"
-                    class="text-end form-control form-control-sm amount-offset text-end"
-                    placeholder="0">
-            </td>
-
-            
-
-            <!-- ACTION -->
-            <td class="text-center">
-                <button class="btn btn-danger btn-sm removeRow">X</button>
-            </td>
-        </tr>
-        `;
-
-        tbody.append(row);
-    }
-
     function calcRow(el){
         let tr = $(el).closest('tr');
         let qty   = parseFloat(tr.find('.qty').val()) || 0;
         let berat = parseFloat(tr.find('.berat').val()) || 0;
         // opsional kalkulasi lainnya jika diperlukan
-    }
-
-    function cleanNumber(val){
-        if (val === null || val === undefined) return 0;
-
-        val = val.toString().trim();
-
-        // Jika ada 1 titik dan setelah titik ada 2 digit → anggap decimal valid (100.00, 275.50)
-        if (val.includes('.') && /^[0-9]+\.[0-9]{2}$/.test(val)) {
-            return parseFloat(val);
-        }
-
-        // Hapus semua titik (misal: 1.234 → 1234)
-        val = val.replace(/\./g, "");
-        
-        return parseFloat(val) || 0;
     }
 
     function safeDate(val){
@@ -1240,52 +2741,6 @@
         return val.substring(0,10);
     }
 
-    function renderExistingFifoEdit(details, plant) {
-
-        let tbody = $('#stockActualDetailTableEdit tbody');
-        tbody.empty();
-
-        if (!details.length) {
-            tbody.append(`<tr><td colspan="5" class="text-center text-muted">Tidak ada detail invoice</td></tr>`);
-            return;
-        }
-
-        details.forEach((row, i) => {
-
-            let remain = parseFloat(row.REMAIN_NOW);
-
-            tbody.append(`
-                <tr data-remain="${remain}">
-                    <td class="text-center">
-                        <input type="hidden" name="DETAIL[${i}][SALES]" value="${row.SALES}">
-                        <input type="hidden" name="DETAIL[${i}][PLANT]" value="${plant}">
-                        <b>#${row.SALES}</b>
-                    </td>
-                    <td class="text-center">
-                        <input type="hidden" name="DETAIL[${i}][DATE_OFFSET]" value="${row.DATE_OFFSET.substring(0,10)}">
-                        ${formatTanggalIndo(row.DATE_OFFSET)}
-                    </td>
-                    <td class="text-end">
-                        ${formatRupiah(row.AMOUNT_INVOICE)}
-                        <input type="hidden" name="DETAIL[${i}][AMOUNT_INVOICE]" value="${row.AMOUNT_INVOICE}">
-                    </td>
-                    <td class="text-end">${formatRupiah(remain)}</td>
-                    <td class="text-end bayar-col">
-                        ${formatRupiah(row.AMOUNT_OFFSET)}
-                        <input type="hidden" name="DETAIL[${i}][AMOUNT_OFFSET]" value="${row.AMOUNT_OFFSET}">
-                    </td>
-                </tr>
-            `);
-        });
-    }
-
-    $('#CUSTOMER').on('change', function () {
-        pickedInvoices = {};
-        $('#stockActualDetailTableAdd tbody').empty();
-        recalcTotal();
-        loadCustomerDeposit();
-    });
-
     $('#cashInDetailTableEdit').on('click', '.pickInvoiceBtn', function(){
         alert('Invoice tidak dapat diganti pada mode edit');
     });
@@ -1293,53 +2748,10 @@
     $(function(){
         loadPage(1);
 
-        // add row
-        $('#addDetailRowAdd').click(function(){ addDetailRow(null, '#stockActualDetailTableAdd'); });
-
-        // remove row
-        $('#stockActualDetailTableAdd, #stockActualDetailTableEdit').on('click','.removeRow', function(){ $(this).closest('tr').remove(); });
-
         $('#fCashInAdd').submit(function(e){
             e.preventDefault();
 
             let btn = $('#btnSaveCashIn');
-
-            /* ================= VALIDASI BERDASARKAN MODE ================= */
-
-            if (modeCashIn === 'FIFO') {
-
-                // Harus ada invoice yang teralokasi
-                let rowCount = $('#stockActualDetailTableAdd input[name*="[SALES]"]').length;
-                if (rowCount === 0) {
-                    alert('Tidak ada invoice yang bisa dialokasikan');
-                    return;
-                }
-
-            } else { // MANUAL
-
-                let validRows = 0;
-                let totalOffset = 0;
-
-                $('#manualDetailTable tbody tr').each(function(){
-                    let sales  = $(this).find('.sales-id').val();
-                    let offset = toNumber($(this).find('.amount-offset').val());
-
-                    if (sales && offset > 0) {
-                        validRows++;
-                        totalOffset += offset;
-                    }
-                });
-
-                if (validRows === 0) {
-                    alert('Belum ada invoice manual yang diisi offset');
-                    return;
-                }
-
-                if (totalOffset <= 0) {
-                    alert('Total offset harus lebih dari 0');
-                    return;
-                }
-            }
 
             /* ================= NORMALISASI ANGKA ================= */
             $('.amount-offset').each(function(){
@@ -1371,9 +2783,6 @@
                     if(resp.status){
                         $('#CashInAdd').modal('hide');
                         $('#fCashInAdd')[0].reset();
-                        $('#stockActualDetailTableAdd tbody').empty();
-                        $('#manualDetailTable tbody').empty();
-                        pickedInvoices = {};
                         loadPage(state.page);
                     }
 
@@ -1422,9 +2831,6 @@
                 initRekeningSelect2('#NO_REK_EDIT', '#CashInEdit');
                 let opt = new Option(h.REK_NAME, h.NO_REK, true, true);
                 $('#NO_REK_EDIT').append(opt).trigger('change');
-
-                loadCustomerDepositEdit(h.CUSTOMER, h.PLANT);
-                renderExistingFifoEdit(resp.detail, h.PLANT);
 
                 $('#CashInEdit').modal('show');
             }, 'json');
@@ -1500,7 +2906,6 @@
         let today = new Date().toISOString().split("T")[0];
         $('#CASHIN_DATE').val(today); // hari ini
         let now = new Date();
-        detailIndexAdd = 0;
     });
 
     const CURRENT_USER = "<?= $this->session->userdata('username'); ?>";

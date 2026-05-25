@@ -1,61 +1,270 @@
 <div class="container-fluid">
+
     <div class="card w-100">
+
         <div class="card-body">
 
-            <h5 class="card-title fw-semibold mb-4">PAYMENT - ACCOUNTING</h5>
+            <h5 class="card-title fw-semibold mb-4">
+                PAYMENT - ACCOUNTING
+            </h5>
 
-            <!-- SEARCH + ADD -->
-            <div class="row mb-3">
-                <div class="col-md-8">
-                    <input id="search" type="text" class="form-control" placeholder="Cari payment..." />
+            <!-- FILTER -->
+            <div class="row g-2 mb-3">
+
+                <!-- SEARCH -->
+                <div class="col-md-3">
+
+                    <input
+                        id="search"
+                        type="text"
+                        class="form-control"
+                        placeholder="Cari payment, slip, supplier...">
+
                 </div>
-                <div class="col-md-4 text-end mt-2 mt-md-0">
-                    <button id="btnAdd" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#paymentAdd">
-                        <i class="ti ti-plus"></i> Tambah Payment
+
+                <!-- PAYMENT -->
+                <div class="col-md-2">
+
+                    <select
+                        id="filterPembayaran"
+                        class="form-control">
+
+                        <option value="">
+                            Semua Pembayaran
+                        </option>
+
+                        <option value="CASH">
+                            CASH
+                        </option>
+
+                        <option value="TRANSFER">
+                            TRANSFER
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <!-- DATE FROM -->
+                <div class="col-md-2">
+
+                    <input
+                        type="date"
+                        id="dateFrom"
+                        class="form-control"
+                        value="<?= date('Y-m-01'); ?>">
+
+                </div>
+
+                <!-- DATE TO -->
+                <div class="col-md-2">
+
+                    <input
+                        type="date"
+                        id="dateTo"
+                        class="form-control"
+                        value="<?= date('Y-m-d'); ?>">
+
+                </div>
+
+                <!-- RESET -->
+                <div class="col-md-1">
+
+                    <button
+                        class="btn btn-light w-100"
+                        id="btnResetFilter">
+
+                        Reset
+
                     </button>
+
                 </div>
+
+                <!-- ADD -->
+                <div class="col-md-2 text-end">
+
+                    <button
+                        id="btnAdd"
+                        class="btn btn-primary w-100"
+                        data-bs-toggle="modal"
+                        data-bs-target="#paymentAdd">
+
+                        <i class="ti ti-plus"></i>
+
+                        Tambah Payment
+
+                    </button>
+
+                </div>
+
             </div>
 
-            <!-- TABLE -->
-            <div class="table-responsive">
-                <table class="table table-striped table-hover" id="mainTable">
-                    <thead>
-                        <tr>
-                            <th data-order="PLANT" style="text-align:center;">Plant</th>
-                            <th data-order="PAYMENT_DATE" style="text-align:center;">Tanggal</th>
-                            <th data-order="PAYMENT" style="text-align:center;">No Payment</th>
-                            <th data-order="SUPPLIER" style="text-align:center;">Supplier</th>
-                            <th data-order="PEMBAYARAN" style="text-align:center;">Pembayaran</th>
-                            <th data-order="SLIP_NO" style="text-align:center;">Slip</th>
-                            <th style="text-align:center;">#</th>
-                        </tr>
-                    </thead>
-                    <tbody id="table-body"></tbody>
-                </table>
+            <div class="table-box position-relative">
+
+                <!-- LOADING -->
+                <div id="tableLoading"
+                    class="table-loading d-none">
+
+                    <div class="loading-card">
+
+                        <div class="spinner-border text-primary"></div>
+
+                        <div class="mt-3 fw-semibold">
+                            Loading data...
+                        </div>
+
+                        <small class="text-muted">
+                            Please wait a moment
+                        </small>
+
+                    </div>
+
+                </div>
+
+                <!-- TABLE -->
+                <div id="tableWrapper">
+
+                    <div class="table-responsive">
+
+                        <table
+                            class="table table-hover align-middle table-modern"
+                            id="mainTable">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th class="text-center">
+                                        Plant
+                                    </th>
+
+                                    <th class="text-center">
+                                        Payment
+                                    </th>
+
+                                    <th class="text-center">
+                                        Date
+                                    </th>
+
+                                    <th class="text-center">
+                                        Supplier
+                                    </th>
+
+                                    <th class="text-center">
+                                        Payment
+                                    </th>
+
+                                    <th class="text-center">
+                                        Slip
+                                    </th>
+
+                                    <th class="text-center">
+                                        Item
+                                    </th>
+
+                                    <th class="text-center">
+                                        Total
+                                    </th>
+
+                                    <th class="text-center">
+                                        Remark
+                                    </th>
+
+                                    <th class="text-center">
+                                        #
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="table-body"></tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
             </div>
 
+            <!-- PAGINATION -->
             <div class="d-flex justify-content-between mt-3">
+
                 <div id="info"></div>
+
                 <div id="pagination"></div>
+
             </div>
 
         </div>
+
     </div>
+
 </div>
 
 <style>
+.table-modern td,
+    .table-modern th{
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+
+    .table-box{
+        min-height:300px;
+    }
+
+    .table-loading{
+        position:absolute;
+        inset:0;
+        z-index:10;
+        background:rgba(255,255,255,.82);
+        backdrop-filter:blur(2px);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        border-radius:12px;
+    }
+
+    .loading-card{
+        text-align:center;
+        padding:28px 40px;
+        background:#fff;
+        border-radius:18px;
+        box-shadow:0 10px 30px rgba(0,0,0,.08);
+    }
+
+    .loading-hide{
+        opacity:.35;
+        pointer-events:none;
+    }
+
     .flex-inline {
         padding: 2px 10px;
         margin-bottom: 5px;
         display: flex;
         align-items: center;
+        justify-content: flex-start;
+        align-content: center;
+        flex-wrap: nowrap;
+        flex-direction: row;
     }
+
     label {
         width: 35%;
     }
+
     .space-line {
         border-bottom: 5px double black;
         margin-bottom: 10px
+    }
+
+    .select2-container--open {
+        z-index: 999999 !important;
+    }
+
+    .select2-dropdown {
+        position: absolute !important;
     }
 </style>
 
@@ -123,10 +332,10 @@
                     <!-- DETAIL -->
                      <div class="d-flex justify-content-between align-items-center mb-2">
                         <h5 style="margin-bottom: 0px">
-                            Receive
+                            PO
                         </h5>
                         <div>
-                            <button type="button" class="btn btn-success btn-sm" id="addRow">Pilih Receive</button>
+                            <button type="button" class="btn btn-success btn-sm" id="addRow">Pilih PO</button>
                         </div>
                     </div>
 
@@ -134,7 +343,7 @@
                         <table class="table table-bordered" id="detailTable">
                             <thead>
                                 <tr>
-                                    <th style="width:15%">Receive No</th>
+                                    <th style="width:15%">PO No</th>
                                     <th style="width:20%">Material</th>
                                     <th style="text-align: center">Berat</th>
                                     <th style="text-align: center">Jumlah ( QTY )</th>
@@ -176,160 +385,329 @@
 
 <!-- ================= MODAL EDIT ================= -->
 <div class="modal fade" id="paymentEdit" tabindex="-1" aria-hidden="true">
+
     <div class="modal-dialog modal-xl">
+
         <form id="fPaymentEdit">
+
             <div class="modal-content">
 
+                <!-- HEADER -->
                 <div class="modal-header">
-                    <h5 class="modal-title">PAYMENT - EDIT</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+                    <h5 class="modal-title">
+                        PAYMENT - EDIT
+                    </h5>
+
+                    <button
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                    </button>
+
                 </div>
 
+                <!-- BODY -->
                 <div class="modal-body">
 
-                    <!-- hidden key -->
-                    <input type="hidden" name="PAYMENT">
+                    <!-- HIDDEN -->
+                    <input
+                        type="hidden"
+                        name="PAYMENT">
 
                     <!-- HEADER -->
                     <div class="row g-2 mb-3">
 
+                        <!-- PLANT -->
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label">Plant *</label>
-                            <select name="PLANT" id="plantEdit" class="form-control" required></select>
+
+                            <label class="form-label">
+                                Plant *
+                            </label>
+
+                            <select
+                                name="PLANT"
+                                id="plantEdit"
+                                class="form-control"
+                                required>
+
+                            </select>
+
                         </div>
 
+                        <!-- PAYMENT -->
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label">No. Payment</label>
-                            <input class="form-control" id="paymentNoEdit"
-                                   readonly style="background:#efefef">
+
+                            <label class="form-label">
+                                No. Payment
+                            </label>
+
+                            <input
+                                id="paymentNoEdit"
+                                class="form-control"
+                                readonly
+                                style="background:#efefef">
+
                         </div>
 
+                        <!-- DATE -->
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label">Tanggal *</label>
-                            <input name="PAYMENT_DATE" type="date"
-                                   class="form-control" required>
+
+                            <label class="form-label">
+                                Tanggal *
+                            </label>
+
+                            <input
+                                name="PAYMENT_DATE"
+                                type="date"
+                                class="form-control"
+                                required>
+
                         </div>
 
+                        <!-- PEMBAYARAN -->
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label">Pembayaran *</label>
+
+                            <label class="form-label">
+                                Pembayaran *
+                            </label>
+
                             <div style="width:100%">
+
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input"
-                                           type="radio"
-                                           name="PEMBAYARAN"
-                                           value="CASH">
-                                    <label class="form-check-label">CASH</label>
+
+                                    <input
+                                        class="form-check-input"
+                                        type="radio"
+                                        name="PEMBAYARAN"
+                                        value="CASH">
+
+                                    <label class="form-check-label">
+                                        CASH
+                                    </label>
+
                                 </div>
+
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input"
-                                           type="radio"
-                                           name="PEMBAYARAN"
-                                           value="TRANSFER">
-                                    <label class="form-check-label">TRANSFER</label>
+
+                                    <input
+                                        class="form-check-input"
+                                        type="radio"
+                                        name="PEMBAYARAN"
+                                        value="TRANSFER">
+
+                                    <label class="form-check-label">
+                                        TRANSFER
+                                    </label>
+
                                 </div>
+
                             </div>
+
                         </div>
 
+                        <!-- SLIP -->
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label">No. Slip</label>
-                            <input name="SLIP_NO"
-                                   class="form-control"
-                                   readonly
-                                   style="background:#efefef">
+
+                            <label class="form-label">
+                                No. Slip
+                            </label>
+
+                            <input
+                                name="SLIP_NO"
+                                class="form-control"
+                                readonly
+                                style="background:#efefef">
+
                         </div>
 
+                        <!-- SUPPLIER -->
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label">Supplier</label>
-                            <select id="supplierEdit" class="form-control"></select>
-                            <input type="hidden" name="SUPPLIER" id="hiddensupplierEdit">
+
+                            <label class="form-label">
+                                Supplier
+                            </label>
+
+                            <select
+                                id="supplierEdit"
+                                class="form-control">
+
+                            </select>
+
+                            <input
+                                type="hidden"
+                                name="SUPPLIER"
+                                id="hiddensupplierEdit">
+
                         </div>
 
+                        <!-- REMARK -->
                         <div class="col-md-12 flex-inline">
-                            <label style="width: 14.5%" class="form-label">Remark</label>
-                            <input name="REMARK"
-                                   class="form-control"
-                                   placeholder="Keterangan..">
+
+                            <label
+                                style="width:14.5%"
+                                class="form-label">
+
+                                Remark
+
+                            </label>
+
+                            <input
+                                name="REMARK"
+                                class="form-control"
+                                placeholder="Keterangan..">
+
                         </div>
+
                     </div>
 
                     <!-- DETAIL -->
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 style="margin-bottom: 0px" id="detailTitleEdit">Receive</h5>
+
+                        <h5 style="margin-bottom:0px">
+
+                            PO
+
+                        </h5>
+
                         <div>
-                            <button type="button"
-                                    class="btn btn-success btn-sm"
-                                    id="addRowEdit">
-                                Pilih Receive
+
+                            <button
+                                type="button"
+                                class="btn btn-success btn-sm"
+                                id="addRowEdit">
+
+                                Pilih PO
+
                             </button>
+
                         </div>
+
                     </div>
 
+                    <!-- TABLE -->
                     <div class="table-responsive">
-                        <table class="table table-bordered" id="detailTableEdit">
+
+                        <table
+                            class="table table-bordered"
+                            id="detailTableEdit">
+
                             <thead>
+
                                 <tr>
-                                    <th style="width:15%">Receive No</th>
-                                    <th style="width:20%">Material</th>
-                                    <th style="text-align: center">Berat</th>
-                                    <th style="text-align: center">Jumlah ( QTY )</th>
-                                    <th style="text-align: center">Harga</th>
-                                    <th style="text-align: center">Total</th>
-                                    <th>Remark</th>
-                                    <th style="width:5%">#</th>
+
+                                    <th style="width:15%">
+                                        PO No
+                                    </th>
+
+                                    <th style="width:20%">
+                                        Material
+                                    </th>
+
+                                    <th style="text-align:center">
+                                        Berat
+                                    </th>
+
+                                    <th style="text-align:center">
+                                        Jumlah ( QTY )
+                                    </th>
+
+                                    <th style="text-align:center">
+                                        Harga
+                                    </th>
+
+                                    <th style="text-align:center">
+                                        Total
+                                    </th>
+
+                                    <th>
+                                        Remark
+                                    </th>
+
+                                    <th style="width:5%">
+                                        #
+                                    </th>
+
                                 </tr>
+
                             </thead>
+
                             <tbody>
-                                <!-- diisi via JS -->
+
                             </tbody>
+
                         </table>
 
                         <!-- GRAND TOTAL -->
-                        <div class="row" style="width: 100%;">
+                        <div class="row" style="width:100%;">
+
                             <div class="col-md-6"></div>
+
                             <div class="col-md-6">
+
                                 <div class="input-group">
+
                                     <span class="input-group-text fw-bold">
+
                                         Grand Total
+
                                     </span>
-                                    <input type="text"
-                                           id="grandTotalEdit"
-                                           class="form-control text-end fw-bold"
-                                           readonly
-                                           style="background:#efefef">
+
+                                    <input
+                                        type="text"
+                                        id="grandTotalEdit"
+                                        class="form-control text-end fw-bold"
+                                        readonly
+                                        style="background:#efefef">
+
                                 </div>
+
                             </div>
+
                         </div>
+
                     </div>
 
                 </div>
 
+                <!-- FOOTER -->
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">
+
+                    <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+
                         Tutup
+
                     </button>
-                    <button class="btn btn-primary" type="submit">
+
+                    <button
+                        class="btn btn-primary"
+                        type="submit">
+
                         Simpan Perubahan
+
                     </button>
+
                 </div>
 
             </div>
+
         </form>
+
     </div>
+
 </div>
 
 <style>
-    #modalReceive {
+    #modalPO {
         background: #000000c7;
     }
 </style>
 
-```html
-<!-- =========================================
-MODAL PICK RECEIVE
-========================================== -->
-
 <div class="modal fade"
-    id="modalPickReceive"
+    id="modalPickPO"
     tabindex="-1"
     aria-hidden="true">
 
@@ -340,7 +718,7 @@ MODAL PICK RECEIVE
             <div class="modal-header">
 
                 <h5 class="modal-title">
-                    PILIH RECEIVE
+                    PILIH PO
                 </h5>
 
                 <button
@@ -360,9 +738,9 @@ MODAL PICK RECEIVE
 
                         <input
                             type="text"
-                            id="searchReceive"
+                            id="searchPO"
                             class="form-control"
-                            placeholder="Cari receive / material / supplier...">
+                            placeholder="Cari po / material / supplier...">
 
                     </div>
 
@@ -382,7 +760,7 @@ MODAL PICK RECEIVE
                                 </th>
 
                                 <th>
-                                    Receive
+                                    PO
                                 </th>
 
                                 <th>
@@ -413,7 +791,7 @@ MODAL PICK RECEIVE
 
                         </thead>
 
-                        <tbody id="receiveListBody"></tbody>
+                        <tbody id="poListBody"></tbody>
 
                     </table>
 
@@ -434,7 +812,7 @@ MODAL PICK RECEIVE
                 <button
                     type="button"
                     class="btn btn-primary"
-                    id="btnChooseReceive">
+                    id="btnChoosePO">
 
                     Pilih Data
 
@@ -447,21 +825,70 @@ MODAL PICK RECEIVE
     </div>
 
 </div>
-```
-
 
 <script>
-    var state = { page: 1, limit: 10, search: '', order: 'PAYMENT', dir: 'DESC' };
+    let state = {
+        page  : 1,
+        limit : 10,
+        order : 'PAYMENT_DATE',
+        dir   : 'DESC'
+    };
     let detailIndex = 0;
 
+    let searchTimer;
+
     $('#search').on('keyup', function(){
-        state.search = $(this).val();
-        loadPage(1);
+
+        clearTimeout(searchTimer);
+
+        searchTimer = setTimeout(function(){
+
+            loadPage(1);
+
+        }, 400);
+
     });
 
-    /* =========================
-    UTIL
-    ========================= */
+    $('#filterPembayaran').change(function(){
+
+        loadPage(1);
+
+    });
+
+    $('#dateFrom').change(function(){
+
+        loadPage(1);
+
+    });
+
+    $('#dateTo').change(function(){
+
+        loadPage(1);
+
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | RESET
+    |--------------------------------------------------------------------------
+    */
+
+    $('#btnResetFilter').click(function(){
+
+        $('#search').val('');
+
+        $('#filterPembayaran').val('');
+
+        $('#dateFrom')
+            .val('<?= date('Y-m-01'); ?>');
+
+        $('#dateTo')
+            .val('<?= date('Y-m-d'); ?>');
+
+        loadPage(1);
+
+    });
+
     function formatDate(dateString){
         if(!dateString) return '-';
         const d = new Date(dateString);
@@ -472,79 +899,399 @@ MODAL PICK RECEIVE
         return `${day} ${months[d.getMonth()]} ${d.getFullYear()}`;
     }
 
-    function cleanNumber(val){
-        if(!val) return 0;
-        val = val.toString();
-        if(val.includes('.') && /^[0-9]+\.[0-9]{2}$/.test(val)) return parseFloat(val);
-        return parseFloat(val.replace(/\./g,'')) || 0;
+    let ajaxListRequest = null;
+
+    function showTableLoading()
+    {
+        $('#tableLoading')
+            .removeClass('d-none');
+
+        $('#tableWrapper')
+            .addClass('loading-hide');
     }
 
-    function formatRupiah(x){
-        let n = cleanNumber(x).toString().split('.');
-        return n[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.') + (n[1] ? '.'+n[1] : '');
+    function hideTableLoading()
+    {
+        $('#tableLoading')
+            .addClass('d-none');
+
+        $('#tableWrapper')
+            .removeClass('loading-hide');
     }
 
-    /* =========================
-    LOAD DATA
-    ========================= */
-    function loadPage(page = 1){
+    function loadPage(page = 1)
+    {
+        showTableLoading();
+
         state.page = page;
 
-        $.get('<?= base_url("payment/load_data"); ?>', state, function(resp){
-            resp = typeof resp === 'string' ? JSON.parse(resp) : resp;
-            let tbody = $('#table-body').empty();
+        /*
+        |--------------------------------------------------------------------------
+        | ABORT PREVIOUS
+        |--------------------------------------------------------------------------
+        */
 
-            resp.rows.forEach(r=>{
-                tbody.append(`
-                    <tr>
-                        <td class="text-center" style="vertical-align: middle"><b>${r.PLANT_NAME}</b></td>
-                        <td class="text-center" style="vertical-align: middle">${formatDateIndo(r.PAYMENT_DATE)}</td>
-                        <td class="text-center" style="vertical-align: middle">#${r.PAYMENT}</td>
-                        <td class="text-center" style="vertical-align: middle">${r.SUPPLIER_NAME}</td>
-                        <td class="text-center" style="vertical-align: middle">${r.PEMBAYARAN}</td>
-                        <td class="text-center" style="vertical-align: middle">#${r.SLIP_NO ?? '-'}</td>
-                        <td class="text-center" style="vertical-align: middle">
-                            <button class="btn btn-sm btn-primary exportPdf" data-payment="${r.PAYMENT}" data-plant="${r.PLANT}">PDF</button>
-                            
-                            <button class="btn btn-sm btn-danger deleteBtn" data-id="${r.PAYMENT}" data-plant="${r.PLANT}">Hapus</button>
-                        </td>
-                    </tr>
-                `);
-            });
+        if (ajaxListRequest) {
 
-            $('#pagination').html(resp.pagination);
+            ajaxListRequest.abort();
+
+        }
+
+        ajaxListRequest = $.get(
+
+            '<?= base_url("payment/load_data"); ?>',
+
+            {
+
+                page : state.page,
+
+                limit : state.limit,
+
+                search : $('#search').val(),
+
+                pembayaran : $('#filterPembayaran').val(),
+
+                date_from : $('#dateFrom').val(),
+
+                date_to : $('#dateTo').val(),
+
+                order : state.order,
+
+                dir : state.dir
+
+            },
+
+            function(resp){
+
+                ajaxListRequest = null;
+
+                resp = typeof resp === 'string'
+                    ? JSON.parse(resp)
+                    : resp;
+
+                let tbody = $('#table-body');
+
+                tbody.empty();
+
+                /*
+                |--------------------------------------------------------------------------
+                | EMPTY
+                |--------------------------------------------------------------------------
+                */
+
+                if(resp.rows.length === 0){
+
+                    tbody.html(`
+
+                        <tr>
+
+                            <td colspan="10"
+                                class="text-center text-muted py-4">
+
+                                Tidak ada data
+
+                            </td>
+
+                        </tr>
+
+                    `);
+
+                    return;
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | LOOP
+                |--------------------------------------------------------------------------
+                */
+
+                resp.rows.forEach(function(row){
+
+                    let tr = `
+
+                        <tr>
+
+                            <!-- PLANT -->
+                            <td class="text-center align-middle">
+
+                                <div class="fw-semibold">
+
+                                    ${row.PLANT_NAME || '-'}
+
+                                </div>
+
+                            </td>
+
+                            <!-- PAYMENT -->
+                            <td class="text-center align-middle">
+
+                                <div class="fw-bold text-primary">
+
+                                    #${row.PAYMENT}
+
+                                </div>
+
+                            </td>
+
+                            <!-- DATE -->
+                            <td class="text-center align-middle">
+
+                                ${formatDate(row.PAYMENT_DATE)}
+
+                            </td>
+
+                            <!-- SUPPLIER -->
+                            <td class="align-middle">
+
+                                <div class="fw-semibold">
+
+                                    ${row.SUPPLIER_NAME || '-'}
+
+                                </div>
+
+                            </td>
+
+                            <!-- PAYMENT TYPE -->
+                            <td class="text-center align-middle">
+
+                                <span class="
+                                    badge
+                                    ${row.PEMBAYARAN === 'CASH'
+                                        ? 'bg-primary'
+                                        : 'bg-success'}
+                                ">
+
+                                    ${row.PEMBAYARAN || '-'}
+
+                                </span>
+
+                            </td>
+
+                            <!-- SLIP -->
+                            <td class="text-center align-middle">
+
+                                ${row.SLIP_NO || '-'}
+
+                            </td>
+
+                            <!-- ITEM -->
+                            <td class="text-center align-middle">
+
+                                <div>
+
+                                    <span class="badge bg-primary">
+
+                                        ${row.TOTAL_ITEM || 0}
+                                        Item
+
+                                    </span>
+
+                                </div>
+
+                                <div class="mt-1">
+
+                                    <small class="text-muted">
+
+                                        Berat :
+                                        ${numberFormat(row.TOTAL_BERAT || 0)}
+
+                                    </small>
+
+                                </div>
+
+                            </td>
+
+                            <!-- TOTAL -->
+                            <td class="text-end align-middle">
+
+                                <div class="fw-bold text-success">
+
+                                    Rp
+                                    ${numberFormat(row.GRAND_TOTAL || 0)}
+
+                                </div>
+
+                            </td>
+
+                            <!-- REMARK -->
+                            <td class="align-middle">
+
+                                ${row.REMARK || '-'}
+
+                            </td>
+
+                            <!-- ACTION -->
+                            <td class="text-center align-middle">
+
+                                <div class="btn-group btn-group-sm">
+
+                                    <!-- PDF -->
+                                    <button
+                                        class="btn btn-outline-primary btnPdf"
+                                        data-payment="${row.PAYMENT}"
+                                        data-plant="${row.PLANT}">
+
+                                        Slip
+
+                                    </button>
+
+                                    <!-- EDIT -->
+                                    <button
+                                        class="btn btn-outline-warning btnEdit"
+                                        data-payment="${row.PAYMENT}"
+                                        data-plant="${row.PLANT}">
+
+                                        Edit
+
+                                    </button>
+
+                                    <!-- DELETE -->
+                                    <button
+                                        class="btn btn-outline-danger btnDelete"
+                                        data-payment="${row.PAYMENT}"
+                                        data-plant="${row.PLANT}">
+
+                                        Hapus
+
+                                    </button>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                    tbody.append(tr);
+
+                });
+
+                /*
+                |--------------------------------------------------------------------------
+                | PAGINATION
+                |--------------------------------------------------------------------------
+                */
+
+                $('#pagination')
+                    .html(resp.pagination);
+
+                /*
+                |--------------------------------------------------------------------------
+                | INFO
+                |--------------------------------------------------------------------------
+                */
+
+                $('#info').text(
+
+                    `Menampilkan halaman ${resp.page} dari ${Math.ceil(resp.total/state.limit)} (Total ${resp.total} data)`
+
+                );
+
+            },
+
+            'json'
+
+        ).always(function(){
+
+            hideTableLoading();
+
         });
     }
 
-    function updateGrandTotal()
-    {
-        let total = 0;
+    $(document).on(
+        'click',
+        '.btnPdf',
+        function(){
+
+            let payment =
+                $(this).data('payment');
+
+            let plant =
+                $(this).data('plant');
+
+            window.open(
+
+                '<?= base_url("payment/print_pdf"); ?>'
+                +
+                '?payment=' + payment
+                +
+                '&plant=' + plant,
+
+                '_blank'
+
+            );
+
+        }
+    );
+
+    $(document).on(
+        'click',
+        '#detailTableEdit .removeDetail',
+        function(){
+
+            $(this)
+                .closest('tr')
+                .remove();
+
+            updateGrandTotalEdit();
+
+        }
+    );
+
+    function updateGrandTotal(){
+
+        let grandTotal = 0;
 
         $('#detailTable tbody tr').each(function(){
 
-            let rowTotal =
-                cleanNumber(
-                    $(this)
-                        .find('.total-cell')
-                        .text()
-                );
+            let totalText =
+                $(this)
+                .find('.total-cell')
+                .text()
+                .replace(/[^\d]/g,'');
 
-            total += rowTotal;
+            grandTotal +=
+                parseFloat(totalText || 0);
         });
 
-        $('#grandTotal')
-            .val(
-                formatRupiah(total)
-            );
+        $('#grandTotal').val(
+
+            currencyFormat(grandTotal)
+        );
     }
 
-    $('#btnChooseReceive').click(function(){
+    function updateGrandTotalEdit()
+    {
+        let grand = 0;
 
-        $('.pickReceive:checked').each(function(){
+        $('#detailTableEdit tbody tr').each(function(){
+
+            let total =
+                parseFloat(
+                    $(this)
+                    .find('input[name$="[TOTAL]"]')
+                    .val()
+                ) || 0;
+
+            grand += total;
+
+        });
+
+        $('#grandTotalEdit').val(
+            'Rp ' + numberFormat(grand)
+        );
+    }
+
+    $('#btnChoosePO').click(function(){
+
+            let detailIndex = $('#detailTable tbody tr').length;
+
+            $('.pickPO:checked').each(function(){
 
             let id = $(this).data('id');
 
-            let receive = $(this).data('receive');
+            let po = $(this).data('po');
 
             let material = $(this).data('material');
 
@@ -560,7 +1307,7 @@ MODAL PICK RECEIVE
 
                 if (
                     $(this).data('id') == id &&
-                    $(this).data('receive') == receive &&
+                    $(this).data('po') == po &&
                     $(this).data('material') == material
                 ) {
 
@@ -578,87 +1325,100 @@ MODAL PICK RECEIVE
             let harga =
                 parseFloat($(this).data('harga')) || 0;
 
+            let berat =
+                parseFloat($(this).data('berat')) || 0;
+
             let total =
-                parseFloat($(this).data('total')) || 0;
+                berat * harga;
 
             let row = `
-                <tr
-                    data-receive="${receive}"
-                    data-material="${material}">
 
-                    <td>
-                        ${receive}
+            <tr
+                data-id="${id}"
+                data-po="${po}"
+                data-material="${material}">
 
-                        <input type="hidden"
-                            name="DETAIL[][RECEIVE_NO]"
-                            value="${receive}">
-                    </td>
+                <td>
 
-                    <td>
-                        ${$(this).data('material-name')}
+                    ${po}
 
-                        <input type="hidden"
-                            name="DETAIL[][MATERIAL]"
-                            value="${material}">
-                    </td>
+                    <input
+                        type="hidden"
+                        name="DETAIL[${detailIndex}][PO_NO]"
+                        value="${po}">
+                </td>
 
-                    <td class="text-center">
+                <td>
 
-                        ${formatRupiah(
-                            $(this).data('berat')
-                        )}
+                    ${$(this).data('material-name')}
 
-                        <input type="hidden"
-                            name="DETAIL[][BERAT]"
-                            value="${$(this).data('berat')}">
-                    </td>
+                    <input
+                        type="hidden"
+                        name="DETAIL[${detailIndex}][MATERIAL]"
+                        value="${material}">
+                </td>
 
-                    <td class="text-center">
+                <td class="text-center">
 
-                        ${formatRupiah(qty)}
+                    ${numberFormat($(this).data('berat'))}
 
-                        <input type="hidden"
-                            name="DETAIL[][JUMLAH]"
-                            value="${qty}">
-                    </td>
+                    <input
+                        type="hidden"
+                        name="DETAIL[${detailIndex}][BERAT]"
+                        value="${$(this).data('berat')}">
+                </td>
 
-                    <td class="text-end">
+                <td class="text-center">
 
-                        ${formatRupiah(harga)}
+                    ${numberFormat(qty)}
 
-                        <input type="hidden"
-                            name="DETAIL[][HARGA]"
-                            value="${harga}">
-                    </td>
+                    <input
+                        type="hidden"
+                        name="DETAIL[${detailIndex}][JUMLAH]"
+                        value="${qty}">
+                </td>
 
-                    <td class="text-end total-cell">
+                <td class="text-end">
 
-                        ${formatRupiah(total)}
+                    ${currencyFormat(harga)}
 
-                    </td>
+                    <input
+                        type="hidden"
+                        name="DETAIL[${detailIndex}][HARGA]"
+                        value="${harga}">
+                </td>
 
-                    <td>
+                <td class="text-end total-cell">
 
-                        <input
-                            type="text"
-                            class="form-control"
-                            name="DETAIL[][REMARK]">
-                    </td>
+                    ${currencyFormat(total)}
 
-                    <td class="text-center">
+                </td>
 
-                        <button
-                            type="button"
-                            class="btn btn-danger btn-sm removeDetail">
+                <td>
 
-                            X
+                    <input
+                        type="text"
+                        class="form-control"
+                        name="DETAIL[${detailIndex}][REMARK]">
+                </td>
 
-                        </button>
+                <td class="text-center">
 
-                    </td>
+                    <button
+                        type="button"
+                        class="btn btn-danger btn-sm removeDetail">
 
-                </tr>
+                        X
+
+                    </button>
+
+                </td>
+
+            </tr>
+
             `;
+
+            detailIndex++;
 
             $('#detailTable tbody')
                 .append(row);
@@ -676,7 +1436,7 @@ MODAL PICK RECEIVE
 
         updateGrandTotal();
 
-        $('#modalPickReceive')
+        $('#modalPickPO')
             .modal('hide');
 
     });
@@ -751,10 +1511,10 @@ MODAL PICK RECEIVE
         let supplierId = e.params.data.id;
         $('#hiddensupplierAdd').val(supplierId);
 
-        // update semua row receive select
+        // update semua row po select
         $('#detailTable tbody tr').each(function(){
-            let $receiveSelect = $(this).find('.receive-select');
-            $receiveSelect.empty().trigger('change');
+            let $poSelect = $(this).find('.po-select');
+            $poSelect.empty().trigger('change');
         });
     });
 
@@ -763,7 +1523,7 @@ MODAL PICK RECEIVE
         $('#hiddensupplierEdit').val(supplierId);
 
         $('#detailTableEdit tbody tr').each(function(){
-            let $select = $(this).find('.receive-select');
+            let $select = $(this).find('.po-select');
             $select.empty().trigger('change');
         });
     });
@@ -791,18 +1551,130 @@ MODAL PICK RECEIVE
             return;
         }
 
-        loadReceivePicker();
+        loadPOPicker();
 
-        $('#modalPickReceive')
+        $('#modalPickPO')
             .modal('show');
 
     });
 
     
-    let searchReceiveTimer; $('#searchReceive').on('keyup', function(){ clearTimeout(searchReceiveTimer); searchReceiveTimer = setTimeout(() => { loadReceivePicker(); }, 400); });
+    let searchPOTimer; $('#searchPO').on('keyup', function(){ clearTimeout(searchPOTimer); searchPOTimer = setTimeout(() => { loadPOPicker(); }, 400); });
 
-    function loadReceivePicker() { $.get( '<?= base_url("payment/load_receive_picker"); ?>', { plant : $('#plantAdd').val(),supplier :
-                $('#hiddensupplierAdd').val(), search : $('#searchReceive').val() }, function(rows){ let tbody = $('#receiveListBody'); tbody.html(''); rows.forEach(function(r){ let tr = ` <tr> <td class="text-center"> <input type="checkbox" class="pickReceive" data-id="${r.ID}" data-receive="${r.RECEIVE}" data-material="${r.MATERIAL}" data-material-name="${r.MATERIAL_NAME}" data-qty="${r.JUMLAH}" data-berat="${r.BERAT}" data-harga="${r.HARGA}" data-total="${r.TOTAL}" data-supplier="${r.SUPPLIER}" data-supplier-name="${r.SUPPLIER_NAME}"> </td> <td> ${r.RECEIVE} </td> <td> ${r.SUPPLIER_NAME || '-'} </td> <td> ${r.MATERIAL_NAME || '-'} </td> <td class="text-center"> ${formatRupiah(r.JUMLAH)} </td> <td class="text-center"> ${formatRupiah(r.BERAT)} </td> <td class="text-end"> ${formatRupiah(r.HARGA)} </td> <td class="text-end"> ${formatRupiah(r.TOTAL)} </td> </tr> `; tbody.append(tr); }); }, 'json' ); }
+    function loadPOPicker() {
+
+    $.get(
+
+        '<?= base_url("payment/load_po_picker"); ?>',
+
+        {
+            plant :
+                $('#plantAdd').val(),
+
+            supplier :
+                $('#hiddensupplierAdd').val(),
+
+            search :
+                $('#searchPO').val()
+        },
+
+        function(rows)
+                {
+
+                    let tbody = $('#poListBody');
+
+                    tbody.html('');
+
+                    rows.forEach(function(r){
+
+                        let tr = `
+
+                            <tr>
+
+                                <td class="text-center">
+
+                                    <input
+                                        type="checkbox"
+                                        class="pickPO"
+
+                                        data-id="${r.ID}"
+
+                                        data-po="${r.PO}"
+
+                                        data-material="${r.MATERIAL}"
+
+                                        data-material-name="${r.MATERIAL_NAME}"
+
+                                        data-qty="${r.JUMLAH}"
+
+                                        data-berat="${r.BERAT}"
+
+                                        data-harga="${r.HARGA}"
+
+                                        data-total="${r.TOTAL}"
+
+                                        data-supplier="${r.SUPPLIER}"
+
+                                        data-supplier-name="${r.SUPPLIER_NAME}"
+                                    >
+
+                                </td>
+
+                                <td>
+                                    ${r.PO}
+                                </td>
+
+                                <td>
+                                    ${r.SUPPLIER_NAME || '-'}
+                                </td>
+
+                                <td>
+                                    ${r.MATERIAL_NAME || '-'}
+                                </td>
+
+                                <td class="text-center">
+
+                                    ${Number(r.JUMLAH)
+                                        .toLocaleString('id-ID')}
+
+                                </td>
+
+                                <td class="text-center">
+
+                                    ${Number(r.BERAT)
+                                        .toLocaleString('id-ID')}
+
+                                </td>
+
+                                <td class="text-end">
+
+                                    Rp
+                                    ${Number(r.HARGA)
+                                        .toLocaleString('id-ID')}
+
+                                </td>
+
+                                <td class="text-end">
+
+                                    Rp
+                                    ${Number(r.TOTAL)
+                                        .toLocaleString('id-ID')}
+
+                                </td>
+
+                            </tr>
+
+                        `;
+
+                        tbody.append(tr);
+
+                    });
+
+                },
+
+                'json'
+            );
+        }
 
     $('#addRowEdit').on('click', function () {
 
@@ -819,7 +1691,7 @@ MODAL PICK RECEIVE
             return;
         }
 
-        loadReceiveModal({
+        loadPOModal({
             supplier: supplier,
             plant: plant,
             targetTable: '#detailTableEdit'
@@ -832,13 +1704,13 @@ MODAL PICK RECEIVE
     //     addDetailRowEdit({}, count, $('#hiddensupplierEdit').val());
     // });
 
-    $(document).on('click','.btn-choose-receive',function(){
+    $(document).on('click','.btn-choose-po',function(){
         let supplier = $('#hiddensupplierAdd').val();
         if(!supplier) return alert('Pilih supplier terlebih dahulu');
-        loadReceiveModal(supplier);
+        loadPOModal(supplier);
     });
 
-    $(document).on('click', '.btn-select-receive', function () {
+    $(document).on('click', '.btn-select-po', function () {
         const $btn = $(this);
         if ($btn.data('locked')) return;
         $btn.data('locked', true);
@@ -853,7 +1725,7 @@ MODAL PICK RECEIVE
 
         let data = {
             PLANT: $btn.data('plant'),
-            RECEIVE_NO: $btn.data('receive'),
+            PO_NO: $btn.data('po'),
             MATERIAL: $btn.data('material'),
             MATERIAL_NAME: $btn.data('material-name'),
             BERAT: Number($btn.data('berat')) || 0,
@@ -861,7 +1733,7 @@ MODAL PICK RECEIVE
             HARGA: Number($btn.data('harga')) || 0
         };
 
-        if (isMaterialExist(data.PLANT, data.RECEIVE_NO, data.MATERIAL, table)) {
+        if (isMaterialExist(data.PLANT, data.PO_NO, data.MATERIAL, table)) {
             alert('Material ini sudah dipilih');
             $btn.data('locked', false);
             return;
@@ -869,7 +1741,7 @@ MODAL PICK RECEIVE
 
         addDetailRow(table, data);
 
-        $('#modalReceive').modal('hide');
+        $('#modalPO').modal('hide');
 
         setTimeout(() => $btn.data('locked', false), 300);
     });
@@ -901,7 +1773,7 @@ MODAL PICK RECEIVE
             ? '#grandTotalEdit'
             : '#grandTotal';
 
-        $(target).val(formatRupiah(total));
+        $(target).val(numberFormat(total));
     }
 
     $(document).on('input', '.jumlah, .harga', function () {
@@ -917,17 +1789,17 @@ MODAL PICK RECEIVE
         calculateGrandTotal(table);
     });
 
-    function isMaterialExist(plant, receive, material, table){
+    function isMaterialExist(plant, po, material, table){
         let exist = false;
 
         $(table+' tbody tr').each(function(){
             const p = $(this).find('input[name$="[PLANT]"]').val();
-            const r = $(this).find('input[name$="[RECEIVE_NO]"]').val();
+            const r = $(this).find('input[name$="[PO_NO]"]').val();
             const m = $(this).find('input[name$="[MATERIAL]"]').val();
 
             if (
                 String(p) === String(plant) &&
-                String(r) === String(receive) &&
+                String(r) === String(po) &&
                 String(m) === String(material)
             ) {
                 exist = true;
@@ -953,7 +1825,7 @@ MODAL PICK RECEIVE
         return n.toLocaleString('id-ID');
     }
 
-    function loadReceiveModal({ supplier, plant = null, targetTable }) {
+    function loadPOModal({ supplier, plant = null, targetTable }) {
 
         if (!supplier) {
             alert('Supplier tidak valid');
@@ -961,7 +1833,7 @@ MODAL PICK RECEIVE
         }
 
         $.get(
-            '<?= base_url("payment/load_receive_modal"); ?>',
+            '<?= base_url("payment/load_po_modal"); ?>',
             {
                 supplier: supplier,
                 plant: plant
@@ -980,24 +1852,24 @@ MODAL PICK RECEIVE
                         tbody += `
                             <tr>
                                 <td class="text-center" style="vertical-align: middle">${r.PLANT_NAME}</td>
-                                <td class="text-center" style="vertical-align: middle">${formatDateIndo(r.RECEIVE_DATE)}</td>
-                                <td class="text-center" style="vertical-align: middle">#${r.RECEIVE}</td>
+                                <td class="text-center" style="vertical-align: middle">${formatDateIndo(r.PO_DATE)}</td>
+                                <td class="text-center" style="vertical-align: middle">#${r.PO}</td>
                                 <td class="text-center" style="vertical-align: middle">
                                     <b>(${r.SUPPLIER})</b><br>${r.SUPPLIER_NAME}
                                 </td>
                                 <td class="text-center" style="vertical-align: middle">
                                     <b>(${r.MATERIAL})</b><br>${r.MATERIAL_NAME}
                                 </td>
-                                <td class="text-end" style="vertical-align: middle">${formatNumberID(r.TOTAL_BERAT)}</td>
-                                <td class="text-end" style="vertical-align: middle">${formatNumberID(r.TOTAL_QTY)}</td>
-                                <td class="text-end" style="vertical-align: middle">${formatRupiah(r.HARGA)}</td>
-                                <td class="text-end" style="vertical-align: middle">${formatRupiah(r.TOTAL)}</td>
+                                <td class="text-end" style="vertical-align: middle">${numberFormat(r.TOTAL_BERAT)}</td>
+                                <td class="text-end" style="vertical-align: middle">${numberFormat(r.TOTAL_QTY)}</td>
+                                <td class="text-end" style="vertical-align: middle">${numberFormat(r.HARGA)}</td>
+                                <td class="text-end" style="vertical-align: middle">${numberFormat(r.TOTAL)}</td>
                                 <td class="text-center" style="vertical-align: middle">
                                     <button type="button"
-                                        class="btn btn-success btn-sm btn-select-receive"
+                                        class="btn btn-success btn-sm btn-select-po"
                                         data-target="${targetTable}"
                                         data-plant="${r.PLANT}"
-                                        data-receive="${r.RECEIVE}"
+                                        data-po="${r.PO}"
                                         data-material="${r.MATERIAL}"
                                         data-material-name="${r.MATERIAL_NAME}"
                                         data-berat="${r.TOTAL_BERAT}"
@@ -1010,35 +1882,11 @@ MODAL PICK RECEIVE
                     });
                 }
 
-                $('#tableReceive tbody').html(tbody);
-                $('#modalReceive').modal('show');
+                $('#tablePO tbody').html(tbody);
+                $('#modalPO').modal('show');
             },
             'json'
         );
-    }
-
-    function formatNumberID(value, digit = 2) {
-        if (!value) return '0,00';
-
-        // pastikan numeric
-        value = Number(value);
-
-        return value.toLocaleString('id-ID', {
-            minimumFractionDigits: digit,
-            maximumFractionDigits: digit
-        });
-    }
-
-    function formatDecimal(value, digit = 2) {
-        return Number(value || 0)
-            .toLocaleString('id-ID', {
-                minimumFractionDigits: digit,
-                maximumFractionDigits: digit
-            });
-    }
-
-    function formatRupiah(value) {
-        return Number(value || 0).toLocaleString('id-ID');
     }
 
     /* =========================
@@ -1053,15 +1901,15 @@ MODAL PICK RECEIVE
         const berat  = Number(data.BERAT)  || 0;
         const jumlah = Number(data.JUMLAH) || 0;
         const harga  = Number(data.HARGA)  || 0;
-        const total  = jumlah * harga;
+        const total  = berat * harga;
 
         let row = `
             <tr>
                 <td style="vertical-align: middle">
-                    #${data.RECEIVE_NO}
+                    #${data.PO_NO}
                     <input type="hidden" name="DETAIL[${idx}][SEQ_NO]" value="${data.SEQ_NO}">
                     <input type="hidden" name="DETAIL[${idx}][PLANT]" value="${data.PLANT}">
-                    <input type="hidden" name="DETAIL[${idx}][RECEIVE_NO]" value="${data.RECEIVE_NO}">
+                    <input type="hidden" name="DETAIL[${idx}][PO_NO]" value="${data.PO_NO}">
                 </td>
                 <td style="vertical-align: middle">
                     ${data.MATERIAL} - ${data.MATERIAL_NAME}
@@ -1076,19 +1924,19 @@ MODAL PICK RECEIVE
                 <td>
                     <input type="text"
                         class="form-control text-end jumlah"
-                        value="${formatRupiah(jumlah)}" readonly>
+                        value="${numberFormat(jumlah)}" readonly>
                     <input type="hidden" name="DETAIL[${idx}][JUMLAH]" value="${jumlah}">
                 </td>
                 <td>
                     <input type="text"
                         class="form-control text-end harga"
-                        value="${formatRupiah(harga)}" readonly>
+                        value="${numberFormat(harga)}" readonly>
                     <input type="hidden" name="DETAIL[${idx}][HARGA]" value="${harga}">
                 </td>
                 <td>
                     <input type="text"
                         class="form-control text-end total"
-                        value="${formatRupiah(total)}" readonly>
+                        value="${numberFormat(total)}" readonly>
                     <input type="hidden" name="DETAIL[${idx}][TOTAL]" value="${total}">
                 </td>
                 <td>
@@ -1104,6 +1952,137 @@ MODAL PICK RECEIVE
         calculateGrandTotal(table);
     }
 
+    function addDetailRowEdit(row)
+    {
+        let qty =
+            parseFloat(row.JUMLAH) || 0;
+
+        let berat =
+            parseFloat(row.BERAT) || 0;
+
+        let harga =
+            parseFloat(row.HARGA) || 0;
+
+        // TOTAL = BERAT X HARGA
+        let total =
+            berat * harga;
+
+        let index =
+            $('#detailTableEdit tbody tr').length;
+
+        let html = `
+
+            <tr
+                data-po="${row.PO_NO}"
+                data-material="${row.MATERIAL}">
+
+                <!-- PO -->
+                <td>
+
+                    ${row.PO_NO}
+
+                    <input
+                        type="hidden"
+                        name="DETAIL[${index}][PO_NO]"
+                        value="${row.PO_NO}">
+
+                </td>
+
+                <!-- MATERIAL -->
+                <td>
+
+                    ${row.MATERIAL_NAME || row.MATERIAL}
+
+                    <input
+                        type="hidden"
+                        name="DETAIL[${index}][MATERIAL]"
+                        value="${row.MATERIAL}">
+
+                </td>
+
+                <!-- BERAT -->
+                <td class="text-center">
+
+                    ${numberFormat(berat)}
+
+                    <input
+                        type="hidden"
+                        name="DETAIL[${index}][BERAT]"
+                        value="${berat}">
+
+                </td>
+
+                <!-- JUMLAH -->
+                <td class="text-center">
+
+                    ${numberFormat(qty)}
+
+                    <input
+                        type="hidden"
+                        name="DETAIL[${index}][JUMLAH]"
+                        value="${qty}">
+
+                </td>
+
+                <!-- HARGA -->
+                <td class="text-end">
+
+                    Rp ${numberFormat(harga)}
+
+                    <input
+                        type="hidden"
+                        name="DETAIL[${index}][HARGA]"
+                        value="${harga}">
+
+                </td>
+
+                <!-- TOTAL -->
+                <td class="text-end">
+
+                    Rp ${numberFormat(total)}
+
+                    <input
+                        type="hidden"
+                        class="total"
+                        name="DETAIL[${index}][TOTAL]"
+                        value="${total}">
+
+                </td>
+
+                <!-- REMARK -->
+                <td>
+
+                    <input
+                        type="text"
+                        class="form-control"
+                        name="DETAIL[${index}][REMARK]"
+                        value="${row.REMARK || ''}">
+
+                </td>
+
+                <!-- ACTION -->
+                <td class="text-center">
+
+                    <button
+                        type="button"
+                        class="btn btn-danger btn-sm btn-remove">
+
+                        ×
+
+                    </button>
+
+                </td>
+
+            </tr>
+
+        `;
+
+        $('#detailTableEdit tbody')
+            .append(html);
+
+        calculateGrandTotal('#detailTableEdit');
+    }
+
     function normalizeTableSelector(table) {
         if (!table) return null;
         if (typeof table === 'string') return table;
@@ -1112,13 +2091,30 @@ MODAL PICK RECEIVE
         return null;
     }
 
-    function initReceiveSelect2(selector, modal, supplier){
+    function numberFormat(value, digit = 0)
+    {
+        value = parseFloat(value || 0);
+
+        return value.toLocaleString('id-ID', {
+
+            minimumFractionDigits: digit,
+            maximumFractionDigits: digit
+
+        });
+    }
+
+    function currencyFormat(value)
+    {
+        return 'Rp ' + numberFormat(value, 0);
+    }
+
+    function initPOSelect2(selector, modal, supplier){
         selector.select2({
-            placeholder: 'Pilih Receive',
+            placeholder: 'Pilih PO',
             dropdownParent: $(modal),
             width: '100%',
             ajax: {
-                url: '<?= base_url("payment/get_receive_by_supplier"); ?>',
+                url: '<?= base_url("payment/get_po_by_supplier"); ?>',
                 dataType: 'json',
                 delay: 250,
                 data: function (params) {
@@ -1130,8 +2126,8 @@ MODAL PICK RECEIVE
                 processResults: function (data) {
                     return {
                         results: data.map(r => ({
-                            id: r.RECEIVE,
-                            text: `#${r.RECEIVE} | ${r.PLANT_NAME} | ${r.RECEIVE_DATE}`
+                            id: r.PO,
+                            text: `#${r.PO} | ${r.PLANT_NAME} | ${r.PO_DATE}`
                         }))
                     };
                 }
@@ -1258,114 +2254,279 @@ MODAL PICK RECEIVE
             },'json');
         });
 
-        /* =========================
-        EDIT
-        ========================= */
-        $(document).on('click', '.editBtn', function () {
-            activeDetailTable = '#detailTableEdit';
-            let payment = $(this).data('payment');
-            let plant   = $(this).data('plant');
+        $(document).on(
+            'click',
+            '.btnEdit',
+            function(){
+                $('#fPaymentEdit')[0].reset();
 
-            if (!payment || !plant) {
-                alert('Payment atau Plant tidak ditemukan');
+                $('#detailTableEdit tbody').empty();
+
+                $('#grandTotalEdit').val('');
+
+                let payment =
+                    $(this).data('payment');
+
+                let plant =
+                    $(this).data('plant');
+
+                $.get(
+
+                    '<?= base_url("payment/edit"); ?>',
+
+                    {
+                        payment : payment,
+                        plant   : plant
+                    },
+
+                    function(res){
+
+                        if(typeof res === 'string'){
+
+                            res = JSON.parse(res);
+
+                        }
+
+                        if(!res.status){
+
+                            alert(res.message);
+
+                            return;
+
+                        }
+
+                        let d =
+                            res.data;
+
+                        let form =
+                            $('#fPaymentEdit');
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | RESET
+                        |--------------------------------------------------------------------------
+                        */
+
+                        $('#detailTableEdit tbody')
+                            .html('');
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | HEADER
+                        |--------------------------------------------------------------------------
+                        */
+
+                        form.find('[name="PAYMENT"]')
+                            .val(d.header.PAYMENT);
+
+                        $('#paymentNoEdit')
+                            .val(d.header.PAYMENT);
+
+                        let plantOption = new Option(
+                            d.header.PLANT_NAME || d.header.PLANT,
+                            d.header.PLANT,
+                            true,
+                            true
+                        );
+
+                        $('#plantEdit')
+                            .append(plantOption)
+                            .trigger('change');
+
+                        form.find('[name="PAYMENT_DATE"]')
+                            .val(
+                                d.header.PAYMENT_DATE.substr(0,10)
+                            );
+
+                        form.find('[name="SLIP_NO"]')
+                            .val(d.header.SLIP_NO);
+
+                        form.find('[name="REMARK"]')
+                            .val(d.header.REMARK);
+
+                        form.find(
+                            '[name="PEMBAYARAN"][value="'+
+                            d.header.PEMBAYARAN+
+                            '"]'
+                        ).prop('checked', true);
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | SUPPLIER
+                        |--------------------------------------------------------------------------
+                        */
+
+                        let supplierOption = new Option(
+                            d.header.SUPPLIER_NAME,
+                            d.header.SUPPLIER,
+                            true,
+                            true
+                        );
+
+                        $('#supplierEdit')
+                            .empty()
+                            .append(supplierOption);
+
+                        $('#hiddensupplierEdit')
+                            .val(d.header.SUPPLIER);
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | DETAIL
+                        |--------------------------------------------------------------------------
+                        */
+
+                        (d.detail || []).forEach(function(row){
+
+                            addDetailRowEdit({
+
+                                PO_NO :
+                                    row.PO_NO,
+
+                                MATERIAL :
+                                    row.MATERIAL,
+
+                                MATERIAL_NAME :
+                                    row.MATERIAL_NAME,
+
+                                BERAT :
+                                    row.BERAT,
+
+                                JUMLAH :
+                                    row.JUMLAH,
+
+                                HARGA :
+                                    row.HARGA,
+
+                                REMARK :
+                                    row.REMARK
+
+                            });
+
+                        });
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | SHOW
+                        |--------------------------------------------------------------------------
+                        */
+
+                        $('#paymentEdit')
+                            .modal('show');
+
+                    },
+
+                    'json'
+                );
+
+            }
+        );
+
+        $('#fPaymentEdit').submit(function(e){
+
+            e.preventDefault();
+
+            let btn =
+                $(this).find('button[type="submit"]');
+
+            btn.prop('disabled', true);
+
+            $.post(
+
+                '<?= base_url("payment/update"); ?>',
+
+                $(this).serialize(),
+
+                function(res){
+
+                    if(typeof res === 'string'){
+
+                        res = JSON.parse(res);
+
+                    }
+
+                    if(res.status){
+
+                        $('#paymentEdit')
+                            .modal('hide');
+
+                        loadPage(state.page);
+
+                        setTimeout(function(){
+
+                            alert(res.message);
+
+                        }, 300);
+
+                    } else {
+
+                        alert(res.message);
+
+                    }
+
+                },
+
+                'json'
+
+            ).always(function(){
+
+                btn.prop('disabled', false);
+
+            });
+
+        });
+
+    $(document).on(
+        'click',
+        '.btnDelete',
+        function(){
+
+            if(
+                !confirm(
+                    'Yakin hapus payment ini ?'
+                )
+            ){
                 return;
             }
 
-            $.get('<?= base_url("payment/edit"); ?>', {
-                payment: payment,
-                plant: plant
-            }, function(resp){
+            let payment =
+                $(this).data('payment');
 
-                if (typeof resp === 'string') resp = JSON.parse(resp);
-                if (!resp.status){
-                    alert(resp.message);
-                    return;
-                }
+            let plant =
+                $(this).data('plant');
 
-                let d = resp.data;
-                let form = $('#fPaymentEdit');
+            $.post(
 
-                /* ===== hidden key ===== */
-                form.find('[name="PAYMENT"]').remove();
-                form.find('[name="PLANT"]').remove();
+                '<?= base_url("payment/remove"); ?>',
 
-                form.prepend(`<input type="hidden" name="PAYMENT" value="${d.header.PAYMENT}">`);
-                form.prepend(`<input type="hidden" name="PLANT" value="${d.header.PLANT}">`);
+                {
+                    payment : payment,
+                    plant   : plant
+                },
 
-                /* ===== header ===== */
-                $('#paymentNoEdit').val(d.header.PAYMENT);
-                form.find('[name="PAYMENT_DATE"]').val(d.header.PAYMENT_DATE.substr(0,10));
-                form.find('[name="SLIP_NO"]').val(d.header.SLIP_NO);
-                form.find('[name="REMARK"]').val(d.header.REMARK);
-                form.find('[name="PEMBAYARAN"][value="'+d.header.PEMBAYARAN+'"]').prop('checked',true);
+                function(res){
 
-                /* ===== supplier ===== */
-                let opt = new Option(
-                    d.header.SUPPLIER + ' - ' + (d.header.SUPPLIER_NAME||''),
-                    d.header.SUPPLIER,
-                    true,
-                    true
-                );
+                    if(typeof res === 'string'){
 
-                $('#supplierEdit').empty().append(opt).trigger('change');
-                $('#hiddensupplierEdit').val(d.header.SUPPLIER);
-                $('#paymentTypeEdit').val(d.header.PAYMENT_TYPE).trigger('change');
+                        res = JSON.parse(res);
 
-                /* ===== detail ===== */
-                $('#detailTableEdit tbody').empty();
+                    }
 
-                (d.detail || []).forEach(r => {
-                    addDetailRow('#detailTableEdit', {
-                        SEQ_NO: r.SEQ_NO,
-                        PLANT: r.PLANT,
-                        RECEIVE_NO: r.RECEIVE_NO,
-                        MATERIAL: r.MATERIAL,
-                        MATERIAL_NAME: r.MATERIAL_NAME,
-                        BERAT: r.BERAT,
-                        JUMLAH: r.JUMLAH,
-                        HARGA: r.HARGA,
-                        REMARK: r.REMARK
-                    });
-                });
+                    alert(res.message);
 
-                $('#paymentEdit').modal('show');
+                    if(res.status){
 
-            }, 'json');
-        });
+                        loadPage(state.page);
 
-        // submit update
-        $('#fPaymentEdit').submit(function(e){
-            e.preventDefault();
-            let f = $(this);
+                    }
 
-            $.post('<?= base_url("payment/update"); ?>', f.serialize(), function(res){
-                if(typeof res==='string') res = JSON.parse(res);
-                alert(res.message);
-                if(res.status){
-                    $('#paymentEdit').modal('hide');
-                    loadPage(state.page);
-                }
-            },'json');
-        });
+                },
 
-        /* =========================
-        DELETE
-        ========================= */
-        $(document).on('click', '.deleteBtn', function () {
-            if (!confirm('Yakin hapus data ini?')) return;
+                'json'
+            );
 
-            let payment = $(this).data('id');
-            let plant   = $(this).data('plant');
-
-            $.post('<?= base_url("payment/remove"); ?>', {
-                payment: payment,
-                plant: plant
-            }, function (res) {
-                res = typeof res === 'string' ? JSON.parse(res) : res;
-                alert(res.message);
-                if (res.status) loadPage(state.page);
-            }, 'json');
-        });
+        }
+    );
 
     });
     </script>
@@ -1379,9 +2540,12 @@ MODAL PICK RECEIVE
             setDefaultSupplierCS000001();
         });
 
-        $('#paymentEdit').on('hidden.bs.modal', function(){
-            $('#detailTableEdit tbody').empty();
-            $('#grandTotalEdit').val('');
+        $('#paymentEdit').on('hidden.bs.modal', function () {
+
+            $('body').removeClass('modal-open');
+
+            $('.modal-backdrop').remove();
+
         });
 </script>
 

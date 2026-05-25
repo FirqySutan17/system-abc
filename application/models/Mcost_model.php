@@ -66,7 +66,10 @@ class Mcost_model extends CI_Model {
                 AS TOTAL_ITEM,
 
             SUM(d.QTY)
-                AS TOTAL_QTY,
+                AS TOTAL_ITEM_QTY,
+
+            SUM(d.JUMLAH)
+                AS TOTAL_BERAT,
 
             SUM(d.TOTAL)
                 AS GRAND_TOTAL

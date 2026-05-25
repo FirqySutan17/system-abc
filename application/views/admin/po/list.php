@@ -1185,24 +1185,58 @@
                         title="Print PDF"
                         data-po="${row.PO}"
                         data-plant="${row.PLANT}">
+
                         Print
+
                     </button>
                 `;
 
-                if (LOGIN_ROLE == 1 || row.CREATED_BY === LOGIN_USER) {
+                /*
+                |--------------------------------------------------------------------------
+                | ONLY NOT RECEIVED
+                |--------------------------------------------------------------------------
+                */
+
+                if(
+                    row.STATUS !== 'RECEIVED'
+                    &&
+                    (
+                        LOGIN_ROLE == 1 ||
+                        row.CREATED_BY === LOGIN_USER
+                    )
+                ){
+
                     actionBtn += `
-                        <button class="btn btn-outline-warning editBtn"
-                            data-po="${row.PO}" data-plant="${row.PLANT}">
-                            Edit
-                        </button>
-                        <button class="btn btn-outline-danger deleteBtn""
+
+                        <button
+                            class="btn btn-outline-warning editBtn"
                             data-po="${row.PO}"
                             data-plant="${row.PLANT}">
-                            Hapus
+
+                            Edit
+
                         </button>
+
+                        <button
+                            class="btn btn-outline-danger deleteBtn"
+                            data-po="${row.PO}"
+                            data-plant="${row.PLANT}">
+
+                            Hapus
+
+                        </button>
+
                     `;
                 }
-                let statusBadge = row.STATUS == 1
+                if(row.STATUS === 'RECEIVED'){
+
+                    actionBtn += `
+                        <span class="badge bg-success">
+                            LOCKED
+                        </span>
+                    `;
+                }
+                let statusBadge = row.STATUS == 'RECEIVED'
                     ? `<span class="badge bg-success">RECEIVED</span>`
                     : `<span class="badge bg-warning text-dark">OPEN</span>`;
 

@@ -12,109 +12,482 @@ class Payment_model extends CI_Model {
        LIST / COUNT (for table ajax)
     --------------------------------------------------------- */
 
-    public function get_data($limit, $start, $search = '', $order = 'PAYMENT_DATE', $dir = 'DESC', $userPlants = null, $role_id = null)
+    public function get_data(
+        $limit,
+        $start,
+        $role_id,
+        $plants,
+        $search = '',
+        $order = 'PAYMENT_DATE',
+        $dir = 'DESC',
+        $pembayaran = '',
+        $dateFrom = '',
+        $dateTo = ''
+    )
     {
-        $this->db->select('
-            p.PAYMENT,
-            p.PAYMENT_DATE,
-            p.PEMBAYARAN,
-            p.SLIP_NO,
-            p.SUPPLIER,
-            p.PLANT,
-            p.PAYMENT_TYPE,
-            cc.code_name AS PLANT_NAME,
-            c.FULL_NAME AS SUPPLIER_NAME,
-            p.REMARK
-        ');
+        /*
+        |--------------------------------------------------------------------------
+        | ALLOWED ORDER
+        |--------------------------------------------------------------------------
+        */
+
+        $allowedOrder = [
+            'PAYMENT',
+            'PAYMENT_DATE',
+            'PEMBAYARAN',
+            'SLIP_NO',
+            'PLANT',
+            'CREATED_AT'
+        ];
+
+        if(!in_array($order, $allowedOrder)){
+
+            $order = 'PAYMENT_DATE';
+
+        }
+
+        $dir = strtoupper($dir) === 'ASC'
+            ? 'ASC'
+            : 'DESC';
+
+        /*
+        |--------------------------------------------------------------------------
+        | SELECT
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->select("
+            p.*,
+
+            plant.CODE_NAME AS PLANT_NAME,
+
+            supplier.FULL_NAME AS SUPPLIER_NAME,
+
+            COUNT(DISTINCT d.SEQ_NO)
+                AS TOTAL_ITEM,
+
+            SUM(d.BERAT)
+                AS TOTAL_BERAT,
+
+            SUM(d.TOTAL)
+                AS GRAND_TOTAL
+        ", false);
+
+        /*
+        |--------------------------------------------------------------------------
+        | FROM
+        |--------------------------------------------------------------------------
+        */
 
         $this->db->from('abc_mst_payment p');
 
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT
+        |--------------------------------------------------------------------------
+        */
+
         $this->db->join(
-            'abc_cd_customer c',
-            'p.SUPPLIER COLLATE utf8mb4_unicode_ci = c.CUST COLLATE utf8mb4_unicode_ci',
+            'abc_cd_code plant',
+            "
+                plant.CODE COLLATE utf8mb4_unicode_ci =
+                p.PLANT COLLATE utf8mb4_unicode_ci
+                AND plant.HEAD_CODE = 'PLANT'
+            ",
             'left',
             false
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | SUPPLIER
+        |--------------------------------------------------------------------------
+        */
+
         $this->db->join(
-            'abc_cd_code cc',
-            "cc.code = p.PLANT AND cc.head_code = 'PLANT'",
+            'abc_cd_customer supplier',
+            "
+                supplier.CUST COLLATE utf8mb4_unicode_ci =
+                p.SUPPLIER COLLATE utf8mb4_unicode_ci
+
+                AND supplier.CUST_KIND = 'SUPPLIER'
+
+                AND supplier.CUST_CLASS = 'SUPPLIER'
+
+                AND supplier.STATUS = 'Y'
+            ",
             'left',
             false
         );
 
-        $this->db->where('p.DELETED IS NULL', null, false);
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
 
-        /* 🔐 MULTI PLANT FILTER */
-        if ($role_id != 1 && !empty($userPlants)) {
+        $this->db->join(
+            'abc_mst_payment_detail d',
+            '
+                d.PAYMENT = p.PAYMENT
+                AND d.PLANT = p.PLANT
+                AND d.DELETED IS NULL
+            ',
+            'left',
+            false
+        );
 
-            if (is_string($userPlants)) {
-                $userPlants = json_decode($userPlants, true);
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER DELETED
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->where(
+            'p.DELETED IS NULL',
+            null,
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | ROLE FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        if($role_id != 1){
+
+            if(empty($plants)){
+
+                return [];
+
             }
 
-            if (is_array($userPlants) && count($userPlants) > 0) {
-                $this->db->where_in('p.PLANT', $userPlants);
-            }
+            $this->db->where_in(
+                'p.PLANT',
+                $plants
+            );
+
         }
 
-        if ($search != '') {
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        */
+
+        if($search != ''){
+
             $this->db->group_start();
-            $this->db->like('p.PAYMENT', $search);
-            $this->db->or_like('p.SLIP_NO', $search);
-            $this->db->or_like('c.FULL_NAME', $search);
-            $this->db->or_like('p.REMARK', $search);
-            $this->db->or_like('cc.code_name', $search);
+
+            $this->db->like(
+                'p.PAYMENT',
+                $search
+            );
+
+            $this->db->or_like(
+                'p.PEMBAYARAN',
+                $search
+            );
+
+            $this->db->or_like(
+                'p.SLIP_NO',
+                $search
+            );
+
+            $this->db->or_like(
+                'p.REMARK',
+                $search
+            );
+
+            $this->db->or_like(
+                'supplier.FULL_NAME',
+                $search
+            );
+
+            $this->db->or_like(
+                'plant.CODE_NAME',
+                $search
+            );
+
             $this->db->group_end();
+
         }
 
-        $this->db->order_by($order, $dir);
-        $this->db->limit((int)$limit, (int)$start);
+        /*
+        |--------------------------------------------------------------------------
+        | PAYMENT FILTER
+        |--------------------------------------------------------------------------
+        */
 
-        return $this->db->get()->result_array();
+        if(!empty($pembayaran)){
+
+            $this->db->where(
+                'p.PEMBAYARAN',
+                $pembayaran
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATE RANGE
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($dateFrom)){
+
+            $this->db->where(
+                'p.PAYMENT_DATE >=',
+                $dateFrom . ' 00:00:00'
+            );
+
+        }
+
+        if(!empty($dateTo)){
+
+            $this->db->where(
+                'p.PAYMENT_DATE <=',
+                $dateTo . ' 23:59:59'
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | GROUP
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->group_by('p.PAYMENT');
+
+        /*
+        |--------------------------------------------------------------------------
+        | ORDER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->order_by(
+            'p.' . $order,
+            $dir
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | LIMIT
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->limit(
+            (int)$limit,
+            (int)$start
+        );
+
+        return $this->db
+            ->get()
+            ->result_array();
     }
 
-    public function count_data($search = '', $userPlants = null, $role_id = null)
+    public function count_data(
+        $role_id,
+        $plants,
+        $search = '',
+        $pembayaran = '',
+        $dateFrom = '',
+        $dateTo = ''
+    )
     {
+        /*
+        |--------------------------------------------------------------------------
+        | FROM
+        |--------------------------------------------------------------------------
+        */
+
         $this->db->from('abc_mst_payment p');
 
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT
+        |--------------------------------------------------------------------------
+        */
+
         $this->db->join(
-            'abc_cd_customer c',
-            'p.SUPPLIER COLLATE utf8mb4_unicode_ci = c.CUST COLLATE utf8mb4_unicode_ci',
+            'abc_cd_code plant',
+            "
+                plant.CODE COLLATE utf8mb4_unicode_ci =
+                p.PLANT COLLATE utf8mb4_unicode_ci
+                AND plant.HEAD_CODE = 'PLANT'
+            ",
             'left',
             false
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | SUPPLIER
+        |--------------------------------------------------------------------------
+        */
+
         $this->db->join(
-            'abc_cd_code cc',
-            "cc.code = p.PLANT AND cc.head_code = 'PLANT'",
+            'abc_cd_customer supplier',
+            "
+                supplier.CUST COLLATE utf8mb4_unicode_ci =
+                p.SUPPLIER COLLATE utf8mb4_unicode_ci
+
+                AND supplier.CUST_KIND = 'SUPPLIER'
+
+                AND supplier.CUST_CLASS = 'SUPPLIER'
+
+                AND supplier.STATUS = 'Y'
+            ",
             'left',
             false
         );
 
-        $this->db->where('p.DELETED IS NULL', null, false);
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
 
-        if ($role_id != 1 && !empty($userPlants)) {
+        $this->db->join(
+            'abc_mst_payment_detail d',
+            '
+                d.PAYMENT = p.PAYMENT
+                AND d.PLANT = p.PLANT
+                AND d.DELETED IS NULL
+            ',
+            'left',
+            false
+        );
 
-            if (is_string($userPlants)) {
-                $userPlants = json_decode($userPlants, true);
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER DELETED
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->where(
+            'p.DELETED IS NULL',
+            null,
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | ROLE FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        if($role_id != 1){
+
+            if(empty($plants)){
+
+                return 0;
+
             }
 
-            if (is_array($userPlants) && count($userPlants) > 0) {
-                $this->db->where_in('p.PLANT', $userPlants);
-            }
+            $this->db->where_in(
+                'p.PLANT',
+                $plants
+            );
+
         }
 
-        if ($search != '') {
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        */
+
+        if($search != ''){
+
             $this->db->group_start();
-            $this->db->like('p.PAYMENT', $search);
-            $this->db->or_like('p.SLIP_NO', $search);
-            $this->db->or_like('c.FULL_NAME', $search);
-            $this->db->or_like('p.REMARK', $search);
-            $this->db->or_like('cc.code_name', $search);
+
+            $this->db->like(
+                'p.PAYMENT',
+                $search
+            );
+
+            $this->db->or_like(
+                'p.PEMBAYARAN',
+                $search
+            );
+
+            $this->db->or_like(
+                'p.SLIP_NO',
+                $search
+            );
+
+            $this->db->or_like(
+                'p.REMARK',
+                $search
+            );
+
+            $this->db->or_like(
+                'supplier.FULL_NAME',
+                $search
+            );
+
+            $this->db->or_like(
+                'plant.CODE_NAME',
+                $search
+            );
+
             $this->db->group_end();
+
         }
 
-        return $this->db->count_all_results();
+        /*
+        |--------------------------------------------------------------------------
+        | PAYMENT FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($pembayaran)){
+
+            $this->db->where(
+                'p.PEMBAYARAN',
+                $pembayaran
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATE FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($dateFrom)){
+
+            $this->db->where(
+                'p.PAYMENT_DATE >=',
+                $dateFrom . ' 00:00:00'
+            );
+
+        }
+
+        if(!empty($dateTo)){
+
+            $this->db->where(
+                'p.PAYMENT_DATE <=',
+                $dateTo . ' 23:59:59'
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | GROUP
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->group_by('p.PAYMENT');
+
+        return $this->db
+            ->get()
+            ->num_rows();
     }
 
     public function search_supplier($q = null, $limit = 20)
@@ -202,50 +575,51 @@ class Payment_model extends CI_Model {
         return $this->db->get()->result_array();
     }
 
-    public function get_receive_picker(
+    public function get_po_picker(
         $plant,
         $supplier,
         $search = ''
     )
     {
         $this->db->select("
-            d.ID,
-            d.RECEIVE,
+            p.PO,
 
-            d.MATERIAL,
+            p.PLANT,
+
+            p.SUPPLIER,
+
+            supplier.FULL_NAME AS SUPPLIER_NAME,
+
+            p.MATERIAL,
 
             material.MATERIAL_NAME,
 
-            d.JUMLAH,
+            p.JUMLAH,
 
-            d.BERAT,
+            p.BERAT,
 
-            d.HARGA,
+            p.HARGA,
 
-            d.TOTAL,
+            p.TOTAL,
 
-            r.SUPPLIER,
-
-            supplier.FULL_NAME AS SUPPLIER_NAME
+            p.REMARK
         ", false);
 
-        $this->db->from(
-            'abc_mst_receive_detail d'
-        );
+        $this->db->from('abc_mst_po p');
 
         /*
         |--------------------------------------------------------------------------
-        | HEADER
+        | SUPPLIER
         |--------------------------------------------------------------------------
         */
 
         $this->db->join(
-            'abc_mst_receive r',
-            '
-                r.RECEIVE = d.RECEIVE
-                AND r.PLANT = d.PLANT
-            ',
-            'inner',
+            'abc_cd_customer supplier',
+            "
+                supplier.CUST COLLATE utf8mb4_unicode_ci =
+                p.SUPPLIER COLLATE utf8mb4_unicode_ci
+            ",
+            'left',
             false
         );
 
@@ -259,33 +633,7 @@ class Payment_model extends CI_Model {
             'abc_cd_material material',
             "
                 material.MATERIAL COLLATE utf8mb4_unicode_ci =
-                d.MATERIAL COLLATE utf8mb4_unicode_ci
-            ",
-            'left',
-            false
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | SUPPLIER
-        |--------------------------------------------------------------------------
-        */
-
-        $this->db->join(
-            'abc_cd_customer supplier',
-            "
-                supplier.CUST COLLATE utf8mb4_unicode_ci =
-                r.SUPPLIER COLLATE utf8mb4_unicode_ci
-            ",
-            'left',
-            false
-        );
-
-        $this->db->join(
-            'abc_cd_customer customer',
-            "
-                customer.CUST COLLATE utf8mb4_unicode_ci =
-                d.CUSTOMER COLLATE utf8mb4_unicode_ci
+                p.MATERIAL COLLATE utf8mb4_unicode_ci
             ",
             'left',
             false
@@ -298,45 +646,24 @@ class Payment_model extends CI_Model {
         */
 
         $this->db->where(
-            'd.PLANT',
+            'p.PLANT',
             $plant
         );
 
         $this->db->where(
-            'r.SUPPLIER',
+            'p.SUPPLIER',
             $supplier
         );
 
         $this->db->where(
-            'r.STATUS_RECEIVE',
-            'OPEN'
-        );
-
-        $this->db->group_start();
-
-        $this->db->where(
-            'd.STATUS IS NULL',
+            'p.DELETED IS NULL',
             null,
             false
         );
 
-        $this->db->or_where(
-            'd.STATUS !=',
-            'Y'
-        );
-
-        $this->db->group_end();
-
-        /*
-        |--------------------------------------------------------------------------
-        | DELETED
-        |--------------------------------------------------------------------------
-        */
-
         $this->db->where(
-            'd.DELETED IS NULL',
-            null,
-            false
+            'p.STATUS',
+            'RECEIVED'
         );
 
         /*
@@ -350,12 +677,12 @@ class Payment_model extends CI_Model {
             $this->db->group_start();
 
             $this->db->like(
-                'd.RECEIVE',
+                'p.PO',
                 $search
             );
 
             $this->db->or_like(
-                'd.MATERIAL',
+                'p.MATERIAL',
                 $search
             );
 
@@ -374,7 +701,7 @@ class Payment_model extends CI_Model {
         */
 
         $this->db->order_by(
-            'd.RECEIVE',
+            'p.PO',
             'DESC'
         );
 
@@ -454,12 +781,21 @@ class Payment_model extends CI_Model {
                         ->update('abc_mst_payment', $data);
     }
 
-    public function update_header_by_key($payment,$plant,$data)
-    {
+    public function update_header_by_key(
+        $payment,
+        $plant,
+        $data
+    ){
         return $this->db
-            ->where('PAYMENT',$payment)
-            ->where('PLANT',$plant)
-            ->update('abc_mst_payment',$data);
+
+            ->where('PAYMENT', $payment)
+
+            ->where('PLANT', $plant)
+
+            ->update(
+                'abc_mst_payment',
+                $data
+            );
     }
 
     public function get_plant_select2()
@@ -486,20 +822,44 @@ class Payment_model extends CI_Model {
             ]);
     }
 
-    public function get_header($payment,$plant)
+    public function get_header($payment, $plant)
     {
+        $this->db->select("
+            p.*,
+            plant.CODE_NAME AS PLANT_NAME,
+            supplier.FULL_NAME AS SUPPLIER_NAME
+        ");
+
+        $this->db->from('abc_mst_payment p');
+
+        $this->db->join(
+            'abc_cd_code plant',
+            "
+                plant.CODE COLLATE utf8mb4_unicode_ci =
+                p.PLANT COLLATE utf8mb4_unicode_ci
+                AND plant.HEAD_CODE = 'PLANT'
+            ",
+            'left',
+            false
+        );
+
+        $this->db->join(
+                    'abc_cd_customer supplier',
+                    "
+                        supplier.CUST COLLATE utf8mb4_unicode_ci =
+                        p.SUPPLIER COLLATE utf8mb4_unicode_ci
+                    ",
+                    'left',
+                    false
+                );
+
+        $this->db->where('p.PAYMENT', $payment);
+
+        $this->db->where('p.PLANT', $plant);
+
+        $this->db->where('p.DELETED IS NULL', null, false);
+
         return $this->db
-            ->select('p.*, c.FULL_NAME AS SUPPLIER_NAME')
-            ->from('abc_mst_payment p')
-            ->join(
-                'abc_cd_customer c',
-                'p.SUPPLIER COLLATE utf8mb4_unicode_ci = c.CUST COLLATE utf8mb4_unicode_ci',
-                'left',
-                false
-            )
-            ->where('p.PAYMENT',$payment)
-            ->where('p.PLANT',$plant)
-            ->where('p.DELETED IS NULL',null,false)
             ->get()
             ->row_array();
     }
@@ -531,34 +891,36 @@ class Payment_model extends CI_Model {
         return $this->db->insert('abc_mst_payment_detail',$data);
     }
 
-    public function get_detail($payment,$plant)
+    public function get_detail($payment, $plant)
     {
         return $this->db
-            ->select('
-                d.SEQ_NO,
-                d.PLANT,
-                d.PAYMENT,
-                d.RECEIVE_NO,
-                d.MATERIAL,
-                m.MATERIAL_NAME,
-                d.BERAT,
-                d.JUMLAH,
-                d.HARGA,
-                d.TOTAL,
-                d.REMARK
-            ')
+
+            ->select("
+                d.*,
+
+                material.MATERIAL_NAME
+            ", false)
+
             ->from('abc_mst_payment_detail d')
+
             ->join(
-                'abc_cd_material m',
-                'd.MATERIAL COLLATE utf8mb4_unicode_ci = m.MATERIAL COLLATE utf8mb4_unicode_ci',
+                'abc_cd_material material',
+                "
+                    material.MATERIAL COLLATE utf8mb4_unicode_ci =
+                    d.MATERIAL COLLATE utf8mb4_unicode_ci
+                ",
                 'left',
                 false
             )
-            ->where('d.PAYMENT',$payment)
-            ->where('d.PLANT',$plant)
-            ->where('d.DELETED IS NULL',null,false)
-            ->order_by('d.SEQ_NO','ASC')
+
+            ->where('d.PAYMENT', $payment)
+
+            ->where('d.PLANT', $plant)
+
+            ->order_by('d.SEQ_NO', 'ASC')
+
             ->get()
+
             ->result_array();
     }
 
@@ -566,15 +928,6 @@ class Payment_model extends CI_Model {
     {
         return $this->db->where('PAYMENT', $payment)
                         ->delete('abc_mst_payment_detail');
-    }
-
-    public function soft_delete_detail_by_key($payment,$plant,$data)
-    {
-        return $this->db
-            ->where('PAYMENT',$payment)
-            ->where('PLANT',$plant)
-            ->where('DELETED IS NULL',null,false)
-            ->update('abc_mst_payment_detail',$data);
     }
 
     /* ---------------------------------------------------------

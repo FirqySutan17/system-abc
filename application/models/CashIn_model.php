@@ -29,17 +29,17 @@ class CashIn_model extends CI_Model {
             h.BON,
             (
                 SELECT COUNT(*) 
-                FROM mst_cash_in newer
+                FROM abc_mst_cash_in newer
                 WHERE newer.CUSTOMER = h.CUSTOMER
                 AND newer.PLANT = h.PLANT
                 AND newer.CASHIN_DATE > h.CASHIN_DATE
                 AND newer.DELETED IS NULL
             ) AS IS_LOCKED
         ');
-        $this->db->from('mst_cash_in h');
+        $this->db->from('abc_mst_cash_in h');
 
-        $this->db->join('cd_code c', "c.CODE = h.PLANT AND c.HEAD_CODE = 'AJ'", 'left');
-        $this->db->join('cd_customer cust', 'cust.CUST = h.CUSTOMER', 'left');
+        $this->db->join('abc_cd_code c', "c.CODE = h.PLANT AND c.HEAD_CODE = 'AJ'", 'left');
+        $this->db->join('abc_cd_customer cust', 'cust.CUST = h.CUSTOMER', 'left');
 
         // filter deleted
         $this->db->where('h.DELETED IS NULL', null, false);
@@ -83,9 +83,9 @@ class CashIn_model extends CI_Model {
         $username = $this->session->userdata('username');
         $plants   = $this->get_user_plants($username);
 
-        $this->db->from('mst_cash_in h');
-        $this->db->join('cd_code c', "c.CODE = h.PLANT AND c.HEAD_CODE = 'AJ'", 'left');
-        $this->db->join('cd_customer cust', 'cust.CUST = h.CUSTOMER', 'left');
+        $this->db->from('abc_mst_cash_in h');
+        $this->db->join('abc_cd_code c', "c.CODE = h.PLANT AND c.HEAD_CODE = 'AJ'", 'left');
+        $this->db->join('abc_cd_customer cust', 'cust.CUST = h.CUSTOMER', 'left');
 
         $this->db->where('h.DELETED IS NULL', null, false);
 
@@ -110,6 +110,506 @@ class CashIn_model extends CI_Model {
         }
 
         return $this->db->count_all_results();
+    }
+
+    public function get_sales_picker(
+        $plant,
+        $customer = '',
+        $search = ''
+    )
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | SELECT
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->select("
+
+            s.SALES,
+
+            s.PLANT,
+
+            s.CUSTOMER,
+
+            customer.FULL_NAME AS CUSTOMER_NAME,
+
+            s.SALES_DATE,
+
+            s.TOTAL,
+
+            COALESCE(
+                SUM(d.BAYAR),
+                0
+            ) AS TOTAL_PAID,
+
+            (
+                s.TOTAL
+                -
+                COALESCE(
+                    SUM(d.BAYAR),
+                    0
+                )
+            ) AS OUTSTANDING
+
+        ", false);
+
+        /*
+        |--------------------------------------------------------------------------
+        | FROM
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->from('abc_mst_sales s');
+
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+            'abc_cd_customer customer',
+            "
+                customer.CUST COLLATE utf8mb4_unicode_ci =
+                s.CUSTOMER COLLATE utf8mb4_unicode_ci
+            ",
+            'left',
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | CASH IN DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+            'abc_mst_cash_in_detail d',
+            '
+                d.SALES = s.SALES
+                AND d.PLANT = s.PLANT
+            ',
+            'left',
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER PLANT
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->where(
+            's.PLANT',
+            $plant
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | TEMPO ONLY
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->where(
+            's.JENIS_PAY',
+            'TEMPO'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | NOT DELETED
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->where(
+            's.DELETED IS NULL',
+            null,
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($customer)){
+
+            $this->db->where(
+                's.CUSTOMER',
+                $customer
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($search)){
+
+            $this->db->group_start();
+
+            $this->db->like(
+                's.SALES',
+                $search
+            );
+
+            $this->db->or_like(
+                'customer.FULL_NAME',
+                $search
+            );
+
+            $this->db->group_end();
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | GROUP
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->group_by('s.SALES');
+
+        /*
+        |--------------------------------------------------------------------------
+        | HAVING OUTSTANDING
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->having(
+            'OUTSTANDING >',
+            0
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | FIFO
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->order_by(
+            's.SALES_DATE',
+            'ASC'
+        );
+
+        return $this->db
+            ->get()
+            ->result_array();
+    }
+
+    public function insert_header($data)
+    {
+        return $this->db
+            ->insert(
+                'abc_mst_cash_in',
+                $data
+            );
+    }
+
+    public function insert_detail($data)
+    {
+        return $this->db
+            ->insert(
+                'abc_mst_cash_in_detail',
+                $data
+            );
+    }
+
+    public function update_header_by_key(
+        $cashIn,
+        $plant,
+        $data
+    ){
+        return $this->db
+
+            ->where('CASH_IN', $cashIn)
+
+            ->where('PLANT', $plant)
+
+            ->update(
+                'abc_mst_cash_in',
+                $data
+            );
+    }
+
+    public function reset_customer_invoice_remain(
+    $customer,
+    $plant
+    ){
+        $this->db
+            ->set('REMAIN', 'AMOUNT - IFNULL(DP_AMOUNT,0)', false)
+
+            ->set('STATUS', '
+                CASE
+                    WHEN (AMOUNT - IFNULL(DP_AMOUNT,0)) <= 0
+                        THEN "PAID"
+                    ELSE "OPEN"
+                END
+            ', false)
+
+            ->where('CUSTOMER', $customer)
+
+            ->where('PLANT', $plant)
+
+            ->where('JENIS_PAY', 'TEMPO')
+
+            ->where('DELETED IS NULL', null, false)
+
+            ->update('abc_mst_sales');
+    }
+
+    public function delete_customer_cashin_detail(
+    $customer,
+    $plant
+    ){
+        $cashins = $this->db
+
+            ->select('CASH_IN')
+
+            ->from('abc_abc_mst_cash_in')
+
+            ->where('CUSTOMER', $customer)
+
+            ->where('PLANT', $plant)
+
+            ->where('DELETED IS NULL', null, false)
+
+            ->get()
+
+            ->result_array();
+
+        if(empty($cashins)){
+            return;
+        }
+
+        $cashinNos =
+            array_column($cashins, 'CASH_IN');
+
+        $this->db
+
+            ->where_in('CASH_IN', $cashinNos)
+
+            ->where('PLANT', $plant)
+
+            ->delete('abc_abc_mst_cash_in_detail');
+    }
+
+    public function get_customer_cashin_history(
+    $customer,
+    $plant
+    ){
+        return $this->db
+
+            ->from('abc_abc_mst_cash_in')
+
+            ->where('CUSTOMER', $customer)
+
+            ->where('PLANT', $plant)
+
+            ->where('DELETED IS NULL', null, false)
+
+            ->order_by('CASHIN_DATE', 'ASC')
+
+            ->order_by('CASH_IN', 'ASC')
+
+            ->get()
+
+            ->result_array();
+    }
+
+    public function get_open_invoice_fifo(
+    $customer,
+    $plant
+    ){
+        return $this->db
+
+            ->from('abc_mst_sales')
+
+            ->where('CUSTOMER', $customer)
+
+            ->where('PLANT', $plant)
+
+            ->where('JENIS_PAY', 'TEMPO')
+
+            ->where('REMAIN >', 0)
+
+            ->where('DELETED IS NULL', null, false)
+
+            ->order_by('SALES_DATE', 'ASC')
+
+            ->order_by('SALES', 'ASC')
+
+            ->get()
+
+            ->result_array();
+    }
+
+    public function rebuild_customer_fifo_history(
+        $customer,
+        $plant
+    ){
+        /*
+        |--------------------------------------------------------------------------
+        | RESET REMAIN
+        |--------------------------------------------------------------------------
+        */
+
+        $this->reset_customer_invoice_remain(
+            $customer,
+            $plant
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | DELETE DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        $this->delete_customer_cashin_detail(
+            $customer,
+            $plant
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | GET HISTORY
+        |--------------------------------------------------------------------------
+        */
+
+        $cashins =
+            $this->get_customer_cashin_history(
+                $customer,
+                $plant
+            );
+
+        foreach($cashins as $cashin){
+
+            $amount =
+                (float)$cashin['TOTAL'];
+
+            $balance = $amount;
+
+            $seqNo = 1;
+
+            /*
+            |--------------------------------------------------------------------------
+            | FIFO INVOICE
+            |--------------------------------------------------------------------------
+            */
+
+            $invoices =
+                $this->get_open_invoice_fifo(
+                    $customer,
+                    $plant
+                );
+
+            foreach($invoices as $inv){
+
+                if($balance <= 0){
+                    break;
+                }
+
+                $remain =
+                    (float)$inv['REMAIN'];
+
+                if($remain <= 0){
+                    continue;
+                }
+
+                $offset =
+                    min(
+                        $balance,
+                        $remain
+                    );
+
+                /*
+                |--------------------------------------------------------------------------
+                | INSERT DETAIL
+                |--------------------------------------------------------------------------
+                */
+
+                $this->db->insert(
+                    'abc_abc_mst_cash_in_detail',
+                    [
+
+                        'PLANT' => $plant,
+
+                        'CASH_IN' =>
+                            $cashin['CASH_IN'],
+
+                        'SEQ_NO' =>
+                            $seqNo,
+
+                        'SALES' =>
+                            $inv['SALES'],
+
+                        'ORG_SLIP_NO' =>
+                            $inv['SLIP_NO'],
+
+                        'AMOUNT_INVOICE' =>
+                            $inv['AMOUNT'],
+
+                        'AMOUNT_OFFSET' =>
+                            $offset,
+
+                        'REMAIN' =>
+                            $remain - $offset,
+
+                        'CREATED_AT' =>
+                            date('Y-m-d H:i:s'),
+
+                        'CREATED_BY' =>
+                            'SYSTEM_REBUILD'
+                    ]
+                );
+
+                /*
+                |--------------------------------------------------------------------------
+                | UPDATE SALES
+                |--------------------------------------------------------------------------
+                */
+
+                $newRemain =
+                    $remain - $offset;
+
+                $status =
+                    $newRemain <= 0
+                        ? 'PAID'
+                        : 'PARTIAL';
+
+                $this->db
+
+                    ->where(
+                        'SALES',
+                        $inv['SALES']
+                    )
+
+                    ->where(
+                        'PLANT',
+                        $plant
+                    )
+
+                    ->update(
+                        'abc_mst_sales',
+                        [
+                            'REMAIN' =>
+                                $newRemain,
+
+                            'STATUS' =>
+                                $status
+                        ]
+                    );
+
+                $balance -= $offset;
+
+                $seqNo++;
+            }
+        }
     }
 
     private $plantCache = [];
@@ -151,7 +651,7 @@ class CashIn_model extends CI_Model {
             ->where('HEAD_CODE', 'AJ')
             ->where_in('CODE', $plantCodes)
             ->order_by('CODE_NAME', 'ASC')
-            ->get('cd_code')
+            ->get('abc_cd_code')
             ->result_array();
     }
 
@@ -171,7 +671,7 @@ class CashIn_model extends CI_Model {
     public function get_header($plant, $cashIn)
     {
         return $this->db
-            ->from('mst_cash_in')
+            ->from('abc_mst_cash_in')
             ->where([
                 'PLANT'   => $plant,
                 'CASH_IN' => $cashIn
@@ -183,7 +683,7 @@ class CashIn_model extends CI_Model {
     public function search_customer($q = null, $limit = 20)
     {
         $this->db->select('CUST as id, FULL_NAME as name');
-        $this->db->from('cd_customer');
+        $this->db->from('abc_cd_customer');
         $this->db->where('STATUS', 'N');
 
         // 🔥 FILTER CUSTOMER
@@ -216,7 +716,7 @@ class CashIn_model extends CI_Model {
     public function search_rekening($q = null, $limit = 20)
     {
         $this->db->select('CODE as id, CODE_NAME as name');
-        $this->db->from('cd_code');
+        $this->db->from('abc_cd_code');
 
         // 🔥 FILTER UTAMA
         $this->db->where('HEAD_CODE', 'AK');
@@ -250,7 +750,7 @@ class CashIn_model extends CI_Model {
     {
         return $this->db
             ->select('code')
-            ->from('cd_code')
+            ->from('abc_cd_code')
             ->where([
                 'head_code' => 'AJ',
                 'id'        => $id
@@ -263,7 +763,7 @@ class CashIn_model extends CI_Model {
     {
         return $this->db
             ->select('code')
-            ->from('cd_code')
+            ->from('abc_cd_code')
             ->where([
                 'head_code' => 'AJ',
                 'code'      => $code
@@ -281,7 +781,7 @@ class CashIn_model extends CI_Model {
         $prefix = $ymd . 'CI';
         
         $this->db->select('CASH_IN');
-        $this->db->from('mst_cash_in');
+        $this->db->from('abc_mst_cash_in');
         $this->db->where('PLANT', $plant);
         $this->db->like('CASH_IN', $prefix, 'after');
         $this->db->order_by('CASH_IN', 'DESC');
@@ -304,7 +804,7 @@ class CashIn_model extends CI_Model {
         $prefix = $today . 'AG';
 
         $this->db->select('SLIP_NO');
-        $this->db->from('mst_cash_in');
+        $this->db->from('abc_mst_cash_in');
         $this->db->where('PLANT', $plant);
         $this->db->like('SLIP_NO', $prefix, 'after');
         $this->db->order_by('SLIP_NO', 'DESC');
@@ -390,7 +890,7 @@ class CashIn_model extends CI_Model {
     // }
 
     public function get_cash_in_details($cashIn, $plant){
-        return $this->db->get_where('mst_cash_in_detail', [
+        return $this->db->get_where('abc_mst_cash_in_detail', [
             'CASH_IN'=>$cashIn,'PLANT'=>$plant,'DELETED'=>null
         ])->result_array();
     }
@@ -410,7 +910,7 @@ class CashIn_model extends CI_Model {
 
     public function delete_cash_in_details($cashIn,$plant){
         $this->db->where(['CASH_IN'=>$cashIn,'PLANT'=>$plant])
-                ->delete('mst_cash_in_detail');
+                ->delete('abc_mst_cash_in_detail');
     }
 
     // public function restore_invoice_batch($updates)
@@ -453,7 +953,7 @@ class CashIn_model extends CI_Model {
 
         // 🔥 Semua pembayaran termasuk DP dibaca dari sini
         $paid = $this->db->select('IFNULL(SUM(AMOUNT_OFFSET),0) AS TOTAL')
-            ->from('mst_cash_in_detail')
+            ->from('abc_mst_cash_in_detail')
             ->where([
                 'SALES'   => $sales,
                 'PLANT'   => $plant,
@@ -536,7 +1036,7 @@ class CashIn_model extends CI_Model {
         $row = $this->db->select_max('SEQ_NO')
             ->where('CASH_IN',$cashIn)
             ->where('PLANT',$plant)
-            ->get('mst_cash_in_detail')
+            ->get('abc_mst_cash_in_detail')
             ->row();
 
         return ($row->SEQ_NO ?? 0) + 1;
@@ -691,16 +1191,16 @@ class CashIn_model extends CI_Model {
         ========================= */
         $this->db->where_in('CASH_IN', function($db) use ($customer,$plant){
             $db->select('CASH_IN')
-            ->from('mst_cash_in')
+            ->from('abc_mst_cash_in')
             ->where('CUSTOMER',$customer)
             ->where('PLANT',$plant);
-        }, false)->delete('mst_cash_in_detail');
+        }, false)->delete('abc_mst_cash_in_detail');
 
 
         /* =========================
         4. AMBIL SEMUA CASH IN URUT TANGGAL (FIFO GLOBAL)
         ========================= */
-        $cashins = $this->db->from('mst_cash_in')
+        $cashins = $this->db->from('abc_mst_cash_in')
             ->where('CUSTOMER', $customer)
             ->where('PLANT', $plant)
             ->order_by('CASHIN_DATE', 'ASC')
@@ -734,7 +1234,7 @@ class CashIn_model extends CI_Model {
                 $offset = min($remainInvoice, $amount);
 
                 /* INSERT DETAIL OFFSET */
-                $this->db->insert('mst_cash_in_detail', [
+                $this->db->insert('abc_mst_cash_in_detail', [
                     'CASH_IN'        => $cashInNo,
                     'PLANT'          => $plant,
                     'SEQ_NO'         => $seq++,
@@ -806,7 +1306,7 @@ class CashIn_model extends CI_Model {
     public function is_cash_in_locked($cashInNo, $customer, $plant)
     {
         $current = $this->db->select('CASHIN_DATE')
-            ->from('mst_cash_in')
+            ->from('abc_mst_cash_in')
             ->where('CASH_IN', $cashInNo)
             ->where('CUSTOMER', $customer)
             ->where('PLANT', $plant)
@@ -815,7 +1315,7 @@ class CashIn_model extends CI_Model {
 
         if (!$current) return true;
 
-        $exists = $this->db->from('mst_cash_in')
+        $exists = $this->db->from('abc_mst_cash_in')
             ->where('CUSTOMER', $customer)
             ->where('PLANT', $plant)
             ->where('CASHIN_DATE >', $current->CASHIN_DATE)
@@ -848,7 +1348,7 @@ class CashIn_model extends CI_Model {
             ->where('PLANT', $plant)
             ->where('ORG_SLIP_NO !=', 'AUTO_DP') // abaikan DP otomatis
             ->where('DELETED IS NULL', null, false)
-            ->count_all_results('mst_cash_in_detail') > 0;
+            ->count_all_results('abc_mst_cash_in_detail') > 0;
     }
 
     public function delete_dp_by_sales($sales, $plant)
@@ -856,7 +1356,7 @@ class CashIn_model extends CI_Model {
         // Ambil semua header yang terpengaruh
         $headers = $this->db
             ->select('CASH_IN')
-            ->from('mst_cash_in_detail')
+            ->from('abc_mst_cash_in_detail')
             ->where('SALES', $sales)
             ->where('PLANT', $plant)
             ->where('ORG_SLIP_NO', 'AUTO_DP')
@@ -870,7 +1370,7 @@ class CashIn_model extends CI_Model {
         $this->db->where('SALES', $sales)
             ->where('PLANT', $plant)
             ->where('ORG_SLIP_NO', 'AUTO_DP')
-            ->delete('mst_cash_in_detail');
+            ->delete('abc_mst_cash_in_detail');
 
         foreach ($headers as $h) {
             $cashIn = $h['CASH_IN'];
@@ -879,23 +1379,23 @@ class CashIn_model extends CI_Model {
             $remain = $this->db
                 ->where('CASH_IN', $cashIn)
                 ->where('PLANT', $plant)
-                ->count_all_results('mst_cash_in_detail');
+                ->count_all_results('abc_mst_cash_in_detail');
 
             if ($remain == 0) {
                 $this->db->where('CASH_IN', $cashIn)
                     ->where('PLANT', $plant)
-                    ->delete('mst_cash_in');
+                    ->delete('abc_mst_cash_in');
             } else {
                 $total = $this->db
                     ->select_sum('AMOUNT_OFFSET')
                     ->where('CASH_IN', $cashIn)
                     ->where('PLANT', $plant)
-                    ->get('mst_cash_in_detail')
+                    ->get('abc_mst_cash_in_detail')
                     ->row()->AMOUNT_OFFSET ?? 0;
 
                 $this->db->where('CASH_IN', $cashIn)
                     ->where('PLANT', $plant)
-                    ->update('mst_cash_in', ['AMOUNT' => $total]);
+                    ->update('abc_mst_cash_in', ['AMOUNT' => $total]);
             }
         }
     }
@@ -923,7 +1423,7 @@ class CashIn_model extends CI_Model {
     public function get_detail_by_cash_in($plant, $cashInNo)
     {
         return $this->db
-            ->from('mst_cash_in_detail')
+            ->from('abc_mst_cash_in_detail')
             ->where([
                 'PLANT'   => $plant,
                 'CASH_IN' => $cashInNo
@@ -978,28 +1478,9 @@ class CashIn_model extends CI_Model {
         return $this->db->where([
             'CASH_IN' => $cashIn,
             'PLANT'   => $plant
-        ])->update('mst_cash_in', [
+        ])->update('abc_mst_cash_in', [
             'AMOUNT' => $amount
         ]);
-    }
-
-    // public function rollback_invoice_offset($sales, $plant, $amount)
-    // {
-    //     $this->db->set('PAID_AMOUNT', 'PAID_AMOUNT - '.$amount, false);
-    //     $this->db->set('REMAIN', 'REMAIN + '.$amount, false);
-    //     $this->db->where([
-    //         'SALES' => $sales,
-    //         'PLANT' => $plant
-    //     ]);
-    //     $this->db->update('mst_sales');
-    // }
-
-    /* ---------------------------------------------------------
-       HEADER OPERATIONS
-    --------------------------------------------------------- */
-    public function insert_header($data)
-    {
-        return $this->db->insert('mst_cash_in', $data);
     }
 
     public function update_header($plant, $cashInNo, $data)
@@ -1009,7 +1490,7 @@ class CashIn_model extends CI_Model {
                 'PLANT'   => $plant,
                 'CASH_IN' => $cashInNo
             ])
-            ->update('mst_cash_in', $data);
+            ->update('abc_mst_cash_in', $data);
     }
 
     /* ---------------------------------------------------------
@@ -1017,7 +1498,7 @@ class CashIn_model extends CI_Model {
     --------------------------------------------------------- */
     public function delete_header($cashIn,$plant){
         $this->db->where(['CASH_IN'=>$cashIn,'PLANT'=>$plant])
-                ->delete('mst_cash_in');
+                ->delete('abc_mst_cash_in');
     }
 
     public function delete_detail($plant, $cashInNo)
@@ -1027,11 +1508,11 @@ class CashIn_model extends CI_Model {
                 'PLANT'   => $plant,
                 'CASH_IN' => $cashInNo
             ])
-            ->delete('mst_cash_in_detail');
+            ->delete('abc_mst_cash_in_detail');
     }
 
     public function insert_detail_batch($rows)
     {
-        return $this->db->insert_batch('mst_cash_in_detail', $rows);
+        return $this->db->insert_batch('abc_mst_cash_in_detail', $rows);
     }
 }

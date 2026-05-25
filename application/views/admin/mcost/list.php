@@ -773,8 +773,8 @@
 
                                 <small class="text-muted">
 
-                                    Qty :
-                                    ${formatRupiah(row.TOTAL_QTY || 0)}
+                                    Berat :
+                                    ${formatQty(row.TOTAL_BERAT || 0)}
 
                                 </small>
 
@@ -788,7 +788,7 @@
                             <div class="fw-bold text-success">
 
                                 Rp
-                                ${formatRupiah(row.GRAND_TOTAL || 0)}
+                                ${formatMoney(row.GRAND_TOTAL || 0)}
 
                             </div>
 
@@ -860,13 +860,13 @@
 
     }
 
-    function unformatRupiah(angka) {
+    function unformatMoney(angka) {
         return angka.replace(/\./g, '');
     }
 
     $(document).on('keyup', '.jumlah', function () {
         let clean = cleanNumber($(this).val());
-        $(this).val(formatRupiah(clean));
+        $(this).val(formatMoney(clean));
     });
 
     function addDetailRow(data = {}, targetTable){
@@ -874,7 +874,7 @@
         if (!tbody.length) return;
 
         let qty    = data.QTY ?? 1;
-        let jumlah = data.JUMLAH ? formatRupiah(data.JUMLAH) : '';
+        let jumlah = data.JUMLAH ? formatMoney(data.JUMLAH) : '';
         let remark = data.REMARK ?? '';
 
         let modalParent = targetTable.includes('Edit')
@@ -982,7 +982,7 @@
             total += qty * jumlah;
         });
 
-        $(footerInput).val(formatRupiah(total.toString()));
+        $(footerInput).val(formatMoney(total.toString()));
     }
 
 
@@ -1310,9 +1310,23 @@
         return num ? parseInt(num, 10) : 0;
     }
 
-    function formatRupiah(angka){
+    function formatMoney(angka){
         angka = parseInt(angka || 0, 10).toString();
         return angka.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    function formatMoney(value){
+        return Number(value || 0).toLocaleString('id-ID');
+    }
+
+    function formatQty(value){
+        return parseFloat(value || 0).toLocaleString(
+            'id-ID',
+            {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 2
+            }
+        );
     }
 
     function unlockSubmit($btn){

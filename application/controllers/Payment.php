@@ -24,30 +24,210 @@ class Payment extends MY_Controller {
         $this->load->view('templates/footer');
     }
 
-    /**
-     * Load data table (ajax)
-     */
     public function load_data()
     {
-        $page   = (int)$this->input->get('page') ?: 1;
-        $limit  = (int)$this->input->get('limit') ?: 10;
-        $search = $this->input->get('search', TRUE);
-        $order  = $this->input->get('order', TRUE) ?: 'PAYMENT_DATE';
-        $dir    = strtoupper($this->input->get('dir', TRUE)) === 'DESC' ? 'DESC' : 'ASC';
+        /*
+        |--------------------------------------------------------------------------
+        | ALLOWED ORDER
+        |--------------------------------------------------------------------------
+        */
+
+        $allowedOrder = [
+            'PAYMENT',
+            'PAYMENT_DATE',
+            'PEMBAYARAN',
+            'SLIP_NO',
+            'PLANT',
+            'CREATED_AT'
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | PARAMETER
+        |--------------------------------------------------------------------------
+        */
+
+        $page = max(
+            1,
+            (int)$this->input->get('page')
+        );
+
+        $limit = max(
+            1,
+            (int)$this->input->get('limit')
+        );
+
+        $search = trim(
+            $this->input->get('search', true)
+        );
+
+        $pembayaran = trim(
+            $this->input->get('pembayaran', true)
+        );
+
+        $dateFrom = trim(
+            $this->input->get('date_from', true)
+        );
+
+        $dateTo = trim(
+            $this->input->get('date_to', true)
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | ORDER
+        |--------------------------------------------------------------------------
+        */
+
+        $orderInput = trim(
+            $this->input->get('order', true)
+        );
+
+        $order = in_array(
+            $orderInput,
+            $allowedOrder
+        )
+            ? $orderInput
+            : 'PAYMENT_DATE';
+
+        $dir = strtoupper(
+            $this->input->get('dir', true)
+        );
+
+        if(
+            $dir !== 'ASC' &&
+            $dir !== 'DESC'
+        ){
+
+            $dir = 'DESC';
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | OFFSET
+        |--------------------------------------------------------------------------
+        */
 
         $start = ($page - 1) * $limit;
 
-        $userPlants = json_decode($this->session->userdata('plant'), true);
-        $role_id    = $this->session->userdata('role_id');
+        /*
+        |--------------------------------------------------------------------------
+        | SESSION
+        |--------------------------------------------------------------------------
+        */
 
-        $rows  = $this->Payment_model->get_data($limit, $start, $search, $order, $dir, $userPlants, $role_id);
-        $total = $this->Payment_model->count_data($search, $userPlants, $role_id);
+        $username = $this->session
+            ->userdata('username');
+
+        $role_id = (int)$this->session
+            ->userdata('role_id');
+
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        $plants = ($role_id === 1)
+            ? []
+            : $this->Payment_model
+                ->get_user_plants($username);
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATA
+        |--------------------------------------------------------------------------
+        */
+
+        $rows = $this->Payment_model->get_data(
+            $limit,
+            $start,
+            $role_id,
+            $plants,
+            $search,
+            $order,
+            $dir,
+            $pembayaran,
+            $dateFrom,
+            $dateTo
+        );
+
+        $total = $this->Payment_model->count_data(
+            $role_id,
+            $plants,
+            $search,
+            $pembayaran,
+            $dateFrom,
+            $dateTo
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | PAGINATION
+        |--------------------------------------------------------------------------
+        */
+
+        $pages = $total > 0
+            ? ceil($total / $limit)
+            : 1;
+
+        /*
+        |--------------------------------------------------------------------------
+        | RESPONSE
+        |--------------------------------------------------------------------------
+        */
 
         echo json_encode([
-            'rows'  => $rows,
-            'total' => $total,
-            'page'  => $page
+
+            'status' => true,
+
+            'rows' => $rows,
+
+            'total' => (int)$total,
+
+            'page' => (int)$page,
+
+            'pages' => (int)$pages,
+
+            'pagination' => $this->build_pagination(
+                $pages,
+                $page
+            )
+
         ]);
+    }
+
+    private function build_pagination($pages, $current)
+    {
+        if ($pages <= 1) return '';
+
+        $html = '<ul class="pagination pagination-sm">';
+
+        for ($i=1;$i<=$pages;$i++){
+
+            $active = ($i==$current)
+                ? 'active'
+                : '';
+
+            $html .= '
+
+                <li class="page-item '.$active.'">
+
+                    <a href="javascript:void(0)"
+                    class="page-link"
+                    onclick="loadPage('.$i.')">
+
+                        '.$i.'
+
+                    </a>
+
+                </li>
+
+            ';
+        }
+
+        return $html.'</ul>';
     }
 
     public function get_supplier()
@@ -180,12 +360,8 @@ class Payment extends MY_Controller {
         echo json_encode($data);
     }
 
-    public function load_receive_picker()
+    public function load_po_picker()
     {
-        $search = trim(
-            $this->input->get('search', true)
-        );
-
         $plant = trim(
             $this->input->get('plant', true)
         );
@@ -194,22 +370,37 @@ class Payment extends MY_Controller {
             $this->input->get('supplier', true)
         );
 
-        if (
+        $search = trim(
+            $this->input->get('search', true)
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDATION
+        |--------------------------------------------------------------------------
+        */
+
+        if(
             empty($plant) ||
             empty($supplier)
-        ) {
+        ){
 
             echo json_encode([]);
 
             return;
         }
 
-        $rows = $this->Payment_model
-            ->get_receive_picker(
-                $plant,
-                $supplier,
-                $search
-            );
+        /*
+        |--------------------------------------------------------------------------
+        | DATA
+        |--------------------------------------------------------------------------
+        */
+
+        $rows = $this->Payment_model->get_po_picker(
+            $plant,
+            $supplier,
+            $search
+        );
 
         echo json_encode($rows);
     }
@@ -360,7 +551,7 @@ class Payment extends MY_Controller {
 
             $harga = (float)$row['HARGA'];
 
-            $total = $qty * $harga;
+            $total = $berat * $harga;
 
             /*
             |--------------------------------------------------------------------------
@@ -390,7 +581,7 @@ class Payment extends MY_Controller {
 
                 'SEQ_NO' => $seqNo,
 
-                'RECEIVE_NO' => $row['RECEIVE_NO'],
+                'PO_NO' => $row['PO_NO'],
 
                 'MATERIAL' => $row['MATERIAL'],
 
@@ -421,14 +612,14 @@ class Payment extends MY_Controller {
             $this->db
                 ->where('PLANT', $plant)
 
-                ->where('RECEIVE', $row['RECEIVE_NO'])
+                ->where('PO', $row['PO_NO'])
 
                 ->where('MATERIAL', $row['MATERIAL'])
 
                 ->update(
-                    'abc_mst_receive_detail',
+                    'abc_mst_po',
                     [
-                        'STATUS' => 'Y'
+                        'STATUS' => 'PAID'
                     ]
                 );
 
@@ -497,7 +688,7 @@ class Payment extends MY_Controller {
     {
         $map = [];
         foreach ($details as $d) {
-            $key = $d['PLANT'].'|'.$d['RECEIVE_NO'].'|'.$d['MATERIAL'];
+            $key = $d['PLANT'].'|'.$d['PO_NO'].'|'.$d['MATERIAL'];
             if (isset($map[$key])) {
                 return true;
             }
@@ -508,235 +699,523 @@ class Payment extends MY_Controller {
 
     public function edit()
     {
-        $userPlants = json_decode($this->session->userdata('plant'), true);
+        $payment = trim(
+            $this->input->get('payment', true)
+        );
 
-        if (!in_array($plant, $userPlants)) {
+        $plant = trim(
+            $this->input->get('plant', true)
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDASI
+        |--------------------------------------------------------------------------
+        */
+
+        if(
+            empty($payment) ||
+            empty($plant)
+        ){
+
             echo json_encode([
-                'status'=>false,
-                'message'=>'Unauthorized'
+                'status' => false,
+                'message' => 'Payment / Plant tidak lengkap'
             ]);
+
             return;
         }
 
-        $payment = $this->input->get('payment');
-        $plant   = $this->input->get('plant');
+        /*
+        |--------------------------------------------------------------------------
+        | DATA
+        |--------------------------------------------------------------------------
+        */
 
-        if(!$payment || !$plant){
+        $header = $this->Payment_model
+            ->get_header($payment, $plant);
+
+        $detail = $this->Payment_model
+            ->get_detail($payment, $plant);
+
+        /*
+        |--------------------------------------------------------------------------
+        | NOT FOUND
+        |--------------------------------------------------------------------------
+        */
+
+        if(!$header){
+
             echo json_encode([
-                'status'=>false,
-                'message'=>'Payment / Plant tidak lengkap'
+                'status' => false,
+                'message' => 'Payment tidak ditemukan'
             ]);
+
             return;
         }
 
-        $header = $this->Payment_model->get_header($payment, $plant);
-        $detail = $this->Payment_model->get_detail($payment, $plant);
+        /*
+        |--------------------------------------------------------------------------
+        | RESPONSE
+        |--------------------------------------------------------------------------
+        */
 
         echo json_encode([
-            'status'=>true,
-            'data'=>[
-                'header'=>$header,
-                'detail'=>$detail
+
+            'status' => true,
+
+            'data' => [
+
+                'header' => $header,
+
+                'detail' => $detail
+
             ]
+
         ]);
     }
 
     public function update()
     {
-        $payment = $this->input->post('PAYMENT');
-        $plant   = $this->input->post('PLANT');
-        $detail  = $this->input->post('DETAIL');
-        $newType = $this->input->post('PAYMENT_TYPE');
+        $data = $this->input->post(NULL, TRUE);
 
-        $userPlants = json_decode($this->session->userdata('plant'), true);
-        $username   = $this->session->userdata('username');
+        $payment = $data['PAYMENT'] ?? null;
 
-        if (!$payment || !$plant || !in_array($plant,$userPlants)) {
-            echo json_encode(['status'=>false,'message'=>'Unauthorized']);
+        $plant = $data['PLANT'] ?? null;
+
+        $username = $this->session
+            ->userdata('username');
+
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDASI
+        |--------------------------------------------------------------------------
+        */
+
+        if(
+            empty($payment) ||
+            empty($plant)
+        ){
+
+            echo json_encode([
+                'status' => false,
+                'message' => 'Payment / Plant tidak lengkap'
+            ]);
+
             return;
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDASI DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        if(
+            empty($data['DETAIL']) ||
+            !is_array($data['DETAIL'])
+        ){
+
+            echo json_encode([
+                'status' => false,
+                'message' => 'Detail payment kosong'
+            ]);
+
+            return;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | TRANSACTION
+        |--------------------------------------------------------------------------
+        */
 
         $this->db->trans_begin();
 
-        $this->Payment_model->update_header_by_key($payment,$plant,[
-            'PAYMENT_DATE'=>$this->input->post('PAYMENT_DATE'),
-            'SLIP_NO'=>$this->input->post('SLIP_NO'),
-            'REMARK'=>$this->input->post('REMARK'),
-            'PEMBAYARAN'=>$this->input->post('PEMBAYARAN'),
-            'SUPPLIER'=>$this->input->post('SUPPLIER'),
-            'PAYMENT_TYPE'=>$newType,
-            'UPDATED_AT'=>date('Y-m-d H:i:s'),
-            'UPDATED_BY'=>$username
-        ]);
+        /*
+        |--------------------------------------------------------------------------
+        | RESET STATUS PO LAMA
+        |--------------------------------------------------------------------------
+        */
 
-        /* HAPUS DETAIL LAMA */
-        $this->Payment_model->soft_delete_detail_by_key($payment,$plant,[
-            'DELETED'=>'Y'
-        ]);
+        $oldDetail = $this->Payment_model
+            ->get_detail($payment, $plant);
+
+        foreach($oldDetail as $old){
+
+            $this->db
+                ->where('PLANT', $plant)
+
+                ->where('PO', $old['PO_NO'])
+
+                ->where('MATERIAL', $old['MATERIAL'])
+
+                ->update(
+                    'abc_mst_po',
+                    [
+                        'STATUS' => 'OPEN'
+                    ]
+                );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | UPDATE HEADER
+        |--------------------------------------------------------------------------
+        */
+
+        $header = [
+
+            'PAYMENT_DATE' => date(
+                'Y-m-d H:i:s',
+                strtotime($data['PAYMENT_DATE'])
+            ),
+
+            'PEMBAYARAN' => $data['PEMBAYARAN'],
+
+            'SUPPLIER' => $data['SUPPLIER'] ?? null,
+
+            'REMARK' => $data['REMARK'] ?? null,
+
+            'UPDATED_AT' => date('Y-m-d H:i:s'),
+
+            'UPDATED_BY' => $username
+
+        ];
+
+        $this->Payment_model
+            ->update_header_by_key(
+                $payment,
+                $plant,
+                $header
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | DELETE DETAIL LAMA
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db
+            ->where('PAYMENT', $payment)
+
+            ->where('PLANT', $plant)
+
+            ->delete('abc_mst_payment_detail');
+
+        /*
+        |--------------------------------------------------------------------------
+        | INSERT DETAIL BARU
+        |--------------------------------------------------------------------------
+        */
 
         $grandTotal = 0;
+
         $seqNo = 1;
 
-        foreach ($detail as $row) {
+        foreach($data['DETAIL'] as $row){
 
-            $qty   = (float)$row['JUMLAH'];
-            $harga = (float)$row['HARGA'];
+            $qty = (float)$row['JUMLAH'];
+
             $berat = (float)$row['BERAT'];
-            $total = $qty * $harga;
 
-            $this->Payment_model->insert_detail([
-                'PLANT'=>$plant,
-                'PAYMENT'=>$payment,
-                'SEQ_NO'=>$seqNo,
-                'RECEIVE_NO'=>$row['RECEIVE_NO'],
-                'MATERIAL'=>$row['MATERIAL'],
-                'BERAT'=>$berat,
-                'JUMLAH'=>$qty,
-                'HARGA'=>$harga,
-                'TOTAL'=>$total,
-                'REMARK'=>$row['REMARK'] ?? null,
-                'CREATED_AT'=>date('Y-m-d H:i:s'),
-                'CREATED_BY'=>$username
-            ]);
+            $harga = (float)$row['HARGA'];
 
-            if ($newType === 'RECEIVE_LB') {
-                $this->db->where('PLANT',$plant)
-                         ->where('RECEIVE',$row['RECEIVE_NO'])
-                         ->update('abc_mst_receive_lb',[
-                             'PAYMENT_STATUS'=>'PAID',
-                             'PAYMENT_NO'=>$payment
-                         ]);
-            } else {
-                $this->db->where('PLANT',$plant)
-                         ->where('RECEIVE',$row['RECEIVE_NO'])
-                         ->where('MATERIAL',$row['MATERIAL'])
-                         ->update('abc_mst_receive_detail',['STATUS'=>'Y']);
+            $total = $berat * $harga;
+
+            /*
+            |--------------------------------------------------------------------------
+            | SKIP INVALID
+            |--------------------------------------------------------------------------
+            */
+
+            if(
+                $qty <= 0 ||
+                $harga <= 0
+            ){
+
+                continue;
             }
 
+            /*
+            |--------------------------------------------------------------------------
+            | INSERT DETAIL
+            |--------------------------------------------------------------------------
+            */
+
+            $detail = [
+
+                'PLANT' => $plant,
+
+                'PAYMENT' => $payment,
+
+                'SEQ_NO' => $seqNo,
+
+                'PO_NO' => $row['PO_NO'],
+
+                'MATERIAL' => $row['MATERIAL'],
+
+                'BERAT' => $berat,
+
+                'JUMLAH' => $qty,
+
+                'HARGA' => $harga,
+
+                'TOTAL' => $total,
+
+                'REMARK' => $row['REMARK'] ?? null,
+
+                'CREATED_AT' => date('Y-m-d H:i:s'),
+
+                'CREATED_BY' => $username
+
+            ];
+
+            $this->Payment_model
+                ->insert_detail($detail);
+
+            /*
+            |--------------------------------------------------------------------------
+            | UPDATE STATUS PO
+            |--------------------------------------------------------------------------
+            */
+
+            $this->db
+                ->where('PLANT', $plant)
+
+                ->where('PO', $row['PO_NO'])
+
+                ->where('MATERIAL', $row['MATERIAL'])
+
+                ->update(
+                    'abc_mst_po',
+                    [
+                        'STATUS' => 'PAID'
+                    ]
+                );
+
+            /*
+            |--------------------------------------------------------------------------
+            | GRAND TOTAL
+            |--------------------------------------------------------------------------
+            */
+
             $grandTotal += $total;
+
             $seqNo++;
         }
 
-        $this->Payment_model->update_header_total_by_key($payment,$plant,$grandTotal);
+        /*
+        |--------------------------------------------------------------------------
+        | UPDATE TOTAL
+        |--------------------------------------------------------------------------
+        */
 
-        if ($this->db->trans_status() === FALSE) {
+        $this->Payment_model
+            ->update_header_total_by_key(
+                $payment,
+                $plant,
+                $grandTotal,
+                $username
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | CHECK TRANSACTION
+        |--------------------------------------------------------------------------
+        */
+
+        if(
+            $this->db->trans_status() === FALSE
+        ){
+
             $this->db->trans_rollback();
-            echo json_encode(['status'=>false,'message'=>'Gagal update payment']);
+
+            echo json_encode([
+                'status' => false,
+                'message' => 'Gagal update payment'
+            ]);
+
             return;
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | COMMIT
+        |--------------------------------------------------------------------------
+        */
 
         $this->db->trans_commit();
 
         echo json_encode([
-            'status'=>true,
-            'message'=>'Payment berhasil diperbarui'
+
+            'status' => true,
+
+            'message' => 'Payment berhasil diperbarui'
+
         ]);
     }
 
-    /**
-     * Soft delete Payment (header + detail)
-     */
     public function remove()
     {
-        $payment = $this->input->post('payment', TRUE);
-        $plant   = $this->input->post('plant', TRUE);
-        $user    = $this->session->userdata('username');
+        $payment = $this->input
+            ->post('payment', TRUE);
 
-        $userPlants = json_decode($this->session->userdata('plant'), true);
+        $plant = $this->input
+            ->post('plant', TRUE);
 
-        // 🔐 VALIDASI PLANT USER
-        if (!$plant || !in_array($plant, $userPlants)) {
-            echo json_encode([
-                'status' => false,
-                'message' => 'Unauthorized plant access'
-            ]);
-            return;
-        }
+        $username = $this->session
+            ->userdata('username');
 
-        // VALIDASI INPUT
-        if (!$payment) {
-            echo json_encode([
-                'status'  => false,
-                'message' => 'Payment tidak valid'
-            ]);
-            return;
-        }
+        /*
+        |--------------------------------------------------------------------------
+        | USER PLANT
+        |--------------------------------------------------------------------------
+        */
 
-        // CEK DATA MASIH ADA
-        $exists = $this->db
-            ->from('abc_mst_payment')
-            ->where('PAYMENT', $payment)
-            ->where('PLANT', $plant)
-            ->where('DELETED IS NULL', null, false)
-            ->count_all_results();
+        $userPlants = json_decode(
+            $this->session->userdata('plant'),
+            true
+        );
 
-        if ($exists == 0) {
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDATION
+        |--------------------------------------------------------------------------
+        */
+
+        if(
+            empty($payment) ||
+            empty($plant)
+        ){
+
             echo json_encode([
                 'status'  => false,
-                'message' => 'Payment sudah dihapus atau tidak ditemukan'
+                'message' => 'Payment / Plant tidak valid'
             ]);
+
             return;
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | HEADER
+        |--------------------------------------------------------------------------
+        */
+
+        $header = $this->Payment_model
+            ->get_header($payment, $plant);
+
+        if(!$header){
+
+            echo json_encode([
+                'status'  => false,
+                'message' => 'Payment tidak ditemukan'
+            ]);
+
+            return;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        $details = $this->Payment_model
+            ->get_detail($payment, $plant);
+
+        /*
+        |--------------------------------------------------------------------------
+        | TRANSACTION
+        |--------------------------------------------------------------------------
+        */
 
         $this->db->trans_begin();
 
-        try {
+        /*
+        |--------------------------------------------------------------------------
+        | ROLLBACK PO STATUS
+        |--------------------------------------------------------------------------
+        */
 
-            $data = [
-                'DELETED'    => 'Y',
-                'UPDATED_AT' => date('Y-m-d H:i:s'),
-                'UPDATED_BY' => $user
-            ];
+        foreach($details as $row){
 
-            $header  = $this->Payment_model->get_header($payment, $plant);
-            $details = $this->Payment_model->get_detail($payment, $plant);
+            $this->db
+                ->where('PO', $row['PO_NO'])
 
-            if ($header['PAYMENT_TYPE'] === 'RECEIVE_LB') {
+                ->where('PLANT', $plant)
 
-                foreach ($details as $d) {
-                    $this->db->where('PLANT', $d['PLANT']);
-                    $this->db->where('RECEIVE', $d['RECEIVE_NO']);
-                    $this->db->update('abc_mst_receive_lb', [
-                        'PAYMENT_STATUS' => 'UNPAID',
-                        'PAYMENT_NO'     => null
-                    ]);
-                }
+                ->update(
+                    'abc_mst_po',
+                    [
+                        'STATUS' => 'RECEIVED'
+                    ]
+                );
 
-            } else {
+        }
 
-                foreach ($details as $d) {
-                    $this->db->where('PLANT', $d['PLANT']);
-                    $this->db->where('RECEIVE', $d['RECEIVE_NO']);
-                    $this->db->where('MATERIAL', $d['MATERIAL']);
-                    $this->db->update('abc_mst_receive_detail', [
-                        'STATUS' => null
-                    ]);
-                }
-            }
+        /*
+        |--------------------------------------------------------------------------
+        | DELETE DETAIL
+        |--------------------------------------------------------------------------
+        */
 
-            $this->Payment_model->update_header_by_key($payment, $plant, $data);
-            $this->Payment_model->soft_delete_detail_by_key($payment, $plant, $data);
+        $this->db
 
-            if ($this->db->trans_status() === FALSE) {
-                throw new Exception('Gagal menghapus payment');
-            }
+            ->where('PAYMENT', $payment)
 
-            $this->db->trans_commit();
+            ->where('PLANT', $plant)
 
-            echo json_encode([
-                'status'  => true,
-                'message' => 'Payment berhasil dihapus'
-            ]);
+            ->delete('abc_mst_payment_detail');
 
-        } catch (Exception $e) {
+        /*
+        |--------------------------------------------------------------------------
+        | DELETE HEADER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db
+
+            ->where('PAYMENT', $payment)
+
+            ->where('PLANT', $plant)
+
+            ->delete('abc_mst_payment');
+
+        /*
+        |--------------------------------------------------------------------------
+        | CHECK
+        |--------------------------------------------------------------------------
+        */
+
+        if($this->db->trans_status() === FALSE){
 
             $this->db->trans_rollback();
 
             echo json_encode([
                 'status'  => false,
-                'message' => $e->getMessage()
+                'message' => 'Gagal menghapus payment'
             ]);
+
+            return;
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | COMMIT
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->trans_commit();
+
+        echo json_encode([
+
+            'status'  => true,
+
+            'message' => 'Payment berhasil dihapus'
+
+        ]);
     }
 
     public function print_pdf()
@@ -744,72 +1223,178 @@ class Payment extends MY_Controller {
         $payment = $this->input->get('payment');
         $plant   = $this->input->get('plant');
 
-        if (!$payment || !$plant) {
-            show_error('Parameter PAYMENT atau PLANT tidak lengkap');
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDATION
+        |--------------------------------------------------------------------------
+        */
+
+        if(
+            !$payment ||
+            !$plant
+        ){
+
+            show_error(
+                'Parameter payment / plant tidak lengkap'
+            );
+
         }
 
-        /* ================= HEADER ================= */
+        /*
+        |--------------------------------------------------------------------------
+        | HEADER
+        |--------------------------------------------------------------------------
+        */
+
         $header = $this->db
-            ->select('
-                p.PAYMENT,
-                p.PLANT,
-                aj.CODE_NAME AS PLANT_NAME,
-                c.FULL_NAME,
-                p.PAYMENT_DATE,
-                p.PEMBAYARAN,
-                p.SLIP_NO,
-                p.SUPPLIER,
-                p.REMARK,
-                p.TOTAL
-            ')
+
+            ->select("
+                p.*,
+
+                plant.CODE_NAME AS PLANT_NAME,
+
+                supplier.FULL_NAME AS SUPPLIER_NAME
+            ", false)
+
             ->from('abc_mst_payment p')
-            ->join('abc_cd_code aj', "aj.CODE = p.PLANT AND aj.HEAD_CODE = 'PLANT'", 'left')
-            ->join('abc_cd_customer c', "c.CUST = p.SUPPLIER", 'left')
+
+            ->join(
+                'abc_cd_code plant',
+                "
+                    plant.CODE COLLATE utf8mb4_unicode_ci =
+                    p.PLANT COLLATE utf8mb4_unicode_ci
+
+                    AND plant.HEAD_CODE = 'PLANT'
+                ",
+                'left',
+                false
+            )
+
+            ->join(
+                'abc_cd_customer supplier',
+                "
+                    supplier.CUST COLLATE utf8mb4_unicode_ci =
+                    p.SUPPLIER COLLATE utf8mb4_unicode_ci
+                ",
+                'left',
+                false
+            )
+
             ->where('p.PAYMENT', $payment)
+
             ->where('p.PLANT', $plant)
-            ->where('p.DELETED IS NULL')
+
             ->get()
+
             ->row();
 
-        if (!$header) {
-            show_error('Data PAYMENT tidak ditemukan');
+        /*
+        |--------------------------------------------------------------------------
+        | NOT FOUND
+        |--------------------------------------------------------------------------
+        */
+
+        if(!$header){
+
+            show_error(
+                'Data payment tidak ditemukan'
+            );
+
         }
 
-        /* ================= DETAIL ================= */
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
+
         $detail = $this->db
-            ->select('
-                d.SEQ_NO,
-                d.RECEIVE_NO,
-                d.MATERIAL,
-                m.material_name,
-                d.JUMLAH,
-                d.BERAT,
-                d.HARGA,
-                d.TOTAL,
-                d.REMARK
-            ')
+
+            ->select("
+                d.*,
+
+                material.MATERIAL_NAME
+            ", false)
+
             ->from('abc_mst_payment_detail d')
-            ->join('abc_cd_material m', "m.material = d.MATERIAL", 'left')
+
+            ->join(
+                'abc_cd_material material',
+                "
+                    material.MATERIAL COLLATE utf8mb4_unicode_ci =
+                    d.MATERIAL COLLATE utf8mb4_unicode_ci
+                ",
+                'left',
+                false
+            )
+
             ->where('d.PAYMENT', $payment)
+
             ->where('d.PLANT', $plant)
-            ->where('d.DELETED IS NULL')
+
             ->order_by('d.SEQ_NO', 'ASC')
+
             ->get()
+
             ->result();
 
-        $data = compact('header', 'detail');
+        /*
+        |--------------------------------------------------------------------------
+        | VIEW DATA
+        |--------------------------------------------------------------------------
+        */
 
-        /* ================= PDF ================= */
-        $html = $this->load->view('admin/payment/pdf_template', $data, true);
+        $data = [
+
+            'header' => $header,
+
+            'detail' => $detail
+
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | HTML
+        |--------------------------------------------------------------------------
+        */
+
+        $html = $this->load->view(
+            'admin/payment/pdf_template',
+            $data,
+            true
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | PDF
+        |--------------------------------------------------------------------------
+        */
 
         $this->load->library('pdf');
+
         $this->pdf->loadHtml($html);
-        $this->pdf->setPaper('A4', 'portrait');
+
+        $this->pdf->setPaper(
+            'A4',
+            'portrait'
+        );
+
         $this->pdf->render();
 
+        /*
+        |--------------------------------------------------------------------------
+        | STREAM
+        |--------------------------------------------------------------------------
+        */
+
         $this->pdf->stream(
-            "PAYMENT_{$payment}.pdf",
-            ['Attachment' => false]
+
+            'PAYMENT_' . $payment . '.pdf',
+
+            [
+                'Attachment' => false
+            ]
+
         );
     }
 

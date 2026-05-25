@@ -1,183 +1,406 @@
 <!DOCTYPE html>
 <html>
 <head>
+
     <meta charset="utf-8">
-    <title>Payment Slip</title>
+
+    <title>
+        Payment Slip
+    </title>
 
     <style>
-        body {
+
+        body{
             font-family: DejaVu Sans;
-            font-size: 10px;
-            color: #000;
+            font-size:11px;
+            color:#000;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        table{
+            width:100%;
+            border-collapse:collapse;
         }
 
-        .header-table td {
-            vertical-align: top;
+        .header-table td{
+            vertical-align:top;
         }
 
-        .logo {
-            width: 90px;
+        .logo{
+            width:170px;
         }
 
-        .doc-title {
-            font-size: 16px;
-            font-weight: bold;
-            text-align: right;
+        .title{
+            text-align:right;
+            font-size:20px;
+            font-weight:bold;
         }
 
-        .info-table td {
-            padding: 3px 5px;
+        .sub-title{
+            text-align:right;
+            font-size:11px;
+            color:#666;
         }
 
-        .info-label {
-            width: 90px;
-            font-weight: bold;
+        .info-table{
+            margin-top:20px;
         }
 
-        .detail-table th,
-        .detail-table td {
-            border: 1px solid #000;
-            padding: 5px;
+        .info-table td{
+            padding:4px;
         }
 
-        .detail-table th {
-            background-color: #eee;
-            text-align: center;
+        .label{
+            width:110px;
+            font-weight:bold;
         }
 
-        .text-right {
-            text-align: right;
+        .detail-table{
+            margin-top:20px;
         }
 
-        .text-center {
-            text-align: center;
+        .detail-table th{
+            background:#efefef;
+            border:1px solid #000;
+            padding:7px;
+            text-align:center;
         }
 
-        .total-box {
-            margin-top: 10px;
-            width: 40%;
-            float: right;
+        .detail-table td{
+            border:1px solid #000;
+            padding:6px;
         }
 
-        .total-box td {
-            padding: 4px;
+        .text-center{
+            text-align:center;
         }
 
-        .remark {
-            margin-top: 30px;
-            clear: both;
+        .text-right{
+            text-align:right;
         }
+
+        .total-box{
+            width:35%;
+            float:right;
+            margin-top:15px;
+        }
+
+        .total-box td{
+            border:1px solid #000;
+            padding:8px;
+        }
+
+        .remark{
+            margin-top:80px;
+        }
+
+        .signature{
+            margin-top:80px;
+        }
+
+        .signature td{
+            text-align:center;
+            width:33%;
+        }
+
     </style>
+
 </head>
 
 <body>
 
-<!-- ================= HEADER ================= -->
+<!-- ====================================================== -->
+<!-- HEADER -->
+<!-- ====================================================== -->
+
 <table class="header-table">
+
     <tr>
-        <td>
-            <!-- GANTI LOGO JIKA PERLU -->
-            <img src="https://apja.co.id/assets/img/apja-logo.png"
-                 class="logo"
-                 style="width: 190px; margin-bottom: 20px">
+
+        <td width="50%">
+
+            <img
+                src="https://ptabc.co.id/assets/img/abc-trans.png"
+                class="logo">
+<h3>PT. ABADI BERSAMA CERAH</h3>
         </td>
-        <td class="doc-title" style="vertical-align: middle">
-            PAYMENT SLIP
+
+        <td width="50%">
+
+            <div class="title">
+                PAYMENT SLIP
+            </div>
+
+            <div class="sub-title">
+                ACCOUNTING DOCUMENT
+            </div>
+
         </td>
+
     </tr>
+
 </table>
 
 <hr>
 
-<!-- ================= INFO ================= -->
-<table class="info-table" style="margin-top: 15px">
+<!-- ====================================================== -->
+<!-- INFORMATION -->
+<!-- ====================================================== -->
+
+<table class="info-table">
+
     <tr>
-        <td class="info-label">Plant</td>
-        <td colspan="3">
-            : <?= $header->PLANT_NAME; ?> - PT. ARTHA PRATAMA JAYA ABADI
+
+        <td class="label">
+            Payment No
         </td>
-        <td class="info-label">Payment Date</td>
+
         <td>
-            : <?= date('d-M-Y', strtotime($header->PAYMENT_DATE)); ?>
+            : <?= $header->PAYMENT; ?>
         </td>
-    </tr>
-    <tr>
-        <td class="info-label">Supplier</td>
-        <td colspan="3">
-            : <?= $header->SUPPLIER ?: '-'; ?> - <?= $header->FULL_NAME ?: '-'; ?>
+
+        <td class="label">
+            Payment Date
         </td>
-        <td class="info-label">Payment No</td>
+
         <td>
-            : #<?= $header->PAYMENT; ?>
+            : <?= date('d M Y', strtotime($header->PAYMENT_DATE)); ?>
         </td>
+
     </tr>
+
     <tr>
-        <td class="info-label">Pembayaran</td>
-        <td colspan="3">
-            : <?= $header->PEMBAYARAN; ?>
+
+        <td class="label">
+            Plant
         </td>
-        <td class="info-label">Slip No</td>
+
+        <td>
+            : <?= $header->PLANT_NAME; ?>
+        </td>
+
+        <td class="label">
+            Slip No
+        </td>
+
         <td>
             : <?= $header->SLIP_NO ?: '-'; ?>
         </td>
+
     </tr>
-</table>
 
-<br>
-
-<!-- ================= DETAIL ================= -->
-<table class="detail-table">
-    <thead>
-        <tr>
-            <th width="4%">No</th>
-            <th width="15%">Receive No</th>
-            <th>Material</th>
-            <th width="10%">Qty</th>
-            <th width="10%">Berat</th>
-            <th width="15%">Harga</th>
-            <th width="15%">Total</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php
-        $grandTotal = 0;
-        $no = 1;
-        foreach ($detail as $d):
-            $grandTotal += (float)$d->TOTAL;
-        ?>
-        <tr>
-            <td class="text-center"><?= $no++; ?></td>
-            <td class="text-center">#<?= $d->RECEIVE_NO; ?></td>
-            <td><?= $d->MATERIAL; ?> - <?= $d->material_name; ?></td>
-            <td class="text-right"><?= number_format($d->JUMLAH, 2, ',', '.'); ?></td>
-            <td class="text-right"><?= number_format($d->BERAT, 2, ',', '.'); ?></td>
-            <td class="text-right">Rp <?= number_format($d->HARGA, 0, ',', '.'); ?></td>
-            <td class="text-right">Rp <?= number_format($d->TOTAL, 0, ',', '.'); ?></td>
-        </tr>
-        <?php endforeach; ?>
-    </tbody>
-</table>
-
-<!-- ================= TOTAL ================= -->
-<table class="total-box">
     <tr>
-        <td><b>Grand Total</b></td>
-        <td class="text-right">
-            <b>Rp <?= number_format($grandTotal, 0, ',', '.'); ?></b>
+
+        <td class="label">
+            Supplier
         </td>
+
+        <td>
+            :
+            <?= $header->SUPPLIER; ?>
+            -
+            <?= $header->SUPPLIER_NAME; ?>
+        </td>
+
+        <td class="label">
+            Pembayaran
+        </td>
+
+        <td>
+            : <?= $header->PEMBAYARAN; ?>
+        </td>
+
     </tr>
+
 </table>
 
-<!-- ================= REMARK ================= -->
+<!-- ====================================================== -->
+<!-- DETAIL -->
+<!-- ====================================================== -->
+
+<table class="detail-table">
+
+    <thead>
+
+        <tr>
+
+            <th width="4%">
+                No
+            </th>
+
+            <th width="18%">
+                PO No
+            </th>
+
+            <th>
+                Material
+            </th>
+
+            <th width="12%">
+                Berat
+            </th>
+
+            <th width="12%">
+                Harga
+            </th>
+
+            <th width="16%">
+                Total
+            </th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        <?php
+
+        $no = 1;
+
+        $grandTotal = 0;
+
+        foreach($detail as $row):
+
+            $grandTotal += $row->TOTAL;
+
+        ?>
+
+        <tr>
+
+            <td class="text-center">
+
+                <?= $no++; ?>
+
+            </td>
+
+            <td class="text-center">
+
+                <?= $row->PO_NO; ?>
+
+            </td>
+
+            <td>
+
+                <?= $row->MATERIAL; ?>
+                -
+                <?= $row->MATERIAL_NAME; ?>
+
+            </td>
+
+            <td class="text-right">
+
+                <?= number_format($row->BERAT, 2, ',', '.'); ?>
+
+            </td>
+
+            <td class="text-right">
+
+                Rp
+                <?= number_format($row->HARGA, 0, ',', '.'); ?>
+
+            </td>
+
+            <td class="text-right">
+
+                Rp
+                <?= number_format($row->TOTAL, 0, ',', '.'); ?>
+
+            </td>
+
+        </tr>
+
+        <?php endforeach; ?>
+
+    </tbody>
+
+</table>
+
+<!-- ====================================================== -->
+<!-- TOTAL -->
+<!-- ====================================================== -->
+
+<table class="total-box">
+
+    <tr>
+
+        <td width="40%">
+            <b>Grand Total</b>
+        </td>
+
+        <td class="text-right">
+            <b>
+                Rp
+                <?= number_format($grandTotal, 0, ',', '.'); ?>
+            </b>
+        </td>
+
+    </tr>
+
+</table>
+
+<div style="clear:both"></div>
+
+<!-- ====================================================== -->
+<!-- REMARK -->
+<!-- ====================================================== -->
+
 <div class="remark">
-    <b>Remark:</b><br>
+
+    <b>Remark :</b>
+
+    <br><br>
+
     <?= $header->REMARK ?: '-'; ?>
+
 </div>
+
+<!-- ====================================================== -->
+<!-- SIGNATURE -->
+<!-- ====================================================== -->
+
+<table class="signature">
+
+    <tr>
+
+        <td>
+            Dibuat Oleh
+        </td>
+
+        <td>
+            Diperiksa Oleh
+        </td>
+
+        <td>
+            Disetujui Oleh
+        </td>
+
+    </tr>
+
+    <tr>
+
+        <td style="height:80px"></td>
+        <td></td>
+        <td></td>
+
+    </tr>
+
+    <tr>
+
+        <td>
+            ___________________
+        </td>
+
+        <td>
+            ___________________
+        </td>
+
+        <td>
+            ___________________
+        </td>
+
+    </tr>
+
+</table>
 
 </body>
 </html>

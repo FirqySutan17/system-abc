@@ -56,6 +56,44 @@ class CashIn extends MY_Controller {
         ]);
     }
 
+    public function load_sales_picker()
+    {
+        $plant = $this->input->get('plant', true);
+
+        $customer = $this->input->get('customer', true);
+
+        $search = $this->input->get('search', true);
+
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDASI
+        |--------------------------------------------------------------------------
+        */
+
+        if(empty($plant)){
+
+            echo json_encode([]);
+
+            return;
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | GET DATA
+        |--------------------------------------------------------------------------
+        */
+
+        $rows = $this->Cash_in_model
+            ->get_sales_picker(
+                $plant,
+                $customer,
+                $search
+            );
+
+        echo json_encode($rows);
+    }
+
     private function build_pagination($pages, $current)
     {
         $html = '<ul class="pagination pagination-sm">';
@@ -114,8 +152,8 @@ class CashIn extends MY_Controller {
         /*
         ==========================================================
         HEADER INVOICE
-        Ambil langsung dari mst_sales TANPA hitung ulang pembayaran
-        REMAIN diambil dari kolom mst_sales.REMAIN (PALING AKURAT)
+        Ambil langsung dari abc_mst_sales TANPA hitung ulang pembayaran
+        REMAIN diambil dari kolom abc_mst_sales.REMAIN (PALING AKURAT)
         ==========================================================
         */
         $headerSub = "
@@ -128,7 +166,7 @@ class CashIn extends MY_Controller {
                 MAX(JENIS_PAY) AS JENIS_PAY,
                 SUM(AMOUNT) AS AMOUNT,
                 MAX(REMAIN) AS REMAIN
-            FROM mst_sales
+            FROM abc_mst_sales
             WHERE JENIS_PAY = 'TEMPO'
             AND CUSTOMER = ".$this->db->escape($customer)."
             AND PLANT = ".$this->db->escape($plant)."
@@ -158,13 +196,13 @@ class CashIn extends MY_Controller {
 
         // Detail barang
         $this->db->join(
-            'mst_sales_detail d',
+            'abc_mst_sales_detail d',
             'd.SALES = s.SALES AND d.PLANT = s.PLANT AND d.DELETED IS NULL',
             'left'
         );
 
-        $this->db->join('cd_code cc', "cc.HEAD_CODE = 'AJ' AND cc.CODE = s.PLANT", 'left');
-        $this->db->join('cd_customer cust', 'cust.CUST = s.CUSTOMER', 'left');
+        $this->db->join('abc_cd_code cc', "cc.HEAD_CODE = 'AJ' AND cc.CODE = s.PLANT", 'left');
+        $this->db->join('abc_cd_customer cust', 'cust.CUST = s.CUSTOMER', 'left');
 
         // Hanya invoice yang masih ada sisa
         $this->db->where('s.REMAIN >', 0);
@@ -311,234 +349,355 @@ class CashIn extends MY_Controller {
 
     public function create()
     {
-        header('Content-Type: application/json');
+        $data = $this->input->post(NULL, TRUE);
 
-        try {
+        $plant = $data['PLANT'] ?? null;
 
-            $data     = $this->input->post(NULL, TRUE);
-            $username = $this->session->userdata('username');
+        $username = $this->session
+            ->userdata('username');
 
-            $plant    = $data['PLANT'] ?? null;
-            $customer = $data['CUSTOMER'] ?? null;
-            $amount   = $this->toNumber($data['JUMLAH'] ?? 0);
-            $mode     = $data['mode_cash_in'] ?? 'FIFO'; // 🔥 MODE DARI VIEW
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDASI HEADER
+        |--------------------------------------------------------------------------
+        */
 
-            if (!$plant || !$customer) {
-                echo json_encode(['status'=>false,'message'=>'Customer dan Plant wajib diisi']);
-                return;
-            }
-
-            if ($mode === 'FIFO' && $amount <= 0) {
-                echo json_encode(['status'=>false,'message'=>'Jumlah Cash In harus lebih dari 0']);
-                return;
-            }
-
-            if ($mode === 'MANUAL') {
-                $amount = 0; // akan dioverride nanti oleh totalOffset
-            }
-
-            $this->db->trans_start();
-
-            /* ===================== 1. GENERATE NUMBER ===================== */
-            $cashInNo = $this->CashIn_model->generate_cash_in_no($plant, $data['CASHIN_DATE']);
-            $slipNo   = $this->CashIn_model->generate_slip_no($plant);
-
-            /* ===================== 2. INSERT HEADER ===================== */
-            $this->CashIn_model->insert_header([
-                'CASH_IN'     => $cashInNo,
-                'PLANT'       => $plant,
-                'CUSTOMER'    => $customer,
-                'CASHIN_DATE' => $data['CASHIN_DATE'],
-                'PEMBAYARAN'  => $data['PEMBAYARAN'] ?? null,
-                'NO_REK'      => $data['NO_REK'] ?? null,
-                'BON'         => $data['BON'] ?? null,
-                'AMOUNT'      => $amount,
-                'SLIP_NO'     => $slipNo,
-                'CREATED_AT'  => date('Y-m-d H:i:s'),
-                'CREATED_BY'  => $username
-            ]);
-
-            $amountLeft    = $amount;
-            $seq           = 1;
-            $affectedSales = [];
-
-            if ($mode === 'MANUAL') {
-
-                $detailsInput = $this->input->post('DETAIL');
-
-                if (!is_array($detailsInput) || count($detailsInput) == 0) {
-                    throw new Exception('Detail invoice manual kosong');
-                }
-
-                $totalOffset = 0;
-
-                foreach ($detailsInput as $row) {
-
-                    $sales  = $row['SALES'] ?? null;
-                    $offset = (float)($row['AMOUNT_OFFSET'] ?? 0);
-
-                    if (!$sales || $offset <= 0) continue;
-
-                    // 🔒 LOCK INVOICE
-                    $this->CashIn_model->lock_invoice_row($sales, $plant);
-
-                    // 🔁 AMBIL REMAIN TERBARU SETELAH LOCK
-                    $latest = $this->CashIn_model->get_invoice_remain($sales, $plant);
-                    $remain = (float)$latest['remain'];
-
-                    if ($remain <= 0) continue; // invoice sudah lunas oleh transaksi lain
-
-                    if ($offset > $remain) {
-                        $offset = $remain; // cegah overpay
-                    }
-
-                    $this->db->insert('mst_cash_in_detail', [
-                        'CASH_IN'        => $cashInNo,
-                        'PLANT'          => $plant,
-                        'SEQ_NO'         => $seq++,
-                        'SALES'          => $sales,
-                        'AMOUNT_INVOICE' => $latest['invoice_amount'],
-                        'AMOUNT_OFFSET'  => $offset,
-                        'DATE_OFFSET'    => $data['CASHIN_DATE'],
-                        'ORG_SLIP_NO'    => 'MANUAL',
-                        'SLIP_NO'        => 'MANUAL',
-                        'CREATED_AT'     => date('Y-m-d H:i:s'),
-                        'CREATED_BY'     => $username
-                    ]);
-
-                    $this->CashIn_model->reduce_invoice_remain($sales, $plant, $offset);
-
-                    $totalOffset += $offset;
-                    $affectedSales[] = $sales;
-                }
-
-                if ($totalOffset <= 0) {
-                    throw new Exception('Semua invoice sudah lunas / tidak valid');
-                }
-
-                // 🔥 HEADER = REAL UANG TERPAKAI
-                $this->CashIn_model->update_header_amount($cashInNo, $plant, $totalOffset);
-
-                $amountLeft = 0; // manual tidak pakai deposit
-            } else {
-
-                $detailsInput = $this->input->post('DETAIL');
-
-                if (!is_array($detailsInput) || count($detailsInput) == 0) {
-                    throw new Exception('Tidak ada invoice FIFO yang dikirim dari preview');
-                }
-
-                foreach ($detailsInput as $row) {
-
-                    $sales  = $row['SALES'] ?? null;
-                    $offset = (float)($row['AMOUNT_OFFSET'] ?? 0);
-
-                    if (!$sales || $offset <= 0) continue;
-
-                    // 🔒 Lock invoice row (hindari race condition)
-                    $this->CashIn_model->lock_invoice_row($sales, $plant);
-
-                    // 🔁 Ambil remain terbaru setelah lock
-                    $latest = $this->CashIn_model->get_invoice_remain($sales, $plant);
-                    $remain = (float)$latest['remain'];
-
-                    if ($remain <= 0) continue; // invoice sudah lunas oleh transaksi lain
-
-                    // 🚫 Jangan izinkan overpay walau preview salah
-                    if ($offset > $remain) {
-                        $offset = $remain;
-                    }
-
-                    if ($offset <= 0) continue;
-
-                    $this->db->insert('mst_cash_in_detail', [
-                        'CASH_IN'        => $cashInNo,
-                        'PLANT'          => $plant,
-                        'SEQ_NO'         => $seq++,
-                        'SALES'          => $sales,
-                        'AMOUNT_INVOICE' => $latest['invoice_amount'],
-                        'AMOUNT_OFFSET'  => $offset,
-                        'DATE_OFFSET'    => $data['CASHIN_DATE'],
-                        'ORG_SLIP_NO'    => 'AUTO',
-                        'SLIP_NO'        => 'AUTO',
-                        'CREATED_AT'     => date('Y-m-d H:i:s'),
-                        'CREATED_BY'     => $username
-                    ]);
-
-                    $this->CashIn_model->reduce_invoice_remain($sales, $plant, $offset);
-
-                    $amountLeft -= $offset;
-                    $affectedSales[] = $sales;
-                }
-            }
-
-            if (empty($affectedSales)) {
-                throw new Exception('Tidak ada invoice yang berhasil dialokasikan');
-            }
-
-            /* =======================================================
-            5. SISA → DEPOSIT
-            ======================================================= */
-            if ($amountLeft > 0) {
-                $this->CashIn_model->insert_customer_deposit([
-                    'CUSTOMER'   => $customer,
-                    'PLANT'      => $plant,
-                    'CASH_IN'    => $cashInNo,
-                    'AMOUNT'     => $amountLeft,
-                    'REMAIN'     => $amountLeft,
-                    'CREATED_AT' => date('Y-m-d H:i:s'),
-                    'CREATED_BY' => $username
-                ]);
-            }
-
-            /* =======================================================
-            6. UPDATE STATUS INVOICE
-            ======================================================= */
-            foreach (array_unique($affectedSales) as $sales) {
-                $this->CashIn_model->recalc_invoice($sales, $plant);
-            }
-
-            /* =======================================================
-            7. UPLOAD ATTACHMENT
-            ======================================================= */
-            if (!empty($_FILES['ATTACHMENT']['name'])) {
-
-                $uploadDir = FCPATH.'uploads/cash_in/';
-                if (!is_dir($uploadDir)) mkdir($uploadDir,0777,true);
-
-                $config = [
-                    'upload_path'   => $uploadDir,
-                    'allowed_types' => 'jpg|jpeg|png|pdf',
-                    'max_size'      => 2048,
-                    'file_name'     => $cashInNo
-                ];
-
-                $this->load->library('upload', $config);
-
-                if ($this->upload->do_upload('ATTACHMENT')) {
-                    $fileData = $this->upload->data();
-                    $this->CashIn_model->update_header($plant,$cashInNo,[
-                        'ATTACHMENT' => 'uploads/cash_in/'.$fileData['file_name']
-                    ]);
-                }
-            }
-
-            $this->db->trans_complete();
+        if(
+            empty($plant) ||
+            empty($data['CASHIN_DATE']) ||
+            empty($data['PEMBAYARAN']) ||
+            empty($data['CUSTOMER'])
+        ){
 
             echo json_encode([
-                'status'  => $this->db->trans_status(),
-                'message' => $this->db->trans_status()
-                    ? 'Cash In berhasil disimpan'
-                    : 'Gagal simpan Cash In'
+
+                'status' => false,
+
+                'message' => 'Header cash in belum lengkap'
+
             ]);
 
-        } catch (Throwable $e) {
-
-            echo json_encode([
-                'status'  => false,
-                'message' => 'Server error: '.$e->getMessage()
-            ]);
+            return;
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDASI DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        if(
+            empty($data['DETAIL']) ||
+            !is_array($data['DETAIL'])
+        ){
+
+            echo json_encode([
+
+                'status' => false,
+
+                'message' => 'Detail invoice kosong'
+
+            ]);
+
+            return;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | GENERATE NUMBER
+        |--------------------------------------------------------------------------
+        */
+
+        $cashInNo = $this->Cash_in_model
+            ->generate_cash_in_no($plant);
+
+        $slipNo = $this->Cash_in_model
+            ->generate_slip_no($plant);
+
+        /*
+        |--------------------------------------------------------------------------
+        | TRANSACTION
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->trans_begin();
+
+        /*
+        |--------------------------------------------------------------------------
+        | HEADER
+        |--------------------------------------------------------------------------
+        */
+
+        $header = [
+
+            'PLANT' => $plant,
+
+            'CASH_IN' => $cashInNo,
+
+            'CASHIN_DATE' => date(
+                'Y-m-d H:i:s',
+                strtotime($data['CASHIN_DATE'])
+            ),
+
+            'CUSTOMER' => $data['CUSTOMER'],
+
+            'PEMBAYARAN' => $data['PEMBAYARAN'],
+
+            'SLIP_NO' => $slipNo,
+
+            'MODE_CASH_IN' =>
+                $data['MODE_CASH_IN'] ?? 'FIFO',
+
+            'TOTAL_INPUT' => clean_number(
+                $data['TOTAL_INPUT']
+            ),
+
+            'TOTAL' => 0,
+
+            'REMARK' => $data['REMARK'] ?? null,
+
+            'CREATED_AT' => date('Y-m-d H:i:s'),
+
+            'CREATED_BY' => $username
+        ];
+
+        $this->Cash_in_model
+            ->insert_header($header);
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        $grandTotal = 0;
+
+        $seqNo = 1;
+
+        foreach($data['DETAIL'] as $row){
+
+            $bayar = clean_number(
+                $row['BAYAR'] ?? 0
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | SKIP ZERO
+            |--------------------------------------------------------------------------
+            */
+
+            if($bayar <= 0){
+
+                continue;
+
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | SALES
+            |--------------------------------------------------------------------------
+            */
+
+            $sales = $this->db
+
+                ->select('
+                    SALES,
+                    TOTAL
+                ')
+
+                ->from('abc_mst_sales')
+
+                ->where('SALES', $row['SALES'])
+
+                ->where('PLANT', $plant)
+
+                ->get()
+
+                ->row_array();
+
+            if(!$sales){
+
+                continue;
+
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | CURRENT PAID
+            |--------------------------------------------------------------------------
+            */
+
+            $paid = $this->db
+
+                ->select_sum('BAYAR')
+
+                ->from('abc_mst_cash_in_detail')
+
+                ->where('SALES', $row['SALES'])
+
+                ->where('PLANT', $plant)
+
+                ->get()
+
+                ->row()
+
+                ->BAYAR ?? 0;
+
+            $newPaid =
+                $paid + $bayar;
+
+            $outstanding =
+                $sales['TOTAL'] - $newPaid;
+
+            /*
+            |--------------------------------------------------------------------------
+            | STATUS
+            |--------------------------------------------------------------------------
+            */
+
+            $status = 'PARTIAL';
+
+            if($outstanding <= 0){
+
+                $status = 'PAID';
+
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | INSERT DETAIL
+            |--------------------------------------------------------------------------
+            */
+
+            $detail = [
+
+                'PLANT' => $plant,
+
+                'CASH_IN' => $cashInNo,
+
+                'SEQ_NO' => $seqNo,
+
+                'SALES' => $row['SALES'],
+
+                'BAYAR' => $bayar,
+
+                'OUTSTANDING' => $outstanding,
+
+                'STATUS' => $status,
+
+                'REMARK' => $row['REMARK'] ?? null,
+
+                'CREATED_AT' => date('Y-m-d H:i:s'),
+
+                'CREATED_BY' => $username
+            ];
+
+            $this->Cash_in_model
+                ->insert_detail($detail);
+
+            /*
+            |--------------------------------------------------------------------------
+            | UPDATE SALES STATUS
+            |--------------------------------------------------------------------------
+            */
+
+            $this->db
+
+                ->where('SALES', $row['SALES'])
+
+                ->where('PLANT', $plant)
+
+                ->update(
+                    'abc_mst_sales',
+                    [
+
+                        'PAYMENT_STATUS' => $status
+
+                    ]
+                );
+
+            /*
+            |--------------------------------------------------------------------------
+            | TOTAL
+            |--------------------------------------------------------------------------
+            */
+
+            $grandTotal += $bayar;
+
+            $seqNo++;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | UPDATE HEADER TOTAL
+        |--------------------------------------------------------------------------
+        */
+
+        $deposit =
+            clean_number($data['TOTAL_INPUT'])
+            -
+            $grandTotal;
+
+        $this->Cash_in_model
+            ->update_header_by_key(
+                $cashInNo,
+                $plant,
+                [
+
+                    'TOTAL' => $grandTotal,
+
+                    'DEPOSIT' => $deposit
+
+                ]
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | CHECK
+        |--------------------------------------------------------------------------
+        */
+
+        if($this->db->trans_status() === FALSE){
+
+            $this->db->trans_rollback();
+
+            echo json_encode([
+
+                'status' => false,
+
+                'message' => 'Gagal menyimpan cash in'
+
+            ]);
+
+            return;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | COMMIT
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->trans_commit();
+
+        echo json_encode([
+
+            'status' => true,
+
+            'cash_in' => $cashInNo,
+
+            'message' => 'Cash in berhasil disimpan'
+
+        ]);
+    }
+
+    function clean_number($value)
+    {
+        return (float) str_replace(
+            ['.', ','],
+            ['', '.'],
+            $value
+        );
     }
 
     public function edit()
@@ -558,7 +717,7 @@ class CashIn extends MY_Controller {
         // ================= GET HEADER =================
         if ($role_id == 1) {
             $header = $this->db
-                ->from('mst_cash_in')
+                ->from('abc_mst_cash_in')
                 ->where('CASH_IN', $cashInNo)
                 ->get()
                 ->row_array();
@@ -579,14 +738,14 @@ class CashIn extends MY_Controller {
         // Nama Customer
         $header['CUSTOMER_NAME'] = $this->db
             ->select('FULL_NAME')
-            ->from('cd_customer')
+            ->from('abc_cd_customer')
             ->where('CUST', $header['CUSTOMER'])
             ->get()->row('FULL_NAME');
 
         // Nama Plant
         $header['PLANT_NAME'] = $this->db
             ->select('CODE_NAME')
-            ->from('cd_code')
+            ->from('abc_cd_code')
             ->where('HEAD_CODE', 'AJ')
             ->where('CODE', $header['PLANT'])
             ->get()->row('CODE_NAME');
@@ -594,7 +753,7 @@ class CashIn extends MY_Controller {
         // Nama Rekening
         $header['REK_NAME'] = $this->db
             ->select('CODE_NAME')
-            ->from('cd_code')
+            ->from('abc_cd_code')
             ->where('HEAD_CODE', 'AK')
             ->where('CODE', $header['NO_REK'])
             ->get()->row('CODE_NAME');
@@ -720,7 +879,7 @@ class CashIn extends MY_Controller {
 
             $offset = min($remain, $amountLeft);
 
-            $this->db->insert('mst_cash_in_detail', [
+            $this->db->insert('abc_mst_cash_in_detail', [
                 'CASH_IN'        => $cashInNo,
                 'PLANT'          => $plant,
                 'SEQ_NO'         => $seq++,
@@ -775,7 +934,7 @@ class CashIn extends MY_Controller {
             $old = $this->db->select('ATTACHMENT')
                             ->where('CASH_IN',$cashInNo)
                             ->where('PLANT',$plant)
-                            ->get('mst_cash_in')->row();
+                            ->get('abc_mst_cash_in')->row();
 
             if($old && $old->ATTACHMENT && file_exists(FCPATH.$old->ATTACHMENT)){
                 unlink(FCPATH.$old->ATTACHMENT);
@@ -818,7 +977,7 @@ class CashIn extends MY_Controller {
         $this->db->trans_start();
 
         $header = $this->db->where(['CASH_IN'=>$cashIn,'PLANT'=>$plant])
-                           ->get('mst_cash_in')->row();
+                           ->get('abc_mst_cash_in')->row();
 
         if ($header && $header->ATTACHMENT && file_exists(FCPATH.$header->ATTACHMENT)) {
             unlink(FCPATH.$header->ATTACHMENT);
@@ -848,6 +1007,12 @@ class CashIn extends MY_Controller {
         $this->CashIn_model->delete_deposit_by_cashin($cashIn);
         $this->CashIn_model->delete_cash_in_details($cashIn,$plant);
         $this->CashIn_model->delete_header($cashIn,$plant);
+
+        $this->CashIn_model
+        ->rebuild_customer_fifo_history(
+            $header['CUSTOMER'],
+            $plant
+        );
 
         $this->db->trans_complete();
 
@@ -879,10 +1044,10 @@ class CashIn extends MY_Controller {
                 c.NO_REK,
                 c.AMOUNT
             ')
-            ->from('mst_cash_in c')
-            ->join('cd_code aj', "aj.CODE = c.PLANT AND aj.HEAD_CODE = 'AJ'", 'left')
-            ->join('cd_code ak', "ak.CODE = c.NO_REK AND ak.HEAD_CODE = 'AK'", 'left')
-            ->join('cd_customer cust', "cust.CUST = c.CUSTOMER", 'left')
+            ->from('abc_mst_cash_in c')
+            ->join('abc_cd_code aj', "aj.CODE = c.PLANT AND aj.HEAD_CODE = 'AJ'", 'left')
+            ->join('abc_cd_code ak', "ak.CODE = c.NO_REK AND ak.HEAD_CODE = 'AK'", 'left')
+            ->join('abc_cd_customer cust', "cust.CUST = c.CUSTOMER", 'left')
             ->where('c.CASH_IN', $cash_in)
             ->where('c.PLANT', $plant)
             ->where('c.DELETED IS NULL')
@@ -904,7 +1069,7 @@ class CashIn extends MY_Controller {
                 d.AMOUNT_INVOICE,
                 d.AMOUNT_OFFSET
             ')
-            ->from('mst_cash_in_detail d')
+            ->from('abc_mst_cash_in_detail d')
             ->where('d.CASH_IN', $cash_in)
             ->where('d.PLANT', $plant)
             ->where('d.DELETED IS NULL')
