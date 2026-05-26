@@ -1,1122 +1,1452 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class ReportAccounting_model extends CI_Model {
+class ReportAccounting_model extends CI_Model
+{
+    /*
+    |--------------------------------------------------------------------------
+    | PAYMENT QUERY
+    |--------------------------------------------------------------------------
+    */
 
-    public function get_plant_by_user($plant)
+    private function payment_query(
+        $search = '',
+        $plant = '',
+        $supplier = '',
+        $dateFrom = '',
+        $dateTo = ''
+    )
     {
-        return $this->db
-            ->where('HEAD_CODE', 'AJ')
-            ->where('CODE', $plant)
-            ->get('cd_code')
-            ->row();
-    }
+        /*
+        |--------------------------------------------------------------------------
+        | SELECT
+        |--------------------------------------------------------------------------
+        */
 
-    public function get_plant_list()
-    {
-        return $this->db
-            ->select('CODE, CODE_NAME')
-            ->from('cd_code')
-            ->where('HEAD_CODE', 'AJ')
-            ->order_by('CODE', 'ASC')
-            ->get()
-            ->result();
-    }
+        $this->db->select('
 
-    public function get_supplier_list()
-    {
-        return $this->db
-            ->select('CUST, FULL_NAME')
-            ->from('cd_customer')
-            ->group_start()
-                ->where('CUST_KIND', 'SUPPLIER')
-                ->or_where('CUST_CLASS', 'SUPPLIER')
-            ->group_end()
-            ->order_by('FULL_NAME', 'ASC')
-            ->get()
-            ->result();
-    }
-
-    public function get_customer_list()
-    {
-        return $this->db
-            ->select('CUST, FULL_NAME')
-            ->from('cd_customer')
-            ->group_start()
-                ->where('CUST_KIND', 'CUSTOMER')
-                ->or_where('CUST_CLASS', 'CUSTOMER')
-            ->group_end()
-            ->order_by('FULL_NAME', 'ASC')
-            ->get()
-            ->result();
-    }
-
-    private function convert_date($date)
-    {
-        if (!$date) return null;
-        $d = DateTime::createFromFormat('d/m/Y', $date);
-        return $d ? $d->format('Y-m-d') : null;
-    }
-
-    public function get_cost_report($limit, $start, $filters, $order = 'COST_DATE', $dir = 'DESC')
-    {
-        // =========================
-        // STEP 1: HEADER QUERY
-        // =========================
-        $this->db->distinct();
-        $this->db->select('c.COST, c.PLANT');
-        $this->db->from('mst_cost c');
-        $this->db->where('c.DELETED IS NULL', null, false);
-
-        $this->db->where_in('c.PLANT', $filters['plants']);
-
-        if (!empty($filters['cost'])) {
-            $this->db->like('c.COST', $filters['cost']);
-        }
-
-        if (!empty($filters['pembayaran'])) {
-            $this->db->like('c.PEMBAYARAN', $filters['pembayaran']);
-        }
-
-        if (!empty($filters['date_from'])) {
-            $this->db->where('c.COST_DATE >=', $filters['date_from'].' 00:00:00');
-        }
-
-        if (!empty($filters['date_to'])) {
-            $this->db->where('c.COST_DATE <=', $filters['date_to'].' 23:59:59');
-        }
-
-        $this->db->order_by("c.$order", $dir);
-
-        if ($limit > 0) {
-            $this->db->limit($limit, $start);
-        }
-
-        $headers = $this->db->get()->result();
-
-        if (empty($headers)) return [];
-
-        // =========================
-        // STEP 2: DETAIL QUERY
-        // =========================
-        $this->db->select("
-            c.COST,
-            c.PLANT,
-            cc.CODE_NAME AS PLANT_NAME,
-            c.COST_DATE,
-            c.PEMBAYARAN,
-            d.SEQ_NO,
-            d.TIPE_COST,
-            cost.COST_NAME AS TIPE_COST_NAME,
-            d.JUMLAH,
-            d.TOTAL,
-            d.REMARK AS DETAIL_REMARK
-        ");
-        $this->db->from('mst_cost c');
-        $this->db->join('mst_cost_detail d',
-            'd.COST = c.COST AND d.PLANT = c.PLANT AND d.DELETED IS NULL'
-        );
-        $this->db->join('cd_code cc',
-            "cc.HEAD_CODE = 'AJ' AND cc.CODE = c.PLANT",
-            'left'
-        );
-        $this->db->join('cd_cost cost',
-            'cost.COST = d.TIPE_COST',
-            'left'
-        );
-
-        $this->db->where('c.DELETED IS NULL', null, false);
-
-        // 🔐 FILTER HEADER RESULT
-        $this->db->group_start();
-        foreach ($headers as $h) {
-            $this->db->or_group_start();
-            $this->db->where('c.COST', $h->COST);
-            $this->db->where('c.PLANT', $h->PLANT);
-            $this->db->group_end();
-        }
-        $this->db->group_end();
-
-        $this->db->order_by('c.COST_DATE', 'DESC');
-        $this->db->order_by('c.COST', 'ASC');
-        $this->db->order_by('d.SEQ_NO', 'ASC');
-
-        return $this->db->get()->result();
-    }
-
-    public function count_cost_report($filters)
-    {
-        $this->db->select('COUNT(DISTINCT CONCAT(c.COST,"|",c.PLANT)) AS total', false);
-        $this->db->from('mst_cost c');
-        $this->db->where('c.DELETED IS NULL', null, false);
-
-        $this->db->where_in('c.PLANT', $filters['plants']);
-
-        if (!empty($filters['cost'])) {
-            $this->db->like('c.COST', $filters['cost']);
-        }
-
-        if (!empty($filters['pembayaran'])) {
-            $this->db->like('c.PEMBAYARAN', $filters['pembayaran']);
-        }
-
-        if (!empty($filters['date_from'])) {
-            $this->db->where('c.COST_DATE >=', $filters['date_from'].' 00:00:00');
-        }
-
-        if (!empty($filters['date_to'])) {
-            $this->db->where('c.COST_DATE <=', $filters['date_to'].' 23:59:59');
-        }
-
-        return (int)$this->db->get()->row()->total;
-    }
-
-    public function get_payment_report($limit, $start, $filters, $order, $dir)
-    {
-        $this->db->select("
             p.PAYMENT,
-            p.PLANT,
-            pl.CODE_NAME AS PLANT_NAME,
+
             p.PAYMENT_DATE,
-            p.PEMBAYARAN,
+
+            p.PLANT,
+
             p.SUPPLIER,
-            sup.FULL_NAME AS SUPPLIER_NAME,
 
-            d.RECEIVE_NO,
+            supplier.FULL_NAME AS SUPPLIER_NAME,
+
+            d.PO_NO,
+
             d.MATERIAL,
-            mat.MATERIAL_NAME,
+
+            material.MATERIAL_NAME,
+
             d.JUMLAH,
+
             d.BERAT,
+
             d.HARGA,
-            d.TOTAL AS DETAIL_TOTAL
-        ");
 
-        $this->db->from('mst_payment p');
+            d.TOTAL
+
+        ');
+
+        /*
+        |--------------------------------------------------------------------------
+        | FROM
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->from(
+            'abc_mst_payment_detail d'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | HEADER
+        |--------------------------------------------------------------------------
+        */
 
         $this->db->join(
-            'mst_payment_detail d',
-            'd.PAYMENT = p.PAYMENT 
-            AND d.PLANT = p.PLANT
-            AND d.deleted IS NULL',
+            'abc_mst_payment p',
+            '
+                p.PAYMENT = d.PAYMENT
+                AND p.PLANT = d.PLANT
+            ',
             'inner'
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | SUPPLIER
+        |--------------------------------------------------------------------------
+        */
+
         $this->db->join(
-            'cd_code pl',
-            "pl.HEAD_CODE = 'AJ' AND pl.CODE = p.PLANT",
+            'abc_cd_customer supplier',
+            '
+                supplier.CUST COLLATE utf8mb4_unicode_ci =
+                p.SUPPLIER COLLATE utf8mb4_unicode_ci
+            ',
             'left',
             false
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | MATERIAL
+        |--------------------------------------------------------------------------
+        */
+
         $this->db->join(
-            'cd_customer sup',
-            "sup.CUST = p.SUPPLIER 
-            AND (sup.CUST_KIND = 'SUPPLIER' OR sup.CUST_CLASS = 'SUPPLIER')",
+            'abc_cd_material material',
+            '
+                material.MATERIAL COLLATE utf8mb4_unicode_ci =
+                d.MATERIAL COLLATE utf8mb4_unicode_ci
+            ',
             'left',
             false
         );
 
-        $this->db->join(
-            'cd_material mat',
-            "mat.MATERIAL = d.MATERIAL",
-            'left',
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->where(
+            'p.DELETED IS NULL',
+            null,
             false
         );
 
-        $this->db->where('p.deleted IS NULL', null, false);
+        $this->db->where(
+            'd.DELETED IS NULL',
+            null,
+            false
+        );
 
-        // 🔐 ALWAYS WHERE IN
-        $this->db->where_in('p.PLANT', $filters['plants']);
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT
+        |--------------------------------------------------------------------------
+        */
 
-        if (!empty($filters['supplier'])) {
-            $this->db->where('p.SUPPLIER', $filters['supplier']);
+        if(!empty($plant)){
+
+            $this->db->where(
+                'p.PLANT',
+                $plant
+            );
+
         }
 
-        if (!empty($filters['payment'])) {
-            $this->db->like('p.PAYMENT', $filters['payment']);
+        /*
+        |--------------------------------------------------------------------------
+        | SUPPLIER
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($supplier)){
+
+            $this->db->where(
+                'p.SUPPLIER',
+                $supplier
+            );
+
         }
 
-        if (!empty($filters['payment_type'])) {
-            $this->db->where('p.PEMBAYARAN', $filters['payment_type']);
+        /*
+        |--------------------------------------------------------------------------
+        | DATE
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($dateFrom)){
+
+            $this->db->where(
+                'DATE(p.PAYMENT_DATE) >=',
+                $dateFrom
+            );
+
         }
 
-        if (!empty($filters['date_from'])) {
-            $this->db->where('p.PAYMENT_DATE >=', $filters['date_from'].' 00:00:00');
+        if(!empty($dateTo)){
+
+            $this->db->where(
+                'DATE(p.PAYMENT_DATE) <=',
+                $dateTo
+            );
+
         }
 
-        if (!empty($filters['date_to'])) {
-            $this->db->where('p.PAYMENT_DATE <=', $filters['date_to'].' 23:59:59');
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($search)){
+
+            $this->db->group_start();
+
+            $this->db->like(
+                'p.PAYMENT',
+                $search
+            );
+
+            $this->db->or_like(
+                'supplier.FULL_NAME',
+                $search
+            );
+
+            $this->db->or_like(
+                'd.PO_NO',
+                $search
+            );
+
+            $this->db->group_end();
+
         }
-
-        $this->db->order_by("p.$order", $dir);
-        $this->db->order_by("d.RECEIVE_NO", "ASC");
-
-        if ($limit > 0) {
-            $this->db->limit($limit, $start);
-        }
-
-        return $this->db->get()->result();
     }
 
-    public function get_payment_grand_total($filters)
+    /*
+    |--------------------------------------------------------------------------
+    | DATA
+    |--------------------------------------------------------------------------
+    */
+
+    public function get_payment_header_report(
+        $limit,
+        $start,
+        $search = '',
+        $plant = '',
+        $supplier = '',
+        $dateFrom = '',
+        $dateTo = ''
+    )
     {
+        /*
+        |--------------------------------------------------------------------------
+        | SELECT
+        |--------------------------------------------------------------------------
+        */
+
         $this->db->select("
-            SUM(d.JUMLAH) AS jumlah,
-            SUM(d.BERAT) AS berat,
-            SUM(d.TOTAL) AS total
-        ");
 
-        $this->db->from('mst_payment p');
+            p.PAYMENT,
 
-        $this->db->join(
-            'mst_payment_detail d',
-            'd.PAYMENT = p.PAYMENT 
-            AND d.PLANT = p.PLANT
-            AND d.deleted IS NULL',
-            'inner'
-        );
+            p.PLANT,
 
-        $this->db->where('p.deleted IS NULL', null, false);
-        $this->db->where_in('p.PLANT', $filters['plants']);
+            plant.CODE_NAME AS PLANT_NAME,
 
-        if (!empty($filters['supplier'])) {
-            $this->db->where('p.SUPPLIER', $filters['supplier']);
-        }
+            p.PAYMENT_DATE,
 
-        if (!empty($filters['payment'])) {
-            $this->db->like('p.PAYMENT', $filters['payment']);
-        }
+            p.SUPPLIER,
 
-        if (!empty($filters['payment_type'])) {
-            $this->db->where('p.PEMBAYARAN', $filters['payment_type']);
-        }
+            supplier.FULL_NAME AS SUPPLIER_NAME,
 
-        if (!empty($filters['date_from'])) {
-            $this->db->where('p.PAYMENT_DATE >=', $filters['date_from'].' 00:00:00');
-        }
+            p.PEMBAYARAN,
 
-        if (!empty($filters['date_to'])) {
-            $this->db->where('p.PAYMENT_DATE <=', $filters['date_to'].' 23:59:59');
-        }
+            p.SLIP_NO,
 
-        return $this->db->get()->row();
-    }
+            p.REMARK,
+            
+            d.PO_NO,
+            d.JUMLAH,
 
-    public function count_payment_report($filters)
-    {
-        $this->db->from('mst_payment p');
-        $this->db->where('p.deleted IS NULL', null, false);
-        $this->db->where_in('p.PLANT', $filters['plants']);
+            COUNT(d.ID) AS TOTAL_ITEM,
 
-        if (!empty($filters['supplier'])) {
-            $this->db->where('p.SUPPLIER', $filters['supplier']);
-        }
+            COALESCE(
+                SUM(d.TOTAL),
+                0
+            ) AS GRAND_TOTAL
 
-        if (!empty($filters['payment'])) {
-            $this->db->like('p.PAYMENT', $filters['payment']);
-        }
-
-        if (!empty($filters['payment_type'])) {
-            $this->db->where('p.PEMBAYARAN', $filters['payment_type']);
-        }
-
-        if (!empty($filters['date_from'])) {
-            $this->db->where('p.PAYMENT_DATE >=', $filters['date_from'].' 00:00:00');
-        }
-
-        if (!empty($filters['date_to'])) {
-            $this->db->where('p.PAYMENT_DATE <=', $filters['date_to'].' 23:59:59');
-        }
-
-        return $this->db->count_all_results();
-    }
-
-    public function get_cash_in_report($limit, $start, $filters, $order = 'CASHIN_DATE', $dir = 'DESC')
-    {
-        $dir = strtoupper($dir) === 'ASC' ? 'ASC' : 'DESC';
-
-        $this->db->select("
-            d.SALES,
-            d.ORG_SLIP_NO AS INVOICE_NO,
-            d.AMOUNT_INVOICE,
-            d.AMOUNT_OFFSET,
-            d.SEQ_NO,
-            d.SLIP_NO,
-
-            h.CASH_IN,
-            h.CASHIN_DATE,
-            h.PLANT,
-            pl.CODE_NAME AS PLANT_NAME,
-
-            h.CUSTOMER,
-            cust.FULL_NAME AS CUSTOMER_NAME,
-
-            h.PEMBAYARAN,
-            h.NO_REK,
-            rek.CODE_NAME AS NO_REK_NAME
-        ");
-
-        $this->db->from('mst_cash_in_detail d');
-
-        $this->db->join(
-            'mst_cash_in h',
-            'h.CASH_IN = d.CASH_IN 
-            AND h.PLANT = d.PLANT
-            AND h.DELETED IS NULL',
-            'inner'
-        );
-
-        $this->db->join(
-            'cd_code pl',
-            "pl.HEAD_CODE='AJ' AND pl.CODE = h.PLANT",
-            'left',
-            false
-        );
-
-        $this->db->join(
-            'cd_customer cust',
-            "cust.CUST = h.CUSTOMER 
-            AND cust.DELETED IS NULL 
-            AND (cust.CUST_KIND='CUSTOMER' OR cust.CUST_CLASS='CUSTOMER')",
-            'left',
-            false
-        );
-
-        $this->db->join(
-            'cd_code rek',
-            "rek.HEAD_CODE='AK' AND rek.CODE = h.NO_REK",
-            'left',
-            false
-        );
-
-        $this->db->where('d.DELETED IS NULL', null, false);
-
-        // 🔐 ALWAYS WHERE IN
-        $this->db->where_in('h.PLANT', $filters['plants']);
-
-        if (!empty($filters['customer'])) {
-            $this->db->where('h.CUSTOMER', $filters['customer']);
-        }
-
-        if (!empty($filters['cash_in'])) {
-            $this->db->like('h.CASH_IN', $filters['cash_in']);
-        }
-
-        if (!empty($filters['pembayaran'])) {
-            $this->db->where('h.PEMBAYARAN', $filters['pembayaran']);
-        }
-
-        if (!empty($filters['date_from'])) {
-            $this->db->where('h.CASHIN_DATE >=', $filters['date_from'].' 00:00:00');
-        }
-
-        if (!empty($filters['date_to'])) {
-            $this->db->where('h.CASHIN_DATE <=', $filters['date_to'].' 23:59:59');
-        }
-
-        $this->db->order_by('d.SALES', 'ASC');
-        $this->db->order_by('h.PLANT', 'ASC');
-        $this->db->order_by('h.CASHIN_DATE', $dir);
-        $this->db->order_by('h.CASH_IN', 'ASC');
-        $this->db->order_by('d.SEQ_NO', 'ASC');
-
-        if ($limit > 0) {
-            $this->db->limit($limit, $start);
-        }
-
-        return $this->db->get()->result();
-    }
-
-    public function get_cash_in_grand_total($filters)
-    {
-        $this->db->select("
-            SUM(d.AMOUNT_INVOICE) AS amount_invoice,
-            SUM(d.AMOUNT_OFFSET)  AS amount_offset
-        ");
-
-        $this->db->from('mst_cash_in_detail d');
-
-        $this->db->join(
-            'mst_cash_in h',
-            'h.CASH_IN = d.CASH_IN 
-            AND h.PLANT = d.PLANT
-            AND h.DELETED IS NULL',
-            'inner'
-        );
-
-        $this->db->where('d.DELETED IS NULL', null, false);
-        $this->db->where_in('h.PLANT', $filters['plants']);
-
-        if (!empty($filters['customer'])) {
-            $this->db->where('h.CUSTOMER', $filters['customer']);
-        }
-
-        if (!empty($filters['cash_in'])) {
-            $this->db->like('h.CASH_IN', $filters['cash_in']);
-        }
-
-        if (!empty($filters['pembayaran'])) {
-            $this->db->where('h.PEMBAYARAN', $filters['pembayaran']);
-        }
-
-        if (!empty($filters['date_from'])) {
-            $this->db->where('h.CASHIN_DATE >=', $filters['date_from'].' 00:00:00');
-        }
-
-        if (!empty($filters['date_to'])) {
-            $this->db->where('h.CASHIN_DATE <=', $filters['date_to'].' 23:59:59');
-        }
-
-        return $this->db->get()->row();
-    }
-
-    public function count_cash_in_report($filters)
-    {
-        $this->db->select('COUNT(DISTINCT CONCAT(d.SALES,"|",h.PLANT)) AS total', false);
-
-        $this->db->from('mst_cash_in_detail d');
-
-        $this->db->join(
-            'mst_cash_in h',
-            'h.CASH_IN = d.CASH_IN 
-            AND h.PLANT = d.PLANT
-            AND h.DELETED IS NULL',
-            'inner'
-        );
-
-        $this->db->where('d.DELETED IS NULL', null, false);
-        $this->db->where_in('h.PLANT', $filters['plants']);
-
-        if (!empty($filters['customer'])) {
-            $this->db->where('h.CUSTOMER', $filters['customer']);
-        }
-
-        if (!empty($filters['cash_in'])) {
-            $this->db->like('h.CASH_IN', $filters['cash_in']);
-        }
-
-        if (!empty($filters['pembayaran'])) {
-            $this->db->where('h.PEMBAYARAN', $filters['pembayaran']);
-        }
-
-        if (!empty($filters['date_from'])) {
-            $this->db->where('h.CASHIN_DATE >=', $filters['date_from'].' 00:00:00');
-        }
-
-        if (!empty($filters['date_to'])) {
-            $this->db->where('h.CASHIN_DATE <=', $filters['date_to'].' 23:59:59');
-        }
-
-        $row = $this->db->get()->row();
-
-        return (int)($row->total ?? 0);
-    }
-
-    public function get_ar_item_detail($sales, $plant)
-    {
-        $this->db->select("
-            d.SEQ_NO,
-            d.ITEM,
-            COALESCE(i.FULL_NAME, d.ITEM) AS ITEM_NAME,
-
-            d.QTY,
-            d.BERAT,
-
-            CASE 
-                WHEN d.QTY = 0 AND d.BERAT > 0 THEN d.BERAT
-                ELSE d.QTY
-            END AS DISPLAY_QTY,
-
-            CASE 
-                WHEN d.QTY = 0 AND d.BERAT > 0 THEN 'BERAT'
-                ELSE 'QTY'
-            END AS DISPLAY_TYPE,
-
-            CAST(d.AMOUNT AS DECIMAL(20,2)) AS DETAIL_AMOUNT
         ", false);
 
-        $this->db->from('mst_sales_detail d');
+        /*
+        |--------------------------------------------------------------------------
+        | FROM
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->from(
+            'abc_mst_payment p'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
 
         $this->db->join(
-            'cd_item i',
-            'i.ITEM = d.ITEM',
+            'abc_mst_payment_detail d',
+            '
+                d.PAYMENT = p.PAYMENT
+                AND d.PLANT = p.PLANT
+                AND d.DELETED IS NULL
+            ',
             'left'
         );
 
-        $this->db->where('d.DELETED IS NULL', null, false);
-        $this->db->where('d.SALES', $sales);
-        $this->db->where('d.PLANT', $plant);
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT
+        |--------------------------------------------------------------------------
+        */
 
-        $this->db->order_by('d.SEQ_NO','ASC');
-
-        return $this->db->get()->result();
-    }
-
-    public function get_ar_report($limit, $start, $filters, $order = 'SALES_DATE', $dir = 'DESC')
-    {
-        $dir = strtoupper($dir) === 'ASC' ? 'ASC' : 'DESC';
-
-        $this->db->select("
-            s.SALES,
-            s.PLANT,
-            pl.CODE_NAME AS PLANT_NAME,
-
-            s.CUSTOMER,
-            cust.FULL_NAME AS CUSTOMER_NAME,
-
-            s.SALES_DATE,
-            s.AMOUNT AS INVOICE_AMOUNT,
-
-            (s.AMOUNT - s.REMAIN) AS TOTAL_PAID,
-            s.REMAIN AS OUTSTANDING
-        ", false);
-
-        $this->db->from('mst_sales s');
-
-        // JOIN pembayaran detail
         $this->db->join(
-            'mst_cash_in_detail cid',
-            'cid.SALES = s.SALES 
-            AND cid.PLANT = s.PLANT
-            AND cid.DELETED IS NULL',
-            'left'
-        );
-
-        // JOIN plant
-        $this->db->join(
-            'cd_code pl',
-            "pl.HEAD_CODE='AJ' 
-            AND pl.CODE COLLATE utf8mb4_general_ci = s.PLANT",
+            'abc_cd_code plant',
+            '
+                plant.CODE = p.PLANT
+                AND plant.HEAD_CODE = "PLANT"
+            ',
             'left',
             false
         );
 
-        // JOIN customer
+        /*
+        |--------------------------------------------------------------------------
+        | SUPPLIER
+        |--------------------------------------------------------------------------
+        */
+
         $this->db->join(
-            'cd_customer cust',
-            "cust.CUST COLLATE utf8mb4_general_ci = s.CUSTOMER
-            AND cust.DELETED IS NULL
-            AND (cust.CUST_KIND='CUSTOMER' OR cust.CUST_CLASS='CUSTOMER')",
+            'abc_cd_customer supplier',
+            '
+                supplier.CUST COLLATE utf8mb4_unicode_ci =
+                p.SUPPLIER COLLATE utf8mb4_unicode_ci
+            ',
             'left',
             false
         );
 
-        // ================= FILTER WAJIB =================
-        $this->db->where('s.DELETED IS NULL', null, false);
-        $this->db->where('s.JENIS_PAY', 'TEMPO');
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER
+        |--------------------------------------------------------------------------
+        */
 
-        if (!empty($filters['plant'])) {
-            if (is_array($filters['plant'])) {
-
-                $this->db->group_start();
-                $this->db->where_in('s.PLANT', $filters['plant']);
-                $this->db->or_where('s.PLANT', '*');
-                $this->db->group_end();
-            } else {
-                if ($filters['plant'] === '*') {
-
-                    $userPlants = $this->session->userdata('plant');
-
-                    $this->db->group_start();
-                    $this->db->where_in('s.PLANT', $userPlants);
-                    $this->db->or_where('s.PLANT', '*');
-                    $this->db->group_end();
-                } else {
-                    $this->db->where('s.PLANT', $filters['plant']);
-                }
-            }
-        }
-
-        if (!empty($filters['customer'])) {
-            $this->db->where('s.CUSTOMER', $filters['customer']);
-        }
-
-        if (!empty($filters['date_from'])) {
-            $this->db->where('s.SALES_DATE >=', $filters['date_from'].' 00:00:00');
-        }
-
-        if (!empty($filters['date_to'])) {
-            $this->db->where('s.SALES_DATE <=', $filters['date_to'].' 23:59:59');
-        }
-
-        $this->db->group_by(['s.SALES','s.PLANT']);
-
-        if (!empty($filters['status']) && $filters['status'] !== 'ALL') {
-            if ($filters['status'] === 'PAID') {
-                $this->db->where('s.REMAIN', 0);
-            }
-
-            if ($filters['status'] === 'OUTSTANDING') {
-                $this->db->where('s.REMAIN >', 0);
-            }
-        }
-
-        // ================= ORDER =================
-        $this->db->order_by("s.$order", $dir);
-
-        if ($limit > 0) {
-            $this->db->limit($limit, $start);
-        }
-
-        return $this->db->get()->result();
-    }
-
-    public function get_ar_payment_detail($sales, $plant)
-    {
-        $this->db->select("
-            d.CASH_IN,
-            h.CASHIN_DATE,
-            d.AMOUNT_OFFSET,
-            h.PEMBAYARAN,
-            h.NO_REK
-        ");
-
-        $this->db->from('mst_cash_in_detail d');
-
-        $this->db->join(
-            'mst_cash_in h',
-            'h.CASH_IN = d.CASH_IN 
-            AND h.PLANT = d.PLANT
-            AND h.DELETED IS NULL',
-            'inner'
+        $this->db->where(
+            'p.DELETED IS NULL',
+            null,
+            false
         );
 
-        $this->db->where('d.DELETED IS NULL', null, false);
-        $this->db->where('d.SALES', $sales);
-        $this->db->where('d.PLANT', $plant);
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        */
 
-        $this->db->order_by('h.CASHIN_DATE', 'ASC');
+        if(!empty($search)){
 
-        return $this->db->get()->result();
+            $this->db->group_start();
+
+            $this->db->like(
+                'p.PAYMENT',
+                $search
+            );
+
+            $this->db->or_like(
+                'supplier.FULL_NAME',
+                $search
+            );
+
+            $this->db->or_like(
+                'p.SLIP_NO',
+                $search
+            );
+
+            $this->db->group_end();
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($plant)){
+
+            $this->db->where(
+                'p.PLANT',
+                $plant
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | SUPPLIER
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($supplier)){
+
+            $this->db->where(
+                'p.SUPPLIER',
+                $supplier
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATE
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($dateFrom)){
+
+            $this->db->where(
+                'DATE(p.PAYMENT_DATE) >=',
+                $dateFrom
+            );
+
+        }
+
+        if(!empty($dateTo)){
+
+            $this->db->where(
+                'DATE(p.PAYMENT_DATE) <=',
+                $dateTo
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | GROUP
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->group_by(
+            'p.PAYMENT'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | ORDER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->order_by(
+            'p.PAYMENT_DATE',
+            'DESC'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | LIMIT
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->limit(
+            $limit,
+            $start
+        );
+
+        return $this->db
+            ->get()
+            ->result_array();
     }
 
-    public function get_ar_grand_total($filters)
+    public function get_payment_detail_report(
+        $payment,
+        $plant
+    )
     {
-        $this->db->select("
-            SUM(s.AMOUNT) AS total_invoice,
-            SUM(IFNULL(cid.AMOUNT_OFFSET,0)) AS total_paid,
-            SUM(s.AMOUNT - IFNULL(cid.AMOUNT_OFFSET,0)) AS total_outstanding
-        ", false);
+        $this->db->select('
 
-        $this->db->from('mst_sales s');
+            d.*,
+
+            material.material_name
+                AS MATERIAL_NAME
+
+        ');
+
+        $this->db->from(
+            'abc_mst_payment_detail d'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | MATERIAL
+        |--------------------------------------------------------------------------
+        */
 
         $this->db->join(
-            '(SELECT SALES, PLANT, SUM(AMOUNT_OFFSET) AS AMOUNT_OFFSET
-            FROM mst_cash_in_detail
-            WHERE DELETED IS NULL
-            GROUP BY SALES, PLANT) cid',
-            'cid.SALES = s.SALES AND cid.PLANT = s.PLANT',
+            'abc_cd_material material',
+            '
+                material.MATERIAL COLLATE utf8mb4_unicode_ci =
+                d.MATERIAL COLLATE utf8mb4_unicode_ci
+            ',
             'left',
             false
         );
 
-        $this->db->where('s.DELETED IS NULL', null, false);
-        $this->db->where('s.JENIS_PAY', 'TEMPO');
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER
+        |--------------------------------------------------------------------------
+        */
 
-        if (!empty($filters['plant'])) {
-            if (is_array($filters['plant'])) {
+        $this->db->where(
+            'd.PAYMENT',
+            $payment
+        );
 
-                $this->db->group_start();
-                $this->db->where_in('s.PLANT', $filters['plant']);
-                $this->db->or_where('s.PLANT', '*');
-                $this->db->group_end();
+        $this->db->where(
+            'd.PLANT',
+            $plant
+        );
 
-            } else {
+        $this->db->where(
+            'd.DELETED IS NULL',
+            null,
+            false
+        );
 
-                if ($filters['plant'] === '*') {
-
-                    $userPlants = $this->session->userdata('plant');
-
-                    $this->db->group_start();
-                    $this->db->where_in('s.PLANT', $userPlants);
-                    $this->db->or_where('s.PLANT', '*');
-                    $this->db->group_end();
-
-                } else {
-                    $this->db->where('s.PLANT', $filters['plant']);
-                }
-            }
-        }
-
-        if (!empty($filters['customer'])) {
-            $this->db->where('s.CUSTOMER', $filters['customer']);
-        }
-
-        if (!empty($filters['date_from'])) {
-            $this->db->where('s.SALES_DATE >=', $filters['date_from'].' 00:00:00');
-        }
-
-        if (!empty($filters['date_to'])) {
-            $this->db->where('s.SALES_DATE <=', $filters['date_to'].' 23:59:59');
-        }
-
-        return $this->db->get()->row();
+        return $this->db
+            ->get()
+            ->result_array();
     }
 
-    public function count_ar_report($filters)
+    /*
+    |--------------------------------------------------------------------------
+    | COUNT
+    |--------------------------------------------------------------------------
+    */
+
+    public function count_payment_report(
+        $search = '',
+        $plant = '',
+        $supplier = '',
+        $dateFrom = '',
+        $dateTo = ''
+    )
     {
-        $this->db->select('COUNT(DISTINCT CONCAT(s.SALES,"|",s.PLANT)) AS total', false);
-        $this->db->from('mst_sales s');
-
-        $this->db->where('s.DELETED IS NULL', null, false);
-        $this->db->where('s.JENIS_PAY', 'TEMPO');
-
-        if (!empty($filters['plant'])) {
-            if (is_array($filters['plant'])) {
-
-                $this->db->group_start();
-                $this->db->where_in('s.PLANT', $filters['plant']);
-                $this->db->or_where('s.PLANT', '*');
-                $this->db->group_end();
-
-            } else {
-
-                if ($filters['plant'] === '*') {
-
-                    $userPlants = $this->session->userdata('plant');
-
-                    $this->db->group_start();
-                    $this->db->where_in('s.PLANT', $userPlants);
-                    $this->db->or_where('s.PLANT', '*');
-                    $this->db->group_end();
-
-                } else {
-                    $this->db->where('s.PLANT', $filters['plant']);
-                }
-            }
-        }
-
-        if (!empty($filters['customer'])) {
-            $this->db->where('s.CUSTOMER', $filters['customer']);
-        }
-
-        if (!empty($filters['date_from'])) {
-            $this->db->where('s.SALES_DATE >=', $filters['date_from'].' 00:00:00');
-        }
-
-        if (!empty($filters['date_to'])) {
-            $this->db->where('s.SALES_DATE <=', $filters['date_to'].' 23:59:59');
-        }
-
-        $row = $this->db->get()->row();
-        return (int)($row->total ?? 0);
-    }
-
-    public function get_daily_summary($plant, $date)
-    {
-        return $this->db->query("
-            SELECT
-                ? AS PLANT,
-                ? AS REPORT_DATE,
-
-                COALESCE(sales.total_sales,0) AS TOTAL_SALES,
-                COALESCE(sales.sales_cash,0) AS SALES_CASH,
-                COALESCE(sales.sales_tempo,0) AS SALES_TEMPO,
-
-                COALESCE(ar_opening.ar_opening,0) AS AR_OPENING,
-                COALESCE(ar_collection.ar_collection,0) AS AR_COLLECTION,
-
-                (
-                    COALESCE(ar_opening.ar_opening,0)
-                    + COALESCE(sales.sales_tempo,0)
-                    - COALESCE(ar_collection.ar_collection,0)
-                ) AS AR_CLOSING,
-
-                COALESCE(cash_open.cash_opening,0) AS CASH_OPENING,
-                COALESCE(deposit.deposit_today,0) AS DEPOSIT_TODAY,
-                COALESCE(cost.cost_today,0) AS COST_TODAY,
-
-                (
-                    COALESCE(cash_open.cash_opening,0)
-                    + COALESCE(sales.sales_cash,0)
-                    + COALESCE(ar_collection.ar_collection,0)
-                    + COALESCE(deposit.deposit_today,0)
-                    - COALESCE(cost.cost_today,0)
-                ) AS CASH_CLOSING,
-
-                COALESCE(method_breakdown.sales_method_cash,0) AS SALES_METHOD_CASH,
-                COALESCE(method_breakdown.sales_method_transfer,0) AS SALES_METHOD_TRANSFER,
-                COALESCE(method_breakdown.cashin_method_cash,0) AS CASHIN_METHOD_CASH,
-                COALESCE(method_breakdown.cashin_method_transfer,0) AS CASHIN_METHOD_TRANSFER,
-                (
-                    COALESCE(method_breakdown.sales_method_cash,0)
-                    + COALESCE(method_breakdown.cashin_method_cash,0)
-                ) AS TOTAL_METHOD_CASH,
-                (
-                    COALESCE(method_breakdown.sales_method_transfer,0)
-                    + COALESCE(method_breakdown.cashin_method_transfer,0)
-                ) AS TOTAL_METHOD_TRANSFER
-
-            FROM (SELECT 1) dummy
-
-            LEFT JOIN (
-                SELECT
-                    SUM(AMOUNT) AS total_sales,
-                    SUM(CASE WHEN JENIS_PAY='LUNAS' THEN AMOUNT ELSE 0 END) AS sales_cash,
-                    SUM(CASE WHEN JENIS_PAY='TEMPO' THEN AMOUNT ELSE 0 END) AS sales_tempo
-                FROM mst_sales
-                WHERE SALES_DATE >= ?
-                AND SALES_DATE < DATE_ADD(?, INTERVAL 1 DAY)
-                AND PLANT=?
-                AND DELETED IS NULL
-            ) sales ON 1=1
-
-            LEFT JOIN (
-                SELECT SUM(REMAIN) AS ar_opening
-                FROM mst_sales
-                WHERE SALES_DATE < ?
-                AND PLANT=?
-                AND JENIS_PAY='TEMPO'
-                AND DELETED IS NULL
-            ) ar_opening ON 1=1
-
-            LEFT JOIN (
-                SELECT SUM(d.AMOUNT_OFFSET) AS ar_collection
-                FROM mst_cash_in_detail d
-                JOIN mst_cash_in h 
-                    ON h.CASH_IN=d.CASH_IN
-                    AND h.PLANT=d.PLANT
-                WHERE h.CASHIN_DATE=?
-                AND h.PLANT=?
-                AND d.DELETED IS NULL
-            ) ar_collection ON 1=1
-
-            LEFT JOIN (
-                SELECT
-                    (
-                        SELECT COALESCE(SUM(AMOUNT),0)
-                        FROM mst_cash_in
-                        WHERE CASHIN_DATE < ?
-                        AND PLANT=?
-                        AND DELETED IS NULL
-                    )
-                    -
-                    (
-                        SELECT COALESCE(SUM(d.TOTAL),0)
-                        FROM mst_cost c
-                        JOIN mst_cost_detail d
-                            ON c.COST=d.COST
-                            AND c.PLANT=d.PLANT
-                        WHERE c.COST_DATE < ?
-                        AND c.PLANT=?
-                        AND c.DELETED IS NULL
-                        AND d.DELETED IS NULL
-                    )
-                    AS cash_opening
-            ) cash_open ON 1=1
-
-            LEFT JOIN (
-                SELECT SUM(AMOUNT) AS deposit_today
-                FROM mst_customer_deposit
-                WHERE DATE(CREATED_AT)=?
-                AND PLANT=?
-            ) deposit ON 1=1
-
-            LEFT JOIN (
-                SELECT SUM(d.TOTAL) AS cost_today
-                FROM mst_cost c
-                JOIN mst_cost_detail d
-                    ON c.COST=d.COST
-                    AND c.PLANT=d.PLANT
-                WHERE c.COST_DATE >= ?
-                AND c.COST_DATE < DATE_ADD(?, INTERVAL 1 DAY)
-                AND c.PLANT=?
-                AND c.DELETED IS NULL
-                AND d.DELETED IS NULL
-            ) cost ON 1=1
-
-            LEFT JOIN (
-                SELECT
-                    -- SALES (LUNAS) BY METHOD
-                    SUM(
-                        CASE 
-                            WHEN s.JENIS_PAY='LUNAS'
-                            AND (s.PEMBAYARAN='CASH' OR s.PEMBAYARAN='TUNAI')
-                            THEN s.AMOUNT ELSE 0
-                        END
-                    ) AS sales_method_cash,
-
-                    SUM(
-                        CASE 
-                            WHEN s.JENIS_PAY='LUNAS'
-                            AND s.PEMBAYARAN='TRANSFER'
-                            THEN s.AMOUNT ELSE 0
-                        END
-                    ) AS sales_method_transfer,
-
-                    -- CASH IN BY METHOD
-                    (
-                        SELECT COALESCE(SUM(h.AMOUNT),0)
-                        FROM mst_cash_in h
-                        WHERE h.CASHIN_DATE >= ?
-                        AND h.CASHIN_DATE < DATE_ADD(?, INTERVAL 1 DAY)
-                        AND h.PLANT=?
-                        AND h.DELETED IS NULL
-                        AND (h.PEMBAYARAN='CASH' OR h.PEMBAYARAN='TUNAI')
-                    ) AS cashin_method_cash,
-
-                    (
-                        SELECT COALESCE(SUM(h.AMOUNT),0)
-                        FROM mst_cash_in h
-                        WHERE h.CASHIN_DATE >= ?
-                        AND h.CASHIN_DATE < DATE_ADD(?, INTERVAL 1 DAY)
-                        AND h.PLANT=?
-                        AND h.DELETED IS NULL
-                        AND h.PEMBAYARAN='TRANSFER'
-                    ) AS cashin_method_transfer
-
-                FROM mst_sales s
-                WHERE s.SALES_DATE >= ?
-                AND s.SALES_DATE < DATE_ADD(?, INTERVAL 1 DAY)
-                AND s.PLANT=?
-                AND s.DELETED IS NULL
-            ) method_breakdown ON 1=1
-
-        ", [
+        $this->payment_query(
+            $search,
             $plant,
-            $date,
+            $supplier,
+            $dateFrom,
+            $dateTo
+        );
 
-            $date, $date, $plant,
-
-            $date, $plant,
-
-            $date, $plant,
-
-            $date, $plant,
-            $date, $plant,
-
-            $date, $plant,
-
-            $date, $date, $plant,
-            $date, $date, $plant,   // cashin cash
-            $date, $date, $plant,   // cashin transfer
-            $date, $date, $plant,   // sales breakdown
-
-        ])->row();
+        return $this->db
+            ->count_all_results();
     }
 
-    public function get_daily_sales_detail($plant, $date)
+    /*
+    |--------------------------------------------------------------------------
+    | SUMMARY
+    |--------------------------------------------------------------------------
+    */
+
+    public function summary_payment_report(
+        $search = '',
+        $plant = '',
+        $supplier = '',
+        $dateFrom = '',
+        $dateTo = ''
+    )
     {
-        return $this->db->query("
-            SELECT
-                s.SALES,
-                s.SALES_DATE,
-                s.CUSTOMER,
-                c.FULL_NAME AS CUSTOMER_NAME,
-                s.JENIS_PAY,
-                s.AMOUNT AS SALES_TOTAL,
+        $this->payment_query(
+            $search,
+            $plant,
+            $supplier,
+            $dateFrom,
+            $dateTo
+        );
 
-                d.SEQ_NO,
-                d.ITEM,
-                i.FULL_NAME AS ITEM_NAME,
+        $rows = $this->db
+            ->get()
+            ->result_array();
 
-                d.QTY,
-                d.BERAT,
+        $totalPayment = 0;
 
-                -- 🔥 Logic Quantity Display
-                CASE 
-                    WHEN d.QTY = 0 AND d.BERAT > 0 THEN d.BERAT
-                    ELSE d.QTY
-                END AS DISPLAY_QTY,
+        $supplierList = [];
 
-                CASE 
-                    WHEN d.QTY = 0 AND d.BERAT > 0 THEN 'BERAT'
-                    ELSE 'QTY'
-                END AS DISPLAY_TYPE,
+        $poList = [];
 
-                d.AMOUNT AS DETAIL_AMOUNT
+        foreach($rows as $r){
 
-            FROM mst_sales s
+            $totalPayment +=
+                (float) $r['TOTAL'];
 
-            JOIN mst_sales_detail d
-                ON s.SALES = d.SALES
-                AND s.PLANT = d.PLANT
+            $supplierList[] =
+                $r['SUPPLIER'];
 
-            LEFT JOIN cd_customer c
-                ON c.CUST = s.CUSTOMER
+            $poList[] =
+                $r['PO_NO'];
 
-            LEFT JOIN cd_item i
-                ON i.ITEM = d.ITEM
+        }
 
-            WHERE s.SALES_DATE >= ?
-            AND s.SALES_DATE < DATE_ADD(?, INTERVAL 1 DAY)
-            AND s.PLANT = ?
-            AND s.DELETED IS NULL
-            AND d.DELETED IS NULL
+        return [
 
-            ORDER BY s.SALES, d.SEQ_NO
-        ", [$date, $date, $plant])->result();
+            'total_payment' =>
+                $totalPayment,
+
+            'total_supplier' =>
+                count(
+                    array_unique(
+                        $supplierList
+                    )
+                ),
+
+            'total_po' =>
+                count(
+                    array_unique(
+                        $poList
+                    )
+                )
+
+        ];
     }
 
-    public function get_daily_cash_detail($plant, $date)
+    public function get_report_cashin(
+        $limit,
+        $start,
+        $filter = []
+    )
     {
-        return $this->db->query("
-            SELECT
-                h.CASH_IN,
-                h.CASHIN_DATE,
-                h.CUSTOMER,
-                COALESCE(c.FULL_NAME, h.CUSTOMER) AS CUSTOMER_NAME,
-                CAST(h.AMOUNT AS DECIMAL(20,2)) AS CASH_TOTAL,
+        /*
+        |--------------------------------------------------------------------------
+        | SELECT
+        |--------------------------------------------------------------------------
+        */
 
-                d.SALES,
-                CAST(d.AMOUNT_OFFSET AS DECIMAL(20,2)) AS AMOUNT_OFFSET
+        $this->db->select("
 
-            FROM mst_cash_in h
+            c.CASH_IN,
 
-            LEFT JOIN mst_cash_in_detail d
-                ON h.CASH_IN = d.CASH_IN
-                AND h.PLANT = d.PLANT
+            c.PLANT,
+
+            plant.CODE_NAME AS PLANT_NAME,
+
+            c.CASHIN_DATE,
+
+            c.CUSTOMER,
+
+            customer.FULL_NAME AS CUSTOMER_NAME,
+
+            c.PEMBAYARAN,
+
+            c.SLIP_NO,
+
+            c.BON,
+
+            c.REMARK,
+
+            c.AMOUNT,
+
+            COUNT(DISTINCT d.SALES)
+                AS TOTAL_INVOICE,
+
+            COALESCE(
+                SUM(d.AMOUNT_OFFSET),
+                0
+            ) AS TOTAL_ALLOCATED,
+
+            (
+                c.AMOUNT
+                -
+                COALESCE(
+                    SUM(d.AMOUNT_OFFSET),
+                    0
+                )
+            ) AS TOTAL_DEPOSIT
+
+        ", false);
+
+        /*
+        |--------------------------------------------------------------------------
+        | FROM
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->from(
+            'abc_mst_cash_in c'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+
+            'abc_mst_cash_in_detail d',
+
+            "
+
+                d.CASH_IN = c.CASH_IN
+
+                AND d.PLANT = c.PLANT
+
                 AND d.DELETED IS NULL
 
-            LEFT JOIN cd_customer c
-                ON c.CUST = h.CUSTOMER
+            ",
 
-            WHERE h.CASHIN_DATE = ?
-            AND h.PLANT = ?
-            AND h.DELETED IS NULL
+            'left',
 
-            ORDER BY h.CASH_IN
-        ", [$date, $plant])->result();
+            false
+
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+
+            'abc_cd_code plant',
+
+            "
+
+                plant.CODE = c.PLANT
+
+                AND plant.HEAD_CODE = 'PLANT'
+
+            ",
+
+            'left',
+
+            false
+
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+
+            'abc_cd_customer customer',
+
+            "
+
+                customer.CUST COLLATE utf8mb4_unicode_ci =
+
+                c.CUSTOMER COLLATE utf8mb4_unicode_ci
+
+            ",
+
+            'left',
+
+            false
+
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | BASE FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->where(
+            'c.DELETED IS NULL',
+            null,
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['search'])){
+
+            $search =
+                $filter['search'];
+
+            $this->db->group_start();
+
+            $this->db->like(
+                'c.CASH_IN',
+                $search
+            );
+
+            $this->db->or_like(
+                'customer.FULL_NAME',
+                $search
+            );
+
+            $this->db->or_like(
+                'd.SALES',
+                $search
+            );
+
+            $this->db->or_like(
+                'c.SLIP_NO',
+                $search
+            );
+
+            $this->db->group_end();
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['plant'])){
+
+            $this->db->where(
+                'c.PLANT',
+                $filter['plant']
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['customer'])){
+
+            $this->db->where(
+                'c.CUSTOMER',
+                $filter['customer']
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | PEMBAYARAN
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['pembayaran'])){
+
+            $this->db->where(
+                'c.PEMBAYARAN',
+                $filter['pembayaran']
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATE FROM
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['date_from'])){
+
+            $this->db->where(
+                'DATE(c.CASHIN_DATE) >=',
+                $filter['date_from']
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATE TO
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['date_to'])){
+
+            $this->db->where(
+                'DATE(c.CASHIN_DATE) <=',
+                $filter['date_to']
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | GROUP
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->group_by(
+            'c.CASH_IN'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | ORDER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->order_by(
+            'c.CASHIN_DATE',
+            'DESC'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | LIMIT
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->limit(
+            $limit,
+            $start
+        );
+
+        return $this->db
+            ->get()
+            ->result_array();
     }
 
-    public function get_daily_cost_detail($plant, $date)
+    public function get_report_cashin_detail(
+        $cashIn,
+        $plant
+    )
     {
-        return $this->db->query("
-            SELECT
-                c.COST,
-                c.COST_DATE,
-                c.PEMBAYARAN,
+        /*
+        |--------------------------------------------------------------------------
+        | SELECT
+        |--------------------------------------------------------------------------
+        */
 
-                d.SEQ_NO,
-                d.TIPE_COST,
-                d.REMARK,
+        $this->db->select("
 
-                COALESCE(mc.COST_NAME, d.TIPE_COST) AS COST_NAME,
+            d.SEQ_NO,
 
-                CAST(d.TOTAL AS DECIMAL(20,2)) AS TOTAL
+            d.SALES,
 
-            FROM mst_cost c
+            d.AMOUNT_INVOICE,
 
-            JOIN mst_cost_detail d
-                ON c.COST = d.COST
-                AND c.PLANT = d.PLANT
+            d.AMOUNT_OFFSET,
+
+            (
+                d.AMOUNT_INVOICE
+                -
+                d.AMOUNT_OFFSET
+            ) AS REMAINING,
+
+            d.REMARK,
+
+            sales.STATUS AS SALES_STATUS
+
+        ", false);
+
+        /*
+        |--------------------------------------------------------------------------
+        | FROM
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->from(
+            'abc_mst_cash_in_detail d'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | SALES
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+
+            'abc_mst_sales sales',
+
+            "
+
+                sales.SALES = d.SALES
+
+                AND sales.PLANT = d.PLANT
+
+            ",
+
+            'left',
+
+            false
+
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->where(
+            'd.CASH_IN',
+            $cashIn
+        );
+
+        $this->db->where(
+            'd.PLANT',
+            $plant
+        );
+
+        $this->db->where(
+            'd.DELETED IS NULL',
+            null,
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | ORDER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->order_by(
+            'd.SEQ_NO',
+            'ASC'
+        );
+
+        return $this->db
+            ->get()
+            ->result_array();
+    }
+
+    public function count_report_cashin(
+        $filter = []
+    )
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | FROM
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->from(
+            'abc_mst_cash_in c'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+
+            'abc_mst_cash_in_detail d',
+
+            "
+
+                d.CASH_IN = c.CASH_IN
+
+                AND d.PLANT = c.PLANT
+
                 AND d.DELETED IS NULL
 
-            LEFT JOIN cd_cost mc
-                ON mc.COST = d.TIPE_COST
+            ",
 
-            WHERE DATE(c.COST_DATE) = ?
-            AND c.PLANT = ?
-            AND c.DELETED IS NULL
+            'left',
 
-            ORDER BY c.COST, d.SEQ_NO
-        ", [$date, $plant])->result();
+            false
+
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+
+            'abc_cd_customer customer',
+
+            "
+
+                customer.CUST COLLATE utf8mb4_unicode_ci =
+
+                c.CUSTOMER COLLATE utf8mb4_unicode_ci
+
+            ",
+
+            'left',
+
+            false
+
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | BASE FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->where(
+            'c.DELETED IS NULL',
+            null,
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['search'])){
+
+            $search =
+                $filter['search'];
+
+            $this->db->group_start();
+
+            $this->db->like(
+                'c.CASH_IN',
+                $search
+            );
+
+            $this->db->or_like(
+                'customer.FULL_NAME',
+                $search
+            );
+
+            $this->db->or_like(
+                'd.SALES',
+                $search
+            );
+
+            $this->db->or_like(
+                'c.SLIP_NO',
+                $search
+            );
+
+            $this->db->group_end();
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['plant'])){
+
+            $this->db->where(
+                'c.PLANT',
+                $filter['plant']
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['customer'])){
+
+            $this->db->where(
+                'c.CUSTOMER',
+                $filter['customer']
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | PEMBAYARAN
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['pembayaran'])){
+
+            $this->db->where(
+                'c.PEMBAYARAN',
+                $filter['pembayaran']
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATE FROM
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['date_from'])){
+
+            $this->db->where(
+                'DATE(c.CASHIN_DATE) >=',
+                $filter['date_from']
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATE TO
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['date_to'])){
+
+            $this->db->where(
+                'DATE(c.CASHIN_DATE) <=',
+                $filter['date_to']
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | GROUP
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->group_by(
+            'c.CASH_IN'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | RESULT
+        |--------------------------------------------------------------------------
+        */
+
+        return $this->db
+            ->get()
+            ->num_rows();
     }
 
-    private function get_plant_name($plant)
+    public function get_report_cashin_summary(
+        $filter = []
+    )
     {
-        $row = $this->db->get_where('cd_code', ['HEAD_CODE'=>'AJ','CODE'=>$plant])->row();
-        return $row->CODE_NAME ?? $plant;
-    }
+        /*
+        |--------------------------------------------------------------------------
+        | SELECT
+        |--------------------------------------------------------------------------
+        */
 
+        $this->db->select("
+
+            COALESCE(
+                SUM(c.AMOUNT),
+                0
+            ) AS TOTAL_CASHIN,
+
+            COUNT(
+                DISTINCT c.CUSTOMER
+            ) AS TOTAL_CUSTOMER,
+
+            COUNT(
+                DISTINCT d.SALES
+            ) AS TOTAL_INVOICE,
+
+            COALESCE(
+                SUM(
+                    c.AMOUNT
+                    -
+                    COALESCE(
+                        d.AMOUNT_OFFSET,
+                        0
+                    )
+                ),
+                0
+            ) AS TOTAL_DEPOSIT
+
+        ", false);
+
+        /*
+        |--------------------------------------------------------------------------
+        | FROM
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->from(
+            'abc_mst_cash_in c'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+
+            'abc_mst_cash_in_detail d',
+
+            "
+
+                d.CASH_IN = c.CASH_IN
+
+                AND d.PLANT = c.PLANT
+
+                AND d.DELETED IS NULL
+
+            ",
+
+            'left',
+
+            false
+
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+
+            'abc_cd_customer customer',
+
+            "
+
+                customer.CUST COLLATE utf8mb4_unicode_ci =
+
+                c.CUSTOMER COLLATE utf8mb4_unicode_ci
+
+            ",
+
+            'left',
+
+            false
+
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | BASE FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->where(
+            'c.DELETED IS NULL',
+            null,
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['search'])){
+
+            $search =
+                $filter['search'];
+
+            $this->db->group_start();
+
+            $this->db->like(
+                'c.CASH_IN',
+                $search
+            );
+
+            $this->db->or_like(
+                'customer.FULL_NAME',
+                $search
+            );
+
+            $this->db->or_like(
+                'd.SALES',
+                $search
+            );
+
+            $this->db->or_like(
+                'c.SLIP_NO',
+                $search
+            );
+
+            $this->db->group_end();
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['plant'])){
+
+            $this->db->where(
+                'c.PLANT',
+                $filter['plant']
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['customer'])){
+
+            $this->db->where(
+                'c.CUSTOMER',
+                $filter['customer']
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | PEMBAYARAN
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['pembayaran'])){
+
+            $this->db->where(
+                'c.PEMBAYARAN',
+                $filter['pembayaran']
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATE FROM
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['date_from'])){
+
+            $this->db->where(
+                'DATE(c.CASHIN_DATE) >=',
+                $filter['date_from']
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATE TO
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['date_to'])){
+
+            $this->db->where(
+                'DATE(c.CASHIN_DATE) <=',
+                $filter['date_to']
+            );
+
+        }
+
+        return $this->db
+            ->get()
+            ->row_array();
+    }
 }

@@ -273,7 +273,6 @@
     <div class="modal-dialog modal-xl">
         <form id="fPaymentAdd">
             <div class="modal-content">
-
                 <div class="modal-header">
                     <h5 class="modal-title">PAYMENT - TAMBAH</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>

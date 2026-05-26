@@ -512,12 +512,12 @@
                 <?php endif; ?>
 
                 <?php if (has_permission('report_accounting_cost') || has_permission('report_accounting_payment') || has_permission('report_accounting_cash_in')): ?>
-                  <!-- <li class="sidebar-item child-drop">
+                  <li class="sidebar-item child-drop">
                       <a href="<?= base_url('report-accounting'); ?>" class="sidebar-link">
                           <i class="ti ti-dots"></i>
                           <span class="hide-menu">Report Accounting</span>
                       </a>
-                  </li> -->
+                  </li>
                 <?php endif; ?>
               </ul>
           </li>

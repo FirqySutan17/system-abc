@@ -223,6 +223,11 @@
         background: #f8f9fa;
 
     }
+
+    .modal-body{
+        max-height:75vh;
+        overflow-y:auto;
+    }
     .table-modern td,
     .table-modern th{
 
@@ -372,6 +377,11 @@
 
     }
 
+    .mode-card.active{
+        border:2px solid #4e73df;
+        background:#f8fbff;
+    }
+
     .mode-card input{
 
         position:absolute;
@@ -466,6 +476,25 @@
 
     }
 
+    input[type="date"]{
+        min-height: 42px;
+    }
+
+    .form-check-inline{
+        margin-top: 6px;
+    }
+
+    .mode-wrapper{
+        display:flex;
+        gap:16px;
+        flex-wrap:wrap;
+    }
+
+    .mode-card{
+        flex:1;
+        min-width:260px;
+    }
+
 </style>
 
 <!-- MODAL ADD CASH IN -->
@@ -543,7 +572,7 @@
                                         class="form-check-input"
                                         type="radio"
                                         name="PEMBAYARAN"
-                                        value="CASH">
+                                        value="CASH" required>
 
                                     <label class="form-check-label">
                                         CASH
@@ -557,7 +586,7 @@
                                         class="form-check-input"
                                         type="radio"
                                         name="PEMBAYARAN"
-                                        value="TRANSFER">
+                                        value="TRANSFER" required>
 
                                     <label class="form-check-label">
                                         TRANSFER
@@ -566,38 +595,6 @@
                                 </div>
 
                             </div>
-
-                        </div>
-
-                        <div class="col-md-6 flex-inline">
-
-                            <label class="form-label">
-                                Total Cash In *
-                            </label>
-
-                            <input
-                                type="text"
-                                id="cashInAmount"
-                                name="TOTAL_INPUT"
-                                class="form-control text-end"
-                                placeholder="0"
-                                required>
-
-                        </div>
-
-                        <!-- SLIP -->
-                        <div class="col-md-6 flex-inline">
-
-                            <label class="form-label">
-                                Slip No
-                            </label>
-
-                            <input
-                                name="SLIP_NO"
-                                class="form-control"
-                                readonly
-                                placeholder="Auto Generate"
-                                style="background:#efefef">
 
                         </div>
 
@@ -617,6 +614,38 @@
                                 type="hidden"
                                 name="CUSTOMER"
                                 id="hiddenCustomerAdd">
+
+                        </div>
+
+                        <!-- SLIP -->
+                        <div class="col-md-6 flex-inline">
+
+                            <label class="form-label">
+                                Slip No
+                            </label>
+
+                            <input
+                                name="SLIP_NO"
+                                class="form-control"
+                                readonly
+                                placeholder="Auto Generate"
+                                style="background:#efefef">
+
+                        </div>
+
+                        <div class="col-md-6 flex-inline">
+
+                            <label class="form-label">
+                                Total Cash In *
+                            </label>
+
+                            <input
+                                type="text"
+                                id="cashInAmount"
+                                name="TOTAL_INPUT"
+                                class="form-control text-end"
+                                placeholder="0"
+                                required>
 
                         </div>
 
@@ -784,6 +813,19 @@
 
                     </div>
 
+                    <div class="d-flex justify-content-end mb-2">
+
+                        <button
+                            type="button"
+                            class="btn btn-success btn-sm"
+                            id="btnPickInvoice">
+
+                            Pilih Invoice
+
+                        </button>
+
+                    </div>
+
                     <div class="table-responsive">
 
                         <table
@@ -860,8 +902,6 @@
                             </div>
 
                         </div>
-
-                    </div>
 
                     </div>
 
@@ -1142,59 +1182,25 @@
 
         order : 'CASHIN_DATE',
 
-        dir   : 'DESC'
+        dir   : 'ASC'
     };
-
-    /*
-    |--------------------------------------------------------------------------
-    | FORMAT NUMBER
-    |--------------------------------------------------------------------------
-    */
-
-    function formatNumber(value)
-    {
-        return Number(value || 0)
-            .toLocaleString(
-                'id-ID',
-                {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 2
-                }
-            );
-    }
 
     function cleanNumber(value)
     {
-        if(!value){
-
-            return 0;
-
-        }
-
         return parseFloat(
-            value
-                .toString()
-                .replace(/\./g,'')
-                .replace(/,/g,'.')
+            String(value || 0)
+                .replace(/\./g, '')
+                .replace(/,/g, '.')
         ) || 0;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | FORMAT RUPIAH
-    |--------------------------------------------------------------------------
-    */
-
     function formatRupiah(value)
     {
-        return Number(value || 0)
-            .toLocaleString(
-                'id-ID',
-                {
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 2
-                }
-            );
+        return Number(
+            value || 0
+        ).toLocaleString(
+            'id-ID'
+        );
     }
 
     $(document).on(
@@ -1214,6 +1220,25 @@
         }
     );
 
+    function renderEmptyDetail(message)
+    {
+        $('#detailTable tbody').html(`
+
+            <tr class="empty-row">
+
+                <td
+                    colspan="8"
+                    class="text-center text-muted py-5">
+
+                    ${message}
+
+                </td>
+
+            </tr>
+
+        `);
+    }
+
     function updateSummary()
     {
         /*
@@ -1221,6 +1246,8 @@
         | TOTAL INPUT
         |--------------------------------------------------------------------------
         */
+        let mode =
+            $('input[name="MODE_CASH_IN"]:checked').val();
 
         let totalInput =
             cleanNumber(
@@ -1234,6 +1261,25 @@
         */
 
         let allocated = 0;
+
+        $('.pay-input').each(function(){
+
+            allocated += cleanNumber(
+                $(this).val()
+            );
+
+        });
+
+        CURRENT_ALLOCATED = allocated;
+
+        if(mode === 'MANUAL'){
+
+            $('#cashInAmount').val(
+                formatRupiah(allocated)
+            );
+
+            totalInput = allocated;
+        }
 
         $('#detailTable tbody tr').each(function(){
 
@@ -1255,7 +1301,10 @@
         */
 
         let remaining =
-            totalInput - allocated;
+        Math.max(
+            totalInput - allocated,
+            0
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -1365,23 +1414,23 @@
         |--------------------------------------------------------------------------
         */
 
-        let status = 'OPEN';
-
-        let badge = 'bg-warning';
+        let status = 'UNPAID';
+        let badge  = 'bg-secondary';
 
         if(bayar > 0){
 
             status = 'PARTIAL';
-
-            badge = 'bg-primary';
+            badge  = 'bg-primary';
 
         }
 
-        if(sisa <= 0){
+        if(
+            bayar >= outstanding &&
+            outstanding > 0
+        ){
 
-            status = 'PAID';
-
-            badge = 'bg-success';
+            status = 'FULL';
+            badge  = 'bg-success';
 
         }
 
@@ -1394,13 +1443,27 @@
         );
     }
 
+    $('.mode-card input').change(function(){
+
+        $('.mode-card')
+            .removeClass('active');
+
+        $(this)
+            .closest('.mode-card')
+            .addClass('active');
+
+    });
+
     /*
     |--------------------------------------------------------------------------
     | ADD DETAIL ROW
     |--------------------------------------------------------------------------
     */
 
-    function addDetailRow(data = {})
+    function addDetailRow(
+        data,
+        isFIFO = false
+    )
     {
         /*
         |--------------------------------------------------------------------------
@@ -1421,7 +1484,10 @@
             parseFloat(data.BAYAR || 0);
 
         let remaining =
-            outstanding - bayar;
+            Math.max(
+                outstanding - bayar,
+                0
+            );
 
         /*
         |--------------------------------------------------------------------------
@@ -1429,23 +1495,23 @@
         |--------------------------------------------------------------------------
         */
 
-        let status = 'OPEN';
-
-        let badge = 'bg-warning';
+        let status = 'UNPAID';
+        let badge  = 'bg-secondary';
 
         if(bayar > 0){
 
             status = 'PARTIAL';
-
-            badge = 'bg-primary';
+            badge  = 'bg-primary';
 
         }
 
-        if(remaining <= 0){
+        if(
+            bayar >= outstanding &&
+            outstanding > 0
+        ){
 
-            status = 'PAID';
-
-            badge = 'bg-success';
+            status = 'FULL';
+            badge  = 'bg-success';
 
         }
 
@@ -1470,7 +1536,7 @@
 
                     <input
                         type="hidden"
-                        name="DETAIL[][SALES]"
+                        name="DETAIL[${salesNo}][SALES]"
                         value="${salesNo}">
 
                 </td>
@@ -1504,8 +1570,10 @@
                     <input
                         type="text"
                         class="form-control text-end pay-input"
-                        name="DETAIL[][BAYAR]"
-                        value="${formatRupiah(bayar)}">
+                        name="DETAIL[${salesNo}][BAYAR]"
+                        value="${formatRupiah(bayar)}"
+                        ${isFIFO ? 'readonly' : ''}
+                    >
 
                 </td>
 
@@ -1537,7 +1605,7 @@
                     <input
                         type="text"
                         class="form-control"
-                        name="DETAIL[][REMARK]"
+                        name="DETAIL[${salesNo}][REMARK]"
                         value="${data.REMARK || ''}">
 
                 </td>
@@ -1545,20 +1613,24 @@
                 <!-- ACTION -->
                 <td class="text-center">
 
-                    <button
-                        type="button"
-                        class="btn btn-danger btn-sm removeRow">
+                    ${isFIFO ? '' : `
 
-                        X
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-danger btnDeleteRow">
 
-                    </button>
+                            x
+
+                        </button>
+
+                    `}
 
                 </td>
 
             </tr>
 
         `;
-
+        $('#detailTable tbody .empty-row').remove();
         $('#detailTable tbody')
             .append(row);
 
@@ -1587,6 +1659,17 @@
 
     $('#btnPickInvoice').click(function(){
 
+        let customer =
+            $('#hiddenCustomerAdd').val();
+
+        if(!customer){
+
+            alert('Pilih customer terlebih dahulu');
+
+            return;
+
+        }
+
         loadInvoicePicker();
 
         $('#modalPickInvoice')
@@ -1598,7 +1681,7 @@
     {
         $.get(
 
-            '<?= base_url("cash_in/load_sales_picker"); ?>',
+            '<?= base_url("cashin/load_sales_picker"); ?>',
 
             {
 
@@ -1703,7 +1786,7 @@
                             <td class="text-end">
 
                                 Rp
-                                ${formatRupiah(r.TOTAL)}
+                                ${formatRupiah(Number(r.TOTAL))}
 
                             </td>
 
@@ -1711,7 +1794,7 @@
                             <td class="text-end">
 
                                 Rp
-                                ${formatRupiah(r.TOTAL_PAID)}
+                                ${formatRupiah(Number(r.TOTAL_PAID))}
 
                             </td>
 
@@ -1721,7 +1804,7 @@
                                 <div class="fw-bold text-danger">
 
                                     Rp
-                                    ${formatRupiah(r.OUTSTANDING)}
+                                    ${formatRupiah(Number(r.OUTSTANDING))}
 
                                 </div>
 
@@ -1747,6 +1830,55 @@
             'json'
         );
     }
+
+    function toggleCashInMode()
+    {
+        let mode =
+            $('input[name="MODE_CASH_IN"]:checked').val();
+
+        /*
+        |--------------------------------------------------------------------------
+        | FIFO
+        |--------------------------------------------------------------------------
+        */
+
+        if(mode === 'FIFO'){
+
+            $('#cashInAmount')
+                .prop('readonly', false)
+                .css('background', '');
+
+            return;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | MANUAL
+        |--------------------------------------------------------------------------
+        */
+
+        $('#cashInAmount')
+            .prop('readonly', true)
+            .css('background', '#efefef');
+
+        /*
+        |--------------------------------------------------------------------------
+        | AUTO TOTAL FROM DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        updateSummary();
+    }
+
+    $(document).on(
+        'change',
+        'input[name="MODE_CASH_IN"]',
+        function(){
+
+            toggleCashInMode();
+
+        }
+    );
 
     let searchInvoiceTimer = null;
 
@@ -1852,7 +1984,83 @@
             if(mode === 'FIFO'){
 
                 $('#btnPickInvoice')
-                    .prop('disabled', true);
+                    .hide();
+
+                runFIFOAllocation();
+
+            }
+
+            else{
+
+                $('#btnPickInvoice')
+                    .show();
+
+                renderEmptyDetail(
+                    'Silahkan pilih invoice'
+                );
+
+                updateSummary();
+
+            }
+
+        }
+    );
+
+    $(document).on(
+        'input',
+        '#cashInAmount',
+        function(){
+
+            let value =
+                cleanNumber($(this).val());
+
+            $(this).val(
+                formatRupiah(value)
+            );
+
+            updateSummary();
+
+            let mode =
+                $('input[name="MODE_CASH_IN"]:checked')
+                    .val();
+
+            if(mode === 'FIFO'){
+
+                runFIFOAllocation();
+
+            }
+
+        }
+    );
+
+    $(document).on(
+        'change',
+        'input[name="MODE_CASH_IN"]',
+        function(){
+
+            let mode = $(this).val();
+
+            /*
+            |--------------------------------------------------------------------------
+            | CLEAR
+            |--------------------------------------------------------------------------
+            */
+
+            $('#detailTable tbody')
+                .html('');
+
+            /*
+            |--------------------------------------------------------------------------
+            | FIFO
+            |--------------------------------------------------------------------------
+            */
+
+            if(mode === 'FIFO'){
+
+                $('#btnPickInvoice')
+                    .hide();
+
+                runFIFOAllocation();
 
             }
 
@@ -1865,29 +2073,15 @@
             else{
 
                 $('#btnPickInvoice')
-                    .prop('disabled', false);
+                    .show();
+
+                renderEmptyDetail(
+                    'Silahkan pilih invoice'
+                );
 
             }
 
-        }
-    );
-
-    $(document).on(
-        'keyup change',
-        '#cashInAmount',
-        function(){
-
-            let mode =
-                $('[name="MODE_CASH_IN"]:checked')
-                    .val();
-
-            if(mode !== 'FIFO'){
-
-                return;
-
-            }
-
-            runFIFOAllocation();
+            updateSummary();
 
         }
     );
@@ -1911,14 +2105,22 @@
                 $('#cashInAmount').val()
             );
 
-        if(
-            !plant ||
-            !customer ||
-            totalInput <= 0
-        ){
+        if(!customer){
+
+            renderEmptyDetail(
+                'Pilih customer terlebih dahulu'
+            );
 
             return;
+        }
 
+        if(totalInput <= 0){
+
+            renderEmptyDetail(
+                'Input total cash in terlebih dahulu'
+            );
+
+            return;
         }
 
         /*
@@ -1938,7 +2140,7 @@
 
         $.get(
 
-            '<?= base_url("cash_in/load_sales_picker"); ?>',
+            '<?= base_url("cashin/load_sales_picker"); ?>',
 
             {
 
@@ -1949,6 +2151,23 @@
             },
 
             function(rows){
+
+                /*
+                |--------------------------------------------------------------------------
+                | EMPTY
+                |--------------------------------------------------------------------------
+                */
+
+                if(rows.length === 0){
+
+                    renderEmptyDetail(
+                        'Customer tidak memiliki invoice outstanding'
+                    );
+
+                    updateSummary();
+
+                    return;
+                }
 
                 let remainingCash =
                     totalInput;
@@ -1984,8 +2203,7 @@
                     |--------------------------------------------------------------------------
                     */
 
-                    let bayar =
-                        0;
+                    let bayar = 0;
 
                     if(
                         remainingCash >= outstanding
@@ -2019,7 +2237,7 @@
                         BAYAR :
                             bayar
 
-                    });
+                    }, true);
 
                     /*
                     |--------------------------------------------------------------------------
@@ -2045,19 +2263,153 @@
         );
     }
 
-    $('#customerAdd').change(function(){
+    /*
+    |--------------------------------------------------------------------------
+    | CUSTOMER CHANGE
+    |--------------------------------------------------------------------------
+    */
 
-        let mode =
-            $('[name="MODE_CASH_IN"]:checked')
-                .val();
+    $(document).on(
+        'select2:select',
+        '#customerAdd',
+        function(e){
 
-        if(mode === 'FIFO'){
+            let customerId =
+                e.params.data.id;
 
-            runFIFOAllocation();
+            /*
+            |--------------------------------------------------------------------------
+            | SET CUSTOMER
+            |--------------------------------------------------------------------------
+            */
+
+            $('#hiddenCustomerAdd')
+                .val(customerId);
+
+            /*
+            |--------------------------------------------------------------------------
+            | RESET CASH IN
+            |--------------------------------------------------------------------------
+            */
+
+            $('#cashInAmount')
+                .val('');
+
+            /*
+            |--------------------------------------------------------------------------
+            | RESET DETAIL
+            |--------------------------------------------------------------------------
+            */
+
+            $('#detailTable tbody')
+                .html('');
+
+            /*
+            |--------------------------------------------------------------------------
+            | RESET SUMMARY
+            |--------------------------------------------------------------------------
+            */
+
+            updateSummary();
+
+            /*
+            |--------------------------------------------------------------------------
+            | MODE
+            |--------------------------------------------------------------------------
+            */
+
+            let mode =
+                $('[name="MODE_CASH_IN"]:checked')
+                    .val();
+
+            
+            if(mode === 'FIFO'){
+
+                setTimeout(function(){
+
+                    runFIFOAllocation();
+
+                }, 100);
+
+            }
 
         }
+    );
 
-    });
+    $('#customerAdd').on(
+        'change',
+        function(){
+
+            let customer =
+                $(this).val();
+
+            $('#hiddenCustomerAdd')
+                .val(customer);
+
+            /*
+            |--------------------------------------------------------------------------
+            | RESET TABLE
+            |--------------------------------------------------------------------------
+            */
+
+            $('#detailTable tbody')
+                .html('');
+
+            updateSummary();
+
+            /*
+            |--------------------------------------------------------------------------
+            | NO CUSTOMER
+            |--------------------------------------------------------------------------
+            */
+
+            if(!customer){
+
+                renderEmptyDetail(
+                    'Pilih customer terlebih dahulu'
+                );
+
+                return;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | MODE
+            |--------------------------------------------------------------------------
+            */
+
+            let mode =
+                $('input[name="MODE_CASH_IN"]:checked')
+                    .val();
+
+            /*
+            |--------------------------------------------------------------------------
+            | FIFO
+            |--------------------------------------------------------------------------
+            */
+
+            if(mode === 'FIFO'){
+
+                runFIFOAllocation();
+
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | MANUAL
+            |--------------------------------------------------------------------------
+            */
+
+            else{
+
+                renderEmptyDetail(
+                    'Silahkan pilih invoice'
+                );
+
+            }
+
+        }
+    );
 
     $('#plantAdd').change(function(){
 
@@ -2067,7 +2419,11 @@
 
         if(mode === 'FIFO'){
 
-            runFIFOAllocation();
+            setTimeout(function(){
+
+                runFIFOAllocation();
+
+            }, 100);
 
         }
 
@@ -2097,38 +2453,36 @@
             .removeClass('loading-hide');
     }
 
-    function initPlantSelect(){
+    function initPlantSelect()
+    {
+        $.get(
+            '<?= base_url("cashin/get_plant_select2"); ?>',
+            function(rows){
 
-        let $el = $('#PLANT_ADD');
+                let $el = $('#plantAdd');
 
-        // kalau sudah select2, jangan init ulang
-        if ($el.hasClass("select2-hidden-accessible")) return;
+                $el.empty();
 
-        $el.select2({
-            placeholder: "-- PILIH PLANT --",
-            dropdownParent: $('#CashInAdd'),
-            width: "100%",
-            ajax: {
-                url: "<?= base_url('cash-in/get_user_plant_select2'); ?>",
-                dataType: "json",
-                delay: 250,
-                processResults: function(data){
-                    return { results: data };
+                rows.forEach(function(row){
+
+                    $el.append(`
+                        <option value="${row.id}">
+                            ${row.text}
+                        </option>
+                    `);
+
+                });
+
+                if(rows.length > 0){
+
+                    $el.val(rows[0].id)
+                    .trigger('change');
+
                 }
-            }
-        });
 
-        // 🔥 AUTO SELECT kalau cuma 1 plant
-        $.getJSON('<?= base_url("cash-in/get_user_plant_select2"); ?>', function(rows){
-
-            if(rows.length === 1){
-                let option = new Option(rows[0].text, rows[0].id, true, true);
-                $el.append(option).trigger('change');
-
-                $el.prop('disabled', true); // lock select
-                $('#PLANT_HIDDEN').val(rows[0].id);
-            }
-        });
+            },
+            'json'
+        );
     }
 
     $('#btnAddManualRow').on('click', function(){
@@ -2178,7 +2532,7 @@
 
         ajaxListRequest = $.get(
 
-            '<?= base_url("cash_in/load_data"); ?>',
+            '<?= base_url("cashin/load_data"); ?>',
 
             {
 
@@ -2352,35 +2706,9 @@
 
                     </button>
 
-                    <!-- EDIT -->
-                    <button
-                        class="btn btn-outline-warning btnEdit"
-                        data-cashin="${row.CASH_IN}"
-                        data-plant="${row.PLANT}">
-
-                        Edit
-
-                    </button>
-
-                    <!-- DELETE -->
-                    <button
-                        class="btn btn-outline-danger btnDelete"
-                        data-cashin="${row.CASH_IN}"
-                        data-plant="${row.PLANT}">
-
-                        Hapus
-
-                    </button>
-
                 </div>
 
             `;
-
-            /*
-            |--------------------------------------------------------------------------
-            | ROW
-            |--------------------------------------------------------------------------
-            */
 
             let tr = `
 
@@ -2389,11 +2717,7 @@
                     <!-- PLANT -->
                     <td class="text-center">
 
-                        <div class="fw-semibold">
-
-                            ${row.PLANT_NAME || '-'}
-
-                        </div>
+                        ${row.PLANT_NAME || '-'}
 
                     </td>
 
@@ -2427,9 +2751,11 @@
 
                         <span class="
                             badge
-                            ${row.PEMBAYARAN === 'CASH'
-                                ? 'bg-success'
-                                : 'bg-primary'}
+                            ${
+                                row.PEMBAYARAN === 'CASH'
+                                    ? 'bg-success'
+                                    : 'bg-primary'
+                            }
                         ">
 
                             ${row.PEMBAYARAN || '-'}
@@ -2441,33 +2767,11 @@
                     <!-- INVOICE -->
                     <td class="text-center">
 
-                        <div>
+                        <span class="badge bg-warning text-dark">
 
-                            <span class="badge bg-primary">
+                            ${row.TOTAL_INVOICE || 0} Invoice
 
-                                ${formatNumber(
-                                    row.TOTAL_ITEM || 0
-                                )}
-
-                                Invoice
-
-                            </span>
-
-                        </div>
-
-                        <div class="mt-1">
-
-                            <small class="text-muted">
-
-                                Offset :
-                                Rp
-                                ${formatNumber(
-                                    row.TOTAL_OFFSET || 0
-                                )}
-
-                            </small>
-
-                        </div>
+                        </span>
 
                     </td>
 
@@ -2476,9 +2780,8 @@
 
                         <div class="fw-bold text-success">
 
-                            Rp
-                            ${formatNumber(
-                                row.TOTAL || 0
+                            Rp ${formatRupiah(
+                                Number(row.AMOUNT || 0)
                             )}
 
                         </div>
@@ -2488,7 +2791,15 @@
                     <!-- STATUS -->
                     <td class="text-center">
 
-                        ${statusBadge}
+                        ${
+                            row.STATUS === 'PAID'
+                                ? '<span class="badge bg-success">PAID</span>'
+                                : row.STATUS === 'PARTIAL'
+                                    ? '<span class="badge bg-primary">PARTIAL</span>'
+                                    : row.STATUS === 'DEPOSIT'
+                                        ? '<span class="badge bg-warning text-dark">DEPOSIT</span>'
+                                        : '<span class="badge bg-secondary">OPEN</span>'
+                        }
 
                     </td>
 
@@ -2502,7 +2813,47 @@
                     <!-- ACTION -->
                     <td class="text-center">
 
-                        ${actionBtn}
+                       <div class="btn-group btn-group-sm">
+
+                            <!-- PDF -->
+                            <button
+                                class="btn btn-outline-primary btnPdf"
+                                data-cashin="${row.CASH_IN}"
+                                data-plant="${row.PLANT}">
+
+                                Slip
+
+                            </button>
+
+                            ${
+                                Number(row.IS_LATEST) === 1
+                                ? `
+
+                                    <button
+                                        class="btn btn-outline-danger btnDelete"
+                                        data-cashin="${row.CASH_IN}"
+                                        data-plant="${row.PLANT}">
+
+                                        Hapus
+
+                                    </button>
+
+                                `
+                                : `
+
+                                    <button
+                                        class="btn btn-outline-secondary"
+                                        disabled
+                                        title="Cash in lama tidak bisa dihapus">
+
+                                        Locked
+
+                                    </button>
+
+                                `
+                            }
+
+                        </div>
 
                     </td>
 
@@ -2628,21 +2979,32 @@
         }
     );
 
-    $(document).on("click", ".exportPdf", function () {
-        let cash_in    = $(this).data("cash_in");
+    $(document).on("click", ".btnPdf", function () {
+        let cash_in = $(this).data("cashin");
         let plant = $(this).data("plant");
 
         window.open(
-            "<?= base_url('cash-in/print_pdf'); ?>?cash_in=" + cash_in + "&plant=" + plant,
+            "<?= base_url('cashin/print_pdf'); ?>?cash_in=" + cash_in + "&plant=" + plant,
             "_blank"
         );
     });
 
     $('#CashInAdd').on('shown.bs.modal', function () {
-        initCustomerSelect2('#CUSTOMER', '#CashInAdd');
+
+        initCustomerSelect2('#customerAdd', '#CashInAdd');
+
         initRekeningSelect2('#NO_REK', '#CashInAdd');
+
         initPlantSelect();
-        $('input[name="mode_cash_in"][value="FIFO"]').prop('checked', true).trigger('change');
+
+        $('input[name="MODE_CASH_IN"][value="FIFO"]')
+            .prop('checked', true)
+            .trigger('change');
+
+        renderEmptyDetail(
+            'Pilih customer terlebih dahulu'
+        );
+
     });
 
     $('#CashInEdit').on('shown.bs.modal', function () {
@@ -2654,45 +3016,52 @@
         this.value = raw;
     });
 
-    function formatTanggalIndo(dateString) {
-        if (!dateString) return '';
-
-        const bulan = [
-            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-        ];
-
-        const d = new Date(dateString);
-        const day = String(d.getDate()).padStart(2, '0');
-        const month = bulan[d.getMonth()];
-        const year = d.getFullYear();
-
-        return `${day} ${month} ${year}`;
-    }
-
     function initCustomerSelect2(selector, modalId){
-        if ($(selector).hasClass("select2-hidden-accessible")) return;
+
+        if ($(selector).hasClass("select2-hidden-accessible")) {
+            return;
+        }
+
         $(selector).select2({
+
             placeholder: "-- PILIH CUSTOMER --",
+
             allowClear: true,
-            dropdownParent: modalId ? $(modalId) : $(document.body),
+
+            dropdownParent: modalId
+                ? $(modalId)
+                : $(document.body),
+
             width: "100%",
+
             ajax: {
-                url: "<?= base_url('cash-in/get-customer'); ?>",
+
+                url: "<?= base_url('cashin/get_customer'); ?>",
+
                 dataType: "json",
+
                 delay: 250,
+
                 data: function(params){
+
                     return {
                         q: params.term
                     };
+
                 },
+
                 processResults: function(data){
+
                     return {
                         results: data
                     };
+
                 }
+
             }
+
         });
+
     }
 
     function initRekeningSelect2(selector, modalId){
@@ -2720,84 +3089,211 @@
         });
     }
 
-    function toNumber(val) {
-        if (!val) return 0;
-
-        return parseFloat(
-            val.toString().replace(/[^\d]/g, '')
-        ) || 0;
-    }
-
-    function calcRow(el){
-        let tr = $(el).closest('tr');
-        let qty   = parseFloat(tr.find('.qty').val()) || 0;
-        let berat = parseFloat(tr.find('.berat').val()) || 0;
-        // opsional kalkulasi lainnya jika diperlukan
-    }
-
-    function safeDate(val){
-        if (!val) return '';
-        if (val === '0000-00-00 00:00:00') return '';
-        return val.substring(0,10);
-    }
-
     $('#cashInDetailTableEdit').on('click', '.pickInvoiceBtn', function(){
         alert('Invoice tidak dapat diganti pada mode edit');
     });
+
+    let CURRENT_ALLOCATED = 0;
 
     $(function(){
         loadPage(1);
 
         $('#fCashInAdd').submit(function(e){
+
             e.preventDefault();
 
-            let btn = $('#btnSaveCashIn');
+            /*
+            |--------------------------------------------------------------------------
+            | VALIDASI
+            |--------------------------------------------------------------------------
+            */
 
-            /* ================= NORMALISASI ANGKA ================= */
-            $('.amount-offset').each(function(){
-                this.value = toNumber(this.value);
-            });
+            let customer =
+                $('#hiddenCustomerAdd').val();
 
-            let formData = new FormData(this);
+            if(!customer){
 
-            btn.prop('disabled', true).text('Menyimpan...');
+                alert(
+                    'Customer wajib dipilih'
+                );
 
-            $.ajax({
-                url: '<?= base_url("cash-in/create"); ?>',
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function(resp){
+                return;
+            }
 
-                    try {
-                        resp = typeof resp === 'string' ? JSON.parse(resp) : resp;
-                    } catch (e) {
-                        alert("Server tidak mengembalikan JSON!\nCek console.");
-                        btn.prop('disabled', false).text('Simpan');
-                        return;
-                    }
+            let mode =
+                $('input[name="MODE_CASH_IN"]:checked').val();
 
-                    alert(resp.message);
+            /*
+            |--------------------------------------------------------------------------
+            | TOTAL INPUT
+            |--------------------------------------------------------------------------
+            */
 
-                    if(resp.status){
-                        $('#CashInAdd').modal('hide');
-                        $('#fCashInAdd')[0].reset();
-                        loadPage(state.page);
-                    }
+            let totalInput = 0;
 
-                    btn.prop('disabled', false).text('Simpan');
-                },
-                error: function(){
-                    alert('Terjadi kesalahan server');
-                    btn.prop('disabled', false).text('Simpan');
+            /*
+            |--------------------------------------------------------------------------
+            | FIFO
+            |--------------------------------------------------------------------------
+            */
+
+            if(mode === 'FIFO'){
+
+                totalInput =
+                    cleanNumber(
+                        $('#cashInAmount').val()
+                    );
+
+                if(totalInput <= 0){
+
+                    alert(
+                        'Total cash in wajib diisi'
+                    );
+
+                    return;
                 }
+
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | MANUAL
+            |--------------------------------------------------------------------------
+            */
+
+            else{
+
+                totalInput = CURRENT_ALLOCATED;
+
+                if(totalInput <= 0){
+
+                    alert(
+                        'Total invoice belum ada'
+                    );
+
+                    return;
+                }
+
+            }
+
+            let detailCount =
+                $('#detailTable tbody tr')
+                    .not('.empty-row')
+                    .length;
+
+            if(detailCount <= 0){
+
+                alert(
+                    'Detail invoice kosong'
+                );
+
+                return;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | VALIDASI BAYAR
+            |--------------------------------------------------------------------------
+            */
+
+            let invalid = false;
+
+            $('.pay-input').each(function(){
+
+                let val =
+                    cleanNumber($(this).val());
+
+                if(val <= 0){
+
+                    invalid = true;
+
+                }
+
             });
+
+            if(invalid){
+
+                alert(
+                    'Nominal bayar tidak valid'
+                );
+
+                return;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | SAVE
+            |--------------------------------------------------------------------------
+            */
+
+            $('#btnSaveCashIn')
+                .prop('disabled', true)
+                .text('Saving...');
+
+            $.post(
+
+                '<?= base_url("cashin/create"); ?>',
+
+                $(this).serialize(),
+
+                function(res){
+
+                    if(typeof res === 'string'){
+
+                        res = JSON.parse(res);
+
+                    }
+
+                    alert(res.message);
+
+                    if(res.status){
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | RESET
+                        |--------------------------------------------------------------------------
+                        */
+
+                        $('#CashInAdd')
+                            .modal('hide');
+
+                        $('#fCashInAdd')[0]
+                            .reset();
+
+                        $('#detailTable tbody')
+                            .html('');
+
+                        renderEmptyDetail(
+                            'Pilih customer terlebih dahulu'
+                        );
+
+                        $('#customerAdd')
+                            .val(null)
+                            .trigger('change');
+
+                        updateSummary();
+
+                        loadPage(state.page);
+
+                    }
+
+                },
+
+                'json'
+
+            ).always(function(){
+
+                $('#btnSaveCashIn')
+                    .prop('disabled', false)
+                    .text('Simpan');
+
+            });
+
         });
 
         $(document).on('click', '.editBtn', function () {
 
-            const cashIn = $(this).data('id');
+            const cashIn = $(this).data('cashin');
 
             $.get('<?= base_url("cash-in/edit"); ?>', { cash_in: cashIn }, function(resp){
 
@@ -2883,30 +3379,63 @@
         });
 
         // Delete
-        $(document).on('click', '.deleteBtn', function () {
+        $(document).on(
+            'click',
+            '.btnDelete',
+            function(){
 
-            const cashIn = $(this).data('id');
-            const plant  = $(this).data('plant');
+                if(
+                    !confirm(
+                        'Hapus cash in ini?'
+                    )
+                ){
+                    return;
+                }
 
-            if (!confirm(`Yakin ingin menghapus CASH IN: ${cashIn} ?`)) return;
+                let cashin =
+                    $(this).data('cashin');
 
-            $.post("<?= base_url('cash-in/remove'); ?>", {
-                cash_in: cashIn,
-                plant: plant
-            }, function (res) {
-                res = typeof res === 'string' ? JSON.parse(res) : res;
-                alert(res.message);
-                if (res.status) loadPage(state.page);
-            });
-        });
+                let plant =
+                    $(this).data('plant');
+
+                $.post(
+
+                    '<?= base_url("cashin/remove"); ?>',
+
+                    {
+
+                        cashin : cashin,
+
+                        plant  : plant
+
+                    },
+
+                    function(res){
+
+                        if(typeof res === 'string'){
+
+                            res = JSON.parse(res);
+
+                        }
+
+                        alert(res.message);
+
+                        if(res.status){
+
+                            loadPage(state.page);
+
+                        }
+
+                    },
+
+                    'json'
+
+                );
+
+            }
+        );
 
     }); // end ready
-
-    $('#CashInAdd').on('shown.bs.modal', function () {
-        let today = new Date().toISOString().split("T")[0];
-        $('#CASHIN_DATE').val(today); // hari ini
-        let now = new Date();
-    });
 
     const CURRENT_USER = "<?= $this->session->userdata('username'); ?>";
 </script>

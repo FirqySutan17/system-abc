@@ -11,105 +11,405 @@ class CashIn_model extends CI_Model {
     /* ---------------------------------------------------------
        LIST / COUNT (for table ajax)
     --------------------------------------------------------- */
-    public function get_data($limit, $start, $search = '', $order = 'CASHIN_DATE', $dir = 'DESC')
+    public function get_data(
+        $limit,
+        $start,
+        $search = '',
+        $order = 'CASHIN_DATE',
+        $dir = 'ASC',
+        $pembayaran = '',
+        $date_from = '',
+        $date_to = ''
+    )
     {
-        $username = $this->session->userdata('username');
-        $plants   = $this->get_user_plants($username);
+        /*
+        |--------------------------------------------------------------------------
+        | SELECT
+        |--------------------------------------------------------------------------
+        */
 
-        $this->db->select('
-            h.CASH_IN,
-            h.PLANT,
-            c.CODE_NAME AS PLANT_NAME,
-            h.CASHIN_DATE,
-            h.CUSTOMER,
-            cust.FULL_NAME AS CUSTOMER_NAME,
-            h.AMOUNT,
-            h.SLIP_NO,
-            h.PEMBAYARAN,
-            h.BON,
+        $this->db->select("
+
+            c.*,
+
+            plant.CODE_NAME AS PLANT_NAME,
+
+            customer.FULL_NAME AS CUSTOMER_NAME,
+
+            COUNT(DISTINCT d.SALES) AS TOTAL_INVOICE,
+
             (
-                SELECT COUNT(*) 
-                FROM abc_mst_cash_in newer
-                WHERE newer.CUSTOMER = h.CUSTOMER
-                AND newer.PLANT = h.PLANT
-                AND newer.CASHIN_DATE > h.CASHIN_DATE
-                AND newer.DELETED IS NULL
-            ) AS IS_LOCKED
-        ');
-        $this->db->from('abc_mst_cash_in h');
+                c.AMOUNT
+                -
+                COALESCE(
+                    SUM(d.AMOUNT_OFFSET),
+                    0
+                )
+            ) AS TOTAL_DEPOSIT,
 
-        $this->db->join('abc_cd_code c', "c.CODE = h.PLANT AND c.HEAD_CODE = 'AJ'", 'left');
-        $this->db->join('abc_cd_customer cust', 'cust.CUST = h.CUSTOMER', 'left');
+            NOT EXISTS (
 
-        // filter deleted
-        $this->db->where('h.DELETED IS NULL', null, false);
+                SELECT 1
+
+                FROM abc_mst_cash_in_detail d2
+
+                INNER JOIN abc_mst_cash_in c2
+                    ON c2.CASH_IN = d2.CASH_IN
+                    AND c2.PLANT = d2.PLANT
+
+                WHERE d2.SALES = d.SALES
+
+                AND d2.CASH_IN != c.CASH_IN
+
+                AND c2.CREATED_AT > c.CREATED_AT
+
+            ) AS IS_LATEST
+
+        ", false);
 
         /*
-        ==============================
-        FILTER PLANT BERDASARKAN USER
-        ==============================
+        |--------------------------------------------------------------------------
+        | FROM
+        |--------------------------------------------------------------------------
         */
-        if (!empty($plants)) {
-            $this->db->where_in('h.PLANT', $plants);
-        } else {
-            $this->db->where('1 = 0'); // user tidak punya plant
+
+        $this->db->from('abc_mst_cash_in c');
+
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+            'abc_cd_code plant',
+            "
+                plant.CODE COLLATE utf8mb4_unicode_ci =
+                c.PLANT COLLATE utf8mb4_unicode_ci
+                AND plant.HEAD_CODE = 'PLANT'
+            ",
+            'left',
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+            'abc_cd_customer customer',
+            "
+                customer.CUST COLLATE utf8mb4_unicode_ci =
+                c.CUSTOMER COLLATE utf8mb4_unicode_ci
+            ",
+            'left',
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+            'abc_mst_cash_in_detail d',
+            "
+                d.CASH_IN = c.CASH_IN
+                AND d.PLANT = c.PLANT
+                AND d.DELETED IS NULL
+            ",
+            'left',
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->where(
+            'c.DELETED IS NULL',
+            null,
+            false
+        );
+
+        if(!empty($pembayaran)){
+
+            $this->db->where(
+                'c.PEMBAYARAN',
+                $pembayaran
+            );
+
         }
 
-        // search
-        if ($search != '') {
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER DATE
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($date_from)){
+
+            $this->db->where(
+                'DATE(c.CASHIN_DATE) >=',
+                $date_from
+            );
+
+        }
+
+        if(!empty($date_to)){
+
+            $this->db->where(
+                'DATE(c.CASHIN_DATE) <=',
+                $date_to
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($search)){
+
             $this->db->group_start();
-            $this->db->like('h.CASH_IN', $search);
-            $this->db->or_like('cust.FULL_NAME', $search);
-            $this->db->or_like('c.CODE_NAME', $search);
-            $this->db->or_like('h.BON', $search);
+
+            $this->db->like(
+                'c.CASH_IN',
+                $search
+            );
+
+            $this->db->or_like(
+                'customer.FULL_NAME',
+                $search
+            );
+
+            $this->db->or_like(
+                'c.SLIP_NO',
+                $search
+            );
+
             $this->db->group_end();
+
         }
 
-        $allowedOrder = ['CASH_IN','CASHIN_DATE','CUSTOMER','AMOUNT','SLIP_NO','PEMBAYARAN'];
-        if (!in_array($order, $allowedOrder)) {
-            $order = 'CASHIN_DATE';
-        }
+        /*
+        |--------------------------------------------------------------------------
+        | GROUP
+        |--------------------------------------------------------------------------
+        */
 
-        $dir = strtoupper($dir) === 'ASC' ? 'ASC' : 'DESC';
+        $this->db->group_by('c.CASH_IN');
 
-        $this->db->order_by("h.$order", $dir);
-        $this->db->limit((int)$limit, (int)$start);
+        /*
+        |--------------------------------------------------------------------------
+        | ORDER
+        |--------------------------------------------------------------------------
+        */
 
-        return $this->db->get()->result_array();
+        $this->db->order_by(
+            'c.' . $order,
+            $dir
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | LIMIT
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->limit(
+            $limit,
+            $start
+        );
+
+        return $this->db
+            ->get()
+            ->result_array();
     }
 
-    public function count_data($search = '')
+    public function count_data(
+        $search = '',
+        $pembayaran = '',
+        $date_from = '',
+        $date_to = ''
+    )
     {
-        $username = $this->session->userdata('username');
-        $plants   = $this->get_user_plants($username);
+        $this->db->from(
+            'abc_mst_cash_in c'
+        );
 
-        $this->db->from('abc_mst_cash_in h');
-        $this->db->join('abc_cd_code c', "c.CODE = h.PLANT AND c.HEAD_CODE = 'AJ'", 'left');
-        $this->db->join('abc_cd_customer cust', 'cust.CUST = h.CUSTOMER', 'left');
+        $this->db->join(
+            'abc_cd_customer customer',
+            "
+                customer.CUST COLLATE utf8mb4_unicode_ci =
+                c.CUSTOMER COLLATE utf8mb4_unicode_ci
+            ",
+            'left',
+            false
+        );
 
-        $this->db->where('h.DELETED IS NULL', null, false);
+        $this->db->where(
+            'c.DELETED IS NULL',
+            null,
+            false
+        );
 
-        /*
-        ==============================
-        FILTER PLANT BERDASARKAN USER
-        ==============================
-        */
-        if (!empty($plants)) {
-            $this->db->where_in('h.PLANT', $plants);
-        } else {
-            $this->db->where('1 = 0');
+        if(!empty($pembayaran)){
+
+            $this->db->where(
+                'c.PEMBAYARAN',
+                $pembayaran
+            );
+
         }
 
-        if ($search != '') {
+        if(!empty($date_from)){
+
+            $this->db->where(
+                'DATE(c.CASHIN_DATE) >=',
+                $date_from
+            );
+
+        }
+
+        if(!empty($date_to)){
+
+            $this->db->where(
+                'DATE(c.CASHIN_DATE) <=',
+                $date_to
+            );
+
+        }
+
+        if(!empty($search)){
+
             $this->db->group_start();
-            $this->db->like('h.CASH_IN', $search);
-            $this->db->or_like('cust.FULL_NAME', $search);
-            $this->db->or_like('c.CODE_NAME', $search);
-            $this->db->or_like('h.BON', $search);
+
+            $this->db->like(
+                'c.CASH_IN',
+                $search
+            );
+
+            $this->db->or_like(
+                'customer.FULL_NAME',
+                $search
+            );
+
+            $this->db->or_like(
+                'c.SLIP_NO',
+                $search
+            );
+
             $this->db->group_end();
+
         }
 
-        return $this->db->count_all_results();
+        return $this->db
+            ->count_all_results();
+    }
+
+    public function generate_cash_in_number($plant)
+    {
+        $date = date('Ymd');
+
+        $prefix =
+            $date . 'CI';
+
+        $last = $this->db
+
+            ->select('CASH_IN')
+
+            ->like('CASH_IN', $prefix, 'after')
+
+            ->order_by('CASH_IN', 'DESC')
+
+            ->get('abc_mst_cash_in')
+
+            ->row_array();
+
+        $urut = 1;
+
+        if($last){
+
+            $urut =
+                (int) substr(
+                    $last['CASH_IN'],
+                    -4
+                ) + 1;
+        }
+
+        return
+            $prefix .
+            str_pad(
+                $urut,
+                4,
+                '0',
+                STR_PAD_LEFT
+            );
+    }
+
+    public function generate_slip_number($plant)
+    {
+        $date = date('Ymd');
+
+        $prefix =
+            $date . 'CI';
+
+        $last = $this->db
+
+            ->select('SLIP_NO')
+
+            ->like('SLIP_NO', $prefix, 'after')
+
+            ->order_by('SLIP_NO', 'DESC')
+
+            ->get('abc_mst_cash_in')
+
+            ->row_array();
+
+        $urut = 1;
+
+        if($last){
+
+            $urut =
+                (int) substr(
+                    $last['SLIP_NO'],
+                    -4
+                ) + 1;
+        }
+
+        return
+            $prefix .
+            str_pad(
+                $urut,
+                4,
+                '0',
+                STR_PAD_LEFT
+            );
+    }
+
+    public function get_sales_by_number(
+        $sales,
+        $plant
+    ){
+        return $this->db
+
+            ->where('SALES', $sales)
+
+            ->where('PLANT', $plant)
+
+            ->where('DELETED IS NULL', null, false)
+
+            ->get('abc_mst_sales')
+
+            ->row_array();
     }
 
     public function get_sales_picker(
@@ -136,18 +436,18 @@ class CashIn_model extends CI_Model {
 
             s.SALES_DATE,
 
-            s.TOTAL,
+            s.AMOUNT,
 
             COALESCE(
-                SUM(d.BAYAR),
+                SUM(d.AMOUNT_OFFSET),
                 0
             ) AS TOTAL_PAID,
 
             (
-                s.TOTAL
+                s.AMOUNT
                 -
                 COALESCE(
-                    SUM(d.BAYAR),
+                    SUM(d.AMOUNT_OFFSET),
                     0
                 )
             ) AS OUTSTANDING
@@ -612,46 +912,25 @@ class CashIn_model extends CI_Model {
         }
     }
 
-    private $plantCache = [];
-
-    public function get_user_plants($username)
+    public function get_plant_select2()
     {
-        if (isset($this->plantCache[$username])) {
-            return $this->plantCache[$username];
-        }
-
-        $row = $this->db
-            ->select('plant')
-            ->from('users')
-            ->where('username', $username)
-            ->get()
-            ->row();
-
-        if (!$row || empty($row->plant)) {
-            return $this->plantCache[$username] = [];
-        }
-
-        $plants = json_decode($row->plant, true);
-
-        return $this->plantCache[$username] = (
-            is_array($plants) ? array_map('strval', $plants) : []
-        );
-    }
-
-    public function get_plant_select2_by_user($username)
-    {
-        $plantCodes = $this->get_user_plants($username);
-
-        if (empty($plantCodes)) {
-            return [];
-        }
-
         return $this->db
-            ->select('CODE as id, CODE_NAME as text')
-            ->where('HEAD_CODE', 'AJ')
-            ->where_in('CODE', $plantCodes)
-            ->order_by('CODE_NAME', 'ASC')
-            ->get('abc_cd_code')
+
+            ->select('
+                CODE as id,
+                CODE_NAME as text
+            ')
+
+            ->from('abc_cd_code')
+
+            ->where('HEAD_CODE', 'PLANT')
+
+            ->where('CODE !=', '*')
+
+            ->order_by('CODE', 'ASC')
+
+            ->get()
+
             ->result_array();
     }
 
@@ -684,7 +963,7 @@ class CashIn_model extends CI_Model {
     {
         $this->db->select('CUST as id, FULL_NAME as name');
         $this->db->from('abc_cd_customer');
-        $this->db->where('STATUS', 'N');
+        $this->db->where('STATUS', 'Y');
 
         // 🔥 FILTER CUSTOMER
         $this->db->group_start();

@@ -1,341 +1,1246 @@
-<?php 
-$userPlants = json_decode($this->session->userdata('plant'), true);
-?>
+<style>
+    .payment-card{
 
-<div class="row mb-3">
+        border: none;
 
-    <!-- PLANT -->
-    <div class="col-md-2">
-        <label class="form-label">Plant</label>
-        <select id="rp_filter_plant" class="form-control">
-            <?php foreach($plants as $p): ?>
-                <?php if(in_array($p->CODE, $userPlants)): ?>
-                    <option value="<?= $p->CODE ?>">
-                        <?= $p->CODE_NAME ?>
-                    </option>
-                <?php endif; ?>
-            <?php endforeach; ?>
-        </select>
+        border-radius: 24px;
+
+        overflow: hidden;
+
+        background: white;
+
+        box-shadow:
+            0 10px 30px rgba(15,23,42,.08);
+
+        margin-bottom: 28px;
+
+    }
+
+    .payment-card-header{
+
+        position: relative;
+
+        overflow: hidden;
+
+        padding: 32px;
+
+        background:
+            linear-gradient(
+                135deg,
+                #0f4cbd,
+                #2563eb
+            );
+
+    }
+
+    .payment-card-header::before{
+
+        content: '';
+
+        position: absolute;
+
+        top: -80px;
+
+        right: -80px;
+
+        width: 240px;
+
+        height: 240px;
+
+        border-radius: 50%;
+
+        background:
+            rgba(255,255,255,.08);
+
+    }
+
+    .payment-card-header *{
+
+        position: relative;
+
+        z-index: 2;
+
+    }
+
+    .payment-title{
+
+        font-size: 34px;
+
+        font-weight: 800;
+
+        color: white;
+
+        letter-spacing: .5px;
+
+        margin-bottom: 24px;
+
+    }
+
+    .payment-info-table{
+
+        width: 100%;
+        border: none !important;
+
+    }
+
+    .payment-info-table td{
+
+        border: none !important;
+
+        padding: 8px 0;
+
+        color: rgba(255,255,255,.95);
+
+        font-size: 14px;
+
+    }
+
+    .payment-info-table tr{
+        border: none !important;
+    }
+
+    .payment-info-table tbody{
+        border: none !important;
+    }
+
+    .payment-info-table .label{
+
+        width: 140px;
+
+        font-weight: 700;
+
+        opacity: .9;
+
+    }
+
+    .payment-detail-wrapper{
+
+        padding: 0;
+
+        background: #fff;
+
+    }
+
+    .payment-detail-table{
+
+        margin-bottom: 0;
+
+    }
+
+    .payment-detail-table thead th{
+
+        background: #f8fafc;
+
+        border: none;
+
+        padding: 18px 16px;
+
+        font-size: 12px;
+
+        font-weight: 700;
+
+        text-transform: uppercase;
+
+        color: #64748b;
+
+        letter-spacing: .5px;
+
+    }
+
+    .payment-detail-table tbody td{
+
+        padding: 18px 16px;
+
+        border-top:
+            1px solid #eef2f7;
+
+        vertical-align: middle;
+
+        font-size: 14px;
+
+        color: #334155;
+
+    }
+
+    .payment-detail-table tbody tr{
+
+        transition: .2s ease;
+
+    }
+
+    .payment-detail-table tbody tr:hover{
+
+        background: #f8fbff;
+
+    }
+
+    .payment-detail-table tbody tr:hover td{
+
+        color: #0f172a;
+
+    }
+
+    .payment-detail-table small{
+
+        display: block;
+
+        margin-top: 4px;
+
+        font-size: 11px;
+
+        color: #94a3b8;
+
+    }
+
+    .payment-subtotal{
+
+        background: #f8fafc;
+
+    }
+
+    .payment-subtotal td{
+
+        font-weight: 700 !important;
+
+        color: #0f172a !important;
+
+        border-top:
+            2px solid #e2e8f0 !important;
+
+    }
+
+    .summary-card{
+
+        border: none;
+
+        border-radius: 20px;
+
+        overflow: hidden;
+
+        box-shadow:
+            0 6px 20px rgba(15,23,42,.06);
+
+    }
+
+    .summary-card .card-body{
+
+        padding: 28px;
+
+    }
+
+    .summary-title{
+
+        font-size: 13px;
+
+        font-weight: 600;
+
+        opacity: .9;
+
+        margin-bottom: 10px;
+
+    }
+
+    .summary-value{
+
+        font-size: 29px;
+
+        font-weight: 800;
+
+        line-height: 1;
+
+        color: #fff;
+
+    }
+
+    .payment-badge{
+
+        padding: 10px 16px;
+
+        border-radius: 999px;
+
+        font-size: 12px;
+
+        font-weight: 700;
+
+        letter-spacing: .5px;
+
+    }
+</style>
+
+<div id="paymentReportWrapper">
+
+<!-- ====================================================== -->
+    <!-- SUMMARY -->
+    <!-- ====================================================== -->
+
+    <div class="row">
+
+        <!-- TOTAL PAYMENT -->
+        <div class="col-md-4">
+
+            <div class="card summary-card bg-primary text-white">
+
+                <div class="card-body">
+
+                    <div class="small">
+
+                        TOTAL PAYMENT
+
+                    </div>
+
+                    <h4 id="summaryPaymentTotal" class="summary-value">
+
+                        Rp 0
+
+                    </h4>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- TOTAL SUPPLIER -->
+        <div class="col-md-4">
+
+            <div class="card summary-card bg-primary text-white">
+
+                <div class="card-body">
+
+                    <div class="small">
+
+                        TOTAL SUPPLIER
+
+                    </div>
+
+                    <h4 id="summaryPaymentSupplier">
+
+                        0
+
+                    </h4>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- TOTAL PO -->
+        <div class="col-md-4">
+
+            <div class="card summary-card bg-primary text-white">
+
+                <div class="card-body">
+
+                    <div class="small">
+
+                        TOTAL PO
+
+                    </div>
+
+                    <h4 id="summaryPaymentPO">
+
+                        0
+
+                    </h4>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
 
-    <!-- PAYMENT TYPE -->
-    <div class="col-md-2">
-        <label class="form-label">Payment Type</label>
-        <select id="rp_filter_type" class="form-control">
-            <option value="">-- ALL TYPE --</option>
-            <option value="RECEIVE">RECEIVE</option>
-            <option value="RECEIVE_LB">RECEIVE_LB</option>
-        </select>
-    </div>
+    <!-- ====================================================== -->
+    <!-- FILTER -->
+    <!-- ====================================================== -->
 
-    <div class="col-md-2">
-            <label class="form-label">Supplier</label>
-            <select id="rp_filter_supplier" class="form-control">
-                <option value="">-- ALL SUPPLIER --</option>
-                <?php foreach ($suppliers as $s): ?>
-                    <option value="<?= $s->CUST ?>">
-                        <?= $s->CUST ?> - <?= $s->FULL_NAME ?>
-                    </option>
-                <?php endforeach; ?>
+    <div class="row g-2 mb-3">
+
+        <!-- SEARCH -->
+        <div class="col-md-3">
+
+            <input
+                type="text"
+                id="paymentSearch"
+                class="form-control"
+                placeholder="Cari payment, supplier, PO...">
+
+        </div>
+
+        <!-- PLANT -->
+        <div class="col-md-2">
+
+            <select
+                id="paymentPlant"
+                class="form-control">
+
+                <option value="">
+                    Semua Plant
+                </option>
+
             </select>
+
         </div>
 
-    <div class="col-md-2">
-        <label class="form-label">No Payment</label>
-        <input type="text" id="rp_filter_payment" class="form-control" placeholder="Search Payment">
-    </div>
+        <!-- SUPPLIER -->
+        <div class="col-md-3">
 
-    <div class="col-md-2">
-        <label class="form-label">Date From</label>
-        <input type="date" id="rp_date_from" class="form-control">
-    </div>
+            <select
+                id="paymentSupplier"
+                class="form-control">
 
-    <div class="col-md-2">
-        <label class="form-label">Date To</label>
-        <input type="date" id="rp_date_to" class="form-control">
-    </div>
+            </select>
 
-    <div class="col-md-1">
-        <label class="form-label d-block">&nbsp;</label>
-        <button class="btn btn-primary w-100" id="rp_btnFilter">
-            <i class="fa fa-search"></i> Filter
-        </button>
-    </div>
+        </div>
 
-    <div class="col-md-1">
-        <label class="form-label d-block">&nbsp;</label>
-        <div class="btn-group w-100">
-            <button type="button" class="btn btn-primary w-100" data-bs-toggle="dropdown">
-                <i class="ti ti-download"></i>
+        <!-- DATE FROM -->
+        <div class="col-md-2">
+
+            <input
+                type="date"
+                id="paymentDateFrom"
+                class="form-control"
+                value="<?= date('Y-m-01'); ?>">
+
+        </div>
+
+        <!-- DATE TO -->
+        <div class="col-md-2">
+
+            <input
+                type="date"
+                id="paymentDateTo"
+                class="form-control"
+                value="<?= date('Y-m-d'); ?>">
+
+        </div>
+
+        <div class="col-md-10"></div>
+
+        <!-- EXPORT -->
+        <div class="col-md-2">
+
+            <button
+                type="button"
+                class="btn btn-success w-100"
+                id="btnExportPayment">
+
+                Export Excel
+
             </button>
-            <ul class="dropdown-menu w-100">
-                <li>
-                    <a class="dropdown-item" href="#" id="rp_exportExcel">
-                        <i class="fa fa-file-excel"></i> Export Excel
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item" href="#" id="rp_exportPDF">
-                        <i class="fa fa-file-pdf"></i> Export PDF
-                    </a>
-                </li>
-            </ul>
+
         </div>
+
     </div>
 
-</div>
+    
 
-<div class="table-responsive">
-    <table class="table table-bordered" id="paymentTable">
-        <thead>
-            <tr>
-                <th class="text-center">PLANT</th>
-                <th class="text-center">DATE</th>
-                <th class="text-center">NO PAYMENT</th>
-                <th class="text-center">PEMBAYARAN</th>
-                <th class="text-center">SUPPLIER</th>
-                <th class="text-center">MATERIAL</th>
-                <th class="text-center">JUMLAH</th>
-                <th class="text-center">BERAT</th>
-                <th class="text-center">HARGA</th>
-                <th class="text-center">TOTAL</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-        <tfoot>
-            <tr class="table-secondary fw-bold">
-                <td colspan="9" class="text-end detail-row">GRAND TOTAL</td>
-                <td class="text-end detail-row" id="rp_gt_total">0</td>
-            </tr>
-        </tfoot>
-    </table>
-</div>
+    <!-- ====================================================== -->
+    <!-- RESULT -->
+    <!-- ====================================================== -->
 
-<div class="d-flex justify-content-between mt-3">
-    <div id="info"></div>
-    <div id="rp_pagination"></div>
+    <div id="paymentResult">
+
+        <div class="card border-0 shadow-lg">
+
+            <div class="card-body text-center py-5 text-muted">
+
+                Belum ada data
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ====================================================== -->
+    <!-- PAGINATION -->
+    <!-- ====================================================== -->
+
+    <div class="d-flex justify-content-between mt-3">
+
+        <div id="paymentReportInfo"></div>
+
+        <div id="paymentReportPagination"></div>
+
+    </div>
+
 </div>
 
 <script>
-    window.PaymentReport = {
 
-        loaded: false,
+    window.ReportPayment = (function(){
 
-        state: {
-            page: 1,
-            limit: 10,
-            plant: '',
-            supplier: '',
-            payment: '',
-            payment_type: '',
-            date_from: '',
-            date_to: ''
-        },
+        let state = {
 
-        init() {
-            if (this.loaded) return;
-            this.loaded = true;
+            page  : 1,
 
-            this.initFilter();
-            this.bindEvent();
-            this.load();
-        },
+            limit : 20
 
-        initFilter() {
+        };
 
-            $('#rp_filter_plant, #rp_filter_supplier, #rp_filter_type')
-                .select2({ width: '100%' });
+        let PAYMENT_REPORT_INITIALIZED = false;
 
-            const today = new Date();
-            const yyyy = today.getFullYear();
-            const mm = String(today.getMonth()+1).padStart(2,'0');
-            const dd = String(today.getDate()).padStart(2,'0');
+        /*
+        |--------------------------------------------------------------------------
+        | INIT
+        |--------------------------------------------------------------------------
+        */
 
-            const first = new Date(today.getFullYear(), today.getMonth(), 1);
+        function init()
+        {
+            if(PAYMENT_REPORT_INITIALIZED){
 
-            this.state.date_from =
-                `${first.getFullYear()}-${String(first.getMonth()+1).padStart(2,'0')}-${String(first.getDate()).padStart(2,'0')}`;
+                return;
 
-            this.state.date_to =
-                `${yyyy}-${mm}-${dd}`;
+            }
 
-            $('#rp_date_from').val(this.state.date_from);
-            $('#rp_date_to').val(this.state.date_to);
-        },
+            PAYMENT_REPORT_INITIALIZED = true;
 
-        bindEvent() {
+            initSupplier();
 
-            let timer = null;
+            loadPlant();
 
-            $('#rp_btnFilter').on('click', () => {
-                this.state.page = 1;
-                this.updateState();
-                this.load();
-            });
+            loadData();
 
-            $('#rp_filter_payment').on('keyup', () => {
-                clearTimeout(timer);
-                timer = setTimeout(() => {
-                    this.state.page = 1;
-                    this.updateState();
-                    this.load();
-                }, 400);
-            });
+            bindEvents();
+        }
 
-            $('#rp_filter_plant, #rp_filter_supplier, #rp_filter_type, #rp_date_from, #rp_date_to')
-                .on('change', () => {
-                    this.state.page = 1;
-                    this.updateState();
-                    this.load();
+        /*
+        |--------------------------------------------------------------------------
+        | EVENT
+        |--------------------------------------------------------------------------
+        */
+
+        function bindEvents()
+        {
+            $('#paymentSearch').off('keyup')
+                .on('keyup', function(){
+
+                    loadData(1);
+
                 });
 
-            $('#rp_exportExcel').on('click', e => {
-                e.preventDefault();
-                this.updateState();
-                window.open(
-                    '<?= base_url("report-accounting/export_excel_payment"); ?>?'
-                    + $.param(this.exportParams()),
-                    '_blank'
-                );
-            });
+            $('#paymentPlant').off('change')
+                .on('change', function(){
 
-            $('#rp_exportPDF').on('click', e => {
-                e.preventDefault();
-                this.updateState();
-                window.open(
-                    '<?= base_url("report-accounting/export_pdf_payment"); ?>?'
-                    + $.param(this.exportParams()),
-                    '_blank'
-                );
-            });
-        },
+                    loadData(1);
 
-        updateState() {
-            this.state.plant        = $('#rp_filter_plant').val();
-            this.state.supplier     = $('#rp_filter_supplier').val();
-            this.state.payment      = $('#rp_filter_payment').val();
-            this.state.payment_type = $('#rp_filter_type').val();
-            this.state.date_from    = $('#rp_date_from').val();
-            this.state.date_to      = $('#rp_date_to').val();
-        },
+                });
 
-        params() {
-            return {
-                page        : this.state.page,
-                limit       : this.state.limit,
-                plant       : this.state.plant,
-                supplier    : this.state.supplier,
-                payment     : this.state.payment,
-                payment_type: this.state.payment_type,
-                date_from   : this.state.date_from,
-                date_to     : this.state.date_to
-            };
-        },
+            $('#paymentSupplier').off('change')
+                .on('change', function(){
 
-        exportParams() {
-            return {
-                plant       : this.state.plant,
-                supplier    : this.state.supplier,
-                payment     : this.state.payment,
-                payment_type: this.state.payment_type,
-                date_from   : this.state.date_from,
-                date_to     : this.state.date_to
-            };
-        },
+                    loadData(1);
 
-        load(page = null) {
+                });
 
-            if (page !== null) this.state.page = page;
+            $('#paymentDateFrom').off('change')
+                .on('change', function(){
 
-            this.updateState();
+                    loadData(1);
 
-            $.get(
-                '<?= base_url("report-accounting/load_payment"); ?>',
-                this.params(),
-                resp => {
+                });
 
-                    this.render(resp.rows || []);
+            $('#paymentDateTo').off('change')
+                .on('change', function(){
 
-                    $('#rp_gt_total').text(
-                        this.rupiah(resp.grand?.total || 0)
+                    loadData(1);
+
+                });
+
+            $('#btnExportPayment').off('click')
+            .on('click', function(){
+
+                let url =
+                    '<?= base_url("report_accounting/export_payment_excel"); ?>'
+                    +
+                    '?search='
+                    + encodeURIComponent(
+                        $('#paymentSearch').val()
+                    )
+
+                    +
+                    '&plant='
+                    + encodeURIComponent(
+                        $('#paymentPlant').val()
+                    )
+
+                    +
+                    '&supplier='
+                    + encodeURIComponent(
+                        $('#paymentSupplier').val()
+                    )
+
+                    +
+                    '&date_from='
+                    + encodeURIComponent(
+                        $('#paymentDateFrom').val()
+                    )
+
+                    +
+                    '&date_to='
+                    + encodeURIComponent(
+                        $('#paymentDateTo').val()
                     );
 
-                    $('#rp_pagination').html(resp.pagination || '');
-                    $('#info').text(`Total data : ${resp.total || 0}`);
+                window.open(
+                    url,
+                    '_blank'
+                );
+
+            });
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | LOAD DATA
+        |--------------------------------------------------------------------------
+        */
+
+        function loadData(page = 1)
+        {
+            state.page = page;
+
+            $.get(
+
+                '<?= base_url("report-accounting/load_payment"); ?>',
+
+                {
+
+                    page      : state.page,
+
+                    limit     : state.limit,
+
+                    search    : $('#paymentSearch').val(),
+
+                    plant     : $('#paymentPlant').val(),
+
+                    supplier  : $('#paymentSupplier').val(),
+
+                    date_from : $('#paymentDateFrom').val(),
+
+                    date_to   : $('#paymentDateTo').val()
+
                 },
+
+                function(res){
+
+                    if(typeof res === 'string'){
+
+                        res = JSON.parse(res);
+
+                    }
+
+                    renderPaymentTable(res.rows);
+
+                    renderSummaryPayment(res.summary);
+
+                    $('#paymentReportPagination')
+                        .html(res.pagination);
+
+                    $('#paymentReportInfo')
+                        .html(
+                            `
+                                Total :
+                                <b>${res.total}</b>
+                                data
+                            `
+                        );
+
+                },
+
                 'json'
+
             );
-        },
+        }
 
-        render(rows) {
+        /*
+        |--------------------------------------------------------------------------
+        | TABLE
+        |--------------------------------------------------------------------------
+        */
 
-            const tbody = $('#paymentTable tbody').empty();
+        function formatDate(date)
+        {
+            if(!date){
 
-            if (!rows.length) {
-                tbody.html('<tr><td colspan="10" class="text-center">No data found</td></tr>');
+                return '-';
+
+            }
+
+            let d =
+                new Date(date);
+
+            if(isNaN(d.getTime())){
+
+                return date;
+
+            }
+
+            return d.toLocaleDateString(
+                'id-ID',
+                {
+
+                    day   : '2-digit',
+
+                    month : 'short',
+
+                    year  : 'numeric'
+
+                }
+            );
+        }
+
+        function formatQty(value)
+        {
+            return Number(
+                value || 0
+            ).toLocaleString(
+                'id-ID',
+                {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                }
+            );
+        }
+
+        function formatWeight(value)
+        {
+            return Number(
+                value || 0
+            ).toLocaleString(
+                'id-ID',
+                {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }
+            );
+        }
+
+        function formatCurrency(value)
+        {
+            return Number(
+                value || 0
+            ).toLocaleString(
+                'id-ID'
+            );
+        }
+
+        function renderPaymentTable(rows)
+        {
+            let wrapper =
+                $('#paymentResult');
+
+            wrapper.html('');
+
+            /*
+            |--------------------------------------------------------------------------
+            | EMPTY
+            |--------------------------------------------------------------------------
+            */
+
+            if(rows.length === 0){
+
+                wrapper.html(`
+
+                    <div class="card border-0 shadow-lg">
+
+                        <div class="card-body text-center py-5 text-muted">
+
+                            Tidak ada data payment
+
+                        </div>
+
+                    </div>
+
+                `);
+
                 return;
             }
 
-            const grouped = {};
+            /*
+            |--------------------------------------------------------------------------
+            | LOOP HEADER
+            |--------------------------------------------------------------------------
+            */
 
-            rows.forEach(r => {
-                const key = r.PAYMENT + '|' + r.PLANT;
-                grouped[key] = grouped[key] || [];
-                grouped[key].push(r);
-            });
+            rows.forEach(function(row){
 
-            Object.values(grouped).forEach(group => {
+                /*
+                |--------------------------------------------------------------------------
+                | STATUS
+                |--------------------------------------------------------------------------
+                */
 
-                const rowspan = group.length;
+                let statusBadge = `
+                    <span class="badge bg-success payment-badge">
+                        COMPLETED
+                    </span>
+                `;
 
-                group.forEach((r, i) => {
+                /*
+                |--------------------------------------------------------------------------
+                | DETAIL ROWS
+                |--------------------------------------------------------------------------
+                */
 
-                    let tr = '<tr>';
+                let detailRows = '';
 
-                    if (i === 0) {
-                        tr += `
-                            <td rowspan="${rowspan}" class="detail-row text-center"><b>${r.PLANT_NAME}</b></td>
-                            <td rowspan="${rowspan}" class="detail-row text-center">${this.date(r.PAYMENT_DATE)}</td>
-                            <td rowspan="${rowspan}" class="detail-row text-center"><b>${r.PAYMENT}</b></td>
-                            <td rowspan="${rowspan}" class="detail-row text-center">${r.PEMBAYARAN}</td>
-                            <td rowspan="${rowspan}" class="detail-row text-center">${r.SUPPLIER_NAME}<br><b>${r.SUPPLIER}</b></td>
-                        `;
-                    }
+                let subtotalQty    = 0;
+                let subtotalWeight = 0;
+                let subtotalTotal  = 0;
 
-                    tr += `
-                        <td class="detail-row text-center">${r.MATERIAL_NAME}<br><b>${r.MATERIAL}</b></td>
-                        <td class="detail-row text-end">${this.decimal(r.JUMLAH)}</td>
-                        <td class="detail-row text-end">${this.decimal(r.BERAT)}</td>
-                        <td class="detail-row text-end">${this.rupiah(r.HARGA)}</td>
-                        <td class="detail-row text-end">${this.rupiah(r.DETAIL_TOTAL)}</td>
-                    </tr>`;
+                /*
+                |--------------------------------------------------------------------------
+                | DETAIL LOOP
+                |--------------------------------------------------------------------------
+                */
 
-                    tbody.append(tr);
+                (row.DETAILS || []).forEach(function(d){
+
+                    subtotalQty +=
+                        Number(d.JUMLAH || 0);
+
+                    subtotalWeight +=
+                        Number(d.BERAT || 0);
+
+                    subtotalTotal +=
+                        Number(d.TOTAL || 0);
+
+                    detailRows += `
+
+                        <tr>
+
+                            <!-- PO -->
+                            <td>
+
+                                <div class="fw-semibold text-primary">
+
+                                    #${d.PO_NO || '-'}
+
+                                </div>
+
+                            </td>
+
+                            <!-- MATERIAL -->
+                            <td>
+
+                                <div>
+
+                                    ${d.MATERIAL_NAME || '-'}
+
+                                </div>
+
+                                <small class="text-muted">
+
+                                    TYPE :
+                                    ${d.TYPE || '-'}
+
+                                </small>
+
+                            </td>
+
+                            <!-- QTY -->
+                            <td class="text-end">
+
+                                ${formatQty(d.JUMLAH || 0)}
+
+                            </td>
+
+                            <!-- BERAT -->
+                            <td class="text-end">
+
+                                ${formatWeight(d.BERAT || 0)}
+
+                            </td>
+
+                            <!-- HARGA -->
+                            <td class="text-end">
+
+                                ${formatCurrency(d.HARGA || 0)}
+
+                            </td>
+
+                            <!-- TOTAL -->
+                            <td class="text-end fw-bold">
+
+                                ${formatCurrency(d.TOTAL || 0)}
+
+                            </td>
+
+                            <!-- REMARK -->
+                            <td>
+
+                                ${d.REMARK || '-'}
+
+                            </td>
+
+                        </tr>
+
+                    `;
                 });
-            });
-        },
 
-        date(d) {
-            return d ? new Date(d).toLocaleDateString('id-ID') : '-';
-        },
+                /*
+                |--------------------------------------------------------------------------
+                | CARD
+                |--------------------------------------------------------------------------
+                */
 
-        rupiah(x) {
-            return parseFloat(x || 0).toLocaleString('id-ID');
-        },
+                let card = `
 
-        decimal(x) {
-            return parseFloat(x || 0).toLocaleString('id-ID', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
+                    <div class="payment-card">
+
+                        <!-- HEADER -->
+                        <div class="payment-card-header p-4">
+
+                            <div class="d-flex justify-content-between">
+
+                                <div>
+
+                                    <h3 class="payment-title">
+
+                                        #${row.PAYMENT}
+
+                                    </h3>
+
+                                </div>
+
+                                <div>
+
+                                    ${statusBadge}
+
+                                </div>
+
+                            </div>
+
+                            <div class="row">
+
+                                <!-- LEFT -->
+                                <div class="col-md-6">
+
+                                    <table class="payment-info-table">
+
+                                        <tr>
+                                            <td class="label">PLANT</td>
+                                            <td>
+                                                :
+                                                ${row.PLANT_NAME || '-'}
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td><b>SUPPLIER</b></td>
+                                            <td>
+                                                :
+                                                ${row.SUPPLIER_NAME || '-'}
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td><b>PAYMENT</b></td>
+                                            <td>
+                                                :
+                                                ${row.PEMBAYARAN || '-'}
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td><b>SLIP NO</b></td>
+                                            <td>
+                                                :
+                                                ${row.SLIP_NO || '-'}
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td><b>REMARK</b></td>
+                                            <td>
+                                                :
+                                                ${row.REMARK || '-'}
+                                            </td>
+                                        </tr>
+
+                                    </table>
+
+                                </div>
+
+                                <!-- RIGHT -->
+                                <div class="col-md-6">
+
+                                    <table class="payment-info-table">
+
+                                        <tr>
+                                            <td width="140"><b>PAYMENT DATE</b></td>
+                                            <td>
+                                                :
+                                                ${formatDate(row.PAYMENT_DATE)}
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td><b>TOTAL ITEM</b></td>
+                                            <td>
+                                                :
+                                                ${row.TOTAL_ITEM || 0}
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td><b>GRAND TOTAL</b></td>
+                                            <td>
+                                                :
+                                                Rp ${formatCurrency(row.GRAND_TOTAL || 0)}
+                                            </td>
+                                        </tr>
+
+                                    </table>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- DETAIL -->
+                        <div class="table-responsive payment-detail-wrapper">
+
+                            <table class="table payment-detail-table align-middle">
+
+                                <thead class="table-light">
+
+                                    <tr>
+
+                                        <th>
+                                            PO
+                                        </th>
+
+                                        <th>
+                                            Material
+                                        </th>
+
+                                        <th class="text-end">
+                                            Qty
+                                        </th>
+
+                                        <th class="text-end">
+                                            Berat
+                                        </th>
+
+                                        <th class="text-end">
+                                            Harga
+                                        </th>
+
+                                        <th class="text-end">
+                                            Total
+                                        </th>
+
+                                        <th>
+                                            Remark
+                                        </th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody>
+
+                                    ${detailRows}
+
+                                    <!-- SUBTOTAL -->
+                                    <tr class="payment-subtotal">
+
+                                        <td colspan="2">
+
+                                            SUBTOTAL
+
+                                        </td>
+
+                                        <td class="text-end">
+
+                                            ${formatQty(subtotalQty)}
+
+                                        </td>
+
+                                        <td class="text-end">
+
+                                            ${formatWeight(subtotalWeight)}
+
+                                        </td>
+
+                                        <td></td>
+
+                                        <td class="text-end">
+
+                                            ${formatCurrency(subtotalTotal)}
+
+                                        </td>
+
+                                        <td></td>
+
+                                    </tr>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+                wrapper.append(card);
+
             });
         }
-    };
 
-    $(document).on('click', '#rp_pagination a', function(e){
-        e.preventDefault();
-        const page = $(this).data('page');
-        if (page) PaymentReport.load(page);
+        /*
+        |--------------------------------------------------------------------------
+        | SUMMARY
+        |--------------------------------------------------------------------------
+        */
+
+        function renderSummaryPayment(summary)
+        {
+            $('#summaryPaymentTotal')
+                .html(
+                    'Rp ' +
+                    formatNumber(
+                        summary.total_payment || 0
+                    )
+                );
+
+            $('#summaryPaymentSupplier')
+                .html(
+                    summary.total_supplier || 0
+                );
+
+            $('#summaryPaymentPO')
+                .html(
+                    summary.total_po || 0
+                );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT
+        |--------------------------------------------------------------------------
+        */
+
+        function loadPlant()
+        {
+            $.get(
+
+                '<?= base_url("payment/get_plant"); ?>',
+
+                function(rows){
+
+                    rows.forEach(function(r){
+
+                        $('#paymentPlant').append(`
+
+                            <option value="${r.id}">
+
+                                ${r.text}
+
+                            </option>
+
+                        `);
+
+                    });
+
+                },
+
+                'json'
+
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | SUPPLIER
+        |--------------------------------------------------------------------------
+        */
+
+        function initSupplier()
+        {
+            $('#paymentSupplier').select2({
+
+                placeholder:
+                    '-- Semua Supplier --',
+
+                allowClear: true,
+
+                width: '100%',
+
+                ajax: {
+
+                    url:
+                        '<?= base_url("payment/get_supplier"); ?>',
+
+                    dataType: 'json',
+
+                    delay: 250,
+
+                    data: function(params){
+
+                        return {
+
+                            q: params.term
+
+                        };
+
+                    },
+
+                    processResults: function(data){
+
+                        return {
+
+                            results: data
+
+                        };
+
+                    }
+
+                }
+
+            });
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | FORMAT
+        |--------------------------------------------------------------------------
+        */
+
+        function formatNumber(value)
+        {
+            return Number(
+                value || 0
+            ).toLocaleString('id-ID');
+        }
+
+        return {
+
+            init : init,
+
+            loadData : loadData
+
+        };
+
+    })();
+
+    $(document).ready(function(){
+
+        if(window.ReportPayment){
+
+            ReportPayment.init();
+
+        }
+
     });
 
-    $(document).ready(() => PaymentReport.init());
 </script>
