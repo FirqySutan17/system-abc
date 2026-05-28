@@ -35,7 +35,7 @@ class Po extends MY_Controller {
             'CREATED_AT'
         ];
 
-        $page  = max(
+        $page = max(
             1,
             (int)$this->input->get('page')
         );
@@ -49,11 +49,26 @@ class Po extends MY_Controller {
             $this->input->get('search', true)
         );
 
+        $status = trim(
+            $this->input->get('status', true)
+        );
+
+        $dateFrom = trim(
+            $this->input->get('date_from', true)
+        );
+
+        $dateTo = trim(
+            $this->input->get('date_to', true)
+        );
+
         $orderInput = strtoupper(
             $this->input->get('order', true)
         );
 
-        $order = in_array($orderInput, $allowedOrder)
+        $order = in_array(
+            $orderInput,
+            $allowedOrder
+        )
             ? $orderInput
             : 'PO_DATE';
 
@@ -65,14 +80,27 @@ class Po extends MY_Controller {
 
         $start = ($page - 1) * $limit;
 
-        // SESSION
-        $role_id = (int)$this->session->userdata('role_id');
+        /*
+        |--------------------------------------------------------------------------
+        | SESSION
+        |--------------------------------------------------------------------------
+        */
 
-        $plant = $this->session->userdata('plant');
+        $role_id = (int)$this->session
+            ->userdata('role_id');
 
-        $username = $this->session->userdata('username');
+        $plant = $this->session
+            ->userdata('plant');
 
-        // DATA
+        $username = $this->session
+            ->userdata('username');
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATA
+        |--------------------------------------------------------------------------
+        */
+
         $rows = $this->Po_model->get_data(
             $limit,
             $start,
@@ -81,14 +109,20 @@ class Po extends MY_Controller {
             $username,
             $search,
             $order,
-            $dir
+            $dir,
+            $status,
+            $dateFrom,
+            $dateTo
         );
 
         $total = $this->Po_model->count_data(
             $role_id,
             $plant,
             $username,
-            $search
+            $search,
+            $status,
+            $dateFrom,
+            $dateTo
         );
 
         $pages = $total > 0
@@ -96,15 +130,22 @@ class Po extends MY_Controller {
             : 1;
 
         echo json_encode([
-            'status'     => true,
-            'rows'       => $rows,
-            'total'      => (int)$total,
-            'page'       => (int)$page,
-            'pages'      => (int)$pages,
+
+            'status' => true,
+
+            'rows' => $rows,
+
+            'total' => (int)$total,
+
+            'page' => (int)$page,
+
+            'pages' => (int)$pages,
+
             'pagination' => $this->build_pagination(
                 $pages,
                 $page
             )
+
         ]);
     }
 

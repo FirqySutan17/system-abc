@@ -7,6 +7,10 @@ class ReportAccounting extends CI_Controller
     {
         parent::__construct();
 
+        $this->load->model(
+            'ReportAccounting_model'
+        );
+
         /*
         |--------------------------------------------------------------------------
         | AUTH
@@ -567,6 +571,480 @@ class ReportAccounting extends CI_Controller
                 )
 
         ]);
+    }
+
+    public function export_excel_cashin()
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        $filter = [
+
+            'search' =>
+                trim(
+                    $this->input->get(
+                        'search',
+                        true
+                    )
+                ),
+
+            'plant' =>
+                trim(
+                    $this->input->get(
+                        'plant',
+                        true
+                    )
+                ),
+
+            'customer' =>
+                trim(
+                    $this->input->get(
+                        'customer',
+                        true
+                    )
+                ),
+
+            'pembayaran' =>
+                trim(
+                    $this->input->get(
+                        'pembayaran',
+                        true
+                    )
+                ),
+
+            'mode' =>
+                trim(
+                    $this->input->get(
+                        'mode',
+                        true
+                    )
+                ),
+
+            'date_from' =>
+                trim(
+                    $this->input->get(
+                        'date_from',
+                        true
+                    )
+                ),
+
+            'date_to' =>
+                trim(
+                    $this->input->get(
+                        'date_to',
+                        true
+                    )
+                )
+
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | LOAD MODEL
+        |--------------------------------------------------------------------------
+        */
+
+        $this->load->model(
+            'ReportAccounting_model'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATA
+        |--------------------------------------------------------------------------
+        */
+
+        $rows =
+            $this->ReportAccounting_model
+                ->get_report_cashin(
+                    999999,
+                    0,
+                    $filter
+                );
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        foreach($rows as &$row){
+
+            $row['DETAILS'] =
+
+                $this->ReportAccounting_model
+                    ->get_report_cashin_detail(
+
+                        $row['CASH_IN'],
+
+                        $row['PLANT']
+
+                    );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | HEADER EXCEL
+        |--------------------------------------------------------------------------
+        */
+
+        header(
+            "Content-Type: application/vnd.ms-excel"
+        );
+
+        header(
+            "Content-Disposition: attachment; filename=REPORT_CASHIN_".date('YmdHis').".xls"
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | VIEW
+        |--------------------------------------------------------------------------
+        */
+
+        $this->load->view(
+
+            'admin/report_accounting/excel_cashin',
+
+            [
+
+                'rows' => $rows
+
+            ]
+
+        );
+    }
+
+    /* =========================================================
+    * LOAD REPORT COST
+    * =======================================================*/
+
+    public function load_cost()
+    {
+        $page =
+            max(
+                1,
+                (int) $this->input->get('page')
+            );
+
+        $limit =
+            max(
+                1,
+                (int) $this->input->get('limit')
+            );
+
+        $start =
+            ($page - 1) * $limit;
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        $filter = [
+
+            'search' => trim(
+                $this->input->get('search', true)
+            ),
+
+            'plant' => $this->input->get(
+                'plant',
+                true
+            ),
+
+            'pembayaran' => $this->input->get(
+                'pembayaran',
+                true
+            ),
+
+            'date_from' => $this->input->get(
+                'date_from',
+                true
+            ),
+
+            'date_to' => $this->input->get(
+                'date_to',
+                true
+            )
+
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATA
+        |--------------------------------------------------------------------------
+        */
+
+        $rows =
+            $this->ReportAccounting_model
+                ->get_cost_report(
+
+                    $limit,
+                    $start,
+                    $filter
+
+                );
+
+        $total =
+            $this->ReportAccounting_model
+                ->count_cost_report(
+                    $filter
+                );
+
+        $summary =
+            $this->ReportAccounting_model
+                ->summary_cost_report(
+                    $filter
+                );
+
+        /*
+        |--------------------------------------------------------------------------
+        | PAGINATION
+        |--------------------------------------------------------------------------
+        */
+
+        $pages =
+            $total > 0
+                ? ceil($total / $limit)
+                : 1;
+
+        echo json_encode([
+
+            'status' => true,
+
+            'rows' => $rows,
+
+            'summary' => $summary,
+
+            'page' => (int) $page,
+
+            'pages' => (int) $pages,
+
+            'total' => (int) $total,
+
+            'pagination' =>
+                $this->build_cost_pagination(
+                    $pages,
+                    $page
+                )
+
+        ]);
+    }
+
+    public function export_excel_cost()
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        $filter = [
+
+            'search' => trim(
+                $this->input->get(
+                    'search',
+                    true
+                )
+            ),
+
+            'plant' => $this->input->get(
+                'plant',
+                true
+            ),
+
+            'pembayaran' => $this->input->get(
+                'pembayaran',
+                true
+            ),
+
+            'date_from' => $this->input->get(
+                'date_from',
+                true
+            ),
+
+            'date_to' => $this->input->get(
+                'date_to',
+                true
+            )
+
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATA
+        |--------------------------------------------------------------------------
+        */
+
+        $rows =
+            $this->ReportAccounting_model
+                ->get_cost_report(
+
+                    999999,
+                    0,
+                    $filter
+
+                );
+
+        /*
+        |--------------------------------------------------------------------------
+        | HEADER
+        |--------------------------------------------------------------------------
+        */
+
+        header(
+            "Content-Type: application/vnd.ms-excel"
+        );
+
+        header(
+
+            "Content-Disposition: attachment; filename=REPORT_COST_".date('YmdHis').".xls"
+
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | VIEW
+        |--------------------------------------------------------------------------
+        */
+
+        $this->load->view(
+
+            'admin/report_accounting/excel_cost',
+
+            [
+
+                'rows' => $rows
+
+            ]
+
+        );
+    }
+
+    /* =========================================================
+    * PAGINATION
+    * =======================================================*/
+
+    private function build_cost_pagination(
+        $pages,
+        $current
+    )
+    {
+        if($pages <= 1){
+
+            return '';
+
+        }
+
+        $html =
+            '<ul class="pagination pagination-sm mb-0">';
+
+        /*
+        |--------------------------------------------------------------------------
+        | PREV
+        |--------------------------------------------------------------------------
+        */
+
+        $prev =
+            max(
+                1,
+                $current - 1
+            );
+
+        $disabled =
+            $current == 1
+                ? 'disabled'
+                : '';
+
+        $html .= '
+
+            <li class="page-item '.$disabled.'">
+
+                <a
+                    href="#"
+                    class="page-link"
+                    data-cost-pagination-page="'.$prev.'">
+
+                    Prev
+
+                </a>
+
+            </li>
+
+        ';
+
+        /*
+        |--------------------------------------------------------------------------
+        | NUMBER
+        |--------------------------------------------------------------------------
+        */
+
+        for($i = 1; $i <= $pages; $i++){
+
+            $active =
+                $i == $current
+                    ? 'active'
+                    : '';
+
+            $html .= '
+
+                <li class="page-item '.$active.'">
+
+                    <a
+                        href="#"
+                        class="page-link"
+                        data-cost-pagination-page="'.$i.'">
+
+                        '.$i.'
+
+                    </a>
+
+                </li>
+
+            ';
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | NEXT
+        |--------------------------------------------------------------------------
+        */
+
+        $next =
+            min(
+                $pages,
+                $current + 1
+            );
+
+        $disabled =
+            $current == $pages
+                ? 'disabled'
+                : '';
+
+        $html .= '
+
+            <li class="page-item '.$disabled.'">
+
+                <a
+                    href="#"
+                    class="page-link"
+                    data-cost-pagination-page="'.$next.'">
+
+                    Next
+
+                </a>
+
+            </li>
+
+        ';
+
+        $html .= '</ul>';
+
+        return $html;
     }
 
     /*

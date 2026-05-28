@@ -147,6 +147,60 @@
 
     }
 
+    .cashin-info-table tr{
+        border: none !important;
+    }
+
+    .cashin-info-table tbody{
+        border: none !important;
+    }
+
+    .cashin-badge{
+
+        padding: 10px 16px;
+
+        border-radius: 999px;
+
+        font-size: 12px;
+
+        font-weight: 700;
+
+        letter-spacing: .5px;
+
+    }
+
+    .summary-title{
+
+        font-size: 13px;
+
+        font-weight: 600;
+
+        opacity: .9;
+
+        margin-bottom: 10px;
+
+    }
+
+    .summary-value{
+
+        font-size: 29px;
+
+        font-weight: 800;
+
+        line-height: 1;
+
+        color: #fff;
+
+    }
+
+    .cashin-title {
+        font-size: 34px;
+        font-weight: 800;
+        color: white;
+        letter-spacing: .5px;
+        margin-bottom: 24px;
+    }
+
 </style>
 
 <div id="cashinReportWrapper">
@@ -157,23 +211,20 @@
 
     <div class="row mb-4">
 
-        <div class="col-md-3">
+        <div class="col-md-4">
+            <div class="report-card bg-success">
 
-            <div class="card summary-card bg-primary text-white">
+                <div class="report-card-title">
 
-                <div class="card-body">
+                    TOTAL CASH IN
 
-                    <div class="small">
+                </div>
 
-                        TOTAL CASH IN
+                <div
+                    class="report-card-value"
+                    id="summaryCashinTotal">
 
-                    </div>
-
-                    <h4 id="summaryCashinTotal">
-
-                        Rp 0
-
-                    </h4>
+                    0
 
                 </div>
 
@@ -181,23 +232,20 @@
 
         </div>
 
-        <div class="col-md-3">
+        <div class="col-md-4">
+            <div class="report-card bg-success">
 
-            <div class="card summary-card bg-success text-white">
+                <div class="report-card-title">
 
-                <div class="card-body">
+                    TOTAL CUSTOMER
 
-                    <div class="small">
+                </div>
 
-                        TOTAL CUSTOMER
+                <div
+                    class="report-card-value"
+                    id="summaryCashinCustomer">
 
-                    </div>
-
-                    <h4 id="summaryCashinCustomer">
-
-                        0
-
-                    </h4>
+                    0
 
                 </div>
 
@@ -205,23 +253,20 @@
 
         </div>
 
-        <div class="col-md-3">
+        <div class="col-md-4">
+            <div class="report-card bg-success">
 
-            <div class="card summary-card bg-warning text-dark">
+                <div class="report-card-title">
 
-                <div class="card-body">
+                    TOTAL INVOICE
 
-                    <div class="small">
+                </div>
 
-                        TOTAL INVOICE
+                <div
+                    class="report-card-value"
+                    id="summaryCashinInvoice">
 
-                    </div>
-
-                    <h4 id="summaryCashinInvoice">
-
-                        0
-
-                    </h4>
+                    0
 
                 </div>
 
@@ -229,7 +274,7 @@
 
         </div>
 
-        <div class="col-md-3">
+        <!-- <div class="col-md-3">
 
             <div class="card summary-card bg-danger text-white">
 
@@ -251,7 +296,7 @@
 
             </div>
 
-        </div>
+        </div> -->
 
     </div>
 
@@ -504,6 +549,76 @@
                 loadData(1);
 
             });
+
+            $(document).on(
+
+                'click',
+
+                '#cashinReportPagination a',
+
+                function(e){
+
+                    e.preventDefault();
+
+                    let page =
+                        $(this).data('ci-pagination-page');
+
+                    if(!page){
+
+                        return;
+
+                    }
+
+                    loadData(page);
+
+                }
+
+            );
+
+            $('#btnExportCashin').on(
+
+                'click',
+
+                function(){
+
+                    let params =
+                        $.param({
+
+                            search:
+                                $('#cashinSearch').val(),
+
+                            plant:
+                                $('#cashinPlant').val(),
+
+                            customer:
+                                $('#cashinCustomer').val(),
+
+                            pembayaran:
+                                $('#cashinPayment').val(),
+
+                            mode:
+                                $('#cashinMode').val(),
+
+                            date_from:
+                                $('#cashinDateFrom').val(),
+
+                            date_to:
+                                $('#cashinDateTo').val()
+
+                        });
+
+                    window.open(
+
+                        '<?= base_url("report-accounting/export_excel_cashin"); ?>?'
+                        + params,
+
+                        '_blank'
+
+                    );
+
+                }
+
+            );
         }
 
         /*
@@ -546,10 +661,413 @@
 
                     console.log(res);
 
+                    /*
+                    |--------------------------------------------------------------------------
+                    | SUMMARY
+                    |--------------------------------------------------------------------------
+                    */
+
+                    renderSummary(
+                        res.summary || {}
+                    );
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | TABLE
+                    |--------------------------------------------------------------------------
+                    */
+
+                    renderTable(
+                        res.rows || []
+                    );
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | PAGINATION
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $('#cashinReportPagination')
+                        .html(
+                            res.pagination || ''
+                        );
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | INFO
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $('#cashinReportInfo').html(`
+
+                        Total :
+                        <b>${res.total || 0}</b>
+                        data
+
+                    `);
+
                 },
 
                 'json'
 
+            );
+        }
+
+        function renderSummary(summary)
+        {
+            $('#summaryCashinTotal').html(
+                'Rp ' +
+                formatRupiah(
+                    summary.TOTAL_CASHIN || 0
+                )
+            );
+
+            $('#summaryCashinCustomer').html(
+                formatRupiah(
+                    summary.TOTAL_CUSTOMER || 0
+                )
+            );
+
+            $('#summaryCashinInvoice').html(
+                formatRupiah(
+                    summary.TOTAL_INVOICE || 0
+                )
+            );
+
+            $('#summaryCashinDeposit').html(
+                'Rp ' +
+                formatRupiah(
+                    summary.TOTAL_DEPOSIT || 0
+                )
+            );
+        }
+
+        function renderTable(rows)
+        {
+            let wrapper =
+                $('#cashinResult');
+
+            wrapper.html('');
+
+            /*
+            |--------------------------------------------------------------------------
+            | EMPTY
+            |--------------------------------------------------------------------------
+            */
+
+            if(rows.length === 0){
+
+                wrapper.html(`
+
+                    <div class="card border-0 shadow-sm">
+
+                        <div class="card-body text-center py-5 text-muted">
+
+                            Belum ada data cash in
+
+                        </div>
+
+                    </div>
+
+                `);
+
+                return;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | LOOP
+            |--------------------------------------------------------------------------
+            */
+
+            rows.forEach(function(row){
+
+                let detailRows = '';
+
+                /*
+                |--------------------------------------------------------------------------
+                | DETAIL
+                |--------------------------------------------------------------------------
+                */
+
+                (row.DETAILS || []).forEach(function(d){
+
+                    let badge = `
+                        <span class="cashin-badge badge bg-secondary">
+                            OPEN
+                        </span>
+                    `;
+
+                    if(d.SALES_STATUS === 'PAID'){
+
+                        badge = `
+                            <span class="cashin-badge badge bg-success">
+                                PAID
+                            </span>
+                        `;
+                    }
+                    else if(
+                        d.SALES_STATUS === 'PARTIAL'
+                    ){
+
+                        badge = `
+                            <span class="cashin-badge badge bg-warning text-dark">
+                                PARTIAL
+                            </span>
+                        `;
+                    }
+
+                    detailRows += `
+
+                        <tr>
+
+                            <td>
+
+                                <div class="fw-bold text-primary">
+
+                                    #${d.SALES}
+
+                                </div>
+
+                            </td>
+
+                            <td class="text-end">
+
+                                Rp
+                                ${formatRupiah(
+                                    d.AMOUNT_INVOICE || 0
+                                )}
+
+                            </td>
+
+                            <td class="text-end">
+
+                                Rp
+                                ${formatRupiah(
+                                    d.AMOUNT_OFFSET || 0
+                                )}
+
+                            </td>
+
+                            <td class="text-end">
+
+                                Rp
+                                ${formatRupiah(
+                                    d.REMAINING || 0
+                                )}
+
+                            </td>
+
+                            <td class="text-center">
+
+                                ${badge}
+
+                            </td>
+
+                        </tr>
+
+                    `;
+                });
+
+                /*
+                |--------------------------------------------------------------------------
+                | CARD
+                |--------------------------------------------------------------------------
+                */
+
+                wrapper.append(`
+
+                    <div class="card border-0 shadow-lg mb-4 overflow-hidden">
+
+                        <!-- HEADER -->
+                        <div class="cashin-card-header p-4">
+
+                            <div class="d-flex justify-content-between">
+
+                                <h3 class="cashin-title">
+
+                                    #${row.CASH_IN}
+
+                                </h3>
+
+                                <span class="badge cashin-badge">
+
+                                    ${row.PEMBAYARAN || '-'}
+
+                                </span>
+
+                            </div>
+
+                            <div class="row text-white">
+
+                                <div class="col-md-6">
+
+                                    <table class="table table-borderless text-white mb-0 cashin-info-table">
+
+                                        <tr>
+                                            <td width="140">
+                                                <b>PLANT</b>
+                                            </td>
+                                            <td>
+                                                :
+                                                ${row.PLANT_NAME || '-'}
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+                                                <b>CUSTOMER</b>
+                                            </td>
+                                            <td>
+                                                :
+                                                ${row.CUSTOMER_NAME || '-'}
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+                                                <b>SLIP NO</b>
+                                            </td>
+                                            <td>
+                                                :
+                                                ${row.SLIP_NO || '-'}
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+                                                <b>REMARK</b>
+                                            </td>
+                                            <td>
+                                                :
+                                                ${row.REMARK || '-'}
+                                            </td>
+                                        </tr>
+
+                                    </table>
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <table class="table table-borderless text-white mb-0 cashin-info-table">
+
+                                        <tr>
+                                            <td width="140">
+                                                <b>DATE</b>
+                                            </td>
+                                            <td>
+                                                :
+                                                ${formatDate(
+                                                    row.CASHIN_DATE
+                                                )}
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+                                                <b>TOTAL INVOICE</b>
+                                            </td>
+                                            <td>
+                                                :
+                                                ${row.TOTAL_INVOICE || 0}
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+                                                <b>TOTAL CASH IN</b>
+                                            </td>
+                                            <td>
+                                                :
+                                                Rp
+                                                ${formatRupiah(
+                                                    row.AMOUNT || 0
+                                                )}
+                                            </td>
+                                        </tr>
+
+                                    </table>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- DETAIL -->
+                        <div class="table-responsive">
+
+                            <table class="table table-hover align-middle mb-0">
+
+                                <thead class="table-light">
+
+                                    <tr>
+
+                                        <th>Sales</th>
+
+                                        <th class="text-end">
+                                            Invoice
+                                        </th>
+
+                                        <th class="text-end">
+                                            Paid
+                                        </th>
+
+                                        <th class="text-end">
+                                            Remaining
+                                        </th>
+
+                                        <th class="text-center">
+                                            Status
+                                        </th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody>
+
+                                    ${detailRows}
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                `);
+
+            });
+        }
+
+        function formatDate(date)
+        {
+            if(!date){
+
+                return '-';
+
+            }
+
+            return new Date(date)
+                .toLocaleDateString(
+                    'id-ID',
+                    {
+                        day   : '2-digit',
+                        month : 'short',
+                        year  : 'numeric'
+                    }
+                );
+        }
+
+        function formatRupiah(value)
+        {
+            return Number(
+                value || 0
+            ).toLocaleString(
+                'id-ID'
             );
         }
 

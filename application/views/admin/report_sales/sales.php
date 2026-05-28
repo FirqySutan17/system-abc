@@ -1,144 +1,21 @@
-<?php $userPlant = $this->session->userdata('plant'); ?>
+<div class="row mb-4">
 
-<div class="sales-report-wrap">
+    <!-- TOTAL SALES -->
+    <div class="col-md-4">
 
-    <!-- FILTER -->
-    <div class="report-filter-card">
+        <div class="report-card bg-primary">
 
-        <div class="row g-3 align-items-end">
+            <div class="report-card-title">
 
-            <!-- PLANT -->
-            <div class="col-md-2">
-
-                <label class="form-label fw-semibold">
-                    Plant
-                </label>
-
-                <select
-                    id="sl_filter_plant"
-                    class="form-control">
-
-                    <option value="">
-                        Choose Plant
-                    </option>
-
-                    <?php foreach ($plants as $p): ?>
-
-                        <?php if ($p->CODE != '*'): ?>
-
-                            <option value="<?= $p->CODE ?>">
-                                <?= $p->CODE_NAME ?>
-                            </option>
-
-                        <?php endif; ?>
-
-                    <?php endforeach; ?>
-
-                </select>
+                TOTAL SALES
 
             </div>
 
-            <!-- CUSTOMER -->
-            <div class="col-md-3">
+            <div
+                class="report-card-value"
+                id="summaryTotalSales">
 
-                <label class="form-label fw-semibold">
-                    Customer
-                </label>
-
-                <select
-                    id="sl_filter_customer"
-                    class="form-control">
-
-                    <option value="">
-                        Choose Customer
-                    </option>
-
-                    <?php foreach ($customers as $c): ?>
-
-                        <option value="<?= $c->CUST ?>">
-                            <?= $c->CUST ?>
-                            -
-                            <?= $c->FULL_NAME ?>
-                        </option>
-
-                    <?php endforeach; ?>
-
-                </select>
-
-            </div>
-
-            <!-- SALES -->
-            <div class="col-md-3">
-
-                <label class="form-label fw-semibold">
-                    Sales / Nota
-                </label>
-
-                <input
-                    type="text"
-                    id="sl_filter_sales"
-                    class="form-control"
-                    placeholder="Search Sales / Nota..."
-                >
-
-            </div>
-
-            <!-- DATE FROM -->
-            <div class="col-md-2">
-
-                <label class="form-label fw-semibold">
-                    Date From
-                </label>
-
-                <input
-                    type="date"
-                    id="sl_date_from"
-                    class="form-control">
-
-            </div>
-
-            <!-- DATE TO -->
-            <div class="col-md-2">
-
-                <label class="form-label fw-semibold">
-                    Date To
-                </label>
-
-                <input
-                    type="date"
-                    id="sl_date_to"
-                    class="form-control">
-
-            </div>
-
-            <!-- STATUS -->
-            <div class="col-md-2">
-
-                <label class="form-label fw-semibold">
-                    Status
-                </label>
-
-                <select
-                    id="sl_filter_status"
-                    class="form-control">
-
-                    <option value="">
-                        All Status
-                    </option>
-
-                    <option value="OPEN">
-                        OPEN
-                    </option>
-
-                    <option value="PARTIAL">
-                        PARTIAL
-                    </option>
-
-                    <option value="PAID">
-                        PAID
-                    </option>
-
-                </select>
+                Rp 0
 
             </div>
 
@@ -146,1132 +23,903 @@
 
     </div>
 
-    <!-- LOADING -->
-    <div id="slLoading" class="report-loading d-none">
+    <!-- TOTAL DOC -->
+    <div class="col-md-4">
 
-        <div class="text-center">
+        <div class="report-card bg-warning">
 
-            <div class="spinner-border text-primary"></div>
+            <div class="report-card-title">
 
-            <div class="fw-semibold mt-3">
-                Loading report...
+                TOTAL SALES DOC
+
             </div>
 
-            <small class="text-muted">
-                Please wait a moment
-            </small>
+            <div
+                class="report-card-value"
+                id="summaryTotalDocSales">
+
+                0
+
+            </div>
 
         </div>
 
     </div>
 
-    <!-- CONTENT -->
-    <div id="salesReportWrapper"></div>
+    <!-- TOTAL CUSTOMER -->
+    <div class="col-md-4">
 
-    <!-- PAGINATION -->
-    <div class="d-flex justify-content-between align-items-center mt-4">
+        <div class="report-card bg-danger">
 
-        <div
-            id="sl_pageInfo"
-            class="text-muted small">
+            <div class="report-card-title">
+
+                TOTAL CUSTOMER
+
+            </div>
+
+            <div
+                class="report-card-value"
+                id="summaryTotalCustomerSales">
+
+                0
+
+            </div>
+
         </div>
-
-        <div id="sl_pagination"></div>
 
     </div>
 
 </div>
 
+<div class="mb-4">
+
+    <div class="row g-3">
+
+        <!-- SEARCH -->
+        <div class="col-md-3">
+
+            <input
+                type="text"
+                id="salesSearch"
+                class="form-control"
+                placeholder="Cari sales, customer, nota...">
+
+        </div>
+
+        <!-- PLANT -->
+        <div class="col-md-2">
+
+            <select
+                id="salesPlant"
+                class="form-select">
+
+                <option value="">
+
+                    Semua Plant
+
+                </option>
+
+            </select>
+
+        </div>
+
+        <!-- CUSTOMER -->
+        <div class="col-md-3">
+
+            <select
+                id="salesCustomer"
+                class="form-select">
+
+            </select>
+
+        </div>
+
+        <!-- PAYMENT -->
+        <div class="col-md-2">
+
+            <select
+                id="salesPembayaran"
+                class="form-select">
+
+                <option value="">
+
+                    Semua Payment
+
+                </option>
+
+                <option value="CASH">
+
+                    CASH
+
+                </option>
+
+                <option value="TRANSFER">
+
+                    TRANSFER
+
+                </option>
+
+            </select>
+
+        </div>
+
+        <!-- STATUS -->
+        <div class="col-md-2">
+
+            <select
+                id="salesStatus"
+                class="form-select">
+
+                <option value="">
+
+                    Semua Status
+
+                </option>
+
+                <option value="OPEN">
+
+                    OPEN
+
+                </option>
+
+                <option value="PARTIAL">
+
+                    PARTIAL
+
+                </option>
+
+                <option value="PAID">
+
+                    PAID
+
+                </option>
+
+            </select>
+
+        </div>
+
+        <!-- DATE FROM -->
+        <div class="col-md-2">
+
+            <input
+                type="date"
+                id="salesDateFrom"
+                class="form-control"
+                value="<?= date('Y-m-01'); ?>">
+
+        </div>
+
+        <!-- DATE TO -->
+        <div class="col-md-2">
+
+            <input
+                type="date"
+                id="salesDateTo"
+                class="form-control"
+                value="<?= date('Y-m-d'); ?>">
+
+        </div>
+
+        <div class="col-md-6"></div>
+
+        <!-- EXPORT -->
+        <div class="col-md-2">
+
+            <button
+                id="btnExportSales"
+                class="btn btn-success w-100">
+
+                Export Excel
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- RESULT -->
+<div id="salesResult">
+
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-body text-center py-5 text-muted">
+
+            Belum ada data
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- PAGINATION -->
+<div class="d-flex justify-content-between mt-3">
+
+    <div id="salesReportInfo"></div>
+
+    <div id="salesReportPagination"></div>
+
+</div>
+
 <style>
-.sales-report-wrap{
-    padding:4px;
-}
+    .report-card{
 
-.report-filter-card{
-    background:#fff;
-    border:1px solid #edf2f7;
-    border-radius:18px;
-    padding:24px;
-    box-shadow:0 8px 25px rgba(15,23,42,.05);
-    margin-bottom:24px;
-}
+        border-radius: 24px;
 
-.report-loading{
-    min-height:280px;
-    background:#fff;
-    border-radius:18px;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    border:1px solid #edf2f7;
-}
+        padding: 24px;
 
-.sales-card{
-    background:#fff;
-    border-radius:20px;
-    overflow:hidden;
-    margin-bottom:24px;
-    box-shadow:0 10px 30px rgba(15,23,42,.06);
-    border:1px solid #edf2f7;
-}
-
-.sales-head{
-    background:#0f4c81;
-    color:#fff;
-    padding:22px 24px;
-}
-
-.sales-title{
-    font-size:22px;
-    font-weight:700;
-    letter-spacing:.5px;
-}
-
-.status-badge{
-    padding:7px 14px;
-    border-radius:50px;
-    font-size:12px;
-    font-weight:700;
-}
-
-.status-open{
-    background:#fff3cd;
-    color:#856404;
-}
-
-.status-partial{
-    background:#dbeafe;
-    color:#1d4ed8;
-}
-
-.status-paid{
-    background:#d1fae5;
-    color:#065f46;
-}
-
-.meta-grid{
-
-    display:grid;
-
-    grid-template-columns:1fr 1fr;
-
-    gap:10px 40px;
-
-    margin-top:18px;
-
-    font-size:14px;
-}
-
-.meta-item{
-    display:flex;
-    gap:8px;
-}
-
-.meta-label{
-    min-width:110px;
-    opacity:.85;
-    font-weight:600;
-}
-
-.meta-value{
-
-    flex:1;
-
-    font-weight:500;
-
-    color:#fff;
-}
-
-.sales-body{
-
-    padding:0;
-}
-
-.attach-badge{
-    display:inline-block;
-    padding:4px 10px;
-    border-radius:50px;
-    font-size:12px;
-    font-weight:700;
-    background:#e0f2fe;
-    color:#075985;
-}
-
-.table-detail{
-    margin:0;
-    font-size:14px;
-}
-
-.table-detail thead th{
-    background:#f8fafc;
-    border-color:#e5e7eb;
-    font-size:12px;
-    text-transform:uppercase;
-    letter-spacing:.4px;
-}
-
-.table-detail td{
-    border-color:#edf2f7;
-    vertical-align:middle;
-}
-
-.subtotal-row{
-    background:#f8fafc;
-    font-weight:700;
-}
-
-@media(max-width:768px){
-
-    .meta-grid{
-        grid-template-columns:1fr;
-        gap:8px;
-    }
-
-    .sales-title{
-        font-size:18px;
-    }
-
-    .sales-head,
-    .sales-body{
-        padding:18px;
-    }
-}
-</style>
-
-<style>
-
-    /*
-    |--------------------------------------------------------------------------
-    | FILTER AREA
-    |--------------------------------------------------------------------------
-    */
-
-    .sales-filter-card{
-
-        border: 0;
-
-        border-radius: 18px;
-
-        background: #fff;
+        color: #fff;
 
         box-shadow:
-            0 4px 18px rgba(0,0,0,.05);
+            0 10px 25px rgba(0,0,0,.08);
 
-        margin-bottom: 20px;
     }
 
-    .sales-filter-header{
+    .report-card-title{
 
-        padding: 18px 22px;
+        font-size: 14px;
 
-        border-bottom:
-            1px solid #edf1f7;
+        opacity: .9;
 
-        font-size: 18px;
+        margin-bottom: 8px;
+
+    }
+
+    .report-card-value{
+
+        font-size: 38px;
 
         font-weight: 700;
 
-        color: #2d3748;
+        line-height: 1.1;
+
     }
 
-    .sales-filter-body{
+    .sales-header{
 
-        padding: 22px;
-    }
+        background:
+            linear-gradient(
+                135deg,
+                #2563eb,
+                #3b82f6
+            );
 
-    /*
-    |--------------------------------------------------------------------------
-    | REPORT CARD
-    |--------------------------------------------------------------------------
-    */
+        border-radius: 24px 24px 0 0;
 
-    .sales-card{
-
-        border-radius: 18px;
+        position: relative;
 
         overflow: hidden;
 
-        background: #fff;
+        padding: 32px;
 
-        margin-bottom: 24px;
-
-        box-shadow:
-            0 5px 18px rgba(0,0,0,.06);
-
-        border:
-            1px solid #eef2f7;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | HEAD
-    |--------------------------------------------------------------------------
-    */
+    .sales-header::after{
 
-    .sales-head{
+        content: '';
 
-        padding: 22px;
+        position: absolute;
 
-        background:
-            linear-gradient(
-                135deg,
-                #0d6efd 0%,
-                #3f8cff 100%
-            );
+        width: 280px;
 
-        color: #fff;
+        height: 280px;
+
+        background: rgba(255,255,255,.08);
+
+        border-radius: 50%;
+
+        right: -100px;
+
+        top: -80px;
+
     }
 
     .sales-title{
 
-        font-size: 22px;
+        color: #fff;
+
+        font-size: 34px;
 
         font-weight: 700;
 
-        letter-spacing: .5px;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | META
-    |--------------------------------------------------------------------------
-    */
+    .sales-badge{
 
-    .meta-grid{
-
-        display:grid;
-
-        grid-template-columns:1fr 1fr;
-
-        gap:10px 40px;
-
-        margin-top:18px;
-
-        font-size:14px;
-    }
-
-    .meta-item{
-
-        display:flex;
-
-        gap:8px;
-
-        background:none;
-
-        border:0;
-
-        padding:0;
-    }
-
-    .meta-label{
-
-        min-width:110px;
-
-        opacity:.85;
-
-        font-weight:600;
-
-        color:#fff;
-    }
-
-    .meta-value{
-
-        font-size: 14px;
-
-        font-weight: 600;
-
-        word-break: break-word;
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | STATUS
-    |--------------------------------------------------------------------------
-    */
-
-    .status-badge{
-
-        padding:7px 14px;
-
-        border-radius:50px;
-
-        font-size:12px;
-
-        font-weight:700;
-    }
-
-    .status-open{
-
-        background:
-            linear-gradient(
-                135deg,
-                #f59e0b,
-                #fbbf24
-            );
-    }
-
-    .status-partial{
-
-        background:
-            linear-gradient(
-                135deg,
-                #0ea5e9,
-                #38bdf8
-            );
-    }
-
-    .status-paid{
-
-        background:
-            linear-gradient(
-                135deg,
-                #10b981,
-                #34d399
-            );
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | BODY
-    |--------------------------------------------------------------------------
-    */
-
-    .sales-body{
-
-        padding: 20px;
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | TABLE
-    |--------------------------------------------------------------------------
-    */
-
-    .table-detail{
-
-        margin-bottom: 0;
-    }
-
-    .table-detail thead th{
-
-        background:#f1f5f9;
-
-        border-color:#e5e7eb;
-
-        font-size:12px;
-
-        text-transform:uppercase;
-
-        letter-spacing:.4px;
-    }
-
-    .table-detail tbody td{
-
-        padding: 12px 10px;
-
-        vertical-align: middle;
-
-        border-color: #eef2f7;
-    }
-
-    .table-detail tbody tr:hover{
-
-        background: #fafcff;
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | SUBTOTAL
-    |--------------------------------------------------------------------------
-    */
-
-    .subtotal-row td{
-
-        background: #f8fafc;
-
-        font-size: 14px;
-
-        font-weight: 700;
-
-        border-top:
-            2px solid #dbe4f0;
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | ATTACHMENT
-    |--------------------------------------------------------------------------
-    */
-
-    .attach-badge{
-
-        display: inline-flex;
-
-        align-items: center;
-
-        gap: 6px;
-
-        padding: 6px 12px;
+        padding: 10px 16px;
 
         border-radius: 999px;
-
-        background: rgba(255,255,255,.18);
-
-        border:
-            1px solid rgba(255,255,255,.18);
-
-        color: #fff;
 
         font-size: 12px;
 
         font-weight: 700;
 
-        transition: .2s ease;
+        letter-spacing: .5px;
+
     }
 
-    .attach-badge:hover{
-
-        background: rgba(255,255,255,.28);
-
-        color: #fff;
+    .sales-info-table tr{
+        border: none !important;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | PAGINATION
-    |--------------------------------------------------------------------------
-    */
-
-    .pagination{
-
-        gap: 6px;
+    .sales-info-table tbody{
+        border: none !important;
     }
 
-    .pagination .page-link{
-
-        border: 0;
-
-        border-radius: 10px;
-
-        color: #334155;
-
-        padding:
-            8px 14px;
-
-        font-weight: 600;
-
-        box-shadow:
-            0 2px 8px rgba(0,0,0,.05);
-    }
-
-    .pagination .active .page-link{
-
-        background: #0d6efd;
-
-        color: #fff;
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | LOADING
-    |--------------------------------------------------------------------------
-    */
-
-    .sales-loading{
-
-        min-height: 300px;
-
-        display: flex;
-
-        align-items: center;
-
-        justify-content: center;
-    }
-
-    .loading-card{
-
-        text-align: center;
-
-        background: #fff;
-
-        border-radius: 20px;
-
-        padding: 30px 40px;
-
-        box-shadow:
-            0 6px 24px rgba(0,0,0,.08);
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | MOBILE
-    |--------------------------------------------------------------------------
-    */
-
-    @media(max-width:768px){
-
-        .sales-head{
-
-            padding: 18px;
-        }
-
-        .sales-title{
-
-            font-size: 18px;
-        }
-
-        .meta-grid{
-
-            grid-template-columns: 1fr;
-        }
-
-        .table-detail{
-
-            min-width: 800px;
-        }
+    .sales-info-table td{
+        border: none !important;
     }
 
 </style>
 
 <script>
+    window.ReportSales = (function(){
 
-    let sl_state = {
+        let state = {
 
-        page: 1,
+            page  : 1,
 
-        limit: 10,
+            limit : 20
 
-        search: '',
+        };
 
-        plant: '',
+        let INITIALIZED = false;
 
-        customer: '',
+        function formatRupiah(value)
+        {
+            return Number(
+                value || 0
+            ).toLocaleString(
+                'id-ID'
+            );
+        }
 
-        status: '',
+        function formatQty(value)
+        {
+            return Number(
+                value || 0
+            ).toLocaleString(
+                'id-ID',
+                {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                }
+            );
+        }
 
-        date_from: '',
+        function formatWeight(value)
+        {
+            return Number(
+                value || 0
+            ).toLocaleString(
 
-        date_to: ''
-    };
+                'id-ID',
 
-    let sl_ajax = null;
+                {
 
-    /*
-    |--------------------------------------------------------------------------
-    | INIT
-    |--------------------------------------------------------------------------
-    */
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
 
-    $(function(){
+                }
 
-        /*
-        |--------------------------------------------------------------------------
-        | DEFAULT DATE
-        |--------------------------------------------------------------------------
-        */
+            );
+        }
 
-        let today = new Date();
+        function formatDate(date)
+        {
+            if(!date){
 
-        let firstDay = new Date(
-            today.getFullYear(),
-            today.getMonth(),
-            1
-        );
+                return '-';
 
-        $('#sl_date_from').val(
-            firstDay.toISOString().split('T')[0]
-        );
-
-        $('#sl_date_to').val(
-            today.toISOString().split('T')[0]
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | SELECT2
-        |--------------------------------------------------------------------------
-        */
-
-        $('#sl_filter_plant').select2({
-            theme:'bootstrap-5',
-            width:'100%'
-        });
-
-        $('#sl_filter_customer').select2({
-            theme:'bootstrap-5',
-            width:'100%'
-        });
-
-        /*
-        |--------------------------------------------------------------------------
-        | LOAD
-        |--------------------------------------------------------------------------
-        */
-
-        loadSalesReport();
-
-    });
-
-    /*
-    |--------------------------------------------------------------------------
-    | FILTER CHANGE
-    |--------------------------------------------------------------------------
-    */
-
-    $('#sl_filter_plant').on('change', function(){
-
-        sl_state.plant = $(this).val();
-
-        sl_state.page = 1;
-
-        loadSalesReport();
-
-    });
-
-    $('#sl_filter_customer').on('change', function(){
-
-        sl_state.customer = $(this).val();
-
-        sl_state.page = 1;
-
-        loadSalesReport();
-
-    });
-
-    $('#sl_filter_status').on('change', function(){
-
-        sl_state.status = $(this).val();
-
-        sl_state.page = 1;
-
-        loadSalesReport();
-
-    });
-
-    $('#sl_date_from').on('change', function(){
-
-        sl_state.date_from = $(this).val();
-
-        sl_state.page = 1;
-
-        loadSalesReport();
-
-    });
-
-    $('#sl_date_to').on('change', function(){
-
-        sl_state.date_to = $(this).val();
-
-        sl_state.page = 1;
-
-        loadSalesReport();
-
-    });
-
-    /*
-    |--------------------------------------------------------------------------
-    | SEARCH
-    |--------------------------------------------------------------------------
-    */
-
-    let searchTimer;
-
-    $('#sl_filter_sales').on('keyup', function(){
-
-        clearTimeout(searchTimer);
-
-        searchTimer = setTimeout(function(){
-
-            sl_state.search =
-                $('#sl_filter_sales').val();
-
-            sl_state.page = 1;
-
-            loadSalesReport();
-
-        }, 400);
-
-    });
-
-    /*
-    |--------------------------------------------------------------------------
-    | PAGINATION
-    |--------------------------------------------------------------------------
-    */
-
-    $(document).on(
-        'click',
-        '.sl-page-link',
-        function(e){
-
-            e.preventDefault();
-
-            let page = $(this).data('page');
-
-            if(!page){
-                return;
             }
 
-            sl_state.page = page;
+            return new Date(date)
+                .toLocaleDateString(
 
-            loadSalesReport();
+                    'id-ID',
 
-        }
-    );
+                    {
 
-    /*
-    |--------------------------------------------------------------------------
-    | LOAD REPORT
-    |--------------------------------------------------------------------------
-    */
+                        day   : '2-digit',
+                        month : 'long',
+                        year  : 'numeric'
 
-    function loadSalesReport(){
+                    }
 
-        if(sl_ajax){
-            sl_ajax.abort();
+                );
         }
 
-        $('#slLoading').removeClass('d-none');
+        function init()
+        {
+            if(INITIALIZED){
 
-        $('#salesReportWrapper').html('');
+                return;
 
-        sl_ajax = $.ajax({
+            }
 
-            url:
+            INITIALIZED = true;
+
+            loadPlant();
+
+            initCustomer();
+
+            bindEvents();
+
+            loadData();
+        }
+
+        function initCustomer()
+        {
+            $('#salesCustomer').select2({
+
+                placeholder:
+                    '-- Semua Customer --',
+
+                allowClear: true,
+
+                width: '100%',
+
+                ajax: {
+
+                    url:
+                        '<?= base_url("cashin/get_customer"); ?>',
+
+                    dataType: 'json',
+
+                    delay: 250,
+
+                    data: function(params){
+
+                        return {
+
+                            q: params.term
+
+                        };
+
+                    },
+
+                    processResults: function(data){
+
+                        return {
+
+                            results: data
+
+                        };
+
+                    }
+
+                }
+
+            });
+        }
+
+        function loadData(page = 1)
+        {
+            state.page = page;
+
+            $.get(
+
                 '<?= base_url("report-sales/load_sales"); ?>',
 
-            type:'GET',
+                {
 
-            data: sl_state,
+                    page        : state.page,
 
-            dataType:'json',
+                    limit       : state.limit,
 
-            success:function(resp){
+                    search      : $('#salesSearch').val(),
 
-                renderSalesReport(resp);
+                    plant       : $('#salesPlant').val(),
 
-            },
+                    customer    : $('#salesCustomer').val(),
 
-            complete:function(){
+                    pembayaran  : $('#salesPembayaran').val(),
 
-                $('#slLoading')
-                    .addClass('d-none');
+                    status      : $('#salesStatus').val(),
 
-                sl_ajax = null;
+                    date_from   : $('#salesDateFrom').val(),
 
-            }
-        });
-    }
+                    date_to     : $('#salesDateTo').val()
 
-    /*
-    |--------------------------------------------------------------------------
-    | RENDER
-    |--------------------------------------------------------------------------
-    */
+                },
 
-    function renderSalesReport(resp){
+                function(res){
 
-        let html = '';
+                    renderSummary(
+                        res.summary
+                    );
 
-        if(!resp.rows.length){
+                    renderTable(
+                        res.rows
+                    );
 
-            html = `
+                    $('#salesReportPagination')
+                        .html(
+                            res.pagination
+                        );
 
-                <div class="alert alert-warning">
+                    $('#salesReportInfo')
+                        .html(
 
-                    Data sales tidak ditemukan
+                            `Total :
+                            ${res.total}
+                            data`
 
-                </div>
+                        );
 
-            `;
+                },
 
-            $('#salesReportWrapper').html(html);
+                'json'
 
-            return;
+            );
         }
 
-        resp.rows.forEach(function(row){
+        function renderSummary(summary)
+        {
+            $('#summaryTotalSales').html(
+
+                'Rp ' +
+                formatRupiah(
+                    summary.TOTAL_SALES || 0
+                )
+
+            );
+
+            $('#summaryTotalItemSales').html(
+
+                formatRupiah(
+                    summary.TOTAL_ITEM || 0
+                )
+
+            );
+
+            $('#summaryTotalDocSales').html(
+
+                formatRupiah(
+                    summary.TOTAL_DOC || 0
+                )
+
+            );
+
+            $('#summaryTotalCustomerSales').html(
+
+                formatRupiah(
+                    summary.TOTAL_CUSTOMER || 0
+                )
+
+            );
+        }
+
+        function renderTable(rows)
+        {
+            let wrapper =
+                $('#salesResult');
+
+            wrapper.html('');
 
             /*
             |--------------------------------------------------------------------------
-            | STATUS
+            | EMPTY
             |--------------------------------------------------------------------------
             */
 
-            let statusClass = 'status-open';
+            if(rows.length === 0){
 
-            if(row.STATUS === 'PARTIAL'){
-                statusClass = 'status-partial';
-            }
+                wrapper.html(`
 
-            if(row.STATUS === 'PAID'){
-                statusClass = 'status-paid';
-            }
+                    <div class="card border-0 shadow-sm">
 
-            /*
-            |--------------------------------------------------------------------------
-            | DETAIL ROWS
-            |--------------------------------------------------------------------------
-            */
+                        <div class="card-body text-center py-5 text-muted">
 
-            let detailHtml = '';
-
-            if(row.DETAILS){
-
-                row.DETAILS.forEach(function(d, i){
-
-                    detailHtml += `
-
-                        <tr>
-
-                            <td class="text-center">
-
-                                ${i + 1}
-
-                            </td>
-
-                            <td>
-
-                                <div class="fw-semibold">
-
-                                    ${d.MATERIAL_NAME || '-'}
-
-                                </div>
-
-                            </td>
-
-                            <td class="text-end">
-
-                                ${formatDecimalID(
-                                    d.JUMLAH || 0
-                                )}
-
-                            </td>
-
-                            <td class="text-end">
-
-                                ${formatDecimalID(
-                                    d.BERAT || 0
-                                )}
-
-                            </td>
-
-                            <td class="text-end">
-
-                                ${formatRupiah(
-                                    d.HARGA || 0
-                                )}
-
-                            </td>
-
-                            <td class="text-end fw-bold text-success">
-
-                                ${formatRupiah(
-                                    d.TOTAL || 0
-                                )}
-
-                            </td>
-
-                        </tr>
-
-                    `;
-                });
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | ATTACHMENT
-            |--------------------------------------------------------------------------
-            */
-
-            let attachment = '-';
-
-            if(row.ATTACHMENT_PATH){
-
-                attachment = `
-
-                    <a
-                        href="<?= base_url(); ?>${row.ATTACHMENT_PATH}"
-                        target="_blank"
-                        class="attach-badge text-decoration-none">
-
-                        VIEW FILE
-
-                    </a>
-
-                `;
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | CARD
-            |--------------------------------------------------------------------------
-            */
-
-            html += `
-
-                <div class="sales-card">
-
-                    <!-- HEADER -->
-                    <div class="sales-head">
-
-                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
-
-                            <div>
-
-                                <div class="sales-title">
-
-                                    SALES #${row.SALES}
-
-                                </div>
-
-                                <div class="mt-1 opacity-75">
-
-                                    ${row.PLANT_NAME || '-'}
-
-                                </div>
-
-                            </div>
-
-                            <div>
-
-                                <span class="status-badge ${statusClass}">
-
-                                    ${row.STATUS}
-
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                        <div class="meta-grid">
-
-                            <div class="meta-item">
-
-                                <div class="meta-label">
-                                    Customer
-                                </div>
-
-                                <div class="meta-value">
-
-                                    ${row.CUSTOMER_NAME || '-'}
-                                    (${row.CUSTOMER || '-'})
-
-                                </div>
-
-                            </div>
-
-                            <div class="meta-item">
-
-                                <div class="meta-label">
-                                    Date
-                                </div>
-
-                                <div class="meta-value">
-
-                                    ${formatTanggalIndo(
-                                        row.SALES_DATE
-                                    )}
-
-                                </div>
-
-                            </div>
-
-                            <div class="meta-item">
-
-                                <div class="meta-label">
-                                    Payment
-                                </div>
-
-                                <div class="meta-value">
-
-                                    ${row.PEMBAYARAN || '-'}
-                                    /
-                                    ${row.JENIS_PAY || '-'}
-
-                                </div>
-
-                            </div>
-
-                            <div class="meta-item">
-
-                                <div class="meta-label">
-                                    Nota
-                                </div>
-
-                                <div class="meta-value">
-
-                                    ${row.NOTA || '-'}
-
-                                </div>
-
-                            </div>
-
-                            <div class="meta-item">
-
-                                <div class="meta-label">
-                                    Attachment
-                                </div>
-
-                                <div class="meta-value">
-
-                                    ${attachment}
-
-                                </div>
-
-                            </div>
-
-                            <div class="meta-item">
-
-                                <div class="meta-label">
-                                    Remark
-                                </div>
-
-                                <div class="meta-value">
-
-                                    ${row.REMARK || '-'}
-
-                                </div>
-
-                            </div>
+                            Tidak ada data sales
 
                         </div>
 
                     </div>
 
-                    <!-- BODY -->
-                    <div class="sales-body">
+                `);
 
+                return;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | LOOP
+            |--------------------------------------------------------------------------
+            */
+
+            rows.forEach(function(row){
+
+                /*
+                |--------------------------------------------------------------------------
+                | STATUS BADGE
+                |--------------------------------------------------------------------------
+                */
+
+                let statusBadge = `
+                    <span class="badge sales-badge">
+                        OPEN
+                    </span>
+                `;
+
+                if(row.STATUS === 'PARTIAL'){
+
+                    statusBadge = `
+                        <span class="badge sales-badge">
+                            PARTIAL
+                        </span>
+                    `;
+                }
+
+                if(row.STATUS === 'PAID'){
+
+                    statusBadge = `
+                        <span class="badge sales-badge">
+                            PAID
+                        </span>
+                    `;
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | DETAIL
+                |--------------------------------------------------------------------------
+                */
+
+                let detailRows = '';
+
+                let subtotalQty    = 0;
+                let subtotalWeight = 0;
+                let subtotalTotal  = 0;
+
+                (row.DETAILS || [])
+                    .forEach(function(d){
+
+                        subtotalQty +=
+                            Number(d.JUMLAH || 0);
+
+                        subtotalWeight +=
+                            Number(d.BERAT || 0);
+
+                        subtotalTotal +=
+                            Number(d.TOTAL || 0);
+
+                        detailRows += `
+
+                            <tr>
+
+                                <!-- MATERIAL -->
+                                <td>
+
+                                    <div class="fw-semibold text-dark">
+
+                                        ${d.MATERIAL_NAME || '-'}
+
+                                    </div>
+
+                                </td>
+
+                                <!-- QTY -->
+                                <td class="text-end">
+
+                                    ${formatQty(d.JUMLAH)}
+
+                                </td>
+
+                                <!-- BERAT -->
+                                <td class="text-end">
+
+                                    ${formatWeight(d.BERAT)}
+
+                                </td>
+
+                                <!-- HARGA -->
+                                <td class="text-end">
+
+                                    Rp ${formatRupiah(d.HARGA)}
+
+                                </td>
+
+                                <!-- DISCOUNT -->
+                                <td class="text-end text-danger">
+
+                                    Rp ${formatRupiah(d.DISCOUNT)}
+
+                                </td>
+
+                                <!-- TOTAL -->
+                                <td class="text-end fw-bold text-primary">
+
+                                    Rp ${formatRupiah(d.TOTAL)}
+
+                                </td>
+
+                            </tr>
+
+                        `;
+                    });
+
+                /*
+                |--------------------------------------------------------------------------
+                | CARD
+                |--------------------------------------------------------------------------
+                */
+
+                let card = `
+
+                    <div class="card border-0 shadow-sm mb-4 overflow-hidden">
+
+                        <!-- HEADER -->
+                        <div class="sales-header">
+
+                            <div class="d-flex justify-content-between mb-3">
+
+                                <h2 class="sales-title">
+
+                                    #${row.SALES}
+
+                                </h2>
+
+                                ${statusBadge}
+
+                            </div>
+
+                            <div class="row">
+
+                                <!-- LEFT -->
+                                <div class="col-md-6">
+
+                                    <table class="table table-borderless text-white mb-0 sales-info-table">
+
+                                        <tr>
+                                            <td width="160">
+                                                <b>PLANT</b>
+                                            </td>
+                                            <td>
+                                                :
+                                                ${row.PLANT_NAME || '-'}
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+                                                <b>CUSTOMER</b>
+                                            </td>
+                                            <td>
+                                                :
+                                                ${row.CUSTOMER_NAME || '-'}
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+                                                <b>PAYMENT</b>
+                                            </td>
+                                            <td>
+                                                :
+                                                ${row.PEMBAYARAN || '-'}
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+                                                <b>SLIP NO</b>
+                                            </td>
+                                            <td>
+                                                :
+                                                ${row.SLIP_NO || '-'}
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+                                                <b>NOTA</b>
+                                            </td>
+                                            <td>
+                                                :
+                                                ${row.NOTA || '-'}
+                                            </td>
+                                        </tr>
+
+                                    </table>
+
+                                </div>
+
+                                <!-- RIGHT -->
+                                <div class="col-md-6">
+
+                                    <table class="table table-borderless text-white mb-0 sales-info-table">
+
+                                        <tr>
+                                            <td width="160">
+                                                <b>SALES DATE</b>
+                                            </td>
+                                            <td>
+                                                :
+                                                ${formatDate(row.SALES_DATE)}
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+                                                <b>TOTAL ITEM</b>
+                                            </td>
+                                            <td>
+                                                :
+                                                ${row.TOTAL_ITEM || 0}
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+                                                <b>GRAND TOTAL</b>
+                                            </td>
+                                            <td class="fw-bold">
+                                                :
+                                                Rp ${formatRupiah(row.GRAND_TOTAL)}
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+                                                <b>REMAIN</b>
+                                            </td>
+                                            <td class="fw-bold text-warning">
+                                                :
+                                                Rp ${formatRupiah(row.REMAIN)}
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+                                                <b>REMARK</b>
+                                            </td>
+                                            <td>
+                                                :
+                                                ${row.REMARK || '-'}
+                                            </td>
+                                        </tr>
+
+                                    </table>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- DETAIL -->
                         <div class="table-responsive">
 
-                            <table class="table table-detail">
+                            <table class="table table-hover align-middle mb-0">
 
-                                <thead>
+                                <thead class="table-light">
 
                                     <tr>
 
-                                        <th width="5%">
-                                            #
-                                        </th>
-
-                                        <th>
+                                        <th width="35%">
                                             Material
                                         </th>
 
-                                        <th width="12%" class="text-end">
+                                        <th class="text-end">
                                             Qty
                                         </th>
 
-                                        <th width="12%" class="text-end">
+                                        <th class="text-end">
                                             Berat
                                         </th>
 
-                                        <th width="15%" class="text-end">
+                                        <th class="text-end">
                                             Harga
                                         </th>
 
-                                        <th width="18%" class="text-end">
+                                        <th class="text-end">
+                                            Discount
+                                        </th>
+
+                                        <th class="text-end">
                                             Total
                                         </th>
 
@@ -1281,21 +929,36 @@
 
                                 <tbody>
 
-                                    ${detailHtml}
+                                    ${detailRows}
 
-                                    <tr class="subtotal-row">
+                                    <!-- SUBTOTAL -->
+                                    <tr class="table-light fw-bold">
 
-                                        <td colspan="5" class="text-end">
+                                        <td>
 
-                                            GRAND TOTAL
+                                            SUBTOTAL
 
                                         </td>
 
-                                        <td class="text-end text-success">
+                                        <td class="text-end">
 
-                                            ${formatRupiah(
-                                                row.AMOUNT || 0
-                                            )}
+                                            ${formatQty(subtotalQty)}
+
+                                        </td>
+
+                                        <td class="text-end">
+
+                                            ${formatWeight(subtotalWeight)}
+
+                                        </td>
+
+                                        <td></td>
+
+                                        <td></td>
+
+                                        <td class="text-end text-primary">
+
+                                            Rp ${formatRupiah(subtotalTotal)}
 
                                         </td>
 
@@ -1309,86 +972,193 @@
 
                     </div>
 
-                </div>
+                `;
 
-            `;
-        });
+                wrapper.append(card);
 
-        $('#salesReportWrapper').html(html);
-
-        $('#sl_pagination').html(
-            resp.pagination
-        );
-
-        $('#sl_pageInfo').html(
-
-            `Menampilkan
-            ${resp.start}
-            -
-            ${resp.end}
-            dari
-            ${resp.total}
-            data`
-
-        );
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | FORMAT
-    |--------------------------------------------------------------------------
-    */
-
-    function formatRupiah(value){
-
-        value = parseFloat(value || 0);
-
-        if(isNaN(value)){
-            value = 0;
+            });
         }
 
-        value = Math.round(value)
-            .toString();
+        function loadPlant()
+        {
+            $.get(
 
-        return value.replace(
-            /\B(?=(\d{3})+(?!\d))/g,
-            '.'
-        );
-    }
+                '<?= base_url("payment/get_plant"); ?>',
 
-    function formatDecimalID(value){
+                function(rows){
 
-        value = parseFloat(value || 0);
+                    rows.forEach(function(r){
 
-        if(isNaN(value)){
-            value = 0;
+                        $('#salesPlant').append(`
+
+                            <option value="${r.id}">
+
+                                ${r.text}
+
+                            </option>
+
+                        `);
+
+                    });
+
+                },
+
+                'json'
+
+            );
         }
 
-        return value.toLocaleString(
-            'id-ID',
-            {
-                minimumFractionDigits:2,
-                maximumFractionDigits:2
-            }
-        );
-    }
+        function bindEvents()
+        {
+            /*
+            |--------------------------------------------------------------------------
+            | FILTER
+            |--------------------------------------------------------------------------
+            */
 
-    function formatTanggalIndo(dateStr){
+            $('#salesSearch').on('keyup', function(){
 
-        if(!dateStr){
-            return '-';
+                loadData(1);
+
+            });
+
+            $('#salesPlant').on('change', function(){
+
+                loadData(1);
+
+            });
+
+            $('#salesCustomer').on('change', function(){
+
+                loadData(1);
+
+            });
+
+            $('#salesPembayaran').on('change', function(){
+
+                loadData(1);
+
+            });
+
+            $('#salesStatus').on('change', function(){
+
+                loadData(1);
+
+            });
+
+            $('#salesDateFrom').on('change', function(){
+
+                loadData(1);
+
+            });
+
+            $('#salesDateTo').on('change', function(){
+
+                loadData(1);
+
+            });
+
+            /*
+            |--------------------------------------------------------------------------
+            | PAGINATION
+            |--------------------------------------------------------------------------
+            */
+
+            $(document).on(
+
+                'click',
+
+                '#salesReportPagination a',
+
+                function(e){
+
+                    e.preventDefault();
+
+                    let page =
+                        $(this)
+                            .data('sales-pagination-page');
+
+                    if(!page){
+
+                        return;
+
+                    }
+
+                    loadData(page);
+
+                }
+
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | EXPORT
+            |--------------------------------------------------------------------------
+            */
+
+            $('#btnExportSales').on(
+
+                'click',
+
+                function(){
+
+                    let params =
+                        $.param({
+
+                            search:
+                                $('#salesSearch').val(),
+
+                            plant:
+                                $('#salesPlant').val(),
+
+                            customer:
+                                $('#salesCustomer').val(),
+
+                            pembayaran:
+                                $('#salesPembayaran').val(),
+
+                            status:
+                                $('#salesStatus').val(),
+
+                            date_from:
+                                $('#salesDateFrom').val(),
+
+                            date_to:
+                                $('#salesDateTo').val()
+
+                        });
+
+                    window.open(
+
+                        '<?= base_url("report-sales/export_excel_sales"); ?>?'
+                        + params,
+
+                        '_blank'
+
+                    );
+
+                }
+
+            );
         }
 
-        let d = new Date(dateStr);
+        return {
 
-        return d.toLocaleDateString(
-            'id-ID',
-            {
-                day:'2-digit',
-                month:'short',
-                year:'numeric'
-            }
-        );
-    }
+            init : init,
 
+            loadData : loadData
+
+        };
+
+    })();
+
+    $(document).ready(function(){
+
+        if(window.ReportSales){
+
+            ReportSales.init();
+
+        }
+
+    });
 </script>

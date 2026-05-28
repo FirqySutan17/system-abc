@@ -116,9 +116,9 @@ $route['report-accounting/load_payment'] = 'ReportAccounting/load_payment';
 $route['report-accounting/export_excel_payment'] = 'ReportAccounting/export_excel_payment';
 $route['report-accounting/export_pdf_payment'] = 'ReportAccounting/export_pdf_payment';
 
-$route['report-accounting/load_cash_in'] = 'ReportAccounting/load_cash_in';
-$route['report-accounting/export_excel_cash_in'] = 'ReportAccounting/export_excel_cash_in';
-$route['report-accounting/export_pdf_cash_in'] = 'ReportAccounting/export_pdf_cash_in';
+$route['report-accounting/load_cashin'] = 'ReportAccounting/load_cashin';
+$route['report-accounting/export_excel_cashin'] = 'ReportAccounting/export_excel_cashin';
+$route['report-accounting/export_pdf_cashin'] = 'ReportAccounting/export_pdf_cashin';
 
 $route['report-accounting/load_ar'] = 'ReportAccounting/load_ar';
 $route['report-accounting/load_ar_detail'] = 'ReportAccounting/load_ar_detail';

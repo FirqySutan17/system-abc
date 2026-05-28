@@ -4,20 +4,63 @@
 
             <h5 class="card-title fw-semibold mb-4">PO - INVENTORY</h5>
 
-            <!-- SEARCH + ADD ROW -->
-            <div class="row mb-3">
-                <div class="col-md-8">
-                    <input id="search" type="text" class="form-control" placeholder="Cari PO, Supplier, Material..." />
+            <div class="row mb-3 g-2">
+
+                <div class="col-md-4">
+                    <input
+                        id="search"
+                        type="text"
+                        class="form-control"
+                        placeholder="Cari PO, Supplier, Material...">
                 </div>
-                <div class="col-md-4 col-sm-12 text-end mt-2 mt-md-0">
-                    <div class="btn-group ">
-                        <!-- <button class="btn btn-outline-secondary" id="exportExcel">Export Excel</button> -->
-                        <!-- <button class="btn btn-outline-secondary" id="exportPdf">Export PDF</button> -->
-                    </div>
-                    <button id="btnAdd" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#poAdd">
-                        <i class="ti ti-plus"></i> Tambah PO
+
+                <div class="col-md-2">
+                    <select
+                        id="statusFilter"
+                        class="form-control">
+
+                        <option value="">
+                            Semua Status
+                        </option>
+
+                        <option value="OPEN">
+                            OPEN
+                        </option>
+
+                        <option value="PARTIAL">
+                            PARTIAL
+                        </option>
+
+                        <option value="RECEIVED">
+                            RECEIVED
+                        </option>
+
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <input
+                        type="date"
+                        id="dateFrom"
+                        class="form-control">
+                </div>
+
+                <div class="col-md-2">
+                    <input
+                        type="date"
+                        id="dateTo"
+                        class="form-control">
+                </div>
+
+                <div class="col-md-2">
+                    <button
+                        class="btn btn-primary w-100"
+                        id="btnFilter">
+
+                        Filter
                     </button>
                 </div>
+
             </div>
 
             <!-- Table -->
@@ -1027,11 +1070,51 @@
 </script>
 
 <script>
-    var state = { page: 1, limit: 10, search: '', order: 'PO', dir: 'DESC' };
+    var state = {
+
+        page: 1,
+
+        limit: 10,
+
+        search: '',
+
+        status: '',
+
+        date_from: '',
+
+        date_to: '',
+
+        order: 'PO_DATE',
+
+        dir: 'DESC'
+    };
+
+    let searchTimer = null;
 
     $('#search').on('keyup', function(){
-        state.search = $(this).val();
+
+        clearTimeout(searchTimer);
+
+        searchTimer = setTimeout(() => {
+
+            state.search = $(this).val();
+
+            loadPage(1);
+
+        }, 500);
+
+    });
+
+    $('#btnFilter').on('click', function(){
+
+        state.status = $('#statusFilter').val();
+
+        state.date_from = $('#dateFrom').val();
+
+        state.date_to = $('#dateTo').val();
+
         loadPage(1);
+
     });
 
     function formatTanggalIndo(dateStr) {
@@ -1161,12 +1244,12 @@
 
     function showTableLoading(){
         $('#tableLoading').removeClass('d-none');
-        $('#tableWrapper').addClass('loading-hide');
+        $('.tableWrapper').addClass('loading-hide');
     }
 
     function hideTableLoading(){
         $('#tableLoading').addClass('d-none');
-        $('#tableWrapper').removeClass('loading-hide');
+        $('.tableWrapper').removeClass('loading-hide');
     }
 
     // Load table
@@ -1198,7 +1281,7 @@
                 */
 
                 if(
-                    row.STATUS !== 'RECEIVED'
+                    row.STATUS_PO !== 'RECEIVED'
                     &&
                     (
                         LOGIN_ROLE == 1 ||
@@ -1228,17 +1311,40 @@
 
                     `;
                 }
-                if(row.STATUS === 'RECEIVED'){
+                if(row.STATUS_PO === 'RECEIVED'){
 
                     actionBtn += `
-                        <span class="badge bg-success">
+                        <span class="badge bg-success" style="border-radius: 0px; padding-top: 7px;">
                             LOCKED
                         </span>
                     `;
                 }
-                let statusBadge = row.STATUS == 'RECEIVED'
-                    ? `<span class="badge bg-success">RECEIVED</span>`
-                    : `<span class="badge bg-warning text-dark">OPEN</span>`;
+
+                let statusBadge = '';
+
+                if(row.STATUS_PO === 'OPEN'){
+
+                    statusBadge =
+                        `<span class="badge bg-warning">
+                            OPEN
+                        </span>`;
+                }
+
+                if(row.STATUS_PO === 'PARTIAL'){
+
+                    statusBadge =
+                        `<span class="badge bg-info">
+                            PARTIAL
+                        </span>`;
+                }
+
+                if(row.STATUS_PO === 'RECEIVED'){
+
+                    statusBadge =
+                        `<span class="badge bg-success">
+                            RECEIVED
+                        </span>`;
+                }
 
                 var tr = `
                 <tr>

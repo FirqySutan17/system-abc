@@ -273,26 +273,23 @@
     <!-- SUMMARY -->
     <!-- ====================================================== -->
 
-    <div class="row">
+    <div class="row mb-4">
 
         <!-- TOTAL PAYMENT -->
         <div class="col-md-4">
+            <div class="report-card bg-danger">
 
-            <div class="card summary-card bg-primary text-white">
+                <div class="report-card-title">
 
-                <div class="card-body">
+                    TOTAL PAYMENT
 
-                    <div class="small">
+                </div>
 
-                        TOTAL PAYMENT
+                <div
+                    class="report-card-value"
+                    id="summaryPaymentTotal">
 
-                    </div>
-
-                    <h4 id="summaryPaymentTotal" class="summary-value">
-
-                        Rp 0
-
-                    </h4>
+                    Rp 0
 
                 </div>
 
@@ -302,22 +299,19 @@
 
         <!-- TOTAL SUPPLIER -->
         <div class="col-md-4">
+            <div class="report-card bg-success">
 
-            <div class="card summary-card bg-primary text-white">
+                <div class="report-card-title">
 
-                <div class="card-body">
+                    TOTAL SUPPLIER
 
-                    <div class="small">
+                </div>
 
-                        TOTAL SUPPLIER
+                <div
+                    class="report-card-value"
+                    id="summaryPaymentSupplier">
 
-                    </div>
-
-                    <h4 id="summaryPaymentSupplier">
-
-                        0
-
-                    </h4>
+                    0
 
                 </div>
 
@@ -327,22 +321,19 @@
 
         <!-- TOTAL PO -->
         <div class="col-md-4">
+            <div class="report-card bg-warning">
 
-            <div class="card summary-card bg-primary text-white">
+                <div class="report-card-title">
 
-                <div class="card-body">
+                    TOTAL PO
 
-                    <div class="small">
+                </div>
 
-                        TOTAL PO
+                <div
+                    class="report-card-value"
+                    id="summaryTotalCostDoc">
 
-                    </div>
-
-                    <h4 id="summaryPaymentPO">
-
-                        0
-
-                    </h4>
+                    0
 
                 </div>
 

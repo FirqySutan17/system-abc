@@ -59,39 +59,122 @@ class ReportSales_model extends CI_Model {
     }
 
     public function get_sales_report(
-        $limit = 0,
-        $start = 0,
-        $filters = [],
-        $order = 'SALES_DATE',
-        $dir = 'DESC'
-    ){
-
-        $allowedOrder = [
-
-            'SALES'      => 's.SALES',
-            'PLANT'      => 's.PLANT',
-            'SALES_DATE' => 's.SALES_DATE',
-            'CUSTOMER'   => 's.CUSTOMER'
-
-        ];
-
-        $orderBy = $allowedOrder[$order]
-            ?? 's.SALES_DATE';
-
-        $dir = strtoupper($dir) === 'ASC'
-            ? 'ASC'
-            : 'DESC';
-
+        $limit,
+        $start,
+        $filter = []
+    )
+    {
         /*
         |--------------------------------------------------------------------------
-        | HEADER QUERY
+        | HEADER
         |--------------------------------------------------------------------------
         */
 
-        $this->db
-            ->select('s.SALES, s.PLANT')
-            ->from('abc_mst_sales s')
-            ->where('s.DELETED IS NULL', null, false);
+        $this->db->select("
+
+            s.SALES,
+
+            s.PLANT,
+
+            plant.CODE_NAME AS PLANT_NAME,
+
+            s.SALES_DATE,
+
+            s.CUSTOMER,
+
+            customer.FULL_NAME AS CUSTOMER_NAME,
+
+            s.PEMBAYARAN,
+
+            s.SLIP_NO,
+
+            s.NOTA,
+
+            s.REMARK,
+
+            s.STATUS,
+
+            s.REMAIN,
+
+            COUNT(d.ID) AS TOTAL_ITEM,
+
+            COALESCE(
+                SUM(d.TOTAL),
+                0
+            ) AS GRAND_TOTAL
+
+        ", false);
+
+        $this->db->from(
+            'abc_mst_sales s'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+
+            'abc_mst_sales_detail d',
+
+            '
+
+                d.SALES = s.SALES
+                AND d.PLANT = s.PLANT
+                AND d.DELETED IS NULL
+
+            ',
+
+            'left',
+            false
+
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+
+            'abc_cd_code plant',
+
+            '
+
+                plant.CODE = s.PLANT
+                AND plant.HEAD_CODE = "PLANT"
+
+            ',
+
+            'left',
+            false
+
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+
+            'abc_cd_customer customer',
+
+            '
+
+                customer.CUST COLLATE utf8mb4_unicode_ci =
+                s.CUSTOMER COLLATE utf8mb4_unicode_ci
+
+            ',
+
+            'left',
+            false
+
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -99,62 +182,96 @@ class ReportSales_model extends CI_Model {
         |--------------------------------------------------------------------------
         */
 
-        if (!empty($filters['plant'])) {
+        $this->db->where(
+            's.DELETED IS NULL',
+            null,
+            false
+        );
 
-            $this->db->where(
-                's.PLANT',
-                $filters['plant']
-            );
-        }
-
-        if (!empty($filters['customer'])) {
-
-            $this->db->where(
-                's.CUSTOMER',
-                $filters['customer']
-            );
-        }
-
-        if (!empty($filters['status'])) {
-
-            $this->db->where(
-                's.STATUS',
-                $filters['status']
-            );
-        }
-
-        if (!empty($filters['search'])) {
+        if(!empty($filter['search'])){
 
             $this->db->group_start();
 
             $this->db->like(
                 's.SALES',
-                $filters['search']
+                $filter['search']
+            );
+
+            $this->db->or_like(
+                's.SLIP_NO',
+                $filter['search']
             );
 
             $this->db->or_like(
                 's.NOTA',
-                $filters['search']
+                $filter['search']
+            );
+
+            $this->db->or_like(
+                'customer.FULL_NAME',
+                $filter['search']
             );
 
             $this->db->group_end();
         }
 
-        if (!empty($filters['date_from'])) {
+        if(!empty($filter['plant'])){
+
+            $this->db->where(
+                's.PLANT',
+                $filter['plant']
+            );
+        }
+
+        if(!empty($filter['customer'])){
+
+            $this->db->where(
+                's.CUSTOMER',
+                $filter['customer']
+            );
+        }
+
+        if(!empty($filter['pembayaran'])){
+
+            $this->db->where(
+                's.PEMBAYARAN',
+                $filter['pembayaran']
+            );
+        }
+
+        if(!empty($filter['status'])){
+
+            $this->db->where(
+                's.STATUS',
+                $filter['status']
+            );
+        }
+
+        if(!empty($filter['date_from'])){
 
             $this->db->where(
                 'DATE(s.SALES_DATE) >=',
-                $filters['date_from']
+                $filter['date_from']
             );
         }
 
-        if (!empty($filters['date_to'])) {
+        if(!empty($filter['date_to'])){
 
             $this->db->where(
                 'DATE(s.SALES_DATE) <=',
-                $filters['date_to']
+                $filter['date_to']
             );
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | GROUP
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->group_by(
+            's.SALES'
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -163,12 +280,7 @@ class ReportSales_model extends CI_Model {
         */
 
         $this->db->order_by(
-            $orderBy,
-            $dir
-        );
-
-        $this->db->order_by(
-            's.SALES',
+            's.SALES_DATE',
             'DESC'
         );
 
@@ -178,206 +290,171 @@ class ReportSales_model extends CI_Model {
         |--------------------------------------------------------------------------
         */
 
-        if ($limit > 0) {
+        $this->db->limit(
+            $limit,
+            $start
+        );
 
-            $this->db->limit(
-                $limit,
-                $start
-            );
-        }
-
-        $headers = $this->db
-            ->get()
-            ->result();
-
-        if (!$headers) {
-
-            return [];
-        }
+        $rows =
+            $this->db
+                ->get()
+                ->result_array();
 
         /*
         |--------------------------------------------------------------------------
-        | BUILD PAIRS
+        | DETAIL LOOP
         |--------------------------------------------------------------------------
         */
 
-        $pairs = [];
+        foreach($rows as &$row){
 
-        foreach ($headers as $h) {
+            $details =
+                $this->db
 
-            $pairs[] = "("
-                .$this->db->escape($h->SALES)
-                .","
-                .$this->db->escape($h->PLANT)
-                .")";
+                    ->select("
+
+                        d.*,
+
+                        material.material_name
+                        AS MATERIAL_NAME
+
+                    ")
+
+                    ->from(
+                        'abc_mst_sales_detail d'
+                    )
+
+                    ->join(
+
+                        'abc_cd_material material',
+
+                        '
+
+                            material.material COLLATE utf8mb4_unicode_ci =
+                            d.MATERIAL COLLATE utf8mb4_unicode_ci
+
+                        ',
+
+                        'left',
+                        false
+
+                    )
+
+                    ->where(
+                        'd.SALES',
+                        $row['SALES']
+                    )
+
+                    ->where(
+                        'd.PLANT',
+                        $row['PLANT']
+                    )
+
+                    ->where(
+                        'd.DELETED IS NULL',
+                        null,
+                        false
+                    )
+
+                    ->order_by(
+                        'd.ID',
+                        'ASC'
+                    )
+
+                    ->get()
+
+                    ->result_array();
+
+            $row['DETAILS'] =
+                $details;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | DETAIL QUERY
-        |--------------------------------------------------------------------------
-        */
-
-        $sql = "
-
-            SELECT
-
-                s.SALES,
-                s.PLANT,
-
-                plant.CODE_NAME AS PLANT_NAME,
-
-                s.SALES_DATE,
-
-                s.CUSTOMER,
-                customer.FULL_NAME AS CUSTOMER_NAME,
-
-                s.PEMBAYARAN,
-                s.JENIS_PAY,
-
-                s.STATUS,
-
-                s.NOTA,
-
-                s.REMARK,
-
-                s.AMOUNT,
-
-                s.ATTACHMENT_NAME,
-                s.ATTACHMENT_PATH,
-
-                d.SEQ_NO,
-
-                d.MATERIAL,
-
-                material.MATERIAL_NAME,
-
-                d.JUMLAH,
-
-                d.BERAT,
-
-                d.HARGA,
-
-                d.TOTAL
-
-            FROM abc_mst_sales s
-
-            INNER JOIN abc_mst_sales_detail d
-                ON d.SALES = s.SALES
-                AND d.PLANT = s.PLANT
-
-            LEFT JOIN abc_cd_code plant
-                ON plant.HEAD_CODE = 'PLANT'
-                AND plant.CODE COLLATE utf8mb4_unicode_ci =
-                s.PLANT COLLATE utf8mb4_unicode_ci
-
-            LEFT JOIN abc_cd_customer customer
-                ON customer.CUST COLLATE utf8mb4_unicode_ci =
-                s.CUSTOMER COLLATE utf8mb4_unicode_ci
-
-            LEFT JOIN abc_cd_material material
-                ON material.MATERIAL COLLATE utf8mb4_unicode_ci =
-                d.MATERIAL COLLATE utf8mb4_unicode_ci
-
-            WHERE (s.SALES,s.PLANT)
-            IN (".implode(',', $pairs).")
-
-            ORDER BY
-
-                {$orderBy} {$dir},
-
-                s.SALES DESC,
-
-                d.SEQ_NO ASC
-
-        ";
-
-        $details = $this->db
-            ->query($sql)
-            ->result_array();
-
-        /*
-        |--------------------------------------------------------------------------
-        | GROUP HEADER + DETAILS
-        |--------------------------------------------------------------------------
-        */
-
-        $grouped = [];
-
-        foreach($details as $row){
-
-            $key = $row['SALES'].'|'.$row['PLANT'];
-
-            /*
-            |--------------------------------------------------------------------------
-            | HEADER
-            |--------------------------------------------------------------------------
-            */
-
-            if(!isset($grouped[$key])){
-
-                $grouped[$key] = [
-
-                    'SALES'            => $row['SALES'],
-                    'PLANT'            => $row['PLANT'],
-                    'PLANT_NAME'       => $row['PLANT_NAME'],
-
-                    'SALES_DATE'       => $row['SALES_DATE'],
-
-                    'CUSTOMER'         => $row['CUSTOMER'],
-                    'CUSTOMER_NAME'    => $row['CUSTOMER_NAME'],
-
-                    'PEMBAYARAN'       => $row['PEMBAYARAN'],
-                    'JENIS_PAY'        => $row['JENIS_PAY'],
-
-                    'STATUS'           => $row['STATUS'],
-
-                    'NOTA'             => $row['NOTA'],
-
-                    'REMARK'           => $row['REMARK'],
-
-                    'AMOUNT'           => $row['AMOUNT'],
-
-                    'ATTACHMENT_NAME'  => $row['ATTACHMENT_NAME'],
-
-                    'ATTACHMENT_PATH'  => $row['ATTACHMENT_PATH'],
-
-                    'DETAILS' => []
-                ];
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | DETAILS
-            |--------------------------------------------------------------------------
-            */
-
-            $grouped[$key]['DETAILS'][] = [
-
-                'SEQ_NO'        => $row['SEQ_NO'],
-
-                'MATERIAL'      => $row['MATERIAL'],
-
-                'MATERIAL_NAME' => $row['MATERIAL_NAME'],
-
-                'JUMLAH'        => $row['JUMLAH'],
-
-                'BERAT'         => $row['BERAT'],
-
-                'HARGA'         => $row['HARGA'],
-
-                'TOTAL'         => $row['TOTAL']
-            ];
-        }
-
-        return array_values($grouped);
+        return $rows;
     }
 
-    public function count_sales_report($filters = [])
+    public function summary_sales_report(
+        $filter = []
+    )
     {
-        $this->db
-            ->from('abc_mst_sales s')
-            ->where('s.DELETED IS NULL', null, false);
+        $this->db->select("
+
+            COALESCE(
+                SUM(d.TOTAL),
+                0
+            ) AS TOTAL_SALES,
+
+            COUNT(DISTINCT s.SALES)
+            AS TOTAL_DOC,
+
+            COUNT(d.ID)
+            AS TOTAL_ITEM,
+
+            COUNT(DISTINCT s.CUSTOMER)
+            AS TOTAL_CUSTOMER
+
+        ", false);
+
+        $this->db->from(
+            'abc_mst_sales s'
+        );
+
+        $this->db->join(
+
+            'abc_mst_sales_detail d',
+
+            '
+
+                d.SALES = s.SALES
+                AND d.PLANT = s.PLANT
+                AND d.DELETED IS NULL
+
+            ',
+
+            'left',
+            false
+
+        );
+
+        $this->db->where(
+            's.DELETED IS NULL',
+            null,
+            false
+        );
+
+        return $this->db
+            ->get()
+            ->row_array();
+    }
+
+    public function count_sales_report(
+        $filter = []
+    )
+    {
+        $this->db->from(
+            'abc_mst_sales s'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+
+            'abc_cd_customer customer',
+
+            '
+
+                customer.CUST COLLATE utf8mb4_unicode_ci =
+                s.CUSTOMER COLLATE utf8mb4_unicode_ci
+
+            ',
+
+            'left',
+            false
+
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -385,67 +462,85 @@ class ReportSales_model extends CI_Model {
         |--------------------------------------------------------------------------
         */
 
-        if (!empty($filters['plant'])) {
+        $this->db->where(
+            's.DELETED IS NULL',
+            null,
+            false
+        );
 
-            $this->db->where(
-                's.PLANT',
-                $filters['plant']
-            );
-
-        }
-
-        if (!empty($filters['customer'])) {
-
-            $this->db->where(
-                's.CUSTOMER',
-                $filters['customer']
-            );
-
-        }
-
-        if (!empty($filters['status'])) {
-
-            $this->db->where(
-                's.STATUS',
-                $filters['status']
-            );
-
-        }
-
-        if (!empty($filters['sales'])) {
+        if(!empty($filter['search'])){
 
             $this->db->group_start();
 
             $this->db->like(
                 's.SALES',
-                $filters['sales']
+                $filter['search']
+            );
+
+            $this->db->or_like(
+                's.SLIP_NO',
+                $filter['search']
             );
 
             $this->db->or_like(
                 's.NOTA',
-                $filters['sales']
+                $filter['search']
+            );
+
+            $this->db->or_like(
+                'customer.FULL_NAME',
+                $filter['search']
             );
 
             $this->db->group_end();
-
         }
 
-        if (!empty($filters['date_from'])) {
+        if(!empty($filter['plant'])){
+
+            $this->db->where(
+                's.PLANT',
+                $filter['plant']
+            );
+        }
+
+        if(!empty($filter['customer'])){
+
+            $this->db->where(
+                's.CUSTOMER',
+                $filter['customer']
+            );
+        }
+
+        if(!empty($filter['pembayaran'])){
+
+            $this->db->where(
+                's.PEMBAYARAN',
+                $filter['pembayaran']
+            );
+        }
+
+        if(!empty($filter['status'])){
+
+            $this->db->where(
+                's.STATUS',
+                $filter['status']
+            );
+        }
+
+        if(!empty($filter['date_from'])){
 
             $this->db->where(
                 'DATE(s.SALES_DATE) >=',
-                $filters['date_from']
+                $filter['date_from']
             );
-
         }
 
-        if (!empty($filters['date_to'])) {
+        if(!empty($filter['date_to'])){
 
             $this->db->where(
                 'DATE(s.SALES_DATE) <=',
-                $filters['date_to']
+                $filter['date_to']
             );
-
         }
 
         return $this->db

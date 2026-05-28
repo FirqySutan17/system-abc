@@ -935,8 +935,6 @@ class ReportAccounting_model extends CI_Model
                 d.AMOUNT_OFFSET
             ) AS REMAINING,
 
-            d.REMARK,
-
             sales.STATUS AS SALES_STATUS
 
         ", false);
@@ -1443,6 +1441,446 @@ class ReportAccounting_model extends CI_Model
                 $filter['date_to']
             );
 
+        }
+
+        return $this->db
+            ->get()
+            ->row_array();
+    }
+
+    public function get_cost_report(
+        $limit,
+        $start,
+        $filter = []
+    )
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | HEADER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->select("
+
+            c.COST,
+
+            c.PLANT,
+
+            plant.CODE_NAME AS PLANT_NAME,
+
+            c.COST_DATE,
+
+            c.PEMBAYARAN,
+
+            c.SLIP_NO,
+
+            c.REMARK,
+
+            COUNT(d.ID) AS TOTAL_ITEM,
+
+            COALESCE(
+                SUM(d.TOTAL),
+                0
+            ) AS GRAND_TOTAL
+
+        ", false);
+
+        $this->db->from(
+            'abc_mst_cost c'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+
+            'abc_mst_cost_detail d',
+
+            '
+
+                d.COST = c.COST
+                AND d.PLANT = c.PLANT
+                AND d.DELETED IS NULL
+
+            ',
+
+            'left',
+            false
+
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+
+            'abc_cd_code plant',
+
+            '
+
+                plant.CODE = c.PLANT
+                AND plant.HEAD_CODE = "PLANT"
+
+            ',
+
+            'left',
+            false
+
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->where(
+            'c.DELETED IS NULL',
+            null,
+            false
+        );
+
+        if(!empty($filter['search'])){
+
+            $this->db->group_start();
+
+            $this->db->like(
+                'c.COST',
+                $filter['search']
+            );
+
+            $this->db->or_like(
+                'c.SLIP_NO',
+                $filter['search']
+            );
+
+            $this->db->group_end();
+        }
+
+        if(!empty($filter['plant'])){
+
+            $this->db->where(
+                'c.PLANT',
+                $filter['plant']
+            );
+        }
+
+        if(!empty($filter['pembayaran'])){
+
+            $this->db->where(
+                'c.PEMBAYARAN',
+                $filter['pembayaran']
+            );
+        }
+
+        if(!empty($filter['date_from'])){
+
+            $this->db->where(
+                'DATE(c.COST_DATE) >=',
+                $filter['date_from']
+            );
+        }
+
+        if(!empty($filter['date_to'])){
+
+            $this->db->where(
+                'DATE(c.COST_DATE) <=',
+                $filter['date_to']
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | GROUP
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->group_by(
+            'c.COST'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | ORDER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->order_by(
+            'c.COST_DATE',
+            'DESC'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | LIMIT
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->limit(
+            $limit,
+            $start
+        );
+
+        $rows =
+            $this->db
+                ->get()
+                ->result_array();
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL LOOP
+        |--------------------------------------------------------------------------
+        */
+
+        foreach($rows as &$row){
+
+            $details =
+                $this->db
+
+                    ->select("
+
+                        d.*,
+
+                        cost.COST_NAME AS COST_NAME
+
+                    ")
+
+                    ->from(
+                        'abc_mst_cost_detail d'
+                    )
+
+                    ->join(
+
+                        'abc_cd_cost cost',
+
+                        '
+
+                            cost.COST COLLATE utf8mb4_unicode_ci =
+                            d.TIPE_COST COLLATE utf8mb4_unicode_ci
+
+                        ',
+
+                        'left',
+                        false
+
+                    )
+
+                    ->where(
+                        'd.COST',
+                        $row['COST']
+                    )
+
+                    ->where(
+                        'd.PLANT',
+                        $row['PLANT']
+                    )
+
+                    ->where(
+                        'd.DELETED IS NULL',
+                        null,
+                        false
+                    )
+
+                    ->order_by(
+                        'd.ID',
+                        'ASC'
+                    )
+
+                    ->get()
+
+                    ->result_array();
+
+            $row['DETAILS'] =
+                $details;
+        }
+
+        return $rows;
+    }
+
+    public function count_cost_report(
+        $filter = []
+    )
+    {
+        $this->db->from(
+            'abc_mst_cost c'
+        );
+
+        $this->db->where(
+            'c.DELETED IS NULL',
+            null,
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['search'])){
+
+            $this->db->group_start();
+
+            $this->db->like(
+                'c.COST',
+                $filter['search']
+            );
+
+            $this->db->or_like(
+                'c.SLIP_NO',
+                $filter['search']
+            );
+
+            $this->db->group_end();
+        }
+
+        if(!empty($filter['plant'])){
+
+            $this->db->where(
+                'c.PLANT',
+                $filter['plant']
+            );
+        }
+
+        if(!empty($filter['pembayaran'])){
+
+            $this->db->where(
+                'c.PEMBAYARAN',
+                $filter['pembayaran']
+            );
+        }
+
+        if(!empty($filter['date_from'])){
+
+            $this->db->where(
+                'DATE(c.COST_DATE) >=',
+                $filter['date_from']
+            );
+        }
+
+        if(!empty($filter['date_to'])){
+
+            $this->db->where(
+                'DATE(c.COST_DATE) <=',
+                $filter['date_to']
+            );
+        }
+
+        return $this->db
+            ->count_all_results();
+    }
+
+    public function summary_cost_report(
+        $filter = []
+    )
+    {
+        $this->db->select("
+
+            COALESCE(
+                SUM(d.TOTAL),
+                0
+            ) AS TOTAL_COST,
+
+            COUNT(DISTINCT c.COST)
+            AS TOTAL_COST_DOC,
+
+            COUNT(d.ID)
+            AS TOTAL_ITEM
+
+        ", false);
+
+        $this->db->from(
+            'abc_mst_cost c'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+
+            'abc_mst_cost_detail d',
+
+            '
+
+                d.COST = c.COST
+                AND d.PLANT = c.PLANT
+                AND d.DELETED IS NULL
+
+            ',
+
+            'left',
+            false
+
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->where(
+            'c.DELETED IS NULL',
+            null,
+            false
+        );
+
+        if(!empty($filter['search'])){
+
+            $this->db->group_start();
+
+            $this->db->like(
+                'c.COST',
+                $filter['search']
+            );
+
+            $this->db->or_like(
+                'c.SLIP_NO',
+                $filter['search']
+            );
+
+            $this->db->group_end();
+        }
+
+        if(!empty($filter['plant'])){
+
+            $this->db->where(
+                'c.PLANT',
+                $filter['plant']
+            );
+        }
+
+        if(!empty($filter['pembayaran'])){
+
+            $this->db->where(
+                'c.PEMBAYARAN',
+                $filter['pembayaran']
+            );
+        }
+
+        if(!empty($filter['date_from'])){
+
+            $this->db->where(
+                'DATE(c.COST_DATE) >=',
+                $filter['date_from']
+            );
+        }
+
+        if(!empty($filter['date_to'])){
+
+            $this->db->where(
+                'DATE(c.COST_DATE) <=',
+                $filter['date_to']
+            );
         }
 
         return $this->db

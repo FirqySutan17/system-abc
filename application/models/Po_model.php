@@ -9,9 +9,6 @@ class Po_model extends CI_Model {
         parent::__construct();
     }
 
-    /**
-     * Load list (header table)
-     */
     public function get_data(
         $limit,
         $start,
@@ -20,7 +17,10 @@ class Po_model extends CI_Model {
         $username,
         $search = '',
         $order = 'PO_DATE',
-        $dir = 'DESC'
+        $dir = 'DESC',
+        $status = '',
+        $dateFrom = '',
+        $dateTo = ''
     )
     {
         $this->db->select("
@@ -32,62 +32,184 @@ class Po_model extends CI_Model {
 
             po_type.CODE_NAME AS PO_TYPE_NAME,
 
-            material.material_name AS MATERIAL_NAME
-        ");
+            material.material_name AS MATERIAL_NAME,
+
+            COUNT(DISTINCT pod.CUSTOMER)
+                AS TOTAL_CUSTOMER,
+
+            COALESCE(
+                SUM(rd.BERAT),
+                0
+            ) AS TOTAL_RECEIVE_BERAT,
+
+            CASE
+
+                WHEN COALESCE(
+                    SUM(rd.BERAT),
+                    0
+                ) >= po.BERAT
+                THEN 'RECEIVED'
+
+                WHEN COALESCE(
+                    SUM(rd.BERAT),
+                    0
+                ) > 0
+                THEN 'PARTIAL'
+
+                ELSE 'OPEN'
+
+            END AS STATUS_PO
+        ", false);
 
         $this->db->from('abc_mst_po po');
 
-        // ================= SUPPLIER =================
+        /*
+        |--------------------------------------------------------------------------
+        | SUPPLIER
+        |--------------------------------------------------------------------------
+        */
+
         $this->db->join(
             'abc_cd_customer supplier',
-            'supplier.CUST COLLATE utf8mb4_unicode_ci =
-            po.SUPPLIER COLLATE utf8mb4_unicode_ci',
+            '
+                supplier.CUST COLLATE utf8mb4_unicode_ci =
+                po.SUPPLIER COLLATE utf8mb4_unicode_ci
+            ',
             'left',
             false
         );
 
-        // ================= PLANT =================
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT
+        |--------------------------------------------------------------------------
+        */
+
         $this->db->join(
             'abc_cd_code plant',
-            "plant.CODE COLLATE utf8mb4_unicode_ci =
-            po.PLANT COLLATE utf8mb4_unicode_ci
-            AND plant.HEAD_CODE = 'PLANT'",
+            "
+                plant.CODE COLLATE utf8mb4_unicode_ci =
+                po.PLANT COLLATE utf8mb4_unicode_ci
+                AND plant.HEAD_CODE = 'PLANT'
+            ",
             'left',
             false
         );
+
+        /*
+        |--------------------------------------------------------------------------
+        | PO TYPE
+        |--------------------------------------------------------------------------
+        */
 
         $this->db->join(
             'abc_cd_code po_type',
-            "po_type.CODE COLLATE utf8mb4_unicode_ci =
-            po.PO_TYPE COLLATE utf8mb4_unicode_ci
-            AND po_type.HEAD_CODE = 'PO'",
+            "
+                po_type.CODE COLLATE utf8mb4_unicode_ci =
+                po.PO_TYPE COLLATE utf8mb4_unicode_ci
+                AND po_type.HEAD_CODE = 'PO'
+            ",
             'left',
             false
         );
 
-        // ================= MATERIAL =================
+        /*
+        |--------------------------------------------------------------------------
+        | MATERIAL
+        |--------------------------------------------------------------------------
+        */
+
         $this->db->join(
             'abc_cd_material material',
-            'material.MATERIAL COLLATE utf8mb4_unicode_ci =
-            po.MATERIAL COLLATE utf8mb4_unicode_ci',
+            '
+                material.MATERIAL COLLATE utf8mb4_unicode_ci =
+                po.MATERIAL COLLATE utf8mb4_unicode_ci
+            ',
             'left',
             false
         );
 
-        // ================= FILTER DELETED =================
-        $this->db->where('po.DELETED IS NULL');
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
 
-        // ================= ROLE FILTER =================
-        if ($role_id !== 1) {
+        $this->db->join(
+            'abc_mst_po_detail pod',
+            '
+                pod.PO = po.PO
+                AND pod.PLANT = po.PLANT
+                AND pod.DELETED IS NULL
+            ',
+            'left',
+            false
+        );
 
-            $plants = json_decode($plant, true);
+        /*
+        |--------------------------------------------------------------------------
+        | RECEIVE
+        |--------------------------------------------------------------------------
+        */
 
-            if (is_array($plants)) {
-                $plants = array_map('strval', $plants);
-            } else {
-                $plants = array_map(
-                    'trim',
-                    explode(',', $plant)
+        $this->db->join(
+            'abc_mst_receive r',
+            '
+                r.PO = po.PO
+                AND r.PLANT = po.PLANT
+                AND r.DELETED IS NULL
+            ',
+            'left',
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | RECEIVE DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+            'abc_mst_receive_detail rd',
+            '
+                rd.RECEIVE = r.RECEIVE
+                AND rd.PLANT = r.PLANT
+                AND rd.DELETED IS NULL
+            ',
+            'left',
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->where(
+            'po.DELETED IS NULL',
+            null,
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | ROLE
+        |--------------------------------------------------------------------------
+        */
+
+        if($role_id !== 1){
+
+            $plants = json_decode(
+                $plant,
+                true
+            );
+
+            if(!is_array($plants)){
+
+                $plants = explode(
+                    ',',
+                    $plant
                 );
             }
 
@@ -102,14 +224,20 @@ class Po_model extends CI_Model {
             );
         }
 
-        // ================= SEARCH =================
-        if (!empty($search)) {
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        */
+
+        if($search !== ''){
 
             $this->db->group_start();
 
-            $this->db->like('po.PO', $search);
-
-            $this->db->or_like('po.SUPPLIER', $search);
+            $this->db->like(
+                'po.PO',
+                $search
+            );
 
             $this->db->or_like(
                 'supplier.FULL_NAME',
@@ -139,115 +267,270 @@ class Po_model extends CI_Model {
             $this->db->group_end();
         }
 
-        // ================= ORDER =================
+        /*
+        |--------------------------------------------------------------------------
+        | DATE FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($dateFrom)){
+
+            $this->db->where(
+                'po.PO_DATE >=',
+                $dateFrom
+            );
+        }
+
+        if(!empty($dateTo)){
+
+            $this->db->where(
+                'po.PO_DATE <=',
+                $dateTo
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | GROUP BY
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->group_by('po.PO');
+
+        /*
+        |--------------------------------------------------------------------------
+        | STATUS FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($status)){
+
+            $this->db->having(
+                'STATUS_PO',
+                $status
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | ORDER
+        |--------------------------------------------------------------------------
+        */
+
         $this->db->order_by(
             'po.' . $order,
             $dir
         );
 
-        // ================= LIMIT =================
+        /*
+        |--------------------------------------------------------------------------
+        | LIMIT
+        |--------------------------------------------------------------------------
+        */
+
         $this->db->limit(
             (int)$limit,
             (int)$start
         );
 
-        return $this->db->get()->result();
+        return $this->db
+            ->get()
+            ->result_array();
     }
 
-    /**
-     * Count total filtered rows
-     */
     public function count_data(
         $role_id,
         $plant,
         $username,
-        $search = ''
+        $search = '',
+        $status = '',
+        $dateFrom = '',
+        $dateTo = ''
     )
     {
-        $this->db->from('abc_mst_po po');
+        $subquery = $this->db
+            ->select('po.PO', false)
+            ->from('abc_mst_po po')
 
-        // ================= SUPPLIER =================
-        $this->db->join(
-            'abc_cd_customer supplier',
-            'supplier.CUST COLLATE utf8mb4_unicode_ci =
-            po.SUPPLIER COLLATE utf8mb4_unicode_ci',
-            'left',
-            false
-        );
+            ->join(
+                'abc_cd_customer supplier',
+                '
+                    supplier.CUST COLLATE utf8mb4_unicode_ci =
+                    po.SUPPLIER COLLATE utf8mb4_unicode_ci
+                ',
+                'left',
+                false
+            )
 
-        // ================= MATERIAL =================
-        $this->db->join(
-            'abc_cd_material material',
-            'material.MATERIAL COLLATE utf8mb4_unicode_ci =
-            po.MATERIAL COLLATE utf8mb4_unicode_ci',
-            'left',
-            false
-        );
+            ->join(
+                'abc_cd_material material',
+                '
+                    material.MATERIAL COLLATE utf8mb4_unicode_ci =
+                    po.MATERIAL COLLATE utf8mb4_unicode_ci
+                ',
+                'left',
+                false
+            )
 
-        // ================= FILTER =================
-        $this->db->where('po.DELETED IS NULL');
+            ->join(
+                'abc_mst_receive r',
+                '
+                    r.PO = po.PO
+                    AND r.PLANT = po.PLANT
+                    AND r.DELETED IS NULL
+                ',
+                'left',
+                false
+            )
 
-        // ================= ROLE =================
-        if ($role_id !== 1) {
+            ->join(
+                'abc_mst_receive_detail rd',
+                '
+                    rd.RECEIVE = r.RECEIVE
+                    AND rd.PLANT = r.PLANT
+                    AND rd.DELETED IS NULL
+                ',
+                'left',
+                false
+            )
 
-            $plants = json_decode($plant, true);
+            ->where(
+                'po.DELETED IS NULL',
+                null,
+                false
+            );
 
-            if (is_array($plants)) {
-                $plants = array_map('strval', $plants);
-            } else {
-                $plants = array_map(
-                    'trim',
-                    explode(',', $plant)
+        /*
+        |--------------------------------------------------------------------------
+        | ROLE
+        |--------------------------------------------------------------------------
+        */
+
+        if($role_id !== 1){
+
+            $plants = json_decode(
+                $plant,
+                true
+            );
+
+            if(!is_array($plants)){
+
+                $plants = explode(
+                    ',',
+                    $plant
                 );
             }
 
-            $this->db->where_in(
+            $subquery->where_in(
                 'po.PLANT',
                 $plants
             );
 
-            $this->db->where(
+            $subquery->where(
                 'po.CREATED_BY',
                 $username
             );
         }
 
-        // ================= SEARCH =================
-        if (!empty($search)) {
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        */
 
-            $this->db->group_start();
+        if($search !== ''){
 
-            $this->db->like('po.PO', $search);
+            $subquery->group_start();
 
-            $this->db->or_like(
+            $subquery->like(
+                'po.PO',
+                $search
+            );
+
+            $subquery->or_like(
                 'supplier.FULL_NAME',
                 $search
             );
 
-            $this->db->or_like(
+            $subquery->or_like(
                 'material.material_name',
                 $search
             );
 
-            $this->db->or_like(
-                'po.NO_TRUCK',
-                $search
-            );
-
-            $this->db->or_like(
-                'po.DRIVER',
-                $search
-            );
-
-            $this->db->or_like(
-                'po.REMARK',
-                $search
-            );
-
-            $this->db->group_end();
+            $subquery->group_end();
         }
 
-        return $this->db->count_all_results();
+        /*
+        |--------------------------------------------------------------------------
+        | DATE
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($dateFrom)){
+
+            $subquery->where(
+                'po.PO_DATE >=',
+                $dateFrom
+            );
+        }
+
+        if(!empty($dateTo)){
+
+            $subquery->where(
+                'po.PO_DATE <=',
+                $dateTo
+            );
+        }
+
+        $subquery->group_by('po.PO');
+
+        /*
+        |--------------------------------------------------------------------------
+        | STATUS
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($status)){
+
+            if($status == 'OPEN'){
+
+                $subquery->having(
+                    'COALESCE(SUM(rd.BERAT),0) = 0',
+                    null,
+                    false
+                );
+            }
+
+            if($status == 'PARTIAL'){
+
+                $subquery->having(
+                    '
+                        COALESCE(SUM(rd.BERAT),0) > 0
+                        AND
+                        COALESCE(SUM(rd.BERAT),0) < po.BERAT
+                    ',
+                    null,
+                    false
+                );
+            }
+
+            if($status == 'RECEIVED'){
+
+                $subquery->having(
+                    '
+                        COALESCE(SUM(rd.BERAT),0) >= po.BERAT
+                    ',
+                    null,
+                    false
+                );
+            }
+        }
+
+        return count(
+            $subquery
+                ->get()
+                ->result_array()
+        );
     }
 
     public function get_user_plants($username)
