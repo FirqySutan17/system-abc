@@ -6,9 +6,9 @@ class ReportClosingInventoryPrice_model extends CI_Model {
     public function get_plant_by_user($plant)
     {
         return $this->db
-            ->where('HEAD_CODE', 'AJ')
+            ->where('HEAD_CODE', 'PLANT')
             ->where('CODE', $plant)
-            ->get('cd_code')
+            ->get('abc_cd_code')
             ->row();
     }
 
@@ -16,8 +16,9 @@ class ReportClosingInventoryPrice_model extends CI_Model {
     {
         return $this->db
             ->select('CODE, CODE_NAME')
-            ->from('cd_code')
-            ->where('HEAD_CODE', 'AJ')
+            ->from('abc_cd_code')
+            ->where('HEAD_CODE', 'PLANT')
+            ->where('CODE !=', '*')
             ->order_by('CODE', 'ASC')
             ->get()
             ->result();
@@ -27,7 +28,7 @@ class ReportClosingInventoryPrice_model extends CI_Model {
     {
         return $this->db
             ->select('CUST, FULL_NAME')
-            ->from('cd_customer')
+            ->from('abc_cd_customer')
             ->group_start()
                 ->where('CUST_KIND', 'SUPPLIER')
                 ->or_where('CUST_CLASS', 'SUPPLIER')
@@ -41,7 +42,7 @@ class ReportClosingInventoryPrice_model extends CI_Model {
     {
         return $this->db
             ->select('CUST, FULL_NAME')
-            ->from('cd_customer')
+            ->from('abc_cd_customer')
             ->group_start()
                 ->where('CUST_KIND', 'CUSTOMER')
                 ->or_where('CUST_CLASS', 'CUSTOMER')
@@ -55,7 +56,7 @@ class ReportClosingInventoryPrice_model extends CI_Model {
     {
         return $this->db
             ->select('material, material_name')
-            ->from('cd_material')
+            ->from('abc_cd_material')
             ->order_by('material', 'ASC')
             ->get()
             ->result();
@@ -98,8 +99,8 @@ class ReportClosingInventoryPrice_model extends CI_Model {
                 SUM(end_amount) AS end_amount
 
             FROM cl_inventory_price TBL
-            LEFT JOIN cd_material m ON m.material = TBL.material
-            LEFT JOIN cd_code c ON c.CODE = TBL.plant AND c.HEAD_CODE = 'AJ'
+            LEFT JOIN abc_cd_material m ON m.material = TBL.material
+            LEFT JOIN abc_cd_code c ON c.CODE = TBL.plant AND c.HEAD_CODE = 'PLANT'
 
             WHERE TBL.ymd = ".$this->db->escape($ymd)."
             AND TBL.plant IN ($plantList)
@@ -216,8 +217,8 @@ class ReportClosingInventoryPrice_model extends CI_Model {
                 SUM(cip.end_amount) AS end_amount
 
             FROM cl_inventory_price cip
-            LEFT JOIN cd_material m ON m.material = cip.material
-            LEFT JOIN cd_code c ON c.CODE = cip.plant AND c.HEAD_CODE = 'AJ'
+            LEFT JOIN abc_cd_material m ON m.material = cip.material
+            LEFT JOIN abc_cd_code c ON c.CODE = cip.plant AND c.HEAD_CODE = 'PLANT'
 
             $where
 

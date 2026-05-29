@@ -25,21 +25,15 @@ class ReportClosingProcess extends MY_Controller {
     {
         $plants = $this->ReportClosingProcess_model->get_plant_list();
 
-        // Ambil plant dari session (JSON string)
-        $userPlantRaw = $this->session->userdata('plant');
+        $defaultPlant = '';
 
-        $userPlants = json_decode($userPlantRaw, true);
-        if (!is_array($userPlants)) {
-            $userPlants = [$userPlantRaw]; // fallback kalau suatu saat jadi single
+        if (!empty($plants)) {
+            $defaultPlant = $plants[0]->CODE;
         }
-
-        // Default = plant pertama user
-        $defaultPlant = $userPlants[0] ?? '';
 
         $data = [
             'plants'       => $plants,
-            'defaultPlant' => $defaultPlant,
-            'userPlants'   => $userPlants
+            'defaultPlant' => $defaultPlant
         ];
 
         $this->load->view('templates/header', ['title' => 'Closing Process']);
@@ -51,7 +45,7 @@ class ReportClosingProcess extends MY_Controller {
     public function run_process()
     {
         $plant    = $this->input->post('plant', TRUE);
-        $date     = $this->input->post('date', TRUE);
+        $month = $this->input->post('month', TRUE);
         $selected = $this->input->post('process');
 
         $userPlantRaw = $this->session->userdata('plant');
@@ -73,7 +67,7 @@ class ReportClosingProcess extends MY_Controller {
             return;
         }
 
-        if (!$plant || !$date || empty($selected) || !is_array($selected)) {
+        if (!$plant || !$month || empty($selected) || !is_array($selected)) {
             echo json_encode([
                 'status' => false,
                 'logs'   => [['message' => 'Parameter tidak lengkap.', 'status' => 'error']]
@@ -83,13 +77,25 @@ class ReportClosingProcess extends MY_Controller {
 
         // Format tanggal jadi Ymd
         try {
-            $dt  = new DateTime($date);
-            $ymd = $dt->format('Ymd');
+
+            $dt = DateTime::createFromFormat('Y-m', $month);
+
+            if (!$dt) {
+                throw new Exception();
+            }
+
+            $ym = $dt->format('Ym');
+
         } catch (Exception $e) {
+
             echo json_encode([
                 'status' => false,
-                'logs'   => [['message' => 'Invalid date format.', 'status' => 'error']]
+                'logs'   => [[
+                    'message' => 'Invalid month format.',
+                    'status'  => 'error'
+                ]]
             ]);
+
             return;
         }
 
@@ -106,12 +112,12 @@ class ReportClosingProcess extends MY_Controller {
             if (in_array($key, $selected)) {
 
                 $logs[] = [
-                    'message' => "[$ymd] Start $key process...",
+                    'message' => "[$ym] Start $key process...",
                     'status'  => 'process'
                 ];
 
                 try {
-                    $query = $this->db->query("CALL $spName(?, ?)", [$plant, $ymd]);
+                    $query = $this->db->query("CALL $spName(?, ?)", [$plant, $ym]);
 
                     if (!$query) {
                         $error = $this->db->error();
@@ -124,13 +130,13 @@ class ReportClosingProcess extends MY_Controller {
                     }
 
                     $logs[] = [
-                        'message' => "[$ymd] $key success",
+                        'message' => "[$ym] $key success",
                         'status'  => 'success'
                     ];
 
                 } catch (Exception $e) {
                     $logs[] = [
-                        'message' => "[$ymd] $key failed: " . $e->getMessage(),
+                        'message' => "[$ym] $key failed: " . $e->getMessage(),
                         'status'  => 'error'
                     ];
 

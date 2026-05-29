@@ -567,7 +567,7 @@
             has_permission('closing_pl') ||
             has_permission('closing_sales_pl')
         ): ?>
-          <!-- <li class="sidebar-item nav-small-cap" style="padding: 0px; margin-top: 15px">
+          <li class="sidebar-item nav-small-cap" style="padding: 0px; margin-top: 15px">
               <a class="sidebar-link custom-arrow-toggle" href="javascript:void(0)" style="border-radius: 10px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
                   <div style="display: flex; align-items: center;">
                       <span class="sidebar-icon"><i class="ti ti-database"></i></span>
@@ -582,7 +582,7 @@
                   <li class="sidebar-item child-drop">
                       <a href="<?= base_url('closing-process'); ?>" class="sidebar-link">
                           <i class="ti ti-dots"></i>
-                          <span class="hide-menu">Closing Process</span>
+                          <span class="hide-menu">Process</span>
                       </a>
                   </li>
                 <?php endif; ?>
@@ -591,7 +591,7 @@
                   <li class="sidebar-item child-drop">
                       <a href="<?= base_url('report-closing-inventory-price'); ?>" class="sidebar-link">
                           <i class="ti ti-dots"></i>
-                          <span class="hide-menu">Closing Inventory Price</span>
+                          <span class="hide-menu">Inventory Price</span>
                       </a>
                   </li>
                 <?php endif; ?>
@@ -600,7 +600,7 @@
                   <li class="sidebar-item child-drop">
                       <a href="<?= base_url('report-closing-cost'); ?>" class="sidebar-link">
                           <i class="ti ti-dots"></i>
-                          <span class="hide-menu">Closing Cost</span>
+                          <span class="hide-menu">Cost</span>
                       </a>
                   </li>
                 <?php endif; ?>
@@ -609,7 +609,7 @@
                   <li class="sidebar-item child-drop">
                       <a href="<?= base_url('report-closing-sales-pl'); ?>" class="sidebar-link">
                           <i class="ti ti-dots"></i>
-                          <span class="hide-menu">Closing Sales PL</span>
+                          <span class="hide-menu">Sales PL</span>
                       </a>
                   </li>
                 <?php endif; ?>
@@ -618,13 +618,13 @@
                   <li class="sidebar-item child-drop">
                       <a href="<?= base_url('report-closing-pl'); ?>" class="sidebar-link">
                           <i class="ti ti-dots"></i>
-                          <span class="hide-menu">Closing PL</span>
+                          <span class="hide-menu">P/L</span>
                       </a>
                   </li>
                 <?php endif; ?>
 
               </ul>
-          </li> -->
+          </li>
         <?php endif; ?>
 
         <?php if (

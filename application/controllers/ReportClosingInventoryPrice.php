@@ -24,9 +24,7 @@ class ReportClosingInventoryPrice extends MY_Controller {
     public function index()
     {
         $data = [
-            'plants'    => $this->ReportClosingInventoryPrice_model->get_plant_list(),
-            'materials' => $this->ReportClosingInventoryPrice_model->get_material_list(),
-            'userPlant' => $this->session->userdata('plant')
+            'plants' => $this->ReportClosingInventoryPrice_model->get_plant_list()
         ];
 
         $this->load->view('templates/header', [

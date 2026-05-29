@@ -16572,7 +16572,7 @@ fieldset:disabled .btn {
 .left-sidebar .scroll-sidebar {
   overflow-y: auto;
   padding: 0 15px;
-  height: calc(70vh - 80px);
+  height: calc(78vh - 80px);
   border-radius: 7px;
   padding-bottom: 35px;
 }

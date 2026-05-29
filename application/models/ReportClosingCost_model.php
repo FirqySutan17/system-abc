@@ -6,9 +6,9 @@ class ReportClosingCost_model extends CI_Model {
     public function get_plant_by_user($plant)
     {
         return $this->db
-            ->where('HEAD_CODE', 'AJ')
+            ->where('HEAD_CODE', 'PLANT')
             ->where('CODE', $plant)
-            ->get('cd_code')
+            ->get('abc_cd_code')
             ->row();
     }
 
@@ -16,8 +16,9 @@ class ReportClosingCost_model extends CI_Model {
     {
         return $this->db
             ->select('CODE, CODE_NAME')
-            ->from('cd_code')
-            ->where('HEAD_CODE', 'AJ')
+            ->from('abc_cd_code')
+            ->where('HEAD_CODE', 'PLANT')
+            ->where('CODE !=', '*')
             ->order_by('CODE', 'ASC')
             ->get()
             ->result();
@@ -27,7 +28,7 @@ class ReportClosingCost_model extends CI_Model {
     {
         return $this->db
             ->select('CUST, FULL_NAME')
-            ->from('cd_customer')
+            ->from('abc_cd_customer')
             ->group_start()
                 ->where('CUST_KIND', 'SUPPLIER')
                 ->or_where('CUST_CLASS', 'SUPPLIER')
@@ -41,7 +42,7 @@ class ReportClosingCost_model extends CI_Model {
     {
         return $this->db
             ->select('CUST, FULL_NAME')
-            ->from('cd_customer')
+            ->from('abc_cd_customer')
             ->group_start()
                 ->where('CUST_KIND', 'CUSTOMER')
                 ->or_where('CUST_CLASS', 'CUSTOMER')
@@ -83,10 +84,10 @@ class ReportClosingCost_model extends CI_Model {
                 a.amount_mp   AS amount_market,
                 a.cost_up     AS modal,
                 a.moc_amount  AS amount_modal
-            FROM cl_cost a
-            JOIN cd_item i ON a.item = i.item
-            LEFT JOIN cd_code cls ON cls.head_code='GT' AND cls.code=i.item_class
-            LEFT JOIN cd_code p   ON p.head_code='AJ' AND p.code=a.plant
+            FROM abc_cl_cost a
+            JOIN abc_cd_item i ON a.item = i.item
+            LEFT JOIN abc_cd_code cls ON cls.head_code='GT' AND cls.code=i.item_class
+            LEFT JOIN abc_cd_code p   ON p.head_code='PLANT' AND p.code=a.plant
             WHERE a.plant IN ($plantList)
             AND a.ymd = ".$this->db->escape($date)."
             ORDER BY LEFT(a.item,4) DESC, a.item
@@ -110,7 +111,7 @@ class ReportClosingCost_model extends CI_Model {
 
         $sql = "
             SELECT COUNT(*) total
-            FROM cl_cost a
+            FROM abc_cl_cost a
             WHERE a.plant IN ($plantList)
             AND a.ymd = ".$this->db->escape($date);
 
@@ -131,7 +132,7 @@ class ReportClosingCost_model extends CI_Model {
                 SUM(prd_qty)    AS qty,
                 SUM(prd_bw)     AS bw,
                 SUM(moc_amount) AS amount
-            FROM cl_cost a
+            FROM abc_cl_cost a
             WHERE a.plant IN ($plantList)
             AND a.ymd = ".$this->db->escape($date);
 
@@ -150,25 +151,30 @@ class ReportClosingCost_model extends CI_Model {
 
         $sql = "
             SELECT
-                a.plant,
-                p.CODE_NAME AS plant_name,
-                LEFT(a.ymd,6) AS ym,
-
                 a.item,
                 i.full_name AS item_name,
                 cls.code_name AS class_name,
 
                 SUM(a.prd_qty)      AS qty,
                 SUM(a.prd_bw)       AS kg,
+
+                AVG(a.index_price)  AS index_price,
                 SUM(a.index_amount) AS index_amount,
+
+                AVG(a.market_price) AS market_price,
                 SUM(a.amount_mp)    AS market_amount,
+
+                AVG(a.cost_up)      AS cost_up,
                 SUM(a.moc_amount)   AS modal_amount
 
-            FROM cl_cost a
+            FROM abc_abc_cl_cost a
 
-            LEFT JOIN cd_item i ON i.item = a.item
-            LEFT JOIN cd_code cls ON cls.head_code='GT' AND cls.code=i.item_class
-            LEFT JOIN cd_code p ON p.head_code='AJ' AND p.code=a.plant
+            LEFT JOIN abc_cd_item i
+                ON i.item = a.item
+
+            LEFT JOIN abc_cd_code cls
+                ON cls.head_code='GT'
+                AND cls.code=i.item_class
 
             WHERE a.plant IN ($plantList)
             AND LEFT(a.ymd,6) = ".$this->db->escape($month);
@@ -181,10 +187,12 @@ class ReportClosingCost_model extends CI_Model {
         }
 
         $sql .= "
-            GROUP BY a.plant, p.CODE_NAME,
-                    LEFT(a.ymd,6),
-                    a.item, i.full_name, cls.code_name
-            ORDER BY a.item ASC
+            GROUP BY
+                a.item,
+                i.full_name,
+                cls.code_name
+
+            ORDER BY a.item
         ";
 
         if ($limit > 0) {
@@ -207,7 +215,7 @@ class ReportClosingCost_model extends CI_Model {
         $sql = "
             SELECT COUNT(*) AS total FROM (
                 SELECT a.plant, LEFT(a.ymd,6), a.item
-                FROM cl_cost a
+                FROM abc_cl_cost a
                 WHERE a.plant IN ($plantList)
                 AND LEFT(a.ymd,6) = ".$this->db->escape($month);
 
@@ -235,12 +243,18 @@ class ReportClosingCost_model extends CI_Model {
 
         $sql = "
             SELECT
+
+                COUNT(DISTINCT a.item) AS total_item,
+
                 SUM(a.prd_qty)      AS qty,
                 SUM(a.prd_bw)       AS kg,
+
                 SUM(a.index_amount) AS index_amount,
                 SUM(a.amount_mp)    AS market_amount,
                 SUM(a.moc_amount)   AS modal_amount
-            FROM cl_cost a
+
+            FROM abc_abc_cl_cost a
+
             WHERE a.plant IN ($plantList)
             AND LEFT(a.ymd,6) = ".$this->db->escape($month);
 

@@ -6,9 +6,9 @@ class ReportClosingSalesPl_model extends CI_Model {
     public function get_plant_by_user($plant)
     {
         return $this->db
-            ->where('HEAD_CODE', 'AJ')
+            ->where('HEAD_CODE', 'PLANT')
             ->where('CODE', $plant)
-            ->get('cd_code')
+            ->get('abc_cd_code')
             ->row();
     }
 
@@ -16,8 +16,9 @@ class ReportClosingSalesPl_model extends CI_Model {
     {
         return $this->db
             ->select('CODE, CODE_NAME')
-            ->from('cd_code')
-            ->where('HEAD_CODE', 'AJ')
+            ->from('abc_cd_code')
+            ->where('HEAD_CODE', 'PLANT')
+            ->where('CODE !=', '*')
             ->order_by('CODE', 'ASC')
             ->get()
             ->result();
@@ -27,7 +28,7 @@ class ReportClosingSalesPl_model extends CI_Model {
     {
         return $this->db
             ->select('CUST, FULL_NAME')
-            ->from('cd_customer')
+            ->from('abc_cd_customer')
             ->group_start()
                 ->where('CUST_KIND', 'SUPPLIER')
                 ->or_where('CUST_CLASS', 'SUPPLIER')
@@ -41,7 +42,7 @@ class ReportClosingSalesPl_model extends CI_Model {
     {
         return $this->db
             ->select('CUST, FULL_NAME')
-            ->from('cd_customer')
+            ->from('abc_cd_customer')
             ->group_start()
                 ->where('CUST_KIND', 'CUSTOMER')
                 ->or_where('CUST_CLASS', 'CUSTOMER')
@@ -99,11 +100,11 @@ class ReportClosingSalesPl_model extends CI_Model {
             a.sl_profit AS sales_profit_amt
         ", false);
 
-        $this->db->from('cl_sales_pl a');
+        $this->db->from('abc_cl_sales_pl a');
 
-        $this->db->join('cd_item i','i.item=a.item','left');
-        $this->db->join('cd_code cls',"cls.head_code='GT' AND cls.code=i.item_class",'left');
-        $this->db->join('cd_code p',"p.head_code='AJ' AND p.code=a.plant",'left');
+        $this->db->join('abc_cd_item i','i.item=a.item','left');
+        $this->db->join('abc_cd_code cls',"cls.head_code='GT' AND cls.code=i.item_class",'left');
+        $this->db->join('abc_cd_code p',"p.head_code='PLANT' AND p.code=a.plant",'left');
 
         $this->db->where("a.plant IN ($plantList)", null, false);
 
@@ -127,7 +128,7 @@ class ReportClosingSalesPl_model extends CI_Model {
 
         $plantList = implode(',', array_map([$this->db,'escape'], $plants));
 
-        $this->db->from('cl_sales_pl a');
+        $this->db->from('abc_cl_sales_pl a');
         $this->db->where("a.plant IN ($plantList)", null, false);
 
         if (!empty($filters['date'])) {
@@ -170,7 +171,7 @@ class ReportClosingSalesPl_model extends CI_Model {
             SUM(sl_profit) AS sales_profit_amt
         ", false);
 
-        $this->db->from('cl_sales_pl a');
+        $this->db->from('abc_cl_sales_pl a');
 
         $this->db->where("a.plant IN ($plantList)", null, false);
 
@@ -189,44 +190,29 @@ class ReportClosingSalesPl_model extends CI_Model {
         $plantList = implode(',', array_map([$this->db,'escape'], $plants));
 
         $this->db->select("
-            a.plant,
-            p.CODE_NAME AS plant_name,
-            LEFT(a.ymd,6) AS ym,
-
             a.item,
             i.full_name AS item_name,
             cls.code_name AS class_name,
 
-            SUM(a.bg_bw) AS bg_bw,
-            SUM(a.bg_amount) / NULLIF(SUM(a.bg_bw),0) AS bg_up,
             SUM(a.bg_amount) AS begin_amt,
-
-            SUM(a.pd_bw) AS production_bw,
-            SUM(a.pd_amount) / NULLIF(SUM(a.pd_bw),0) AS production_up,
             SUM(a.pd_amount) AS production_amt,
-
-            SUM(a.pr_bw) AS purchase_bw,
-            SUM(a.pr_amount) / NULLIF(SUM(a.pr_bw),0) AS purchase_up,
             SUM(a.pr_amount) AS purchase_amt,
-
-            SUM(a.ds_bw) AS adjust_bw,
-            SUM(a.ds_amount) / NULLIF(SUM(a.ds_bw),0) AS adjust_up,
             SUM(a.ds_amount) AS adjust_amt,
 
-            SUM(a.sl_cost_bw) AS cogs_bw,
-            SUM(a.sl_cost_amount) / NULLIF(SUM(a.sl_cost_bw),0) AS cogs_up,
             SUM(a.sl_cost_amount) AS cogs_amt,
 
             SUM(a.end_amount) AS ending_amt,
+
             SUM(a.sl_net_amount) AS sales_net_amt,
+
             SUM(a.sl_profit) AS sales_profit_amt
         ", false);
 
-        $this->db->from('cl_sales_pl a');
+        $this->db->from('abc_cl_sales_pl a');
 
-        $this->db->join('cd_item i','i.item=a.item','left');
-        $this->db->join('cd_code cls',"cls.head_code='GT' AND cls.code=i.item_class",'left');
-        $this->db->join('cd_code p',"p.head_code='AJ' AND p.code=a.plant",'left');
+        $this->db->join('abc_cd_item i','i.item=a.item','left');
+        $this->db->join('abc_cd_code cls',"cls.head_code='GT' AND cls.code=i.item_class",'left');
+        $this->db->join('abc_cd_code p',"p.head_code='PLANT' AND p.code=a.plant",'left');
 
         $this->db->where("a.plant IN ($plantList)", null, false);
         $this->db->where("LEFT(a.ymd,6)", $filters['month']);
@@ -236,9 +222,6 @@ class ReportClosingSalesPl_model extends CI_Model {
         }
 
         $this->db->group_by([
-            'a.plant',
-            'p.CODE_NAME',
-            'LEFT(a.ymd,6)',
             'a.item',
             'i.full_name',
             'cls.code_name'
@@ -263,7 +246,7 @@ class ReportClosingSalesPl_model extends CI_Model {
         $sql = "
             SELECT COUNT(*) total FROM (
                 SELECT a.plant, a.item
-                FROM cl_sales_pl a
+                FROM abc_cl_sales_pl a
                 WHERE a.plant IN ($plantList)
                 AND LEFT(a.ymd,6) = ".$this->db->escape($filters['month'])."
                 GROUP BY a.plant, a.item
@@ -282,33 +265,24 @@ class ReportClosingSalesPl_model extends CI_Model {
 
         $this->db->select("
 
-            SUM(bg_bw) AS bg_bw,
+            COUNT(DISTINCT item) AS total_item,
+
             SUM(bg_amount) AS begin_amt,
-            SUM(bg_amount) / NULLIF(SUM(bg_bw),0) AS bg_up,
-
-            SUM(pd_bw) AS production_bw,
             SUM(pd_amount) AS production_amt,
-            SUM(pd_amount) / NULLIF(SUM(pd_bw),0) AS production_up,
-
-            SUM(pr_bw) AS purchase_bw,
             SUM(pr_amount) AS purchase_amt,
-            SUM(pr_amount) / NULLIF(SUM(pr_bw),0) AS purchase_up,
-
-            SUM(ds_bw) AS adjust_bw,
             SUM(ds_amount) AS adjust_amt,
-            SUM(ds_amount) / NULLIF(SUM(ds_bw),0) AS adjust_up,
 
-            SUM(sl_cost_bw) AS cogs_bw,
             SUM(sl_cost_amount) AS cogs_amt,
-            SUM(sl_cost_amount) / NULLIF(SUM(sl_cost_bw),0) AS cogs_up,
 
             SUM(end_amount) AS ending_amt,
+
             SUM(sl_net_amount) AS sales_net_amt,
+
             SUM(sl_profit) AS sales_profit_amt
 
         ", false);
 
-        $this->db->from('cl_sales_pl a');
+        $this->db->from('abc_cl_sales_pl a');
 
         $this->db->where("a.plant IN ($plantList)", null, false);
         $this->db->where("LEFT(a.ymd,6)", $filters['month']);
@@ -347,10 +321,10 @@ class ReportClosingSalesPl_model extends CI_Model {
                                 AND ".$this->db->escape($date)."
                     THEN a.AMOUNT ELSE 0 END) AS AAMT
 
-            FROM cl_pl a
-            LEFT JOIN cd_code p 
+            FROM abc_cl_pl a
+            LEFT JOIN abc_cd_code p 
                 ON p.code = a.PLANT 
-                AND p.head_code = 'AJ'
+                AND p.head_code = 'PLANT'
 
             WHERE a.PLANT IN ($plantList)
         ";
@@ -381,7 +355,7 @@ class ReportClosingSalesPl_model extends CI_Model {
         $sql = "
             SELECT COUNT(*) AS total FROM (
                 SELECT a.PLANT
-                FROM cl_pl a
+                FROM abc_cl_pl a
                 WHERE a.PLANT IN ($plantList)
                 GROUP BY a.PLANT
             ) X
@@ -413,7 +387,7 @@ class ReportClosingSalesPl_model extends CI_Model {
                                 AND ".$this->db->escape($date)."
                     THEN a.AMOUNT ELSE 0 END) AS AAMT
 
-            FROM cl_pl a
+            FROM abc_cl_pl a
             WHERE a.PLANT IN ($plantList)
         ";
 

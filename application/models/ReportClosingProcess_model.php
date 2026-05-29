@@ -6,9 +6,9 @@ class ReportClosingProcess_model extends CI_Model {
     public function get_plant_by_user($plant)
     {
         return $this->db
-            ->where('HEAD_CODE', 'AJ')
+            ->where('HEAD_CODE', 'PLANT')
             ->where('CODE', $plant)
-            ->get('cd_code')
+            ->get('abc_cd_code')
             ->row();
     }
 
@@ -16,8 +16,9 @@ class ReportClosingProcess_model extends CI_Model {
     {
         return $this->db
             ->select('CODE, CODE_NAME')
-            ->from('cd_code')
-            ->where('HEAD_CODE', 'AJ')
+            ->from('abc_cd_code')
+            ->where('HEAD_CODE', 'PLANT')
+            ->where('CODE <>', '*')
             ->order_by('CODE', 'ASC')
             ->get()
             ->result();
@@ -27,7 +28,7 @@ class ReportClosingProcess_model extends CI_Model {
     {
         return $this->db
             ->select('CUST, FULL_NAME')
-            ->from('cd_customer')
+            ->from('abc_cd_customer')
             ->group_start()
                 ->where('CUST_KIND', 'SUPPLIER')
                 ->or_where('CUST_CLASS', 'SUPPLIER')
@@ -41,7 +42,7 @@ class ReportClosingProcess_model extends CI_Model {
     {
         return $this->db
             ->select('CUST, FULL_NAME')
-            ->from('cd_customer')
+            ->from('abc_cd_customer')
             ->group_start()
                 ->where('CUST_KIND', 'CUSTOMER')
                 ->or_where('CUST_CLASS', 'CUSTOMER')
@@ -72,8 +73,8 @@ class ReportClosingProcess_model extends CI_Model {
                 a.item,
                 SUM(a.amount) AS amount
             FROM cl_pl a
-            LEFT JOIN cd_code c
-              ON c.HEAD_CODE = 'AJ'
+            LEFT JOIN abc_cd_code c
+              ON c.HEAD_CODE = 'PLANT'
              AND c.CODE COLLATE utf8mb4_uca1400_ai_ci = a.plant
             WHERE 1=1
         ";

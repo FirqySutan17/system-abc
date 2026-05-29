@@ -4,6 +4,51 @@ if (!is_array($userPlants)) {
     $userPlants = [$this->session->userdata('plant')];
 }
 ?>
+
+<div class="row g-3 mb-4">
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Total Item</div>
+                <div class="fs-4 fw-bold text-primary"
+                     id="kpi_total_item">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Net Sales</div>
+                <div class="fs-4 fw-bold text-success"
+                     id="kpi_net_sales">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Profit</div>
+                <div class="fs-4 fw-bold text-primary"
+                     id="kpi_profit">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small">Ending Amount</div>
+                <div class="fs-4 fw-bold text-info"
+                     id="kpi_ending_amount">0</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
 <div class="row mb-3 align-items-end">
 
     <!-- PLANT -->
@@ -62,47 +107,35 @@ if (!is_array($userPlants)) {
 <div class="table-responsive">
     <table class="table table-bordered" id="monthlyPlTable">
 
-        <thead class="table-light">
+        <thead>
 
-            <tr>
-                <th rowspan="2" class="text-center">PLANT</th>
-                <th rowspan="2" class="text-center">MONTH</th>
-                <th rowspan="2" class="text-center">ITEM</th>
-                <th rowspan="2" class="text-center">ITEM NAME</th>
-                <th rowspan="2" class="text-center">CLASS</th>
+            <tr class="table-dark">
 
-                <th colspan="3" class="text-center">BEGINNING</th>
-                <th colspan="3" class="text-center">PRODUCTION</th>
-                <th colspan="3" class="text-center">PURCHASE</th>
-                <th colspan="3" class="text-center">ADJUST</th>
-                <th colspan="3" class="text-center">COGS</th>
+                <th rowspan="2">
+                    Material
+                </th>
 
-                <th rowspan="2" class="text-center">ENDING</th>
-                <th rowspan="2" class="text-center">NET SALES</th>
-                <th rowspan="2" class="text-center">PROFIT</th>
+                <th colspan="4" class="text-center">
+                    Movement
+                </th>
+
+                <th colspan="4" class="text-center">
+                    Sales P/L
+                </th>
+
             </tr>
 
-            <tr>
+            <tr class="table-secondary">
 
-                <th class="text-center">BW</th>
-                <th class="text-center">UP</th>
-                <th class="text-center">AMT</th>
+                <th>Beginning</th>
+                <th>Production</th>
+                <th>Purchase</th>
+                <th>Adjust</th>
 
-                <th class="text-center">BW</th>
-                <th class="text-center">UP</th>
-                <th class="text-center">AMT</th>
-
-                <th class="text-center">BW</th>
-                <th class="text-center">UP</th>
-                <th class="text-center">AMT</th>
-
-                <th class="text-center">BW</th>
-                <th class="text-center">UP</th>
-                <th class="text-center">AMT</th>
-
-                <th class="text-center">BW</th>
-                <th class="text-center">UP</th>
-                <th class="text-center">AMT</th>
+                <th>COGS</th>
+                <th>Ending</th>
+                <th>Net Sales</th>
+                <th>Profit</th>
 
             </tr>
 
@@ -111,33 +144,23 @@ if (!is_array($userPlants)) {
         <tbody></tbody>
 
         <tfoot>
-            <tr class="table-secondary fw-bold">
 
-                <td colspan="5" class="text-end">GRAND TOTAL</td>
+            <tr class="table-warning fw-bold">
 
-                <td id="mc_gt_bg_bw"></td>
-                <td id="mc_gt_bg_up"></td>
+                <td class="text-end">
+                    GRAND TOTAL
+                </td>
+
                 <td id="mc_gt_begin"></td>
-
-                <td id="mc_gt_pd_bw"></td>
-                <td id="mc_gt_pd_up"></td>
                 <td id="mc_gt_prod"></td>
-
-                <td id="mc_gt_pr_bw"></td>
-                <td id="mc_gt_pr_up"></td>
                 <td id="mc_gt_purchase"></td>
-
-                <td id="mc_gt_ds_bw"></td>
-                <td id="mc_gt_ds_up"></td>
                 <td id="mc_gt_adjust"></td>
 
-                <td id="mc_gt_cogs_bw"></td>
-                <td id="mc_gt_cogs_up"></td>
                 <td id="mc_gt_cogs"></td>
-
                 <td id="mc_gt_end"></td>
                 <td id="mc_gt_net"></td>
                 <td id="mc_gt_profit"></td>
+
             </tr>
 
         </tfoot>
@@ -150,9 +173,73 @@ if (!is_array($userPlants)) {
 </div>
 
 <style>
-.detail-row {
-    border: 2px solid #efefef !important;
-    vertical-align: middle !important;
+.card{
+    border-radius:14px;
+    position:relative;
+}
+
+.table-responsive{
+    max-height:700px;
+}
+
+thead th{
+    position:sticky;
+    top:0;
+    z-index:10;
+}
+
+tfoot tr{
+    position:sticky;
+    bottom:0;
+    z-index:10;
+}
+
+.table-dark th{
+    background:#2f3c4f !important;
+    color:#fff !important;
+    border-color:#3f4d63 !important;
+}
+
+#monthlyPlTable thead tr:nth-child(2) th{
+    background:#eef2f7 !important;
+    color:#495057 !important;
+}
+
+#monthlyPlTable td:first-child,
+#monthlyPlTable th:first-child{
+    min-width:250px;
+    position:sticky;
+    left:0;
+    background:white;
+    z-index:5;
+}
+
+#monthlyPlTable thead th:first-child{
+    background:#2f3c4f !important;
+    color:#fff !important;
+}
+
+#monthlyPlTable tbody tr:hover{
+    background:#f8fafc;
+}
+
+.cost-cell{
+    background:#f5f9ff;
+    color:#0d6efd;
+    font-weight:600;
+}
+
+tfoot tr{
+    background:#f4f7fb !important;
+}
+
+tfoot td{
+    border-top:2px solid #2f3c4f !important;
+}
+
+#monthlyPlTable th,
+#monthlyPlTable td{
+    white-space:nowrap;
 }
 </style>
 
@@ -226,90 +313,145 @@ if (!is_array($userPlants)) {
             };
 
             $.get('<?= base_url("report-closing-sales-pl/load_monthly_sales_pl"); ?>', params, resp => {
-                console.log(resp);
-
                 this.render(resp.rows || []);
 
-                const grand = Array.isArray(resp.grand) ? resp.grand[0] : resp.grand;
+                const grand = Array.isArray(resp.grand)
+                    ? resp.grand[0]
+                    : resp.grand;
 
                 this.renderGrand(grand || {});
+
+                this.renderSummary({
+                    grand : grand,
+                    total : resp.total
+                });
 
                 $('#mc_pagination').html(resp.pagination || '');
                 $('#mc_info').text(`Total data: ${resp.total || 0}`);
             }, 'json');
         },
 
+        renderSummary(resp){
+
+            const g = resp.grand || {};
+
+            $('#kpi_total_item')
+                .text(g.total_item || 0);
+
+            $('#kpi_net_sales')
+                .text(this.rupiah(g.sales_net_amt));
+
+            $('#kpi_profit')
+                .text(this.rupiah(g.sales_profit_amt));
+
+            $('#kpi_ending_amount')
+                .text(this.rupiah(g.ending_amt));
+
+        },
+
         render(rows){
-            const tbody = $('#monthlyPlTable tbody').empty();
+
+            const tbody = $('#monthlyPlTable tbody');
+
+            tbody.empty();
 
             if(!rows.length){
-                tbody.html('<tr><td colspan="23" class="text-center">No data</td></tr>');
+
+                tbody.html(`
+                    <tr>
+                        <td colspan="9"
+                            class="text-center py-4">
+                            No data found
+                        </td>
+                    </tr>
+                `);
+
                 return;
             }
 
-            rows.forEach(r=>{
+            rows.forEach(r => {
+
                 tbody.append(`
+
                     <tr>
 
-                        <td class="text-center"><b>${r.plant_name}</b></td>
-                        <td class="text-center">${this.formatYM(r.ym)}</td>
-                        <td class="text-center"><b>${r.item}</b></td>
-                        <td>${r.item_name}</td>
-                        <td class="text-center">${r.class_name}</td>
+                        <td>
 
-                        <td class="text-end">${this.rupiah(r.bg_bw)}</td>
-                        <td class="text-end">${this.num(r.bg_up)}</td>
-                        <td class="text-end">${this.rupiah(r.begin_amt)}</td>
+                            <div class="fw-bold">
+                                ${r.item_name || '-'}
+                            </div>
 
-                        <td class="text-end">${this.rupiah(r.production_bw)}</td>
-                        <td class="text-end">${this.num(r.production_up)}</td>
-                        <td class="text-end">${this.rupiah(r.production_amt)}</td>
+                            <small class="text-muted">
+                                ${r.item}
+                            </small>
 
-                        <td class="text-end">${this.rupiah(r.purchase_bw)}</td>
-                        <td class="text-end">${this.num(r.purchase_up)}</td>
-                        <td class="text-end">${this.rupiah(r.purchase_amt)}</td>
+                        </td>
 
-                        <td class="text-end">${this.rupiah(r.adjust_bw)}</td>
-                        <td class="text-end">${this.num(r.adjust_up)}</td>
-                        <td class="text-end">${this.rupiah(r.adjust_amt)}</td>
+                        <td class="text-end">
+                            ${this.rupiah(r.begin_amt)}
+                        </td>
 
-                        <td class="text-end">${this.rupiah(r.cogs_bw)}</td>
-                        <td class="text-end">${this.num(r.cogs_up)}</td>
-                        <td class="text-end">${this.rupiah(r.cogs_amt)}</td>
+                        <td class="text-end">
+                            ${this.rupiah(r.production_amt)}
+                        </td>
 
-                        <td class="text-end">${this.rupiah(r.ending_amt)}</td>
-                        <td class="text-end">${this.rupiah(r.sales_net_amt)}</td>
-                        <td class="text-end">${this.rupiah(r.sales_profit_amt)}</td>
+                        <td class="text-end">
+                            ${this.rupiah(r.purchase_amt)}
+                        </td>
+
+                        <td class="text-end">
+                            ${this.rupiah(r.adjust_amt)}
+                        </td>
+
+                        <td class="text-end">
+                            ${this.rupiah(r.cogs_amt)}
+                        </td>
+
+                        <td class="text-end">
+                            ${this.rupiah(r.ending_amt)}
+                        </td>
+
+                        <td class="text-end text-primary fw-bold">
+                            ${this.rupiah(r.sales_net_amt)}
+                        </td>
+
+                        <td class="text-end cost-cell">
+                            ${this.rupiah(r.sales_profit_amt)}
+                        </td>
 
                     </tr>
+
                 `);
+
             });
+
         },
 
         renderGrand(g){
-            $('#mc_gt_bg_bw').text(this.rupiah(g.bg_bw));
-            $('#mc_gt_bg_up').text(this.num(g.bg_up));
-            $('#mc_gt_begin').text(this.rupiah(g.begin_amt));
 
-            $('#mc_gt_pd_bw').text(this.rupiah(g.production_bw));
-            $('#mc_gt_pd_up').text(this.num(g.production_up));
-            $('#mc_gt_prod').text(this.rupiah(g.production_amt));
+            $('#mc_gt_begin')
+                .text(this.rupiah(g.begin_amt));
 
-            $('#mc_gt_pr_bw').text(this.rupiah(g.purchase_bw));
-            $('#mc_gt_pr_up').text(this.num(g.purchase_up));
-            $('#mc_gt_purchase').text(this.rupiah(g.purchase_amt));
+            $('#mc_gt_prod')
+                .text(this.rupiah(g.production_amt));
 
-            $('#mc_gt_ds_bw').text(this.rupiah(g.adjust_bw));
-            $('#mc_gt_ds_up').text(this.num(g.adjust_up));
-            $('#mc_gt_adjust').text(this.rupiah(g.adjust_amt));
+            $('#mc_gt_purchase')
+                .text(this.rupiah(g.purchase_amt));
 
-            $('#mc_gt_cogs_bw').text(this.rupiah(g.cogs_bw));
-            $('#mc_gt_cogs_up').text(this.num(g.cogs_up));
-            $('#mc_gt_cogs').text(this.rupiah(g.cogs_amt));
+            $('#mc_gt_adjust')
+                .text(this.rupiah(g.adjust_amt));
 
-            $('#mc_gt_end').text(this.rupiah(g.ending_amt));
-            $('#mc_gt_net').text(this.rupiah(g.sales_net_amt));
-            $('#mc_gt_profit').text(this.rupiah(g.sales_profit_amt));
+            $('#mc_gt_cogs')
+                .text(this.rupiah(g.cogs_amt));
+
+            $('#mc_gt_end')
+                .text(this.rupiah(g.ending_amt));
+
+            $('#mc_gt_net')
+                .text(this.rupiah(g.sales_net_amt));
+
+            $('#mc_gt_profit')
+                .text(this.rupiah(g.sales_profit_amt));
         },
 
         toYM(v) { return v ? v.replace('-', '') : ''; },

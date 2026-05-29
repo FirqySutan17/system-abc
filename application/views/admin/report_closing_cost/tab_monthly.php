@@ -5,96 +5,253 @@ if (!is_array($userPlants)) {
 }
 ?>
 
-<div class="row mb-3 align-items-end">
+<div class="row g-3 mb-4">
 
-    <!-- PLANT -->
-    <div class="col-md-2">
-        <label class="form-label">Plant</label>
-        <select id="monthly_filter_plant" class="form-control">
-            <?php foreach($plants as $p): ?>
-                <?php if (in_array($p->CODE, $userPlants)): ?>
-                    <option value="<?= $p->CODE ?>">
-                        <?= $p->CODE_NAME ?>
-                    </option>
-                <?php endif; ?>
-            <?php endforeach; ?>
-        </select>
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100 kpi-card">
+            <div class="card-body">
+                <div class="text-muted small kpi-label">
+                    Total Item
+                </div>
+
+                <div class="fs-4 fw-bold text-primary"
+                     id="kpi_total_item">
+                    0
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- MATERIAL -->
-    <div class="col-md-2">
-        <label class="form-label">Item</label>
-        <input type="text" id="mc_filter_material" class="form-control" placeholder="Item">
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100 kpi-card">
+            <div class="card-body">
+                <div class="text-muted small kpi-label">
+                    Total Qty
+                </div>
+
+                <div class="fs-4 fw-bold text-info"
+                     id="kpi_total_qty">
+                    0
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- MONTH FROM -->
-    <div class="col-md-2">
-        <label class="form-label">Month</label>
-        <input type="month" id="mc_month" class="form-control">
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100 kpi-card">
+            <div class="card-body">
+                <div class="text-muted small kpi-label">
+                    Market Amount
+                </div>
+
+                <div class="fs-4 fw-bold text-primary"
+                     id="kpi_market_amount">
+                    0
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- FILTER BUTTON -->
-    <div class="col-md-1">
-        <label class="form-label d-block">&nbsp;</label>
-        <button class="btn btn-primary w-100" id="mc_btnFilter">
-            <i class="fa fa-search"></i> Filter
-        </button>
-    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100 kpi-card">
+            <div class="card-body">
+                <div class="text-muted small kpi-label">
+                    Modal Amount
+                </div>
 
-    <!-- MONTH TO -->
-    <div class="col-md-2">
-    </div>
-
-    <div class="col-md-2">
-    </div>
-
-    <!-- EXPORT -->
-    <div class="col-md-1">
-        <label class="form-label d-block">&nbsp;</label>
-        <div class="btn-group w-100">
-            <button class="btn btn-primary w-100" data-bs-toggle="dropdown">
-                <i class="ti ti-download"></i>
-            </button>
-            <ul class="dropdown-menu w-100">
-                <li><a class="dropdown-item" href="#" id="exportExcel"><i class="fa fa-file-excel"></i> Export Excel</a></li>
-                <li><a class="dropdown-item" href="#" id="exportPDF"><i class="fa fa-file-pdf"></i> Export PDF</a></li>
-            </ul>
+                <div class="fs-4 fw-bold text-success"
+                     id="kpi_modal_amount">
+                    0
+                </div>
+            </div>
         </div>
     </div>
 
 </div>
 
-<!-- TABLE -->
-<div class="table-responsive">
-    <table class="table table-bordered" id="monthlyCostTable">
-        <thead>
-            <tr>
-                <th class="text-center">PLANT</th>
-                <th class="text-center">MONTH</th>
-                <th class="text-center">ITEM</th>
-                <th class="text-center">ITEM NAME</th>
-                <th class="text-center">CLASS</th>
+<div class="card mb-4"
+     style="background:transparent;border:none !important;box-shadow:none !important">
 
-                <th class="text-end">QTY</th>
-                <th class="text-end">KG</th>
+    <div class="row g-3">
 
-                <th class="text-end">INDEX AMOUNT</th>
-                <th class="text-end">MARKET AMOUNT</th>
-                <th class="text-end">MODAL AMOUNT</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-        <tfoot>
-            <tr class="table-secondary fw-bold">
-                <td colspan="5" class="text-end detail-row">GRAND TOTAL</td>
-                <td class="text-end detail-row" id="mc_gt_qty">0.00</td>
-                <td class="text-end detail-row" id="mc_gt_bw">0.00</td>
-                <td class="text-end detail-row" id="mc_gt_index_amt">0</td>
-                <td class="text-end detail-row" id="mc_gt_market_amt">0</td>
-                <td class="text-end detail-row" id="mc_gt_modal_amt">0</td>
-            </tr>
-        </tfoot>
-    </table>
+        <div class="col-md-3">
+            <label class="form-label fw-semibold">
+                Plant
+            </label>
+
+            <select id="monthly_filter_plant"
+                    class="form-select">
+
+                <?php foreach($plants as $i => $p): ?>
+                    <option
+                        value="<?= $p->CODE ?>"
+                        <?= $i == 0 ? 'selected' : '' ?>>
+                        <?= $p->CODE_NAME ?>
+                    </option>
+                <?php endforeach; ?>
+
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-semibold">
+                Closing Month
+            </label>
+
+            <input type="month"
+                   id="mc_month"
+                   class="form-control">
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-semibold">
+                Material
+            </label>
+
+            <input type="text"
+                   id="mc_filter_material"
+                   class="form-control"
+                   placeholder="Material Code / Name">
+        </div>
+
+        <div class="col-md-3 d-flex align-items-end justify-content-end">
+
+            <button class="btn btn-primary me-2"
+                    id="mc_btnFilter">
+                Search
+            </button>
+
+            <div class="btn-group">
+
+                <button class="btn btn-success"
+                        id="exportExcel">
+                    Excel
+                </button>
+
+                <button class="btn btn-danger"
+                        id="exportPDF">
+                    PDF
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="card border-0 shadow-sm">
+
+    <div id="loadingOverlay">
+        Loading Closing Cost Report...
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-2">
+
+        <h6 class="mb-0 fw-bold">
+            Monthly Closing Cost
+        </h6>
+
+    </div>
+
+    <div class="card-body pt-2 px-3 pb-3">
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-hover mb-0"
+                   id="monthlyCostTable">
+
+                <thead>
+
+                    <tr class="table-dark">
+
+                        <th rowspan="2"
+                            class="align-middle">
+                            Material
+                        </th>
+
+                        <th colspan="2"
+                            class="text-center">
+                            Production
+                        </th>
+
+                        <th colspan="2"
+                            class="text-center">
+                            Index
+                        </th>
+
+                        <th colspan="2"
+                            class="text-center">
+                            Market
+                        </th>
+
+                        <th colspan="2"
+                            class="text-center">
+                            Cost
+                        </th>
+
+                    </tr>
+
+                    <tr class="table-secondary">
+
+                        <th>Qty</th>
+                        <th>KG</th>
+
+                        <th>Price</th>
+                        <th>Amount</th>
+
+                        <th>Price</th>
+                        <th>Amount</th>
+
+                        <th>Cost/Unit</th>
+                        <th>Modal Amount</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody></tbody>
+
+                <tfoot>
+
+                    <tr class="table-warning fw-bold">
+
+                        <td class="text-end">
+                            GRAND TOTAL
+                        </td>
+
+                        <td class="text-end"
+                            id="mc_gt_qty">0.00</td>
+
+                        <td class="text-end"
+                            id="mc_gt_kg">0.00</td>
+
+                        <td></td>
+
+                        <td class="text-end"
+                            id="mc_gt_index_amount">0</td>
+
+                        <td></td>
+
+                        <td class="text-end"
+                            id="mc_gt_market_amount">0</td>
+
+                        <td></td>
+
+                        <td class="text-end"
+                            id="mc_gt_modal_amount">0</td>
+
+                    </tr>
+
+                </tfoot>
+
+            </table>
+
+        </div>
+
+    </div>
+
 </div>
 
 <div class="d-flex justify-content-between mt-3">
@@ -103,9 +260,114 @@ if (!is_array($userPlants)) {
 </div>
 
 <style>
-    .detail-row {
-        border: 2px solid #efefef !important;
-        vertical-align: middle !important;
+    .card{
+        border-radius:14px;
+        position:relative;
+    }
+
+    .table-responsive{
+        max-height:700px;
+    }
+
+    thead th{
+        position:sticky;
+        top:0;
+        z-index:10;
+    }
+
+    tfoot tr{
+        position:sticky;
+        bottom:0;
+        z-index:10;
+    }
+
+    .table-dark th{
+        background:#2f3c4f !important;
+        color:#fff !important;
+        border-color:#3f4d63 !important;
+    }
+
+    #monthlyCostTable thead tr:nth-child(2) th{
+        background:#eef2f7 !important;
+        color:#495057 !important;
+    }
+
+    #monthlyCostTable td:first-child{
+        min-width:250px;
+        position:sticky;
+        left:0;
+        background:#fff;
+        z-index:5;
+    }
+
+    #monthlyCostTable th:first-child{
+        min-width:250px;
+        position:sticky;
+        left:0;
+        z-index:20;
+        background:#2f3c4f !important;
+        color:#fff !important;
+    }
+
+    #monthlyCostTable thead th:first-child{
+        background:#2f3c4f !important;
+        color:#fff !important;
+    }
+
+    #monthlyCostTable tbody tr:hover{
+        background:#f8fafc;
+    }
+
+    tfoot tr{
+        background:#eef4ff !important;
+        font-weight:700;
+    }
+
+    tfoot td{
+        border-top:3px solid #2f3c4f !important;
+    }
+
+    .kpi-card .card-body{
+        padding:18px 22px;
+    }
+
+    .kpi-label{
+        font-size:12px;
+        color:#6c757d;
+        text-transform:uppercase;
+        letter-spacing:1px;
+    }
+
+    #loadingOverlay{
+        display:none;
+        position:absolute;
+        inset:0;
+        background:rgba(255,255,255,.8);
+        z-index:999;
+        text-align:center;
+        padding-top:150px;
+        font-size:18px;
+        font-weight:600;
+    }
+    #monthlyCostTable th,
+    #monthlyCostTable td{
+        white-space:nowrap;
+    }
+    .cost-cell{
+        background:#f0fff5;
+        color:#198754;
+        font-weight:700;
+    }
+    .px-3 {
+        padding-right: 0rem !important;
+        padding-left: 0rem !important;
+    }
+    .kpi-card{
+        transition:.2s;
+    }
+
+    .kpi-card:hover{
+        transform:translateY(-2px);
     }
 </style>
 
@@ -125,7 +387,9 @@ window.MonthlyClosingCost = {
     },
 
     initFilter() {
-        $('#monthly_filter_plant').select2({ width:'100%', allowClear:true });
+        $('#monthly_filter_plant').select2({
+            width:'100%'
+        });
 
         const now = new Date();
         const ym = now.toISOString().slice(0,7);
@@ -172,48 +436,127 @@ window.MonthlyClosingCost = {
 
             this.render(resp.rows || []);
             this.renderGrand(resp.grand || {});
+            this.renderSummary(resp);
             $('#mc_pagination').html(resp.pagination || '');
             $('#mc_info').text(`Total data : ${resp.total || 0}`);
 
         }, 'json');
     },
 
-    render(rows) {
-        const tbody = $('#monthlyCostTable tbody').empty();
+    renderSummary(resp){
 
-        if (!rows.length) {
-            tbody.html('<tr><td colspan="10" class="text-center">No data</td></tr>');
+        const g = resp.grand || {};
+
+        $('#kpi_total_item')
+            .text(g.total_item || 0);
+
+        $('#kpi_total_qty')
+            .text(this.decimal(g.qty));
+
+        $('#kpi_market_amount')
+            .text(this.rupiah(g.market_amount));
+
+        $('#kpi_modal_amount')
+            .text(this.rupiah(g.modal_amount));
+
+    },
+
+    render(rows){
+
+        const tbody = $('#monthlyCostTable tbody');
+
+        tbody.empty();
+
+        if(!rows.length){
+
+            tbody.html(`
+                <tr>
+                    <td colspan="9"
+                        class="text-center py-4">
+                        No data found
+                    </td>
+                </tr>
+            `);
+
             return;
         }
 
         rows.forEach(r => {
-        tbody.append(`
-            <tr>
-                <td class="text-center"><b>${r.plant_name || r.plant}</b></td>
-                <td class="text-center">${this.formatYM(r.ym)}</td>
 
-                <td class="text-center"><b>${r.item}</b></td>
-                <td class="text-center">${r.item_name}</td>
-                <td class="text-center">${r.class_name}</td>
+            tbody.append(`
 
-                <td class="text-end">${this.decimal(r.qty)}</td>
-                <td class="text-end">${this.decimal(r.kg)}</td>
+                <tr>
 
-                <td class="text-end">${this.rupiah(r.index_amount)}</td>
-                <td class="text-end">${this.rupiah(r.market_amount)}</td>
-                <td class="text-end">${this.rupiah(r.modal_amount)}</td>
+                    <td>
+
+                        <div class="fw-bold">
+                            ${r.item_name || '-'}
+                        </div>
+
+                        <small class="text-muted">
+                            ${r.item}
+                        </small>
+
+                    </td>
+
+                    <td class="text-end">
+                        ${this.decimal(r.qty)}
+                    </td>
+
+                    <td class="text-end">
+                        ${this.decimal(r.kg)}
+                    </td>
+
+                    <td class="text-end">
+                        ${this.decimal(r.index_price)}
+                    </td>
+
+                    <td class="text-end">
+                        ${this.rupiah(r.index_amount)}
+                    </td>
+
+                    <td class="text-end">
+                        ${this.decimal(r.market_price)}
+                    </td>
+
+                    <td class="text-end">
+                        ${this.rupiah(r.market_amount)}
+                    </td>
+
+                    <td class="text-end">
+                        ${this.decimal(r.cost_up)}
+                    </td>
+
+                    <td class="text-end cost-cell">
+                        ${this.rupiah(r.modal_amount)}
+                    </td>
+
                 </tr>
+
             `);
+
         });
+
     },
 
     renderGrand(g) {
-        $('#mc_gt_qty').text(this.decimal(g.qty || 0));
-        $('#mc_gt_bw').text(this.decimal(g.kg || 0));
-        $('#mc_gt_index_amt').text(this.rupiah(g.index_amount || 0));
-        $('#mc_gt_market_amt').text(this.rupiah(g.market_amount || 0));
-        $('#mc_gt_modal_amt').text(this.rupiah(g.modal_amount || 0));
+
+        $('#mc_gt_qty')
+            .text(this.decimal(g.qty || 0));
+
+        $('#mc_gt_kg')
+            .text(this.decimal(g.kg || 0));
+
+        $('#mc_gt_index_amount')
+            .text(this.rupiah(g.index_amount || 0));
+
+        $('#mc_gt_market_amount')
+            .text(this.rupiah(g.market_amount || 0));
+
+        $('#mc_gt_modal_amount')
+            .text(this.rupiah(g.modal_amount || 0));
     },
+    
 
     /* ===== UTIL ===== */
 

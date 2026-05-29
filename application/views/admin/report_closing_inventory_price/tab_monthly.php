@@ -5,133 +5,423 @@ if (!is_array($userPlants)) {
 }
 ?>
 
-<!-- FILTER -->
-<div class="row mb-3">
+<div class="row g-3 mb-4">
 
-    <!-- PLANT -->
-    <div class="col-md-2">
-        <label class="form-label">Plant</label>
-        <select id="mc_filter_plant" class="form-control">
-            <?php foreach($plants as $p): ?>
-                <?php if (in_array($p->CODE, $userPlants)): ?>
-                    <option value="<?= $p->CODE ?>">
-                        <?= $p->CODE_NAME ?>
-                    </option>
-                <?php endif; ?>
-            <?php endforeach; ?>
-        </select>
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100 kpi-card">
+            <div class="card-body">
+                <div class="text-muted small kpi-label">Total Material</div>
+                <div class="fs-4 fw-bold kpi-value text-primary" id="kpi_total_material">0</div>
+            </div>
+        </div>
     </div>
 
-    <!-- MATERIAL -->
-    <div class="col-md-2">
-        <label class="form-label">Material</label>
-        <input type="text" id="mc_filter_material" class="form-control" placeholder="Material">
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100 kpi-card">
+            <div class="card-body">
+                <div class="text-muted small kpi-label">Beginning Amount</div>
+                <div class="fs-4 fw-bold kpi-value text-primary" id="kpi_begin_amount">0</div>
+            </div>
+        </div>
     </div>
 
-    <!-- MONTH FROM -->
-    <div class="col-md-2">
-        <label class="form-label">Month</label>
-        <input type="month" id="mc_month" class="form-control">
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100 kpi-card">
+            <div class="card-body">
+                <div class="text-muted small kpi-label">Incoming Amount</div>
+                <div class="fs-4 fw-bold kpi-value text-info" id="kpi_in_amount">0</div>
+            </div>
+        </div>
     </div>
 
-    <!-- FILTER -->
-    <div class="col-md-1">
-        <label class="form-label d-block">&nbsp;</label>
-        <button class="btn btn-primary w-100" id="mc_btnFilter">
-            Filter
-        </button>
-    </div>
-
-    <div class="col-md-4"></div>
-
-    <!-- EXPORT -->
-    <div class="col-md-1">
-        <label class="form-label d-block">&nbsp;</label>
-        <div class="btn-group w-100">
-            <button class="btn btn-primary w-100" data-bs-toggle="dropdown">
-                <i class="ti ti-download"></i>
-            </button>
-            <ul class="dropdown-menu w-100">
-                <li><a class="dropdown-item" href="#" id="exportExcel">
-                    <i class="fa fa-file-excel"></i> Export Excel</a></li>
-                <li><a class="dropdown-item" href="#" id="exportPDF">
-                    <i class="fa fa-file-pdf"></i> Export PDF</a></li>
-            </ul>
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100 kpi-card">
+            <div class="card-body">
+                <div class="text-muted small kpi-label">Ending Amount</div>
+                <div class="fs-4 fw-bold kpi-value text-success" id="kpi_end_amount">0</div>
+            </div>
         </div>
     </div>
 
 </div>
 
-<!-- TABLE -->
-<div class="table-responsive">
-    <table class="table table-bordered" id="monthlyCostTable">
-        <thead class="table-light">
-            <tr>
-                <th class="text-center" style="vertical-align: middle; white-space: nowrap">PLANT</th>
-                <th class="text-center" style="vertical-align: middle; white-space: nowrap">MATERIAL</th>
+<div class="card mb-4" style="background: transparent; border: none !important; box-shadow: none !important">
 
-                <th class="text-end" style="vertical-align: middle; white-space: nowrap">BG QTY</th>
-                <th class="text-end" style="vertical-align: middle; white-space: nowrap">BG BW</th>
-                <th class="text-end" style="vertical-align: middle; white-space: nowrap">BG AMOUNT</th>
+    <div class="row g-3">
 
-                <th class="text-end" style="vertical-align: middle; white-space: nowrap">IN QTY</th>
-                <th class="text-end" style="vertical-align: middle; white-space: nowrap">IN BW</th>
-                <th class="text-end" style="vertical-align: middle; white-space: nowrap">IN AMOUNT</th>
+        <div class="col-md-3">
+            <label class="form-label fw-semibold">
+                Plant
+            </label>
 
-                <th class="text-end" style="vertical-align: middle; white-space: nowrap">OUT QTY</th>
-                <th class="text-end" style="vertical-align: middle; white-space: nowrap">OUT BW</th>
-                <th class="text-end" style="vertical-align: middle; white-space: nowrap">OUT AMOUNT</th>
+            <select id="mc_filter_plant" class="form-select">
+                <?php foreach($plants as $i => $p): ?>
+                    <option
+                        value="<?= $p->CODE ?>"
+                        <?= $i == 0 ? 'selected' : '' ?>>
+                        <?= $p->CODE_NAME ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
 
-                <th class="text-end" style="vertical-align: middle; white-space: nowrap">END QTY</th>
-                <th class="text-end" style="vertical-align: middle; white-space: nowrap">END BW</th>
-                <th class="text-end" style="vertical-align: middle; white-space: nowrap">END AMOUNT</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-        <tfoot>
-            <tr class="table-secondary fw-bold">
-                <td colspan="2" class="text-end detail-row">GRAND TOTAL</td>
+        <div class="col-md-3">
+            <label class="form-label fw-semibold">
+                Closing Month
+            </label>
 
-                <td class="text-end detail-row" id="mc_gt_bg_qty">0.00</td>
-                <td class="text-end detail-row" id="mc_gt_bg_bw">0.00</td>
-                <td class="text-end detail-row" id="mc_gt_bg_amount">0</td>
+            <input
+                type="month"
+                id="mc_month"
+                class="form-control">
+        </div>
 
-                <td class="text-end detail-row" id="mc_gt_in_qty">0.00</td>
-                <td class="text-end detail-row" id="mc_gt_in_bw">0.00</td>
-                <td class="text-end detail-row" id="mc_gt_in_amount">0</td>
+        <div class="col-md-3">
+            <label class="form-label fw-semibold">
+                Material
+            </label>
 
-                <td class="text-end detail-row" id="mc_gt_out_qty">0.00</td>
-                <td class="text-end detail-row" id="mc_gt_out_bw">0.00</td>
-                <td class="text-end detail-row" id="mc_gt_out_amount">0</td>
+            <input
+                type="text"
+                id="mc_filter_material"
+                class="form-control"
+                placeholder="Material Code / Name">
+        </div>
 
-                <td class="text-end detail-row" id="mc_gt_end_qty">0.00</td>
-                <td class="text-end detail-row" id="mc_gt_end_bw">0.00</td>
-                <td class="text-end detail-row" id="mc_gt_end_amount">0</td>
-            </tr>
-        </tfoot>
-    </table>
+        <div class="col-md-3 d-flex align-items-end" style="justify-content: flex-end;">
+
+            <button
+                class="btn btn-primary me-2"
+                id="mc_btnFilter">
+
+                Search
+
+            </button>
+
+            <div class="btn-group">
+
+                <button
+                    class="btn btn-success"
+                    id="exportExcel">
+
+                    Excel
+
+                </button>
+
+                <button
+                    class="btn btn-danger"
+                    id="exportPDF">
+
+                    PDF
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
 
-<div class="d-flex justify-content-between mt-3">
-    <div id="mc_info"></div>
+<div class="card border-0 shadow-sm">
+    <div id="loadingOverlay">
+        Loading Inventory Report...
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center" style="margin-bottom: 10px">
+
+        <h6 class="mb-0 fw-bold">
+            Monthly Inventory Price Closing
+        </h6>
+
+    </div>
+
+    <div class="card-body pt-2 px-3 pb-3">
+
+        <div class="table-responsive">
+
+            <table
+                class="table table-bordered table-hover mb-0"
+                id="monthlyCostTable">
+
+                <thead>
+
+                <tr class="table-dark">
+
+                    <th rowspan="2" class="align-middle">
+                        Material
+                    </th>
+
+                    <th colspan="3" class="text-center">
+                        Beginning
+                    </th>
+
+                    <th colspan="3" class="text-center">
+                        Incoming
+                    </th>
+
+                    <th colspan="3" class="text-center">
+                        Outgoing
+                    </th>
+
+                    <th colspan="3" class="text-center">
+                        Ending
+                    </th>
+
+                </tr>
+
+                <tr class="table-secondary">
+
+                    <th>Qty</th>
+                    <th>BW</th>
+                    <th>Amount</th>
+
+                    <th>Qty</th>
+                    <th>BW</th>
+                    <th>Amount</th>
+
+                    <th>Qty</th>
+                    <th>BW</th>
+                    <th>Amount</th>
+
+                    <th>Qty</th>
+                    <th>BW</th>
+                    <th>Amount</th>
+
+                </tr>
+
+                </thead>
+
+                <tbody></tbody>
+
+                <tfoot>
+
+                <tr class="table-warning fw-bold">
+
+                    <td class="text-end">
+                        GRAND TOTAL
+                    </td>
+
+                    <td class="text-end" id="mc_gt_bg_qty">0.00</td>
+                    <td class="text-end" id="mc_gt_bg_bw">0.00</td>
+                    <td class="text-end" id="mc_gt_bg_amount">0</td>
+
+                    <td class="text-end" id="mc_gt_in_qty">0.00</td>
+                    <td class="text-end" id="mc_gt_in_bw">0.00</td>
+                    <td class="text-end" id="mc_gt_in_amount">0</td>
+
+                    <td class="text-end" id="mc_gt_out_qty">0.00</td>
+                    <td class="text-end" id="mc_gt_out_bw">0.00</td>
+                    <td class="text-end" id="mc_gt_out_amount">0</td>
+
+                    <td class="text-end" id="mc_gt_end_qty">0.00</td>
+                    <td class="text-end" id="mc_gt_end_bw">0.00</td>
+                    <td class="text-end" id="mc_gt_end_amount">0</td>
+
+                </tr>
+
+                </tfoot>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="d-flex justify-content-between align-items-center mt-3">
+
+    <div></div>
+
     <div id="mc_pagination"></div>
+
 </div>
 
 <style>
-.detail-row {
-    border: 2px solid #efefef !important;
-    vertical-align: middle !important;
-}
+
+    .card{
+        border-radius:14px;
+    }
+
+    .table-responsive{
+        max-height:700px;
+    }
+
+    thead th{
+        position:sticky;
+        top:0;
+        z-index:10;
+    }
+
+    tfoot tr{
+        position:sticky;
+        bottom:0;
+        z-index:10;
+    }
+
+    .table td{
+        vertical-align:middle;
+    }
+
+    .table-dark th{
+        background:#2f3c4f !important;
+        color:#fff !important;
+        border-color:#3f4d63 !important;
+    }
+
+    .px-3 {
+        padding-right: 0rem !important;
+        padding-left: 0rem !important;
+    }
+
+    .summary-sticky{
+        position:sticky;
+        top:70px;
+        z-index:100;
+    }
+
+    #mc_gt_end_amount{
+        color:#198754;
+        font-size:16px;
+    }
+
+    .ending-cell{
+        background:#f5f9ff;
+        color:#0d6efd;
+        font-weight:600;
+    }
+
+    tfoot tr{
+        background:#f4f7fb !important;
+        color:#2f3c4f !important;
+    }
+
+    tfoot td{
+        border-top:2px solid #2f3c4f !important;
+    }
+
+    #monthlyCostTable td:first-child,
+    #monthlyCostTable th:first-child{
+        min-width:250px;
+    }
+
+    #monthlyCostTable thead tr:nth-child(2) th{
+        background:#eef2f7 !important;
+        color:#495057 !important;
+        text-align:center;
+        font-weight:600;
+        font-size:13px;
+    }
+
+    #monthlyCostTable th:first-child,
+    #monthlyCostTable td:first-child{
+        position:sticky;
+        left:0;
+        z-index:5;
+        background:white;
+    }
+
+    #monthlyCostTable tbody tr:hover{
+        background:#f8fafc;
+    }
+
+    #monthlyCostTable thead th:first-child{
+        z-index:20;
+        background:#dc3545;
+        color:white;
+    }
+
+    #monthlyCostTable{
+        border-color:#e9ecef;
+    }
+
+    #monthlyCostTable td,
+    #monthlyCostTable th{
+        border-color:#edf0f2;
+    }
+
+    #loadingOverlay{
+        display:none;
+        position:absolute;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background:rgba(255,255,255,.8);
+        z-index:999;
+        text-align:center;
+        padding-top:150px;
+        font-size:18px;
+        font-weight:600;
+    }
+
+    .card{
+        position:relative;
+    }
+
+    .form-label{
+        margin-bottom:4px;
+        font-size:13px;
+    }
+
+    .form-control,
+    .form-select{
+        height:40px;
+    }
+
+    .kpi-card .card-body{
+        padding:18px 22px;
+    }
+
+    .kpi-value{
+        font-size:28px;
+        font-weight:700;
+        margin-top:4px;
+    }
+
+    .kpi-label{
+        font-size:12px;
+        color:#6c757d;
+        text-transform:uppercase;
+        letter-spacing:1px;
+    }
+
+    tfoot tr{
+        background:#eef4ff !important;
+        font-weight:700;
+    }
+
+    tfoot td{
+        border-top:3px solid #2f3c4f !important;
+    }
+
+    @media(max-width:768px){
+
+        .table{
+            font-size:12px;
+        }
+
+        .fs-3{
+            font-size:1.5rem !important;
+        }
+
+    }
+
 </style>
 
 <script>
+
     window.MonthlyClosingInventoryPriceReport = {
 
-        loaded: false,
-        page: 1,
+        loaded : false,
+        page   : 1,
 
         init() {
+
             if (this.loaded) return;
+
             this.loaded = true;
 
             this.initFilter();
@@ -140,167 +430,416 @@ if (!is_array($userPlants)) {
         },
 
         initFilter() {
-            $('#mc_filter_plant').select2({ width:'100%' });
 
-            const now = new Date().toISOString().slice(0,7);
-            $('#mc_month').val(now);
+            $('#mc_filter_plant').select2({
+                width : '100%'
+            });
+
+            const now = new Date();
+
+            const currentMonth =
+                now.getFullYear() +
+                '-' +
+                String(now.getMonth() + 1).padStart(2,'0');
+
+            $('#mc_month').val(currentMonth);
         },
 
         bindEvent() {
+
             let timer;
 
             $('#mc_btnFilter').on('click', () => {
+
                 this.page = 1;
                 this.load();
+
             });
 
             $('#mc_filter_material').on('keyup', () => {
+
                 clearTimeout(timer);
+
                 timer = setTimeout(() => {
+
                     this.page = 1;
                     this.load();
-                }, 400);
+
+                }, 500);
+
             });
 
             $('#mc_filter_plant, #mc_month').on('change', () => {
+
                 this.page = 1;
                 this.load();
+
             });
 
             $('#exportExcel').on('click', e => {
+
                 e.preventDefault();
-                window.open(this.buildExportUrl('excel'),'_blank');
+
+                window.open(
+                    this.buildExportUrl('excel'),
+                    '_blank'
+                );
+
             });
 
             $('#exportPDF').on('click', e => {
+
                 e.preventDefault();
-                window.open(this.buildExportUrl('pdf'),'_blank');
+
+                window.open(
+                    this.buildExportUrl('pdf'),
+                    '_blank'
+                );
+
             });
 
         },
 
-        buildExportUrl(type){
+        buildExportUrl(type) {
+
             const params = $.param({
+
                 plant    : $('#mc_filter_plant').val(),
                 material : $('#mc_filter_material').val(),
                 month    : this.toYM($('#mc_month').val())
+
             });
 
-            if(type === 'excel'){
+            if(type === 'excel') {
+
                 return '<?= base_url("report-closing-inventory-price/export_excel_monthly_inventory_price"); ?>?' + params;
+
             }
+
             return '<?= base_url("report-closing-inventory-price/export_pdf_monthly_inventory_price"); ?>?' + params;
         },
 
         load(page = null) {
-            if (page !== null) this.page = page;
+            $('#loadingOverlay').show();
+
+            if(page !== null){
+                this.page = page;
+            }
 
             const params = {
+
                 page     : this.page,
                 limit    : 10,
+
                 plant    : $('#mc_filter_plant').val(),
+
                 material : $('#mc_filter_material').val(),
-                month    : this.toYM($('#mc_month').val())
+
+                month    : this.toYM(
+                    $('#mc_month').val()
+                )
+
             };
 
             $.get(
+
                 '<?= base_url("report-closing-inventory-price/load_monthly_closing_inventory_price"); ?>',
+
                 params,
-                resp => {
+
+                (resp) => {
+
                     this.render(resp.rows || []);
+
                     this.renderGrand(resp.grand || {});
-                    $('#mc_pagination').html(resp.pagination || '');
-                    $('#mc_info').text(`Total data : ${resp.total || 0}`);
+
+                    this.renderSummary(resp);
+
+                    $('#mc_pagination').html(
+                        resp.pagination || ''
+                    );
+
+                    $('#mc_info').text(
+                        'Total Data : ' + (resp.total || 0)
+                    );
+
+                    $('#loadingOverlay').hide();
+
                 },
+
                 'json'
+            ).fail(()=>{
+
+                $('#loadingOverlay').hide();
+
+            }
+
             );
+
+        },
+
+        renderSummary(resp) {
+
+            const grand = resp.grand || {};
+
+            $('#kpi_total_material')
+                .text(resp.total || 0);
+
+            $('#kpi_begin_amount')
+                .text(
+                    this.rupiah(grand.bg_amount)
+                );
+
+            $('#kpi_in_amount')
+                .text(
+                    this.rupiah(grand.in_amount)
+                );
+
+            $('#kpi_end_amount')
+                .text(
+                    this.rupiah(grand.end_amount)
+                );
         },
 
         render(rows) {
-            const tbody = $('#monthlyCostTable tbody').empty();
 
-            if (!rows.length) {
-                tbody.html('<tr><td colspan="14" class="text-center" style="vertical-align: middle; white-space: nowrap">No data</td></tr>');
+            const tbody = $('#monthlyCostTable tbody');
+
+            tbody.empty();
+
+            if(!rows.length){
+
+                tbody.html(`
+                    <tr>
+                        <td colspan="13"
+                            class="text-center py-4">
+
+                            No data found
+
+                        </td>
+                    </tr>
+                `);
+
                 return;
             }
 
             rows.forEach(r => {
+
                 tbody.append(`
+
                     <tr>
-                        <td class="text-center" style="vertical-align: middle; white-space: nowrap"><b>${r.plant_name || r.plant}</b></td>
-                        <td class="text-center" style="vertical-align: middle; white-space: nowrap">${r.material_name || '-'}<br><b>${r.material}</b></td>
 
-                        <td class="text-end" style="vertical-align: middle; white-space: nowrap">${this.decimal(r.bg_qty)}</td>
-                        <td class="text-end" style="vertical-align: middle; white-space: nowrap">${this.decimal(r.bg_bw)}</td>
-                        <td class="text-end" style="vertical-align: middle; white-space: nowrap">${this.rupiah(r.bg_amount)}</td>
+                        <td>
 
-                        <td class="text-end" style="vertical-align: middle; white-space: nowrap">${this.decimal(r.in_qty)}</td>
-                        <td class="text-end" style="vertical-align: middle; white-space: nowrap">${this.decimal(r.in_bw)}</td>
-                        <td class="text-end" style="vertical-align: middle; white-space: nowrap">${this.rupiah(r.in_amount)}</td>
+                            <div class="fw-bold">
+                                ${r.material_name || '-'}
+                            </div>
 
-                        <td class="text-end" style="vertical-align: middle; white-space: nowrap">${this.decimal(r.out_qty)}</td>
-                        <td class="text-end" style="vertical-align: middle; white-space: nowrap">${this.decimal(r.out_bw)}</td>
-                        <td class="text-end" style="vertical-align: middle; white-space: nowrap">${this.rupiah(r.out_amount)}</td>
+                            <small class="text-muted">
+                                ${r.material}
+                            </small>
 
-                        <td class="text-end fw-bold" style="vertical-align: middle; white-space: nowrap">${this.decimal(r.end_qty)}</td>
-                        <td class="text-end fw-bold" style="vertical-align: middle; white-space: nowrap">${this.decimal(r.end_bw)}</td>
-                        <td class="text-end fw-bold" style="vertical-align: middle; white-space: nowrap">${this.rupiah(r.end_amount)}</td>
+                        </td>
+
+                        <td class="text-end">
+                            ${this.decimal(r.bg_qty)}
+                        </td>
+
+                        <td class="text-end">
+                            ${this.decimal(r.bg_bw)}
+                        </td>
+
+                        <td class="text-end">
+                            ${this.rupiah(r.bg_amount)}
+                        </td>
+
+                        <td class="text-end">
+                            ${this.decimal(r.in_qty)}
+                        </td>
+
+                        <td class="text-end">
+                            ${this.decimal(r.in_bw)}
+                        </td>
+
+                        <td class="text-end">
+                            ${this.rupiah(r.in_amount)}
+                        </td>
+
+                        <td class="text-end">
+                            ${this.decimal(r.out_qty)}
+                        </td>
+
+                        <td class="text-end">
+                            ${this.decimal(r.out_bw)}
+                        </td>
+
+                        <td class="text-end">
+                            ${this.rupiah(r.out_amount)}
+                        </td>
+
+                        <td class="text-end ending-cell">
+                            ${this.decimal(r.end_qty)}
+                        </td>
+
+                        <td class="text-end ending-cell">
+                            ${this.decimal(r.end_bw)}
+                        </td>
+
+                        <td class="text-end ending-cell">
+                            ${this.rupiah(r.end_amount)}
+                        </td>
+
                     </tr>
+
                 `);
+
             });
+
         },
 
         renderGrand(g) {
-            $('#mc_gt_bg_qty').text(this.decimal(g.bg_qty));
-            $('#mc_gt_bg_bw').text(this.decimal(g.bg_bw));
-            $('#mc_gt_bg_amount').text(this.rupiah(g.bg_amount));
 
-            $('#mc_gt_in_qty').text(this.decimal(g.in_qty));
-            $('#mc_gt_in_bw').text(this.decimal(g.in_bw));
-            $('#mc_gt_in_amount').text(this.rupiah(g.in_amount));
+            $('#mc_gt_bg_qty')
+                .text(
+                    this.decimal(g.bg_qty)
+                );
 
-            $('#mc_gt_out_qty').text(this.decimal(g.out_qty));
-            $('#mc_gt_out_bw').text(this.decimal(g.out_bw));
-            $('#mc_gt_out_amount').text(this.rupiah(g.out_amount));
+            $('#mc_gt_bg_bw')
+                .text(
+                    this.decimal(g.bg_bw)
+                );
 
-            $('#mc_gt_end_qty').text(this.decimal(g.end_qty));
-            $('#mc_gt_end_bw').text(this.decimal(g.end_bw));
-            $('#mc_gt_end_amount').text(this.rupiah(g.end_amount));
+            $('#mc_gt_bg_amount')
+                .text(
+                    this.rupiah(g.bg_amount)
+                );
+
+            $('#mc_gt_in_qty')
+                .text(
+                    this.decimal(g.in_qty)
+                );
+
+            $('#mc_gt_in_bw')
+                .text(
+                    this.decimal(g.in_bw)
+                );
+
+            $('#mc_gt_in_amount')
+                .text(
+                    this.rupiah(g.in_amount)
+                );
+
+            $('#mc_gt_out_qty')
+                .text(
+                    this.decimal(g.out_qty)
+                );
+
+            $('#mc_gt_out_bw')
+                .text(
+                    this.decimal(g.out_bw)
+                );
+
+            $('#mc_gt_out_amount')
+                .text(
+                    this.rupiah(g.out_amount)
+                );
+
+            $('#mc_gt_end_qty')
+                .text(
+                    this.decimal(g.end_qty)
+                );
+
+            $('#mc_gt_end_bw')
+                .text(
+                    this.decimal(g.end_bw)
+                );
+
+            $('#mc_gt_end_amount')
+                .text(
+                    this.rupiah(g.end_amount)
+                );
+
         },
 
-        /* ===== UTIL ===== */
-
         toYM(v) {
-            return v ? v.replace('-', '') : '';
+
+            return v
+                ? v.replace('-', '')
+                : '';
+
         },
 
         formatYM(ym) {
-            return ym ? ym.substr(4,2) + '/' + ym.substr(0,4) : '-';
+
+            if(!ym) return '-';
+
+            return ym.substr(4,2) +
+                '/' +
+                ym.substr(0,4);
+
         },
 
         rupiah(x) {
-            return parseFloat(x || 0).toLocaleString('id-ID');
+
+            return parseFloat(x || 0)
+                .toLocaleString(
+                    'id-ID'
+                );
+
         },
 
         decimal(x) {
-            return parseFloat(x || 0).toLocaleString('id-ID', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
+
+            return parseFloat(x || 0)
+                .toLocaleString(
+                    'id-ID',
+                    {
+                        minimumFractionDigits : 2,
+                        maximumFractionDigits : 2
+                    }
+                );
+
         }
+
     };
 
-    /* PAGINATION */
-    $(document).on('click', '#mc_pagination a', function(e){
-        e.preventDefault();
-        const page = $(this).data('page');
-        if (page) MonthlyClosingInventoryPriceReport.load(page);
+    /* ===========================
+    AJAX PAGINATION
+    =========================== */
+
+    $(document).on(
+        'click',
+        '#mc_pagination a',
+        function(e){
+
+            e.preventDefault();
+
+            const page =
+                $(this).data('page');
+
+            if(page){
+
+                MonthlyClosingInventoryPriceReport
+                    .load(page);
+
+            }
+
+        }
+    );
+
+    /* ===========================
+    INITIALIZE
+    =========================== */
+
+    $(document).ready(() => {
+
+        if(window.MonthlyClosingInventoryPriceReport){
+
+            MonthlyClosingInventoryPriceReport
+                .init();
+
+        }
+
     });
 
-    /* INIT */
-    $(document).ready(() => {
-        if (window.MonthlyClosingInventoryPriceReport) {
-            MonthlyClosingInventoryPriceReport.init();
-        }
-    });
 </script>
