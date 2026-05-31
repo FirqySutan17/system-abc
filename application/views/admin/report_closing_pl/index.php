@@ -2,31 +2,19 @@
     <div class="card w-100">
         <div class="card-body">
 
-            <h5 class="card-title fw-semibold mb-4">
-                REPORT CLOSING P/L
-            </h5>
+            <div class="mb-4">
+                <h4 class="fw-bold mb-1">
+                    P/L Closing Report
+                </h4>
 
-            <!-- TAB NAV -->
-            <ul class="nav nav-tabs mb-3" id="reportTab">
-                <li class="nav-item">
-                    <a class="nav-link active" data-bs-toggle="tab" href="#tab-daily">
-                        Report Daily Closing P/L
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" data-bs-toggle="tab" href="#tab-monthly">
-                        Report Monthly Closing P/L
-                    </a>
-                </li>
-            </ul>
+                <p class="text-muted mb-0">
+                    Monthly PL
+                </p>
+            </div>
 
             <!-- TAB CONTENT -->
             <div class="tab-content">
-
-                <div class="tab-pane fade show active" id="tab-daily">
-                    <?php $this->load->view('admin/report_closing_pl/daily'); ?>
-                </div>
-                <div class="tab-pane fade" id="tab-monthly">
+                <div class="tab-pane fades how active" id="tab-monthly">
                     <?php $this->load->view('admin/report_closing_pl/tab_monthly'); ?>
                 </div>
 
@@ -41,24 +29,14 @@ document.addEventListener('shown.bs.tab', function (event) {
     const target = event.target.getAttribute('href');
 
     console.log('TAB AKTIF:', target);
-
-    if (target === '#tab-daily') {
-        if (window.DailyClosingPlReport) {
-            DailyClosingPlReport.init();
-            console.log('DailyClosingPlReport global:', window.DailyClosingPlReport);
-        } else {
-            console.warn('DailyClosingPlReport belum tersedia');
-            console.log('DailyClosingPlReport global:', window.DailyClosingPlReport);
-        }
-    }
-
+    
     if (target === '#tab-monthly') {
-        if (window.MonthlyClosingPlReport) {
-            MonthlyClosingPlReport.init();
-            console.log('MonthlyClosingPlReport global:', window.MonthlyClosingPlReport);
+        if (window.MonthlyClosingPL) {
+            MonthlyClosingPL.init();
+            console.log('MonthlyClosingPL global:', window.MonthlyClosingPL);
         } else {
-            console.warn('MonthlyClosingPlReport belum tersedia');
-            console.log('MonthlyClosingPlReport global:', window.MonthlyClosingPlReport);
+            console.warn('MonthlyClosingPL belum tersedia');
+            console.log('MonthlyClosingPL global:', window.MonthlyClosingPL);
         }
     }
 });

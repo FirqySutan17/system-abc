@@ -8,7 +8,7 @@ class ReportClosingPl_model extends CI_Model {
         return $this->db
             ->where('HEAD_CODE', 'AJ')
             ->where('CODE', $plant)
-            ->get('cd_code')
+            ->get('abc_cd_code')
             ->row();
     }
 
@@ -16,8 +16,9 @@ class ReportClosingPl_model extends CI_Model {
     {
         return $this->db
             ->select('CODE, CODE_NAME')
-            ->from('cd_code')
-            ->where('HEAD_CODE', 'AJ')
+            ->from('abc_cd_code')
+            ->where('HEAD_CODE', 'PLANT')
+            ->where('CODE !=', '*')
             ->order_by('CODE', 'ASC')
             ->get()
             ->result();
@@ -27,7 +28,7 @@ class ReportClosingPl_model extends CI_Model {
     {
         return $this->db
             ->select('CUST, FULL_NAME')
-            ->from('cd_customer')
+            ->from('abc_cd_customer')
             ->group_start()
                 ->where('CUST_KIND', 'SUPPLIER')
                 ->or_where('CUST_CLASS', 'SUPPLIER')
@@ -41,7 +42,7 @@ class ReportClosingPl_model extends CI_Model {
     {
         return $this->db
             ->select('CUST, FULL_NAME')
-            ->from('cd_customer')
+            ->from('abc_cd_customer')
             ->group_start()
                 ->where('CUST_KIND', 'CUSTOMER')
                 ->or_where('CUST_CLASS', 'CUSTOMER')
@@ -76,13 +77,13 @@ class ReportClosingPl_model extends CI_Model {
 
                 SUM(a.amount) AS amount
 
-            FROM cl_pl a
+            FROM abc_cl_pl a
 
-            LEFT JOIN cd_code p
+            LEFT JOIN abc_cd_code p
                 ON p.HEAD_CODE='AJ'
                 AND p.CODE=a.plant
 
-            LEFT JOIN cd_account acc
+            LEFT JOIN abc_cd_account acc
                 ON acc.ACCOUNT=a.account_cd
 
             WHERE a.plant IN ($plantList)
@@ -138,7 +139,7 @@ class ReportClosingPl_model extends CI_Model {
                     a.plant,
                     a.ymd,
                     a.account_cd
-                FROM cl_pl a
+                FROM abc_cl_pl a
                 WHERE a.plant IN ($plantList)
         ";
 
@@ -170,7 +171,7 @@ class ReportClosingPl_model extends CI_Model {
 
         $sql="
             SELECT SUM(a.amount) AS amount
-            FROM cl_pl a
+            FROM abc_cl_pl a
             WHERE a.plant IN ($plantList)
         ";
 
@@ -203,13 +204,13 @@ class ReportClosingPl_model extends CI_Model {
 
                 SUM(a.amount) AS amount
 
-            FROM cl_pl a
+            FROM abc_cl_pl a
 
-            LEFT JOIN cd_code p
+            LEFT JOIN abc_cd_code p
                 ON p.HEAD_CODE='AJ'
                 AND p.CODE=a.plant
 
-            LEFT JOIN cd_account acc
+            LEFT JOIN abc_cd_account acc
                 ON acc.ACCOUNT=a.account_cd
 
             WHERE a.plant IN ($plantList)
@@ -260,7 +261,7 @@ class ReportClosingPl_model extends CI_Model {
                     a.plant,
                     SUBSTRING(a.ymd,1,6) AS ym,
                     a.account_cd
-                FROM cl_pl a
+                FROM abc_cl_pl a
                 WHERE a.plant IN ($plantList)
         ";
 
@@ -288,7 +289,7 @@ class ReportClosingPl_model extends CI_Model {
 
         $sql = "
             SELECT SUM(a.amount) amount
-            FROM cl_pl a
+            FROM abc_cl_pl a
             WHERE a.plant IN ($plantList)
         ";
 

@@ -1,16 +1,9 @@
-<?php 
-$userPlants = json_decode($this->session->userdata('plant'), true);
-if (!is_array($userPlants)) {
-    $userPlants = [$this->session->userdata('plant')];
-}
-?>
-
 <div class="row g-3 mb-4">
 
     <div class="col-xl-3 col-md-6">
-        <div class="card border-0 shadow-sm h-100">
+        <div class="card border-0 shadow-sm h-100 kpi-card">
             <div class="card-body">
-                <div class="text-muted small">Total Item</div>
+                <div class="text-muted small kpi-label">Total Item</div>
                 <div class="fs-4 fw-bold text-primary"
                      id="kpi_total_item">0</div>
             </div>
@@ -18,9 +11,9 @@ if (!is_array($userPlants)) {
     </div>
 
     <div class="col-xl-3 col-md-6">
-        <div class="card border-0 shadow-sm h-100">
+        <div class="card border-0 shadow-sm h-100 kpi-card">
             <div class="card-body">
-                <div class="text-muted small">Net Sales</div>
+                <div class="text-muted small kpi-label">Net Sales</div>
                 <div class="fs-4 fw-bold text-success"
                      id="kpi_net_sales">0</div>
             </div>
@@ -28,9 +21,9 @@ if (!is_array($userPlants)) {
     </div>
 
     <div class="col-xl-3 col-md-6">
-        <div class="card border-0 shadow-sm h-100">
+        <div class="card border-0 shadow-sm h-100 kpi-card">
             <div class="card-body">
-                <div class="text-muted small">Profit</div>
+                <div class="text-muted small kpi-label">Profit</div>
                 <div class="fs-4 fw-bold text-primary"
                      id="kpi_profit">0</div>
             </div>
@@ -38,9 +31,9 @@ if (!is_array($userPlants)) {
     </div>
 
     <div class="col-xl-3 col-md-6">
-        <div class="card border-0 shadow-sm h-100">
+        <div class="card border-0 shadow-sm h-100 kpi-card">
             <div class="card-body">
-                <div class="text-muted small">Ending Amount</div>
+                <div class="text-muted small kpi-label">Ending Amount</div>
                 <div class="fs-4 fw-bold text-info"
                      id="kpi_ending_amount">0</div>
             </div>
@@ -49,122 +42,156 @@ if (!is_array($userPlants)) {
 
 </div>
 
-<div class="row mb-3 align-items-end">
+<div class="card mb-4"
+     style="background:transparent;border:none !important;box-shadow:none !important">
 
-    <!-- PLANT -->
-    <div class="col-md-2">
-        <label class="form-label">Plant</label>
-        <select id="mc_filter_plant" class="form-control">
-            <?php foreach($plants as $p): ?>
-                <?php if (in_array($p->CODE, $userPlants)): ?>
-                    <option value="<?= $p->CODE ?>">
+    <div class="row g-3">
+
+        <div class="col-md-3">
+            <label class="form-label fw-semibold">
+                Plant
+            </label>
+
+            <select id="mc_filter_plant" class="form-select">
+
+                <?php foreach($plants as $i => $p): ?>
+                    <option
+                        value="<?= $p->CODE ?>"
+                        <?= $i == 0 ? 'selected' : '' ?>>
                         <?= $p->CODE_NAME ?>
                     </option>
-                <?php endif; ?>
-            <?php endforeach; ?>
-        </select>
-    </div>
+                <?php endforeach; ?>
 
-    <!-- ITEM -->
-    <div class="col-md-2">
-        <label class="form-label">Item</label>
-        <input type="text" id="mc_filter_item" class="form-control" placeholder="Item">
-    </div>
-
-    <!-- MONTH FROM -->
-    <div class="col-md-2">
-        <label class="form-label">Month</label>
-        <input type="month" id="mc_month" class="form-control">
-    </div>
-
-    <!-- FILTER BUTTON -->
-    <div class="col-md-1">
-        <label class="form-label d-block">&nbsp;</label>
-        <button class="btn btn-primary w-100" id="mc_btnFilter">
-            <i class="fa fa-search"></i> Filter
-        </button>
-    </div>
-
-    <div class="col-md-4"></div>
-
-    <!-- EXPORT -->
-    <div class="col-md-1">
-        <label class="form-label d-block">&nbsp;</label>
-        <div class="btn-group w-100">
-            <button class="btn btn-primary w-100" data-bs-toggle="dropdown">
-                <i class="ti ti-download"></i>
-            </button>
-            <ul class="dropdown-menu w-100">
-                <li><a class="dropdown-item" href="#" id="exportExcelmc"><i class="fa fa-file-excel"></i> Export Excel</a></li>
-                <li><a class="dropdown-item" href="#" id="exportPDFmc"><i class="fa fa-file-pdf"></i> Export PDF</a></li>
-            </ul>
+            </select>
         </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-semibold">
+                Closing Month
+            </label>
+
+            <input type="month"
+                   id="mc_month"
+                   class="form-control">
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label fw-semibold">
+                Material
+            </label>
+
+            <input type="text"
+                   id="mc_filter_item"
+                   class="form-control"
+                   placeholder="Material Code / Name">
+        </div>
+
+        <div class="col-md-3 d-flex align-items-end justify-content-end">
+
+            <button class="btn btn-primary me-2"
+                    id="mc_btnFilter">
+                Search
+            </button>
+
+            <div class="btn-group">
+
+                <button class="btn btn-success"
+                        id="exportExcelmc">
+                    Excel
+                </button>
+
+                <button class="btn btn-danger"
+                        id="exportPDFmc">
+                    PDF
+                </button>
+
+            </div>
+
+        </div>
+
     </div>
 
 </div>
 
-<!-- TABLE -->
-<div class="table-responsive">
-    <table class="table table-bordered" id="monthlyPlTable">
+<div class="card border-0 shadow-sm">
 
-        <thead>
+    <div id="loadingOverlay">
+        Loading Sales P/L Report...
+    </div>
 
-            <tr class="table-dark">
+    <div class="d-flex justify-content-between align-items-center mb-2">
 
-                <th rowspan="2">
-                    Material
-                </th>
+        <h6 class="mb-0 fw-bold">
+            Monthly Sales P/L
+        </h6>
 
-                <th colspan="4" class="text-center">
-                    Movement
-                </th>
+    </div>
 
-                <th colspan="4" class="text-center">
-                    Sales P/L
-                </th>
+    <div class="card-body pt-2 px-3 pb-3">
 
-            </tr>
+        <div class="table-responsive">
+            <table class="table table-bordered" id="monthlyPlTable">
 
-            <tr class="table-secondary">
+                <thead>
 
-                <th>Beginning</th>
-                <th>Production</th>
-                <th>Purchase</th>
-                <th>Adjust</th>
+                    <tr class="table-dark">
 
-                <th>COGS</th>
-                <th>Ending</th>
-                <th>Net Sales</th>
-                <th>Profit</th>
+                        <th rowspan="2">
+                            Material
+                        </th>
 
-            </tr>
+                        <th colspan="4" class="text-center">
+                            Movement
+                        </th>
 
-        </thead>
+                        <th colspan="4" class="text-center">
+                            Sales P/L
+                        </th>
 
-        <tbody></tbody>
+                    </tr>
 
-        <tfoot>
+                    <tr class="table-secondary">
 
-            <tr class="table-warning fw-bold">
+                        <th>Beginning</th>
+                        <th>Production</th>
+                        <th>Purchase</th>
+                        <th>Adjust</th>
 
-                <td class="text-end">
-                    GRAND TOTAL
-                </td>
+                        <th>COGS</th>
+                        <th>Ending</th>
+                        <th>Net Sales</th>
+                        <th>Profit</th>
 
-                <td id="mc_gt_begin"></td>
-                <td id="mc_gt_prod"></td>
-                <td id="mc_gt_purchase"></td>
-                <td id="mc_gt_adjust"></td>
+                    </tr>
 
-                <td id="mc_gt_cogs"></td>
-                <td id="mc_gt_end"></td>
-                <td id="mc_gt_net"></td>
-                <td id="mc_gt_profit"></td>
+                </thead>
 
-            </tr>
+                <tbody></tbody>
 
-        </tfoot>
-    </table>
+                <tfoot>
+
+                    <tr class="fw-bold">
+
+                        <td class="text-end profit-cell">
+                            GRAND TOTAL
+                        </td>
+
+                        <td id="mc_gt_begin"></td>
+                        <td id="mc_gt_prod"></td>
+                        <td id="mc_gt_purchase"></td>
+                        <td id="mc_gt_adjust"></td>
+
+                        <td id="mc_gt_cogs"></td>
+                        <td id="mc_gt_end"></td>
+                        <td id="mc_gt_net"></td>
+                        <td id="mc_gt_profit"></td>
+
+                    </tr>
+
+                </tfoot>
+            </table>
+        </div>
+    </div>
 </div>
 
 <div class="d-flex justify-content-between mt-3">
@@ -205,13 +232,21 @@ tfoot tr{
     color:#495057 !important;
 }
 
-#monthlyPlTable td:first-child,
+#monthlyPlTable td:first-child{
+    min-width:250px;
+    position:sticky;
+    left:0;
+    background:#fff;
+    z-index:5;
+}
+
 #monthlyPlTable th:first-child{
     min-width:250px;
     position:sticky;
     left:0;
-    background:white;
-    z-index:5;
+    z-index:20;
+    background:#2f3c4f !important;
+    color:#fff !important;
 }
 
 #monthlyPlTable thead th:first-child{
@@ -219,27 +254,75 @@ tfoot tr{
     color:#fff !important;
 }
 
+#monthlyPlTable thead th{
+    padding:10px 8px !important;
+    vertical-align:middle !important;
+}
+
+#monthlyPlTable td:first-child,
+#monthlyPlTable th:first-child{
+    min-width:250px;
+    max-width:250px;
+}
+
 #monthlyPlTable tbody tr:hover{
     background:#f8fafc;
 }
 
-.cost-cell{
-    background:#f5f9ff;
-    color:#0d6efd;
-    font-weight:600;
+.profit-cell{
+    background:#f0fff5;
+    color:#198754;
+    font-weight:700;
 }
 
 tfoot tr{
-    background:#f4f7fb !important;
+    background:#eef4ff !important;
+    font-weight:700;
 }
 
 tfoot td{
-    border-top:2px solid #2f3c4f !important;
+    border-top:3px solid #2f3c4f !important;
 }
 
 #monthlyPlTable th,
 #monthlyPlTable td{
     white-space:nowrap;
+}
+
+.kpi-card .card-body{
+    padding:18px 22px;
+}
+
+.kpi-label{
+    font-size:12px;
+    color:#6c757d;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.kpi-card{
+    transition:.2s;
+}
+
+.kpi-card:hover{
+    transform:translateY(-2px);
+}
+
+.px-3{
+    padding-right:0rem !important;
+    padding-left:0rem !important;
+}
+
+#loadingOverlay{
+    display:none;
+    position:absolute;
+    inset:0;
+    background:rgba(255,255,255,.8);
+    z-index:999;
+    text-align:center;
+    padding-top:150px;
+    font-size:18px;
+    font-weight:600;
 }
 </style>
 
@@ -303,6 +386,7 @@ tfoot td{
 
         load(page = null) {
             if (page !== null) this.page = page;
+            $('#loadingOverlay').show();
 
             const params = {
                 page: this.page,
@@ -328,7 +412,12 @@ tfoot td{
 
                 $('#mc_pagination').html(resp.pagination || '');
                 $('#mc_info').text(`Total data: ${resp.total || 0}`);
-            }, 'json');
+                $('#loadingOverlay').hide();
+
+                },'json')
+                .fail(() => {
+                    $('#loadingOverlay').hide();
+                });
         },
 
         renderSummary(resp){
@@ -387,35 +476,35 @@ tfoot td{
 
                         </td>
 
-                        <td class="text-end">
+                        <td class="text-end profit-cell">
                             ${this.rupiah(r.begin_amt)}
                         </td>
 
-                        <td class="text-end">
+                        <td class="text-end profit-cell">
                             ${this.rupiah(r.production_amt)}
                         </td>
 
-                        <td class="text-end">
+                        <td class="text-end profit-cell">
                             ${this.rupiah(r.purchase_amt)}
                         </td>
 
-                        <td class="text-end">
+                        <td class="text-end profit-cell">
                             ${this.rupiah(r.adjust_amt)}
                         </td>
 
-                        <td class="text-end">
+                        <td class="text-end profit-cell">
                             ${this.rupiah(r.cogs_amt)}
                         </td>
 
-                        <td class="text-end">
+                        <td class="text-end profit-cell">
                             ${this.rupiah(r.ending_amt)}
                         </td>
 
-                        <td class="text-end text-primary fw-bold">
+                        <td class="text-end profit-cell text-primary fw-bold">
                             ${this.rupiah(r.sales_net_amt)}
                         </td>
 
-                        <td class="text-end cost-cell">
+                        <td class="text-end profit-cell cost-cell">
                             ${this.rupiah(r.sales_profit_amt)}
                         </td>
 

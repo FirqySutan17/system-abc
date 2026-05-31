@@ -1,91 +1,274 @@
-<?php 
-$userPlants = json_decode($this->session->userdata('plant'), true);
-if (!is_array($userPlants)) {
-    $userPlants = [$this->session->userdata('plant')];
-}
-?>
-<div class="row mb-3 align-items-end">
+<div class="row g-3 mb-4">
 
-    <!-- PLANT -->
-    <div class="col-md-2">
-        <label class="form-label">Plant</label>
-        <select id="pl_filter_plant" class="form-control">
-            <?php foreach($plants as $p): ?>
-                <?php if (in_array($p->CODE, $userPlants)): ?>
-                    <option value="<?= $p->CODE ?>">
-                        <?= $p->CODE_NAME ?>
-                    </option>
-                <?php endif; ?>
-            <?php endforeach; ?>
-        </select>
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100 kpi-card">
+            <div class="card-body">
+                <div class="text-muted small kpi-label">
+                    Total Account
+                </div>
+
+                <div class="fs-4 fw-bold text-primary"
+                     id="kpi_total_account">
+                    0
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- MONTH FROM -->
-    <div class="col-md-2">
-        <label class="form-label">Month</label>
-        <input type="month" id="pl_month" class="form-control">
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100 kpi-card">
+            <div class="card-body">
+                <div class="text-muted small kpi-label">
+                    Total Amount
+                </div>
+
+                <div class="fs-4 fw-bold text-success"
+                     id="kpi_total_amount">
+                    0
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- FILTER BUTTON -->
-    <div class="col-md-1">
-        <label class="form-label d-block">&nbsp;</label>
-        <button class="btn btn-primary w-100" id="pl_btnFilter">
-            <i class="fa fa-search"></i> Filter
-        </button>
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100 kpi-card">
+            <div class="card-body">
+                <div class="text-muted small kpi-label">
+                    Plant
+                </div>
+
+                <div class="fs-5 fw-bold text-primary"
+                     id="kpi_plant">
+                    -
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="col-md-6"></div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100 kpi-card">
+            <div class="card-body">
+                <div class="text-muted small kpi-label">
+                    Month
+                </div>
 
-    <!-- EXPORT -->
-    <div class="col-md-1">
-        <label class="form-label d-block">&nbsp;</label>
-        <div class="btn-group w-100">
-            <button class="btn btn-primary w-100" data-bs-toggle="dropdown">
-                <i class="ti ti-download"></i>
-            </button>
-            <ul class="dropdown-menu w-100">
-                <li><a class="dropdown-item" href="#" id="exportExcelMon">
-                    <i class="fa fa-file-excel"></i> Export Excel</a></li>
-                <li><a class="dropdown-item" href="#" id="exportPDFMon">
-                    <i class="fa fa-file-pdf"></i> Export PDF</a></li>
-            </ul>
+                <div class="fs-5 fw-bold text-info"
+                     id="kpi_month">
+                    -
+                </div>
+            </div>
         </div>
     </div>
 
 </div>
 
-<!-- TABLE -->
-<div class="table-responsive">
-    <table class="table table-bordered" id="monthlyPlTable">
-        <thead>
-            <tr>
-                <th class="text-center">PLANT</th>
-                <th class="text-center">MONTH</th>
-                <th class="text-center">ACCOUNT</th>
-                <th class="text-center">ACCOUNT NAME</th>
-                <th class="text-end">AMOUNT</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-        <!-- <tfoot>
-            <tr class="table-secondary fw-bold">
-                <td colspan="4" class="text-end detail-row">GRAND TOTAL</td>
-                <td class="text-end detail-row" id="pl_gt_amount">0</td>
-            </tr>
-        </tfoot> -->
-    </table>
+<div class="card mb-4"
+     style="background:transparent;border:none!important;box-shadow:none!important">
+
+    <div class="row g-3">
+
+        <div class="col-md-3">
+            <label class="form-label fw-semibold">
+                Plant
+            </label>
+
+            <select id="pl_filter_plant"
+                    class="form-select">
+
+                <?php foreach($plants as $i => $p): ?>
+                    <option value="<?= $p->CODE ?>"
+                        <?= $i==0 ? 'selected':'' ?>>
+                        <?= $p->CODE_NAME ?>
+                    </option>
+                <?php endforeach; ?>
+
+            </select>
+        </div>
+
+        <div class="col-md-3">
+
+            <label class="form-label fw-semibold">
+                Closing Month
+            </label>
+
+            <input type="month"
+                   id="pl_month"
+                   class="form-control">
+
+        </div>
+
+        <div class="col-md-6 d-flex align-items-end justify-content-end">
+
+            <button class="btn btn-primary me-2"
+                    id="pl_btnFilter">
+                Search
+            </button>
+
+            <div class="btn-group">
+
+                <button class="btn btn-success"
+                        id="exportExcelMon">
+                    Excel
+                </button>
+
+                <button class="btn btn-danger"
+                        id="exportPDFMon">
+                    PDF
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="card border-0 shadow-sm">
+
+    <div id="loadingOverlay">
+        Loading P/L Report...
+    </div>
+
+    <div class="card-body pt-2 px-0 pb-3">
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered mb-0"
+                   id="monthlyPlTable">
+
+                <thead>
+
+                    <tr class="table-dark">
+
+                        <th>Account</th>
+                        <th>Account Name</th>
+                        <th class="text-end">Amount</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody></tbody>
+
+                <tfoot>
+
+                    <tr class="fw-bold">
+
+                        <td colspan="2"
+                            class="text-end profit-cell">
+                            GRAND TOTAL
+                        </td>
+
+                        <td class="text-end"
+                            id="pl_gt_amount">
+                            0
+                        </td>
+
+                    </tr>
+
+                </tfoot>
+
+            </table>
+
+        </div>
+
+    </div>
+
 </div>
 
 <div class="d-flex justify-content-between mt-3">
+
     <div id="pl_info"></div>
+
     <div id="pl_pagination"></div>
+
 </div>
 
 <style>
-.detail-row{
-    border:2px solid #efefef !important;
-    vertical-align:middle !important;
+
+.card{
+    border-radius:14px;
+    position:relative;
 }
+
+.table-responsive{
+    max-height:700px;
+}
+
+thead th{
+    position:sticky;
+    top:0;
+    z-index:10;
+}
+
+tfoot tr{
+    position:sticky;
+    bottom:0;
+    z-index:10;
+}
+
+.table-dark th{
+    background:#2f3c4f !important;
+    color:#fff !important;
+    border-color:#3f4d63 !important;
+}
+
+#monthlyPlTable tbody tr:hover{
+    background:#f8fafc;
+}
+
+.profit-cell{
+    background:#f0fff5;
+    color:#198754;
+    font-weight:700;
+}
+
+tfoot tr{
+    background:#eef4ff !important;
+    font-weight:700;
+}
+
+tfoot td{
+    border-top:3px solid #2f3c4f !important;
+}
+
+#monthlyPlTable th,
+#monthlyPlTable td{
+    white-space:nowrap;
+}
+
+.kpi-card .card-body{
+    padding:18px 22px;
+}
+
+.kpi-label{
+    font-size:12px;
+    color:#6c757d;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+
+.kpi-card{
+    transition:.2s;
+}
+
+.kpi-card:hover{
+    transform:translateY(-2px);
+}
+
+#loadingOverlay{
+    display:none;
+    position:absolute;
+    inset:0;
+    background:rgba(255,255,255,.8);
+    z-index:999;
+    text-align:center;
+    padding-top:150px;
+    font-size:18px;
+    font-weight:600;
+}
+
 </style>
 
 <script>
@@ -188,6 +371,7 @@ if (!is_array($userPlants)) {
                 resp=>{
                     this.render(resp.rows||[]);
                     this.renderGrand(resp.grand||{});
+                    this.renderSummary(resp);
                     $('#pl_pagination').html(resp.pagination||'');
                     $('#pl_info').text(`Total data : ${resp.total||0}`);
                 },
@@ -195,39 +379,71 @@ if (!is_array($userPlants)) {
             );
         },
 
+        renderSummary(resp){
+
+            $('#kpi_total_account')
+                .text(resp.total || 0);
+
+            $('#kpi_total_amount')
+                .text(this.rupiah(resp.grand.amount));
+
+            $('#kpi_plant')
+                .text(
+                    $('#pl_filter_plant option:selected').text()
+                );
+
+            $('#kpi_month')
+                .text(
+                    this.formatYM(
+                        this.toYM($('#pl_month').val())
+                    )
+                );
+        },
+
         render(rows){
-            const tbody = $('#monthlyPlTable tbody').empty();
+
+            const tbody = $('#monthlyPlTable tbody');
+
+            tbody.empty();
 
             if(!rows.length){
-                tbody.html('<tr><td colspan="5" class="text-center">No data</td></tr>');
+
+                tbody.html(`
+                    <tr>
+                        <td colspan="3"
+                            class="text-center py-4">
+                            No data found
+                        </td>
+                    </tr>
+                `);
+
                 return;
             }
 
-            rows.forEach(r=>{
+            rows.forEach(r => {
+
                 tbody.append(`
+
                     <tr>
 
-                        <td class="text-center"><b>${r.plant_name}</b></td>
-
-                        <td class="text-center">
-                            ${this.formatYM(r.ym)}
-                        </td>
-
-                        <td class="text-center">
-                            ${r.account_cd||'-'}
+                        <td>
+                            ${r.account_cd || '-'}
                         </td>
 
                         <td>
-                            ${r.ACCOUNT_NAME||'-'}
+                            ${r.ACCOUNT_NAME || '-'}
                         </td>
 
-                        <td class="text-end">
+                        <td class="text-end profit-cell">
                             ${this.rupiah(r.amount)}
                         </td>
 
                     </tr>
+
                 `);
+
             });
+
         },
 
         renderGrand(g){
