@@ -377,14 +377,15 @@
                 </li>
               <?php endif; ?>
 
-              <!-- <?php if (has_permission('inventory_receive_lb')): ?>
+
+              <?php if (has_permission('inventory_receive')): ?>
                 <li class="sidebar-item child-drop">
-                    <a href="<?= base_url('receive-lb'); ?>" class="sidebar-link">
+                    <a href="<?= base_url('culling'); ?>" class="sidebar-link">
                         <i class="ti ti-dots"></i>
-                        <span class="hide-menu">Receive LB</span>
+                        <span class="hide-menu">Culling</span>
                     </a>
                 </li>
-              <?php endif; ?> -->
+              <?php endif; ?>
 
               <?php if (has_permission('report_inventory_po') || has_permission('report_inventory_receive') || has_permission('report_inventory_receive_lb') || has_permission('report_inventory_material_balance')): ?>
                 <li class="sidebar-item child-drop">
@@ -510,6 +511,13 @@
                       </a>
                   </li>
                 <?php endif; ?>
+
+                <li class="sidebar-item child-drop">
+                      <a href="<?= base_url('credit-note'); ?>" class="sidebar-link">
+                          <i class="ti ti-dots"></i>
+                          <span class="hide-menu">Credit Note</span>
+                      </a>
+                  </li>
 
                 <?php if (has_permission('report_accounting_cost') || has_permission('report_accounting_payment') || has_permission('report_accounting_cash_in')): ?>
                   <li class="sidebar-item child-drop">

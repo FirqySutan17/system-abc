@@ -71,6 +71,16 @@ $route['cash-in/create'] = 'CashIn/create';
 $route['cash-in/update'] = 'CashIn/update';
 $route['cash-in/remove'] = 'CashIn/remove';
 
+$route['credit-note'] = 'CreditNote/index';
+$route['credit-note/print_pdf'] = 'CreditNote/print_pdf';
+$route['credit-note/edit'] = 'CreditNote/edit';
+$route['credit-note/load_data'] = 'CreditNote/load_data';
+$route['credit-note/get-supplier'] = 'CreditNote/get_supplier';
+
+$route['credit-note/create'] = 'CreditNote/create';
+$route['credit-note/update'] = 'CreditNote/update';
+$route['credit-note/remove'] = 'CreditNote/remove';
+
 // REPORT INVENTORY
 $route['report-inventory/load_data'] = 'ReportInventory/load_data';
 $route['report-inventory/export_excel_po'] = 'ReportInventory/export_excel_po';
