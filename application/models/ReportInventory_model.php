@@ -37,6 +37,39 @@ class ReportInventory_model extends CI_Model {
             ->result();
     }
 
+    public function get_class_out_list()
+    {
+        return $this->db
+
+            ->select('CODE, CODE_NAME')
+
+            ->from('abc_cd_code')
+
+            ->where(
+                'HEAD_CODE',
+                'CLASS OUT'
+            )
+
+            ->where(
+                'CODE <>',
+                '*'
+            )
+
+            ->where(
+                'USE_YN',
+                'Y'
+            )
+
+            ->order_by(
+                'CODE_NAME',
+                'ASC'
+            )
+
+            ->get()
+
+            ->result();
+    }
+
     public function get_customer_list()
     {
         return $this->db
@@ -679,6 +712,217 @@ class ReportInventory_model extends CI_Model {
                 $filters['date_to']
             );
 
+        }
+
+        return $this->db
+            ->count_all_results();
+    }
+
+    public function get_culling_report(
+        $limit = 0,
+        $start = 0,
+        $filters = [],
+        $order = 'ymd',
+        $dir = 'DESC'
+    ){
+        $allowedOrder = [
+
+            'idno'       => 'c.idno',
+            'plant'      => 'c.plant',
+            'ymd'        => 'c.ymd',
+            'class_out'  => 'c.class_out',
+            'CREATED_AT' => 'c.CREATED_AT'
+
+        ];
+
+        $orderBy =
+            $allowedOrder[$order]
+            ?? 'c.ymd';
+
+        $dir =
+            strtoupper($dir) === 'ASC'
+                ? 'ASC'
+                : 'DESC';
+
+        $this->db
+
+            ->select("
+                c.*,
+
+                plant.CODE_NAME
+                    AS PLANT_NAME,
+
+                class.CODE_NAME
+                    AS CLASS_OUT_NAME
+            ")
+
+            ->from('abc_mst_culling c')
+
+            ->join(
+                'abc_cd_code plant',
+                "
+                    plant.HEAD_CODE='PLANT'
+                    AND plant.CODE COLLATE utf8mb4_unicode_ci =
+                    c.plant COLLATE utf8mb4_unicode_ci
+                ",
+                'left',
+                false
+            )
+
+            ->join(
+                'abc_cd_code class',
+                "
+                    class.HEAD_CODE='CLASS OUT'
+                    AND class.CODE COLLATE utf8mb4_unicode_ci =
+                    c.class_out COLLATE utf8mb4_unicode_ci
+                ",
+                'left',
+                false
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        if (!empty($filters['plant'])) {
+
+            $this->db->where(
+                'c.plant',
+                $filters['plant']
+            );
+        }
+
+        if (!empty($filters['class_out'])) {
+
+            $this->db->where(
+                'c.class_out',
+                $filters['class_out']
+            );
+        }
+
+        if (!empty($filters['search'])) {
+
+            $this->db->group_start()
+
+                ->like(
+                    'c.remark',
+                    $filters['search']
+                )
+
+                ->or_like(
+                    'c.CREATED_BY',
+                    $filters['search']
+                )
+
+                ->group_end();
+        }
+
+        if (!empty($filters['date_from'])) {
+
+            $this->db->where(
+                'DATE(c.ymd) >=',
+                $filters['date_from']
+            );
+        }
+
+        if (!empty($filters['date_to'])) {
+
+            $this->db->where(
+                'DATE(c.ymd) <=',
+                $filters['date_to']
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | ORDER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->order_by(
+            $orderBy,
+            $dir
+        );
+
+        $this->db->order_by(
+            'c.idno',
+            'DESC'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | LIMIT
+        |--------------------------------------------------------------------------
+        */
+
+        if ($limit > 0) {
+
+            $this->db->limit(
+                $limit,
+                $start
+            );
+        }
+
+        return $this->db
+            ->get()
+            ->result();
+    }
+
+    public function count_culling_report(
+        $filters = []
+    ){
+        $this->db
+            ->from('abc_mst_culling c');
+
+        if (!empty($filters['plant'])) {
+
+            $this->db->where(
+                'c.plant',
+                $filters['plant']
+            );
+        }
+
+        if (!empty($filters['class_out'])) {
+
+            $this->db->where(
+                'c.class_out',
+                $filters['class_out']
+            );
+        }
+
+        if (!empty($filters['search'])) {
+
+            $this->db->group_start()
+
+                ->like(
+                    'c.remark',
+                    $filters['search']
+                )
+
+                ->or_like(
+                    'c.CREATED_BY',
+                    $filters['search']
+                )
+
+                ->group_end();
+        }
+
+        if (!empty($filters['date_from'])) {
+
+            $this->db->where(
+                'DATE(c.ymd) >=',
+                $filters['date_from']
+            );
+        }
+
+        if (!empty($filters['date_to'])) {
+
+            $this->db->where(
+                'DATE(c.ymd) <=',
+                $filters['date_to']
+            );
         }
 
         return $this->db

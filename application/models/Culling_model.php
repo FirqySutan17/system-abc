@@ -492,7 +492,7 @@ class Culling_model extends CI_Model
             )
 
             ->get(
-                'culling'
+                'abc_mst_culling'
             )
 
             ->row_array();

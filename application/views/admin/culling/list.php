@@ -101,14 +101,13 @@
 
                                 <tr>
 
-                                    <th>Plant</th>
-                                    <th>Date</th>
-                                    <th>Jumlah</th>
-                                    <th>Berat</th>
-                                    <th>Class Out</th>
-                                    <th>Remark</th>
-                                    <th>Created By</th>
-                                    <th>#</th>
+                                    <th style="text-align: center; vertical-align: middle">Plant</th>
+                                    <th style="text-align: center; vertical-align: middle">Date</th>
+                                    <th style="text-align: center; vertical-align: middle">Class Out</th>
+                                    <th style="text-align: center; vertical-align: middle">Jumlah</th>
+                                    <th style="text-align: center; vertical-align: middle">Berat</th>
+                                    <th style="text-align: center; vertical-align: middle">Remark</th>
+                                    <th style="text-align: center; vertical-align: middle">#</th>
 
                                 </tr>
 
@@ -378,14 +377,13 @@
                                 <input
                                     type="text"
                                     id="JUMLAH_ADD"
-                                    class="form-control text-end decimal-number"
-                                    autocomplete="off"
-                                    required>
+                                    class="form-control text-end decimal-id"
+                                    autocomplete="off">
 
                                 <input
                                     type="hidden"
-                                    name="JUMLAH"
-                                    id="JUMLAH_ADD_HIDDEN">
+                                    id="JUMLAH_ADD_HIDDEN"
+                                    name="JUMLAH">
 
                             </div>
 
@@ -398,14 +396,13 @@
                                 <input
                                     type="text"
                                     id="BERAT_ADD"
-                                    class="form-control text-end decimal-number"
-                                    autocomplete="off"
-                                    required>
+                                    class="form-control text-end decimal-id"
+                                    autocomplete="off">
 
                                 <input
                                     type="hidden"
-                                    name="BERAT"
-                                    id="BERAT_ADD_HIDDEN">
+                                    id="BERAT_ADD_HIDDEN"
+                                    name="BERAT">
 
                             </div>
 
@@ -552,9 +549,7 @@
                                 <input
                                     type="text"
                                     id="JUMLAH_EDIT_DISPLAY"
-                                    class="form-control text-end decimal-number"
-                                    autocomplete="off"
-                                    required>
+                                    class="form-control text-end decimal-id">
 
                                 <input
                                     type="hidden"
@@ -572,9 +567,7 @@
                                 <input
                                     type="text"
                                     id="BERAT_EDIT_DISPLAY"
-                                    class="form-control text-end decimal-number"
-                                    autocomplete="off"
-                                    required>
+                                    class="form-control text-end decimal-id">
 
                                 <input
                                     type="hidden"
@@ -768,34 +761,97 @@
         );
     }
 
+    function formatTanggalIndonesia(date)
+    {
+        if (!date) {
+            return '-';
+        }
+
+        const bulan = [
+            'Januari',
+            'Februari',
+            'Maret',
+            'April',
+            'Mei',
+            'Juni',
+            'Juli',
+            'Agustus',
+            'September',
+            'Oktober',
+            'November',
+            'Desember'
+        ];
+
+        let d = new Date(date);
+
+        if (isNaN(d)) {
+            return date;
+        }
+
+        let tanggal = d.getDate();
+        let namaBulan = bulan[d.getMonth()];
+        let tahun = d.getFullYear();
+
+        return `${tanggal} ${namaBulan} ${tahun}`;
+    }
+
+    function formatIDNumber(value)
+    {
+        if (
+            value === null ||
+            value === undefined ||
+            value === ''
+        ) {
+            return '';
+        }
+
+        let num =
+            parseFloat(value);
+
+        if (isNaN(num)) {
+            return '';
+        }
+
+        return num.toLocaleString(
+            'id-ID',
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 6
+            }
+        );
+    }
+
     $(document).on(
         'input',
-        '.decimal-number',
+        '.decimal-id',
         function ()
     {
         let value =
-            $(this)
-                .val()
-                .replace(/,/g,'');
+            $(this).val();
 
-        if (value === '') {
-            return;
-        }
+        value =
+            value.replace(/[^\d,]/g,'');
 
-        if (isNaN(value)) {
-            return;
-        }
+        let parts =
+            value.split(',');
 
-        let number =
-            parseFloat(value);
+        let integer =
+            parts[0]
+                .replace(/\./g,'');
+
+        integer =
+            integer.replace(
+                /\B(?=(\d{3})+(?!\d))/g,
+                '.'
+            );
+
+        let decimal =
+            parts.length > 1
+                ? ',' + parts[1]
+                : '';
 
         $(this).val(
-            number.toLocaleString(
-                'en-US',
-                {
-                    maximumFractionDigits:6
-                }
-            )
+            integer + decimal
         );
     });
 
@@ -928,7 +984,7 @@
         {
             html += `
                 <tr>
-                    <td colspan="8"
+                    <td colspan="7"
                         class="text-center">
                         Data tidak ditemukan
                     </td>
@@ -946,52 +1002,54 @@
 
             <tr>
 
-                <td>
+                <td class="text-center fw-semibold" style="vertical-align: middle;">
                     ${r.PLANT_NAME ?? '-'}
                 </td>
 
-                <td>
-                    ${r.ymd}
+                <td class="text-center" style="vertical-align: middle">
+                    ${formatTanggalIndonesia(r.ymd)}
                 </td>
 
-                <td class="text-end">
-                    ${formatDecimal(r.jumlah)}
-                </td>
-
-                <td class="text-end">
-                    ${formatDecimal(r.berat)}
-                </td>
-
-                <td>
+                <td class="text-center" style="vertical-align: middle">
                     ${r.CLASS_OUT_NAME ?? '-'}
                 </td>
 
-                <td>
+                <td class="text-end">
+                    ${formatIDNumber(r.jumlah)}
+                </td>
+
+                <td class="text-end">
+                    ${formatIDNumber(r.berat)}
+                </td>
+
+                <td class="text-center" style="vertical-align: middle">
                     ${r.remark ?? '-'}
                 </td>
 
-                <td>
-                    ${r.CREATED_BY ?? '-'}
-                </td>
-
-                <td>
-
+                <td class="text-center" style="vertical-align: middle">
                     <button
-                        class="btn btn-warning btn-sm btnEdit"
+                        class="btn btn-outline-primary btnPrint"
                         data-id="${r.idno}">
 
-                        <i class="ti ti-pencil"></i>
+                        Slip
 
                     </button>
 
                     <button
-                        class="btn btn-danger btn-sm btnDelete"
+                        class="btn btn-outline-warning btnEdit"
                         data-id="${r.idno}">
 
-                        <i class="ti ti-trash"></i>
+                        Edit
 
                     </button>
 
+                    <button
+                        class="btn btn-outline-danger btnDelete"
+                        data-id="${r.idno}">
+
+                        Hapus
+
+                    </button>
                 </td>
 
             </tr>
@@ -1017,16 +1075,29 @@
         e.preventDefault();
 
         $('#JUMLAH_ADD_HIDDEN').val(
+
             $('#JUMLAH_ADD')
                 .val()
-                .replace(/,/g,'')
+                .replace(/\./g,'')
+                .replace(',','.')
+
         );
 
         $('#BERAT_ADD_HIDDEN').val(
+
             $('#BERAT_ADD')
                 .val()
-                .replace(/,/g,'')
+                .replace(/\./g,'')
+                .replace(',','.')
+
         );
+
+        console.log($('#plantAdd').val());
+        console.log($('#classOutAdd').val());
+
+        for (let pair of new FormData(this).entries()) {
+            console.log(pair[0], pair[1]);
+        }
 
         let formData =
             new FormData(this);
@@ -1121,7 +1192,7 @@
 
                 $('#JUMLAH_EDIT_DISPLAY')
                     .val(
-                        formatDecimalInput(
+                        formatIDNumber(
                             h.jumlah
                         )
                     );
@@ -1131,7 +1202,7 @@
 
                 $('#BERAT_EDIT_DISPLAY')
                     .val(
-                        formatDecimalInput(
+                        formatIDNumber(
                             h.berat
                         )
                     );
@@ -1197,15 +1268,21 @@
         e.preventDefault();
 
         $('#JUMLAH_EDIT').val(
+
             $('#JUMLAH_EDIT_DISPLAY')
                 .val()
-                .replace(/,/g,'')
+                .replace(/\./g,'')
+                .replace(',','.')
+
         );
 
         $('#BERAT_EDIT').val(
+
             $('#BERAT_EDIT_DISPLAY')
                 .val()
-                .replace(/,/g,'')
+                .replace(/\./g,'')
+                .replace(',','.')
+
         );
 
         let formData =
@@ -1320,6 +1397,21 @@
 
         });
 
+    });
+
+    $(document).on(
+        'click',
+        '.btnPrint',
+        function ()
+    {
+        let id =
+            $(this).data('id');
+
+        window.open(
+            "<?= base_url('culling/print_pdf?idno=') ?>" +
+            id,
+            '_blank'
+        );
     });
 
     $(function () {

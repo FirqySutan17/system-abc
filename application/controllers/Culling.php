@@ -350,7 +350,7 @@ class Culling extends MY_Controller
             ];
 
             $this->db->insert(
-                'culling',
+                'abc_mst_culling',
                 $data
             );
 
@@ -437,7 +437,7 @@ class Culling extends MY_Controller
                         AS CLASS_OUT_NAME
                 ")
 
-                ->from('culling c')
+                ->from('abc_mst_culling c')
 
                 ->join(
                     'abc_cd_code p',
@@ -592,7 +592,7 @@ class Culling extends MY_Controller
                 )
 
                 ->update(
-                    'culling',
+                    'abc_mst_culling',
                     $data
                 );
 
@@ -691,7 +691,7 @@ class Culling extends MY_Controller
                 )
 
                 ->delete(
-                    'culling'
+                    'abc_mst_culling'
                 );
 
             if (
@@ -730,5 +730,157 @@ class Culling extends MY_Controller
             ]);
 
         }
+    }
+
+    public function print_pdf()
+    {
+        $idno = (int)
+            $this->input->get(
+                'idno',
+                true
+            );
+
+        if (empty($idno)) {
+
+            show_error(
+                'ID Culling tidak ditemukan.'
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | HEADER
+        |--------------------------------------------------------------------------
+        */
+
+        $header = $this->db
+
+            ->select("
+                c.*,
+
+                p.CODE_NAME
+                    AS PLANT_NAME,
+
+                co.CODE_NAME
+                    AS CLASS_OUT_NAME
+            ", false)
+
+            ->from('abc_mst_culling c')
+
+            ->join(
+                'abc_cd_code p',
+                "
+                    p.CODE = c.plant
+                    AND p.HEAD_CODE='PLANT'
+                ",
+                'left',
+                false
+            )
+
+            ->join(
+                'abc_cd_code co',
+                "
+                    co.CODE = c.class_out
+                    AND co.HEAD_CODE='CLASS OUT'
+                ",
+                'left',
+                false
+            )
+
+            ->where(
+                'c.idno',
+                $idno
+            )
+
+            ->get()
+
+            ->row();
+
+        if (!$header) {
+
+            show_error(
+                'Data culling tidak ditemukan.'
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | SUMMARY
+        |--------------------------------------------------------------------------
+        */
+
+        $summary = [
+
+            'jumlah' =>
+                (float)
+                $header->jumlah,
+
+            'berat' =>
+                (float)
+                $header->berat
+        ];
+
+        $data = [
+
+            'header' =>
+                $header,
+
+            'summary' =>
+                $summary
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | HTML
+        |--------------------------------------------------------------------------
+        */
+
+        $html =
+            $this->load->view(
+                'admin/culling/pdf_template',
+                $data,
+                true
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | PDF
+        |--------------------------------------------------------------------------
+        */
+
+        $this->load->library(
+            'pdf'
+        );
+
+        $this->pdf->loadHtml(
+            $html
+        );
+
+        $this->pdf->setPaper(
+            'A4',
+            'portrait'
+        );
+
+        $this->pdf->render();
+
+        /*
+        |--------------------------------------------------------------------------
+        | STREAM
+        |--------------------------------------------------------------------------
+        */
+
+        $this->pdf->stream(
+
+            'CULLING_' .
+            $header->idno .
+            '.pdf',
+
+            [
+                'Attachment' =>
+                    false
+            ]
+        );
+
+        exit;
     }
 }

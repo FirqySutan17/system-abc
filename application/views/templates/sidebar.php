@@ -511,13 +511,15 @@
                       </a>
                   </li>
                 <?php endif; ?>
-
-                <li class="sidebar-item child-drop">
-                      <a href="<?= base_url('credit-note'); ?>" class="sidebar-link">
-                          <i class="ti ti-dots"></i>
-                          <span class="hide-menu">Credit Note</span>
-                      </a>
+                
+                <?php if (has_permission('accounting_cash_in')): ?>
+                  <li class="sidebar-item child-drop">
+                        <a href="<?= base_url('credit-note'); ?>" class="sidebar-link">
+                            <i class="ti ti-dots"></i>
+                            <span class="hide-menu">Credit Note</span>
+                        </a>
                   </li>
+                <?php endif; ?>
 
                 <?php if (has_permission('report_accounting_cost') || has_permission('report_accounting_payment') || has_permission('report_accounting_cash_in')): ?>
                   <li class="sidebar-item child-drop">

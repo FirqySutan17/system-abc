@@ -26,6 +26,7 @@ class ReportInventory extends MY_Controller {
         $data = [
             'plants'     => $this->ReportInventory_model->get_plant_list(),
             'suppliers'  => $this->ReportInventory_model->get_supplier_list(),
+            'class_out' => $this->ReportInventory_model->get_class_out_list(),
             'userPlant'  => $this->session->userdata('plant')
         ];
 
@@ -3455,6 +3456,900 @@ class ReportInventory extends MY_Controller {
 
         $mpdf->Output(
             'REPORT_RECEIVE.pdf',
+            'I'
+        );
+
+        exit;
+    }
+
+    public function load_culling()
+    {
+        ob_clean();
+
+        header('Content-Type: application/json');
+
+        $page =
+            (int)$this->input
+                ->get('page');
+
+        $limit =
+            (int)$this->input
+                ->get('limit');
+
+        $page =
+            $page > 0
+                ? $page
+                : 1;
+
+        $limit =
+            $limit > 0
+                ? $limit
+                : 10;
+
+        $order =
+            $this->input
+                ->get(
+                    'order',
+                    true
+                ) ?: 'ymd';
+
+        $dirInput =
+            $this->input
+                ->get(
+                    'dir',
+                    true
+                ) ?? 'DESC';
+
+        $dir =
+            strtoupper($dirInput)
+                === 'ASC'
+                    ? 'ASC'
+                    : 'DESC';
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        $filters = [
+
+            'plant' =>
+                $this->input
+                    ->get(
+                        'plant',
+                        true
+                    ),
+
+            'class_out' =>
+                $this->input
+                    ->get(
+                        'class_out',
+                        true
+                    ),
+
+            'search' =>
+                $this->input
+                    ->get(
+                        'search',
+                        true
+                    ),
+
+            'date_from' =>
+                $this->input
+                    ->get(
+                        'date_from',
+                        true
+                    ),
+
+            'date_to' =>
+                $this->input
+                    ->get(
+                        'date_to',
+                        true
+                    )
+
+        ];
+
+        $start =
+            ($page - 1)
+            * $limit;
+
+        $rows =
+            $this
+                ->ReportInventory_model
+                ->get_culling_report(
+
+                    $limit,
+                    $start,
+                    $filters,
+                    $order,
+                    $dir
+
+                );
+
+        $totalRows =
+            $this
+                ->ReportInventory_model
+                ->count_culling_report(
+                    $filters
+                );
+
+        $pages =
+            ceil(
+                $totalRows
+                / $limit
+            );
+
+        $pagination =
+            $this
+                ->build_pagination(
+
+                    $pages,
+                    $page,
+                    'ajax'
+
+                );
+
+        echo json_encode([
+
+            'status' => true,
+
+            'rows' => $rows,
+
+            'total' =>
+                (int)$totalRows,
+
+            'pagination' =>
+                $pagination,
+
+            'page' =>
+                $page
+
+        ]);
+
+        exit;
+    }
+
+    public function export_excel_culling()
+    {
+        $filters = [
+
+            'plant' =>
+                $this->input->get(
+                    'plant',
+                    true
+                ),
+
+            'class_out' =>
+                $this->input->get(
+                    'class_out',
+                    true
+                ),
+
+            'search' =>
+                $this->input->get(
+                    'search',
+                    true
+                ),
+
+            'date_from' =>
+                $this->input->get(
+                    'date_from',
+                    true
+                ),
+
+            'date_to' =>
+                $this->input->get(
+                    'date_to',
+                    true
+                )
+
+        ];
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATA
+        |--------------------------------------------------------------------------
+        */
+
+        $rows =
+            $this
+                ->ReportInventory_model
+                ->get_culling_report(
+
+                    0,
+                    0,
+                    $filters,
+                    'ymd',
+                    'DESC'
+
+                );
+
+        if (empty($rows)) {
+
+            show_error(
+                'No data found for export'
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | SPREADSHEET
+        |--------------------------------------------------------------------------
+        */
+
+        $spreadsheet =
+            new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+
+        $sheet =
+            $spreadsheet
+                ->getActiveSheet();
+
+        $sheet->setTitle(
+            'Culling Report'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | LOGO
+        |--------------------------------------------------------------------------
+        */
+
+        $logoPath =
+            FCPATH .
+            'assets/img/abc-trans.png';
+
+        if (file_exists($logoPath)) {
+
+            $drawing =
+                new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
+
+            $drawing->setPath(
+                $logoPath
+            );
+
+            $drawing->setCoordinates(
+                'A1'
+            );
+
+            $drawing->setHeight(55);
+
+            $drawing->setWorksheet(
+                $sheet
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | HEADER
+        |--------------------------------------------------------------------------
+        */
+
+        $sheet->mergeCells(
+            'B1:F1'
+        );
+
+        $sheet->setCellValue(
+            'B1',
+            'PT. Abadi Bersama Cerah'
+        );
+
+        $sheet->getStyle('B1')
+            ->getFont()
+            ->setBold(true)
+            ->setSize(18);
+
+        $sheet->mergeCells(
+            'B2:F2'
+        );
+
+        $sheet->setCellValue(
+            'B2',
+            'CULLING REPORT'
+        );
+
+        $sheet->getStyle('B2')
+            ->getFont()
+            ->setBold(true)
+            ->setSize(13);
+
+        if (
+            !empty(
+                $filters['date_from']
+            ) &&
+            !empty(
+                $filters['date_to']
+            )
+        ) {
+
+            $period =
+                date(
+                    'd M Y',
+                    strtotime(
+                        $filters['date_from']
+                    )
+                )
+                .
+                ' - '
+                .
+                date(
+                    'd M Y',
+                    strtotime(
+                        $filters['date_to']
+                    )
+                );
+
+            $sheet->mergeCells(
+                'B3:F3'
+            );
+
+            $sheet->setCellValue(
+                'B3',
+                'Period : ' .
+                $period
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | TABLE HEADER
+        |--------------------------------------------------------------------------
+        */
+
+        $row = 6;
+
+        $headers = [
+
+            'NO',
+            'PLANT',
+            'DATE',
+            'CLASS OUT',
+            'JUMLAH',
+            'BERAT',
+            'CREATED BY',
+            'REMARK'
+
+        ];
+
+        $col = 'A';
+
+        foreach ($headers as $h) {
+
+            $sheet->setCellValue(
+                $col . $row,
+                $h
+            );
+
+            $col++;
+        }
+
+        $sheet->getStyle(
+            "A{$row}:H{$row}"
+        )->applyFromArray([
+
+            'font' => [
+                'bold' => true
+            ],
+
+            'fill' => [
+
+                'fillType' =>
+                    \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+
+                'startColor' => [
+                    'rgb' => '0F4C81'
+                ]
+
+            ],
+
+            'font' => [
+
+                'bold' => true,
+
+                'color' => [
+                    'rgb' => 'FFFFFF'
+                ]
+
+            ]
+
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        $row++;
+
+        $no = 1;
+
+        $grandJumlah = 0;
+        $grandBerat = 0;
+
+        foreach ($rows as $r) {
+
+            $sheet->setCellValue(
+                "A{$row}",
+                $no++
+            );
+
+            $sheet->setCellValue(
+                "B{$row}",
+                $r->PLANT_NAME
+            );
+
+            $sheet->setCellValue(
+                "C{$row}",
+                strtoupper(
+                    date(
+                        'd F Y',
+                        strtotime(
+                            $r->ymd
+                        )
+                    )
+                )
+            );
+
+            $sheet->setCellValue(
+                "D{$row}",
+                $r->CLASS_OUT_NAME
+            );
+
+            $sheet->setCellValue(
+                "E{$row}",
+                (float)$r->jumlah
+            );
+
+            $sheet->setCellValue(
+                "F{$row}",
+                (float)$r->berat
+            );
+
+            $sheet->setCellValue(
+                "G{$row}",
+                $r->CREATED_BY
+            );
+
+            $sheet->setCellValue(
+                "H{$row}",
+                $r->remark
+            );
+
+            $grandJumlah +=
+                (float)$r->jumlah;
+
+            $grandBerat +=
+                (float)$r->berat;
+
+            $row++;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | GRAND TOTAL
+        |--------------------------------------------------------------------------
+        */
+
+        $sheet->mergeCells(
+            "A{$row}:D{$row}"
+        );
+
+        $sheet->setCellValue(
+            "A{$row}",
+            'GRAND TOTAL'
+        );
+
+        $sheet->setCellValue(
+            "E{$row}",
+            $grandJumlah
+        );
+
+        $sheet->setCellValue(
+            "F{$row}",
+            $grandBerat
+        );
+
+        $sheet->getStyle(
+            "A{$row}:H{$row}"
+        )->getFont()
+            ->setBold(true);
+
+        /*
+        |--------------------------------------------------------------------------
+        | NUMBER FORMAT
+        |--------------------------------------------------------------------------
+        */
+
+        $sheet->getStyle(
+            "E7:F{$row}"
+        )
+        ->getNumberFormat()
+        ->setFormatCode(
+            '#,##0.00'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | AUTO SIZE
+        |--------------------------------------------------------------------------
+        */
+
+        foreach (
+            range('A', 'H')
+            as $col
+        ) {
+
+            $sheet
+                ->getColumnDimension(
+                    $col
+                )
+                ->setAutoSize(
+                    true
+                );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | OUTPUT
+        |--------------------------------------------------------------------------
+        */
+
+        header(
+            'Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        );
+
+        header(
+            'Content-Disposition: attachment; filename="REPORT_CULLING.xlsx"'
+        );
+
+        header(
+            'Cache-Control: max-age=0'
+        );
+
+        $writer =
+            new \PhpOffice\PhpSpreadsheet\Writer\Xlsx(
+                $spreadsheet
+            );
+
+        $writer->save(
+            'php://output'
+        );
+
+        exit;
+    }
+
+    public function export_pdf_culling()
+    {
+        $filters = [
+
+            'plant' =>
+                $this->input->get(
+                    'plant',
+                    true
+                ),
+
+            'class_out' =>
+                $this->input->get(
+                    'class_out',
+                    true
+                ),
+
+            'search' =>
+                $this->input->get(
+                    'search',
+                    true
+                ),
+
+            'date_from' =>
+                $this->input->get(
+                    'date_from',
+                    true
+                ),
+
+            'date_to' =>
+                $this->input->get(
+                    'date_to',
+                    true
+                )
+
+        ];
+
+        $rows =
+            $this
+                ->ReportInventory_model
+                ->get_culling_report(
+                    0,
+                    0,
+                    $filters,
+                    'ymd',
+                    'DESC'
+                );
+
+        if (empty($rows)) {
+
+            show_error(
+                'No data found for export'
+            );
+        }
+
+        $logo =
+            FCPATH .
+            'assets/img/abc-trans.png';
+
+        $logo64 =
+            file_exists($logo)
+            ? 'data:image/png;base64,' .
+                base64_encode(
+                    file_get_contents(
+                        $logo
+                    )
+                )
+            : '';
+
+        $period = '';
+
+        if (
+            !empty(
+                $filters['date_from']
+            ) &&
+            !empty(
+                $filters['date_to']
+            )
+        ) {
+
+            $period =
+                date(
+                    'd M Y',
+                    strtotime(
+                        $filters['date_from']
+                    )
+                )
+                .
+                ' - '
+                .
+                date(
+                    'd M Y',
+                    strtotime(
+                        $filters['date_to']
+                    )
+                );
+        }
+
+        $html = '
+
+        <style>
+
+            body{
+                font-family:sans-serif;
+                font-size:10px;
+            }
+
+            table{
+                width:100%;
+                border-collapse:collapse;
+            }
+
+            th,td{
+                border:1px solid #d9dee5;
+                padding:6px;
+            }
+
+            th{
+                background:#eef2f7;
+            }
+
+            .right{
+                text-align:right;
+            }
+
+            .center{
+                text-align:center;
+            }
+
+            .total{
+                background:#f8fafc;
+                font-weight:bold;
+            }
+
+        </style>
+
+        <table border="0">
+
+            <tr>
+
+                <td width="70" style="border:none;">'
+
+                .
+                (
+                    $logo64
+                    ? '<img src="'.$logo64.'" height="55">'
+                    : ''
+                )
+
+                .'
+
+                </td>
+
+                <td style="border:none;">
+
+                    <div
+                        style="
+                            text-align:center;
+                            font-size:18px;
+                            font-weight:bold;
+                        ">
+
+                        PT. Abadi Bersama Cerah
+
+                    </div>
+
+                    <div
+                        style="
+                            text-align:center;
+                        ">
+
+                        CULLING REPORT
+
+                    </div>
+
+                    <div
+                        style="
+                            text-align:center;
+                        ">
+
+                        '.$period.'
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+        </table>
+
+        <br>
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>NO</th>
+                    <th>PLANT</th>
+                    <th>DATE</th>
+                    <th>CLASS OUT</th>
+                    <th>JUMLAH</th>
+                    <th>BERAT</th>
+                    <th>CREATED BY</th>
+                    <th>REMARK</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+        ';
+
+        $no = 1;
+
+        $grandJumlah = 0;
+        $grandBerat = 0;
+
+        foreach ($rows as $r) {
+
+            $grandJumlah +=
+                (float)$r->jumlah;
+
+            $grandBerat +=
+                (float)$r->berat;
+
+            $html .= '
+
+            <tr>
+
+                <td class="center">
+                    '.$no++.'
+                </td>
+
+                <td>
+                    '.$r->PLANT_NAME.'
+                </td>
+
+                <td>
+                    '.strtoupper(
+                        date(
+                            'd F Y',
+                            strtotime(
+                                $r->ymd
+                            )
+                        )
+                    ).'
+                </td>
+
+                <td>
+                    '.$r->CLASS_OUT_NAME.'
+                </td>
+
+                <td class="right">
+                    '.number_format(
+                        $r->jumlah,
+                        2,
+                        ',',
+                        '.'
+                    ).'
+                </td>
+
+                <td class="right">
+                    '.number_format(
+                        $r->berat,
+                        2,
+                        ',',
+                        '.'
+                    ).'
+                </td>
+
+                <td>
+                    '.$r->CREATED_BY.'
+                </td>
+
+                <td>
+                    '.($r->remark ?: '-').'
+                </td>
+
+            </tr>
+
+            ';
+        }
+
+        $html .= '
+
+            <tr class="total">
+
+                <td colspan="4">
+                    GRAND TOTAL
+                </td>
+
+                <td class="right">
+                    '.number_format(
+                        $grandJumlah,
+                        2,
+                        ',',
+                        '.'
+                    ).'
+                </td>
+
+                <td class="right">
+                    '.number_format(
+                        $grandBerat,
+                        2,
+                        ',',
+                        '.'
+                    ).'
+                </td>
+
+                <td colspan="2"></td>
+
+            </tr>
+
+            </tbody>
+
+        </table>
+        ';
+
+        $mpdf =
+            new \Mpdf\Mpdf([
+                'orientation' => 'L'
+            ]);
+
+        $mpdf->WriteHTML(
+            $html
+        );
+
+        $mpdf->Output(
+            'REPORT_CULLING.pdf',
             'I'
         );
 

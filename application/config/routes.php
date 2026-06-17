@@ -75,7 +75,10 @@ $route['credit-note'] = 'CreditNote/index';
 $route['credit-note/print_pdf'] = 'CreditNote/print_pdf';
 $route['credit-note/edit'] = 'CreditNote/edit';
 $route['credit-note/load_data'] = 'CreditNote/load_data';
-$route['credit-note/get-supplier'] = 'CreditNote/get_supplier';
+$route['credit-note/get-customer'] = 'CreditNote/get_customer';
+$route['credit-note/get_plant'] = 'CreditNote/get_plant';
+$route['credit-note/generate_cn_no'] = 'CreditNote/generate_cn_no';
+$route['credit-note/get_sales_remaining'] = 'CreditNote/get_sales_remaining';
 
 $route['credit-note/create'] = 'CreditNote/create';
 $route['credit-note/update'] = 'CreditNote/update';
@@ -92,13 +95,9 @@ $route['report-inventory/load_receive'] = 'ReportInventory/load_receive';
 $route['report-inventory/export_excel_receive'] = 'ReportInventory/export_excel_receive';
 $route['report-inventory/export_pdf_receive']   = 'ReportInventory/export_pdf_receive';
 
-$route['report-inventory/load_receive_lb'] = 'ReportInventory/load_receive_lb';
-$route['report-inventory/export_excel_receive_lb'] = 'ReportInventory/export_excel_receive_lb';
-$route['report-inventory/export_pdf_receive_lb']   = 'ReportInventory/export_pdf_receive_lb';
-
-$route['report-inventory/load_material_balance'] = 'ReportInventory/load_material_balance';
-$route['report-inventory/export_excel_material_balance'] = 'ReportInventory/export_excel_material_balance';
-$route['report-inventory/export_pdf_material_balance']   = 'ReportInventory/export_pdf_material_balance';
+$route['report-inventory/load_culling'] = 'ReportInventory/load_culling';
+$route['report-inventory/export_excel_culling'] = 'ReportInventory/export_excel_culling';
+$route['report-inventory/export_pdf_culling']   = 'ReportInventory/export_pdf_culling';
 
 // REPORT PRODUCTION
 $route['report-production/load_production'] = 'ReportProduction/load_production';
