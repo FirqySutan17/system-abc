@@ -358,20 +358,75 @@ class Po extends MY_Controller {
             $po_date   = trim($this->input->post('PO_DATE', true));
             $supplier  = trim($this->input->post('SUPPLIER', true));
 
-            $jumlah    = round((float)$this->input->post('JUMLAH'), 2);
-            $berat     = round((float)$this->input->post('BERAT'), 2);
+            $jumlah    = $this->decimal(
+                $this->input->post('JUMLAH')
+            );
 
-            $harga     = round((float)$this->input->post('HARGA'), 2);
-            $total     = round((float)$this->input->post('TOTAL'), 2);
+            $berat     = $this->decimal(
+                $this->input->post('BERAT')
+            );
 
-            $no_truck  = trim($this->input->post('NO_TRUCK', true));
-            $driver    = trim($this->input->post('DRIVER', true));
+            $harga     = $this->decimal(
+                $this->input->post('HARGA')
+            );
 
-            $remark    = trim($this->input->post('REMARK', true));
+            /*
+            |--------------------------------------------------------------------------
+            | ACTUAL
+            |--------------------------------------------------------------------------
+            */
 
-            $detail    = $this->input->post('DETAIL');
+            $matiQty = $this->decimal(
+                $this->input->post('MATI_QTY')
+            );
 
-            // ================= VALIDATION =================
+            $matiBw = $this->decimal(
+                $this->input->post('MATI_BW')
+            );
+
+            $susutBw = $this->decimal(
+                $this->input->post('SUSUT_BW')
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | TOTAL (SERVER SIDE)
+            |--------------------------------------------------------------------------
+            */
+
+            $total = round(
+                $actual['TOTAL_TERIMA_BW'] * $harga,
+                2
+            );
+
+            $actual = $this->calculateActual(
+                $jumlah,
+                $berat,
+                $matiQty,
+                $matiBw,
+                $susutBw
+            );
+
+            $no_truck = trim(
+                $this->input->post('NO_TRUCK', true)
+            );
+
+            $driver = trim(
+                $this->input->post('DRIVER', true)
+            );
+
+            $remark = trim(
+                $this->input->post('REMARK', true)
+            );
+
+            $detail = $this->input->post('DETAIL');
+
+            /*
+            |--------------------------------------------------------------------------
+            | VALIDATION HEADER
+            |--------------------------------------------------------------------------
+            */
+
             if (
                 empty($plant) ||
                 empty($type) ||
@@ -382,6 +437,7 @@ class Po extends MY_Controller {
                 throw new Exception(
                     'Header PO belum lengkap'
                 );
+
             }
 
             if (empty($po_date)) {
@@ -389,32 +445,47 @@ class Po extends MY_Controller {
                 throw new Exception(
                     'Tanggal PO wajib diisi'
                 );
+
             }
 
             if ($jumlah <= 0) {
 
                 throw new Exception(
-                    'Jumlah master harus lebih dari 0'
+                    'Qty / Ekor harus lebih dari 0'
                 );
+
             }
 
             if ($berat <= 0) {
 
                 throw new Exception(
-                    'Berat master harus lebih dari 0'
+                    'Weight / BW harus lebih dari 0'
                 );
+
             }
 
-            if (empty($detail) || !is_array($detail)) {
+            /*
+            |--------------------------------------------------------------------------
+            | VALIDATION ACTUAL
+            |--------------------------------------------------------------------------
+            */
 
-                throw new Exception(
-                    'Minimal 1 detail customer'
-                );
-            }
+            $this->validateActual(
+                $jumlah,
+                $berat,
+                $matiQty,
+                $matiBw,
+                $susutBw
+            );
 
-            // ================= VALIDASI MATERIAL =================
+            /*
+            |--------------------------------------------------------------------------
+            | VALIDATION MATERIAL
+            |--------------------------------------------------------------------------
+            */
+
             $materialExists = $this->db
-                ->where('material', $material)
+                ->where('MATERIAL', $material)
                 ->count_all_results('abc_cd_material');
 
             if (!$materialExists) {
@@ -422,179 +493,284 @@ class Po extends MY_Controller {
                 throw new Exception(
                     'Material tidak valid'
                 );
+
             }
 
-            // ================= VALIDASI SUPPLIER =================
+            /*
+            |--------------------------------------------------------------------------
+            | VALIDATION SUPPLIER
+            |--------------------------------------------------------------------------
+            */
+
             $supplierExists = $this->db
                 ->where('CUST', $supplier)
-                ->count_all_results('cd_customer');
+                ->count_all_results('abc_cd_customer');
 
             if (!$supplierExists) {
 
                 throw new Exception(
                     'Supplier tidak valid'
                 );
+
             }
 
-            // ================= VALIDASI DETAIL =================
-            $detailJumlah = 0;
-            $detailBerat  = 0;
+            /*
+            |--------------------------------------------------------------------------
+            | CUSTOMER DETAIL
+            | OPTIONAL
+            |--------------------------------------------------------------------------
+            */
 
-            $customerCheck = [];
-
-            foreach ($detail as $i => $d) {
-
-                $row = $i + 1;
-
-                $customer = trim($d['CUSTOMER'] ?? '');
-
-                $dJumlah  = round((float)($d['JUMLAH'] ?? 0), 2);
-                $dBerat   = round((float)($d['BERAT'] ?? 0), 2);
-
-                $dHarga   = round((float)($d['HARGA'] ?? 0), 2);
-                $dTotal   = round((float)($d['TOTAL'] ?? 0), 2);
-
-                // CUSTOMER
-                if (empty($customer)) {
-
-                    throw new Exception(
-                        "Customer detail baris ke-{$row} wajib dipilih"
-                    );
-                }
-
-                // DUPLICATE CUSTOMER
-                if (in_array($customer, $customerCheck)) {
-
-                    throw new Exception(
-                        "Customer duplicate pada detail baris ke-{$row}"
-                    );
-                }
-
-                $customerCheck[] = $customer;
-
-                // VALIDASI CUSTOMER EXIST
-                $customerExists = $this->db
-                    ->where('CUST', $customer)
-                    ->count_all_results('cd_customer');
-
-                if (!$customerExists) {
-
-                    throw new Exception(
-                        "Customer detail baris ke-{$row} tidak valid"
-                    );
-                }
-
-                // JUMLAH
-                if ($dJumlah <= 0) {
-
-                    throw new Exception(
-                        "Jumlah detail baris ke-{$row} harus lebih dari 0"
-                    );
-                }
-
-                // BERAT
-                if ($dBerat <= 0) {
-
-                    throw new Exception(
-                        "Berat detail baris ke-{$row} harus lebih dari 0"
-                    );
-                }
-
-                $detailJumlah += $dJumlah;
-                $detailBerat  += $dBerat;
-            }
-
-            // ================= VALIDASI TOTAL DETAIL =================
-            if ($detailJumlah > $jumlah) {
+            if (!empty($detail) && !is_array($detail)) {
 
                 throw new Exception(
-                    'Total jumlah detail melebihi master jumlah'
+                    'Format Customer Detail tidak valid'
                 );
+
             }
 
-            if ($detailBerat > $berat) {
+            /*
+            |--------------------------------------------------------------------------
+            | VALIDATION DETAIL
+            |--------------------------------------------------------------------------
+            */
 
-                throw new Exception(
-                    'Total berat detail melebihi master berat'
-                );
+            if (!empty($detail)) {
+
+                $detailJumlah = 0;
+
+                $detailBerat = 0;
+
+                $customerCheck = [];
+
+                foreach ($detail as $i => $d) {
+
+                    $row = $i + 1;
+
+                    $customer = trim(
+                        $d['CUSTOMER'] ?? ''
+                    );
+
+                    $dJumlah = $this->decimal(
+                        $d['JUMLAH'] ?? 0
+                    );
+
+                    $dBerat = $this->decimal(
+                        $d['BERAT'] ?? 0
+                    );
+
+                    $dHarga = $this->decimal(
+                        $d['HARGA'] ?? 0
+                    );
+
+                    $dTotal = round(
+                        $dBerat * $dHarga,
+                        2
+                    );
+
+                    if (empty($customer)) {
+
+                        throw new Exception(
+                            "Customer detail baris ke-{$row} wajib dipilih"
+                        );
+
+                    }
+
+                    if (in_array(
+                        $customer,
+                        $customerCheck
+                    )) {
+
+                        throw new Exception(
+                            "Customer duplicate pada detail baris ke-{$row}"
+                        );
+
+                    }
+
+                    $customerCheck[] = $customer;
+
+                    $customerExists = $this->db
+                        ->where('CUST', $customer)
+                        ->count_all_results('abc_cd_customer');
+
+                    if (!$customerExists) {
+
+                        throw new Exception(
+                            "Customer detail baris ke-{$row} tidak valid"
+                        );
+
+                    }
+
+                    if ($dJumlah <= 0) {
+
+                        throw new Exception(
+                            "Qty detail baris ke-{$row} harus lebih dari 0"
+                        );
+
+                    }
+
+                    if ($dBerat <= 0) {
+
+                        throw new Exception(
+                            "Weight detail baris ke-{$row} harus lebih dari 0"
+                        );
+
+                    }
+
+                    $detailJumlah += $dJumlah;
+
+                    $detailBerat += $dBerat;
+
+                }
+
+                if ($detailJumlah > $jumlah) {
+
+                    throw new Exception(
+                        'Total Qty detail melebihi Qty master'
+                    );
+
+                }
+
+                if ($detailBerat > $berat) {
+
+                    throw new Exception(
+                        'Total Weight detail melebihi Weight master'
+                    );
+
+                }
+
             }
 
             // ================= GENERATE PO =================
-            $prefix = 'PO';
+        $prefix = 'PO';
 
-            $dateCode = date('ym');
+        $dateCode = date('ym');
 
-            $q = $this->db
-                ->query("
-                    SELECT MAX(RIGHT(PO,4)) AS seq
-                    FROM abc_mst_po
-                    WHERE LEFT(PO,6) = ?
-                ", [$prefix . $dateCode])
-                ->row();
+        $q = $this->db
+            ->query("
+                SELECT MAX(RIGHT(PO,4)) AS seq
+                FROM abc_mst_po
+                WHERE LEFT(PO,6) = ?
+            ", [$prefix . $dateCode])
+            ->row();
 
-            $seq = $q && $q->seq
-                ? ((int)$q->seq + 1)
-                : 1;
+        $seq = $q && $q->seq
+            ? ((int)$q->seq + 1)
+            : 1;
 
-            $po = $prefix .
-                $dateCode .
-                str_pad($seq, 4, '0', STR_PAD_LEFT);
+        $po = $prefix .
+            $dateCode .
+            str_pad($seq, 4, '0', STR_PAD_LEFT);
 
-            // ================= INSERT HEADER =================
-            $header = [
+        /*
+        |--------------------------------------------------------------------------
+        | INSERT HEADER
+        |--------------------------------------------------------------------------
+        */
 
-                'PO'         => $po,
-                'PLANT'      => $plant,
-                'PO_DATE'    => $po_date,
+        $header = [
 
-                'PO_TYPE'    => $type,
-                'SUPPLIER'   => $supplier,
+            'PO'       => $po,
+            'PLANT'    => $plant,
+            'PO_DATE'  => $po_date,
 
-                'MATERIAL'   => $material,
+            'PO_TYPE'  => $type,
+            'SUPPLIER' => $supplier,
 
-                'JUMLAH'     => $jumlah,
-                'BERAT'      => $berat,
+            'MATERIAL' => $material,
 
-                'HARGA'      => $harga,
-                'TOTAL'      => $total,
+            'JUMLAH'   => $jumlah,
+            'BERAT'    => $berat,
 
-                'NO_TRUCK'   => $no_truck,
-                'DRIVER'     => $driver,
+            /*
+            |--------------------------------------------------------------------------
+            | ACTUAL
+            |--------------------------------------------------------------------------
+            */
 
-                'REMARK'     => $remark,
+            'AVG_BW'            => $actual['AVG_BW'],
 
-                'STATUS'     => 0,
+            'MATI_QTY'          => $matiQty,
+            'MATI_BW'           => $matiBw,
 
-                'CREATED_BY' => $this->session->userdata('username'),
-                'CREATED_AT' => date('Y-m-d H:i:s')
-            ];
+            'SUSUT_BW'          => $susutBw,
 
-            $this->db->insert(
-                'abc_mst_po',
-                $header
-            );
+            'TOTAL_TERIMA_QTY'  => $actual['TOTAL_TERIMA_QTY'],
+            'TOTAL_TERIMA_BW'   => $actual['TOTAL_TERIMA_BW'],
 
-            // ================= INSERT DETAIL =================
+            /*
+            |--------------------------------------------------------------------------
+            | PRICE
+            |--------------------------------------------------------------------------
+            */
+
+            'HARGA'   => $harga,
+            'TOTAL'   => $total,
+
+            'NO_TRUCK'=> $no_truck,
+            'DRIVER'  => $driver,
+
+            'REMARK'  => $remark,
+
+            'STATUS'  => 0,
+
+            'CREATED_BY' => $this->session->userdata('username'),
+            'CREATED_AT' => date('Y-m-d H:i:s')
+
+        ];
+
+        $this->db->insert(
+            'abc_mst_po',
+            $header
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | INSERT DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        if (!empty($detail)) {
+
             $seqNo = 1;
 
             foreach ($detail as $d) {
+
+                $detailJumlah = $this->decimal(
+                    $d['JUMLAH']
+                );
+
+                $detailBerat = $this->decimal(
+                    $d['BERAT']
+                );
+
+                $detailHarga = $this->decimal(
+                    $d['HARGA']
+                );
+
+                $detailTotal = round(
+                    $detailBerat * $detailHarga,
+                    2
+                );
 
                 $detailInsert = [
 
                     'PO'       => $po,
                     'PLANT'    => $plant,
+
                     'SEQ_NO'   => $seqNo,
 
                     'CUSTOMER' => trim($d['CUSTOMER']),
 
-                    'JUMLAH'   => round((float)$d['JUMLAH'], 2),
-                    'BERAT'    => round((float)$d['BERAT'], 2),
+                    'JUMLAH'   => $detailJumlah,
+                    'BERAT'    => $detailBerat,
 
-                    'HARGA'    => round((float)$d['HARGA'], 2),
-                    'TOTAL'    => round((float)$d['TOTAL'], 2),
+                    'HARGA'    => $detailHarga,
+                    'TOTAL'    => $detailTotal,
 
                     'CREATED_BY' => $this->session->userdata('username'),
                     'CREATED_AT' => date('Y-m-d H:i:s')
+
                 ];
 
                 $this->db->insert(
@@ -605,31 +781,52 @@ class Po extends MY_Controller {
                 $seqNo++;
             }
 
-            // ================= TRANSACTION CHECK =================
-            if ($this->db->trans_status() === false) {
+        }
 
-                throw new Exception(
-                    'Database transaction failed'
-                );
-            }
+        /*
+        |--------------------------------------------------------------------------
+        | TRANSACTION CHECK
+        |--------------------------------------------------------------------------
+        */
 
-            // ================= COMMIT =================
-            $this->db->trans_commit();
+        if ($this->db->trans_status() === false) {
 
-            echo json_encode([
-                'status'  => true,
-                'message' => 'PO berhasil dibuat',
-                'po'      => $po
-            ]);
+            throw new Exception(
+                'Database transaction failed'
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | COMMIT
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->trans_commit();
+
+        echo json_encode([
+
+            'status'  => true,
+
+            'message' => 'PO berhasil dibuat',
+
+            'po'      => $po
+
+        ]);
 
         } catch (Exception $e) {
 
             $this->db->trans_rollback();
 
             echo json_encode([
+
                 'status'  => false,
+
                 'message' => $e->getMessage()
+
             ]);
+
         }
     }
 
@@ -712,12 +909,10 @@ class Po extends MY_Controller {
         try {
 
             // ================= KEY =================
-            $po    = $this->input->post('orig_po', true);
-
-            $plant = $this->input->post('PLANT', true);
+            $po    = trim($this->input->post('orig_po', true));
+            $plant = trim($this->input->post('PLANT', true));
 
             $username = $this->session->userdata('username');
-
             $role_id  = (int)$this->session->userdata('role_id');
 
             if (empty($po) || empty($plant)) {
@@ -725,6 +920,7 @@ class Po extends MY_Controller {
                 throw new Exception(
                     'Key PO / PLANT tidak lengkap'
                 );
+
             }
 
             // ================= VALIDATE ACCESS =================
@@ -740,6 +936,7 @@ class Po extends MY_Controller {
                 throw new Exception(
                     'Tidak punya hak update PO ini'
                 );
+
             }
 
             // ================= LOCK RECEIVE =================
@@ -753,6 +950,7 @@ class Po extends MY_Controller {
                 throw new Exception(
                     'PO tidak ditemukan'
                 );
+
             }
 
             if ((int)$current->STATUS === 1) {
@@ -760,34 +958,78 @@ class Po extends MY_Controller {
                 throw new Exception(
                     'PO sudah diproses receive'
                 );
+
             }
 
             // ================= HEADER =================
-            $type       = $this->input->post('TYPE', true);
+            $type      = trim($this->input->post('TYPE', true));
+            $supplier  = trim($this->input->post('SUPPLIER', true));
+            $material  = trim($this->input->post('MATERIAL', true));
 
-            $supplier   = $this->input->post('SUPPLIER', true);
+            $po_date   = trim($this->input->post('PO_DATE', true));
 
-            $material   = $this->input->post('MATERIAL', true);
+            $remark    = trim($this->input->post('REMARK', true));
 
-            $po_date    = $this->input->post('PO_DATE', true);
+            $no_truck  = trim($this->input->post('NO_TRUCK', true));
+            $driver    = trim($this->input->post('DRIVER', true));
 
-            $remark     = $this->input->post('REMARK', true);
+            $jumlah = $this->decimal(
+                $this->input->post('JUMLAH')
+            );
 
-            $no_truck   = $this->input->post('NO_TRUCK', true);
+            $berat = $this->decimal(
+                $this->input->post('BERAT')
+            );
 
-            $driver     = $this->input->post('DRIVER', true);
+            $harga = $this->decimal(
+                $this->input->post('HARGA')
+            );
 
-            $jumlah     = (float)$this->input->post('JUMLAH');
+            /*
+            |--------------------------------------------------------------------------
+            | ACTUAL
+            |--------------------------------------------------------------------------
+            */
 
-            $berat      = (float)$this->input->post('BERAT');
+            $matiQty = $this->decimal(
+                $this->input->post('MATI_QTY')
+            );
 
-            $harga      = (float)$this->input->post('HARGA');
+            $matiBw = $this->decimal(
+                $this->input->post('MATI_BW')
+            );
 
-            $total      = (float)$this->input->post('TOTAL');
+            $susutBw = $this->decimal(
+                $this->input->post('SUSUT_BW')
+            );
 
-            $detail     = $this->input->post('DETAIL');
+            /*
+            |--------------------------------------------------------------------------
+            | TOTAL SERVER SIDE
+            |--------------------------------------------------------------------------
+            */
 
-            // ================= VALIDATION =================
+            $total = round(
+                $actual['TOTAL_TERIMA_BW'] * $harga,
+                2
+            );
+
+            $actual = $this->calculateActual(
+                $jumlah,
+                $berat,
+                $matiQty,
+                $matiBw,
+                $susutBw
+            );
+
+            $detail = $this->input->post('DETAIL');
+
+            /*
+            |--------------------------------------------------------------------------
+            | VALIDATION HEADER
+            |--------------------------------------------------------------------------
+            */
+
             if (
                 empty($type) ||
                 empty($supplier) ||
@@ -797,63 +1039,269 @@ class Po extends MY_Controller {
                 throw new Exception(
                     'Header PO belum lengkap'
                 );
+
             }
 
-            if (empty($detail)) {
+            if (empty($po_date)) {
 
                 throw new Exception(
-                    'Minimal 1 detail customer'
+                    'Tanggal PO wajib diisi'
                 );
+
             }
 
-            // ================= VALIDASI DETAIL =================
-            $detailJumlah = 0;
-
-            $detailBerat  = 0;
-
-            foreach ($detail as $d) {
-
-                $detailJumlah += (float)$d['JUMLAH'];
-
-                $detailBerat  += (float)$d['BERAT'];
-            }
-
-            if ($detailJumlah > $jumlah) {
+            if ($jumlah <= 0) {
 
                 throw new Exception(
-                    'Jumlah detail melebihi master'
+                    'Qty / Ekor harus lebih dari 0'
                 );
+
             }
 
-            if ($detailBerat > $berat) {
+            if ($berat <= 0) {
 
                 throw new Exception(
-                    'Berat detail melebihi master'
+                    'Weight / BW harus lebih dari 0'
                 );
+
+            }
+
+            if ($harga <= 0) {
+
+                throw new Exception(
+                    'Harga harus lebih dari 0'
+                );
+
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | VALIDATION ACTUAL
+            |--------------------------------------------------------------------------
+            */
+
+            $this->validateActual(
+                $jumlah,
+                $berat,
+                $matiQty,
+                $matiBw,
+                $susutBw
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | VALIDATION MATERIAL
+            |--------------------------------------------------------------------------
+            */
+
+            $materialExists = $this->db
+                ->where('MATERIAL', $material)
+                ->count_all_results('abc_cd_material');
+
+            if (!$materialExists) {
+
+                throw new Exception(
+                    'Material tidak valid'
+                );
+
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | VALIDATION SUPPLIER
+            |--------------------------------------------------------------------------
+            */
+
+            $supplierExists = $this->db
+                ->where('CUST', $supplier)
+                ->count_all_results('abc_cd_customer');
+
+            if (!$supplierExists) {
+
+                throw new Exception(
+                    'Supplier tidak valid'
+                );
+
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | CUSTOMER DETAIL OPTIONAL
+            |--------------------------------------------------------------------------
+            */
+
+            if (!empty($detail) && !is_array($detail)) {
+
+                throw new Exception(
+                    'Format Customer Detail tidak valid'
+                );
+
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | VALIDATION DETAIL
+            |--------------------------------------------------------------------------
+            */
+
+            if (!empty($detail)) {
+
+                $detailJumlah = 0;
+                $detailBerat  = 0;
+
+                $customerCheck = [];
+
+                foreach ($detail as $i => $d) {
+
+                    $row = $i + 1;
+
+                    $customer = trim(
+                        $d['CUSTOMER'] ?? ''
+                    );
+
+                    $dJumlah = $this->decimal(
+                        $d['JUMLAH'] ?? 0
+                    );
+
+                    $dBerat = $this->decimal(
+                        $d['BERAT'] ?? 0
+                    );
+
+                    if (empty($customer)) {
+
+                        throw new Exception(
+                            "Customer detail baris ke-{$row} wajib dipilih"
+                        );
+
+                    }
+
+                    if (in_array($customer, $customerCheck)) {
+
+                        throw new Exception(
+                            "Customer duplicate pada detail baris ke-{$row}"
+                        );
+
+                    }
+
+                    $customerCheck[] = $customer;
+
+                    $customerExists = $this->db
+                        ->where('CUST', $customer)
+                        ->count_all_results('abc_cd_customer');
+
+                    if (!$customerExists) {
+
+                        throw new Exception(
+                            "Customer detail baris ke-{$row} tidak valid"
+                        );
+
+                    }
+
+                    if ($dJumlah <= 0) {
+
+                        throw new Exception(
+                            "Qty detail baris ke-{$row} harus lebih dari 0"
+                        );
+
+                    }
+
+                    if ($dBerat <= 0) {
+
+                        throw new Exception(
+                            "Weight detail baris ke-{$row} harus lebih dari 0"
+                        );
+
+                    }
+
+                    $detailJumlah += $dJumlah;
+                    $detailBerat += $dBerat;
+
+                }
+
+                if ($detailJumlah > $jumlah) {
+
+                    throw new Exception(
+                        'Total Qty detail melebihi Qty master'
+                    );
+
+                }
+
+                if ($detailBerat > $berat) {
+
+                    throw new Exception(
+                        'Total Weight detail melebihi Weight master'
+                    );
+
+                }
+
             }
 
             // ================= UPDATE HEADER =================
+
             $header = [
 
-                'PO_DATE'   => $po_date,
-                'PO_TYPE'   => $type,
-                'SUPPLIER'  => $supplier,
+                'PO_DATE' => $po_date,
 
-                'MATERIAL'  => $material,
+                'PO_TYPE' => $type,
 
-                'JUMLAH'    => $jumlah,
-                'BERAT'     => $berat,
+                'SUPPLIER' => $supplier,
 
-                'HARGA'     => $harga,
-                'TOTAL'     => $total,
+                'MATERIAL' => $material,
 
-                'NO_TRUCK'  => $no_truck,
-                'DRIVER'    => $driver,
+                /*
+                |--------------------------------------------------------------------------
+                | MASTER
+                |--------------------------------------------------------------------------
+                */
 
-                'REMARK'    => $remark,
+                'JUMLAH' => $jumlah,
 
-                'UPDATED_BY'=> $username,
-                'UPDATED_AT'=> date('Y-m-d H:i:s')
+                'BERAT' => $berat,
+
+                /*
+                |--------------------------------------------------------------------------
+                | ACTUAL
+                |--------------------------------------------------------------------------
+                */
+
+                'AVG_BW' => $actual['AVG_BW'],
+
+                'MATI_QTY' => $matiQty,
+
+                'MATI_BW' => $matiBw,
+
+                'SUSUT_BW' => $susutBw,
+
+                'TOTAL_TERIMA_QTY' => $actual['TOTAL_TERIMA_QTY'],
+
+                'TOTAL_TERIMA_BW' => $actual['TOTAL_TERIMA_BW'],
+
+                /*
+                |--------------------------------------------------------------------------
+                | PRICE
+                |--------------------------------------------------------------------------
+                */
+
+                'HARGA' => $harga,
+
+                'TOTAL' => $total,
+
+                /*
+                |--------------------------------------------------------------------------
+                | OTHER
+                |--------------------------------------------------------------------------
+                */
+
+                'NO_TRUCK' => $no_truck,
+
+                'DRIVER' => $driver,
+
+                'REMARK' => $remark,
+
+                'UPDATED_BY' => $username,
+
+                'UPDATED_AT' => date('Y-m-d H:i:s')
+
             ];
 
             $this->Po_model->update_header_safe(
@@ -864,68 +1312,120 @@ class Po extends MY_Controller {
                 $role_id
             );
 
-            // ================= DELETE OLD DETAIL =================
+            /*
+            |--------------------------------------------------------------------------
+            | DELETE DETAIL
+            |--------------------------------------------------------------------------
+            */
+
             $this->db
                 ->where('PLANT', $plant)
                 ->where('PO', $po)
                 ->delete('abc_mst_po_detail');
 
-            // ================= INSERT DETAIL =================
-            $seqNo = 1;
+            /*
+            |--------------------------------------------------------------------------
+            | INSERT DETAIL
+            |--------------------------------------------------------------------------
+            */
 
-            foreach ($detail as $d) {
+            if (!empty($detail)) {
 
-                $insert = [
+                $seqNo = 1;
 
-                    'PO'       => $po,
-                    'PLANT'    => $plant,
+                foreach ($detail as $d) {
 
-                    'SEQ_NO'   => $seqNo,
+                    $detailJumlah = $this->decimal(
+                        $d['JUMLAH']
+                    );
 
-                    'CUSTOMER' => $d['CUSTOMER'],
+                    $detailBerat = $this->decimal(
+                        $d['BERAT']
+                    );
 
-                    'JUMLAH'   => (float)$d['JUMLAH'],
-                    'BERAT'    => (float)$d['BERAT'],
+                    $detailHarga = $this->decimal(
+                        $d['HARGA']
+                    );
 
-                    'HARGA'    => (float)$d['HARGA'],
-                    'TOTAL'    => (float)$d['TOTAL'],
+                    $detailTotal = round(
+                        $detailBerat * $detailHarga,
+                        2
+                    );
 
-                    'UPDATED_BY' => $username,
-                    'UPDATED_AT' => date('Y-m-d H:i:s')
-                ];
+                    $insert = [
 
-                $this->db->insert(
-                    'abc_mst_po_detail',
-                    $insert
-                );
+                        'PO' => $po,
 
-                $seqNo++;
+                        'PLANT' => $plant,
+
+                        'SEQ_NO' => $seqNo,
+
+                        'CUSTOMER' => trim(
+                            $d['CUSTOMER']
+                        ),
+
+                        'JUMLAH' => $detailJumlah,
+
+                        'BERAT' => $detailBerat,
+
+                        'HARGA' => $detailHarga,
+
+                        'TOTAL' => $detailTotal,
+
+                        'UPDATED_BY' => $username,
+
+                        'UPDATED_AT' => date('Y-m-d H:i:s')
+
+                    ];
+
+                    $this->db->insert(
+                        'abc_mst_po_detail',
+                        $insert
+                    );
+
+                    $seqNo++;
+
+                }
+
             }
 
-            // ================= COMMIT =================
+            /*
+            |--------------------------------------------------------------------------
+            | TRANSACTION
+            |--------------------------------------------------------------------------
+            */
+
             if ($this->db->trans_status() === false) {
 
                 throw new Exception(
                     'Transaction failed'
                 );
+
             }
 
             $this->db->trans_commit();
 
             echo json_encode([
-                'status'  => true,
+
+                'status' => true,
+
                 'message' => 'PO berhasil diperbarui'
+
             ]);
 
-        } catch (Exception $e) {
+            } catch (Exception $e) {
 
-            $this->db->trans_rollback();
+                $this->db->trans_rollback();
 
-            echo json_encode([
-                'status'  => false,
-                'message' => $e->getMessage()
-            ]);
-        }
+                echo json_encode([
+
+                    'status' => false,
+
+                    'message' => $e->getMessage()
+
+                ]);
+
+            }
     }
 
     public function remove()
@@ -1219,6 +1719,101 @@ class Po extends MY_Controller {
 
         // hapus titik ribuan, ganti koma desimal (jika ada)
         return (float) str_replace(['.', ','], ['', '.'], $value);
+    }
+
+    private function decimal($value)
+    {
+        if ($value === null || $value === '') {
+            return 0;
+        }
+
+        if (is_numeric($value)) {
+            return round((float)$value, 2);
+        }
+
+        $value = trim($value);
+
+        $value = str_replace('.', '', $value);
+
+        $value = str_replace(',', '.', $value);
+
+        return round((float)$value, 2);
+    }
+
+    private function validateActual(
+        $jumlah,
+        $berat,
+        $matiQty,
+        $matiBw,
+        $susutBw
+    )
+    {
+        if ($matiQty > $jumlah) {
+
+            throw new Exception(
+                'Mati Qty tidak boleh melebihi Qty.'
+            );
+
+        }
+
+        if ($matiBw > $berat) {
+
+            throw new Exception(
+                'Mati BW tidak boleh melebihi Weight.'
+            );
+
+        }
+
+        if (($matiBw + $susutBw) > $berat) {
+
+            throw new Exception(
+                'Mati BW + Susut BW tidak boleh melebihi Weight.'
+            );
+
+        }
+    }
+
+    private function calculateActual(
+        $jumlah,
+        $berat,
+        $matiQty,
+        $matiBw,
+        $susutBw
+    )
+    {
+        $avgBw = 0;
+
+        if ($jumlah > 0) {
+
+            $avgBw = $berat / $jumlah;
+
+        }
+
+        $totalTerimaQty = $jumlah - $matiQty;
+
+        if ($totalTerimaQty < 0) {
+
+            $totalTerimaQty = 0;
+
+        }
+
+        $totalTerimaBw = $berat - $matiBw - $susutBw;
+
+        if ($totalTerimaBw < 0) {
+
+            $totalTerimaBw = 0;
+
+        }
+
+        return [
+
+            'AVG_BW' => round($avgBw, 2),
+
+            'TOTAL_TERIMA_QTY' => round($totalQty, 2),
+
+            'TOTAL_TERIMA_BW' => round($totalBw, 2),
+
+        ];
     }
 
 }

@@ -60,6 +60,22 @@
                         Filter
                     </button>
                 </div>
+                <div class="col-md-10"></div>
+                <div class="col-md-2 text-end">
+
+                    <button
+                        id="btnAdd"
+                        class="btn btn-primary w-100"
+                        data-bs-toggle="modal"
+                        data-bs-target="#poAdd">
+
+                        <i class="ti ti-plus"></i>
+
+                        Tambah PO
+
+                    </button>
+
+                </div>
 
             </div>
 
@@ -347,8 +363,8 @@
                                     name="MATERIAL">
                             </div>
 
-                            <div class="col-md-3">
-                                <label class="po-label">Jumlah *</label>
+                            <div class="col-md-4">
+                                <label class="po-label">Qty / Ekor *</label>
 
                                 <input
                                     type="text"
@@ -357,8 +373,8 @@
                                     placeholder="0,00">
                             </div>
 
-                            <div class="col-md-3">
-                                <label class="po-label">Berat *</label>
+                            <div class="col-md-4">
+                                <label class="po-label">Weight / BW *</label>
 
                                 <input
                                     type="text"
@@ -367,7 +383,79 @@
                                     placeholder="0,00">
                             </div>
 
-                            <div class="col-md-3">
+                            <div class="col-md-4">
+                                <label class="po-label">Avg BW</label>
+
+                                <input
+                                    type="text"
+                                    id="masterAvgBw"
+                                    name="AVG_BW"
+                                    class="form-control po-input decimal-input"
+                                    readonly
+                                    style="background:#f5f6f8"
+                                    placeholder="0,00">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="po-label">Mati (Qty)</label>
+
+                                <input
+                                    type="text"
+                                    id="masterMatiQty"
+                                    name="MATI_QTY"
+                                    class="form-control po-input decimal-input"
+                                    placeholder="0,00">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="po-label">Mati (BW)</label>
+
+                                <input
+                                    type="text"
+                                    id="masterMatiBw"
+                                    name="MATI_BW"
+                                    class="form-control po-input decimal-input"
+                                    placeholder="0,00">
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="po-label">Susut (BW)</label>
+
+                                <input
+                                    type="text"
+                                    id="masterSusutBw"
+                                    name="SUSUT_BW"
+                                    class="form-control po-input decimal-input"
+                                    placeholder="0,00">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="po-label">Total Terima Qty</label>
+
+                                <input
+                                    type="text"
+                                    id="masterTerimaQty"
+                                    name="TOTAL_TERIMA_QTY"
+                                    class="form-control po-input decimal-input"
+                                    readonly
+                                    style="background:#f5f6f8"
+                                    placeholder="0,00">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="po-label">Total Terima BW</label>
+
+                                <input
+                                    type="text"
+                                    id="masterTerimaBw"
+                                    name="TOTAL_TERIMA_BW"
+                                    class="form-control po-input decimal-input"
+                                    readonly
+                                    style="background:#f5f6f8"
+                                    placeholder="0,00">
+                            </div>
+
+                            <div class="col-md-6">
                                 <label class="po-label">Harga *</label>
 
                                 <input
@@ -377,15 +465,16 @@
                                     placeholder="0">
                             </div>
 
-                            <div class="col-md-3">
+                            <div class="col-md-6">
                                 <label class="po-label">Total *</label>
 
                                 <input
                                     type="text"
                                     id="masterTotal"
-                                    style="background:#f5f6f8"
                                     class="form-control po-input rupiah-input"
-                                    placeholder="0" readonly>
+                                    readonly
+                                    style="background:#f5f6f8"
+                                    placeholder="0">
                             </div>
 
                             <div class="col-md-6">
@@ -706,27 +795,99 @@
                                 </div>
 
                                 <div class="col-md-4">
-                                    <label class="form-label">
-                                        Jumlah Master *
+                                    <label class="po-label">
+                                        Qty / Ekor *
                                     </label>
 
                                     <input
                                         type="text"
                                         id="masterJumlahEdit"
-                                        class="form-control decimal-input text-end"
+                                        class="form-control po-input decimal-input"
                                         placeholder="0,00">
                                 </div>
 
                                 <div class="col-md-4">
-                                    <label class="form-label">
-                                        Berat Master *
+                                    <label class="po-label">
+                                        Weight / BW *
                                     </label>
 
                                     <input
                                         type="text"
                                         id="masterBeratEdit"
-                                        class="form-control decimal-input text-end"
+                                        class="form-control po-input decimal-input"
                                         placeholder="0,00">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Avg BW
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        id="masterAvgBwEdit"
+                                        class="form-control decimal-input"
+                                        readonly
+                                        style="background:#f5f6f8">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Mati (Qty)
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        id="masterMatiQtyEdit"
+                                        class="form-control decimal-input">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Mati (BW)
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        id="masterMatiBwEdit"
+                                        class="form-control decimal-input">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Susut (BW)
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        id="masterSusutBwEdit"
+                                        class="form-control decimal-input">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Total Terima Qty
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        id="masterTerimaQtyEdit"
+                                        class="form-control decimal-input"
+                                        readonly
+                                        style="background:#f5f6f8">
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label">
+                                        Total Terima BW
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        id="masterTerimaBwEdit"
+                                        class="form-control decimal-input"
+                                        readonly
+                                        style="background:#f5f6f8">
                                 </div>
 
                                 <div class="col-md-4">
@@ -1877,35 +2038,36 @@
     }
 
     $(document).on('input', '.decimal-input', function () {
-        let input = this;
-        let cursor = input.selectionStart;
 
-        // Ambil angka mentah
-        let raw = input.value
-            .replace(/\./g, '')
-            .replace(/[^0-9,]/g, '');
+        let value = $(this).val();
 
-        // Pisahkan decimal
-        let parts = raw.split(',');
+        // Hanya angka dan koma
+        value = value.replace(/[^0-9,]/g, '');
+
+        // Hanya boleh ada 1 koma
+        let parts = value.split(',');
+
         let integer = parts[0];
-        let decimal = parts[1] ? parts[1].substring(0, 2) : '';
 
-        let number = integer;
-        if (decimal !== '') number += '.' + decimal;
+        let decimal = parts.length > 1
+            ? parts[1].substring(0, 2)
+            : '';
 
-        if (isNaN(number)) return;
+        // Format ribuan
+        integer = integer.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
-        // Format ke Indonesia
-        let formatted = parseFloat(number).toLocaleString('id-ID', {
-            minimumFractionDigits: decimal !== '' ? decimal.length : 0,
-            maximumFractionDigits: 2
-        });
+        // Gabungkan lagi
+        if(parts.length > 1){
 
-        input.value = formatted;
+            value = integer + ',' + decimal;
 
-        // Perbaiki posisi cursor
-        let diff = formatted.length - raw.length;
-        input.setSelectionRange(cursor + diff, cursor + diff);
+        }else{
+
+            value = integer;
+
+        }
+
+        $(this).val(value);
 
     });
 
@@ -1925,25 +2087,6 @@
         }
     );
 
-    $(document).on(
-        'input',
-        '#masterBerat, #masterHarga',
-        function(){
-
-            calculateMasterTotal();
-        }
-    );
-
-    $(document).on(
-        'input',
-        '#masterBeratEdit, #masterHargaEdit',
-        function(){
-
-            calculateMasterTotalEdit();
-        }
-    );
-    
-
     $(document).on('blur', '.decimal-input', function () {
         let val = parseDecimalID(this.value);
         this.value = formatDecimalID(val);
@@ -1959,55 +2102,107 @@
         ) || 0;
     }
 
-    function calculateMasterTotal(){
+    function calculateActualHeader(isEdit = false){
+
+        const prefix = isEdit ? 'Edit' : '';
+
+        let qty = parseDecimalID(
+            $('#masterJumlah' + prefix).val()
+        ) || 0;
 
         let berat = parseDecimalID(
-            $('#masterBerat').val()
+            $('#masterBerat' + prefix).val()
+        ) || 0;
+
+        let matiQty = parseDecimalID(
+            $('#masterMatiQty' + prefix).val()
+        ) || 0;
+
+        let matiBw = parseDecimalID(
+            $('#masterMatiBw' + prefix).val()
+        ) || 0;
+
+        let susutBw = parseDecimalID(
+            $('#masterSusutBw' + prefix).val()
+        ) || 0;
+
+        // ================= AVG BW =================
+
+        let avgBw = 0;
+
+        if(qty > 0){
+
+            avgBw = berat / qty;
+
+        }
+
+        // ================= TOTAL TERIMA QTY =================
+
+        let totalQty = qty - matiQty;
+
+        if(totalQty < 0){
+
+            totalQty = 0;
+
+        }
+
+        // ================= TOTAL TERIMA BW =================
+
+        let totalBw = berat - matiBw - susutBw;
+
+        if(totalBw < 0){
+
+            totalBw = 0;
+
+        }
+
+        // ================= AVG BW =================
+
+        $('#masterAvgBw' + prefix).val(
+            formatDecimalID(avgBw)
         );
+
+        // ================= TOTAL TERIMA =================
+
+        $('#masterTerimaQty' + prefix).val(
+            formatDecimalID(totalQty)
+        );
+
+        $('#masterTerimaBw' + prefix).val(
+            formatDecimalID(totalBw)
+        );
+
+        // ================= TOTAL =================
 
         let harga = parseRupiah(
-            $('#masterHarga').val()
+            $('#masterHarga' + prefix).val()
+        ) || 0;
+
+        let total = totalBw * harga;
+
+        $('#masterTotal' + prefix).val(
+            formatMoneyID(total)
         );
 
-        let total = berat * harga;
-
-        $('#masterTotal').val(
-            total.toLocaleString('id-ID')
-        );
-    }
-
-    function calculateMasterTotalEdit(){
-
-        let berat = parseDecimalID(
-            $('#masterBeratEdit').val()
-        );
-
-        let harga = parseRupiah(
-            $('#masterHargaEdit').val()
-        );
-
-        let total = berat * harga;
-
-        $('#masterTotalEdit').val(
-            total.toLocaleString('id-ID')
-        );
     }
 
     $(document).on(
-        'input keyup change',
-        '#masterBerat, #masterHarga',
+        'keyup change',
+        '#masterJumlah,#masterBerat,#masterHarga,#masterMatiQty,#masterMatiBw,#masterSusutBw',
         function(){
 
-            calculateMasterTotal();
+            calculateActualHeader();
+
         }
     );
 
     $(document).on(
-        'input keyup change',
-        '#masterBeratEdit, #masterHargaEdit',
+        'keyup change',
+        '#masterJumlahEdit,#masterBeratEdit,#masterHargaEdit,#masterMatiQtyEdit,#masterMatiBwEdit,#masterSusutBwEdit',
         function(){
 
-            calculateMasterTotalEdit();
+            calculateActualHeader(true);
+
         }
     );
 
@@ -2067,13 +2262,6 @@
             let masterBerat = parseDecimalID(
                 $('#masterBerat').val()
             );
-
-            if($('#poDetailTableAdd tbody tr').length === 0){
-
-                alert('Minimal 1 detail customer');
-
-                return;
-            }
 
             if(!$('#hiddenMaterialAdd').val()){
                 alert('Material wajib dipilih');
@@ -2171,69 +2359,111 @@
 
         // ================= SUBMIT =================
         $('#fpoAdd button[type=submit]')
-            .prop('disabled', true);
+                .prop('disabled', true);
 
-        $.post('<?= base_url("po/create"); ?>', {
+            $.post('<?= base_url("po/create"); ?>', {
 
-            PLANT : $('#hiddenPlantAdd').val(),
+                PLANT : $('#hiddenPlantAdd').val(),
 
-            TYPE : $('#hiddenTypeAdd').val(),
+                TYPE : $('#hiddenTypeAdd').val(),
 
-            MATERIAL : $('#hiddenMaterialAdd').val(),
+                MATERIAL : $('#hiddenMaterialAdd').val(),
 
-            PO_DATE : $('input[name="PO_DATE"]').val(),
+                PO_DATE : $('input[name="PO_DATE"]').val(),
 
-            SUPPLIER : $('#hiddensupplierAdd').val(),
+                SUPPLIER : $('#hiddensupplierAdd').val(),
 
-            JUMLAH : masterJumlah,
+                // ================= MASTER =================
 
-            BERAT : masterBerat,
+                JUMLAH : masterJumlah,
 
-            HARGA : parseRupiah($('#masterHarga').val()),
-            TOTAL : parseRupiah($('#masterTotal').val()),
+                BERAT : masterBerat,
 
-            NO_TRUCK : $('#masterTruck').val(),
+                HARGA : parseRupiah(
+                    $('#masterHarga').val()
+                ),
 
-            DRIVER : $('#masterDriver').val(),
+                // ================= ACTUAL =================
 
-            REMARK : $('textarea[name="REMARK"]').val(),
+                MATI_QTY : parseDecimalID(
+                    $('#masterMatiQty').val()
+                ),
 
-            DETAIL : DETAIL
+                MATI_BW : parseDecimalID(
+                    $('#masterMatiBw').val()
+                ),
 
-        }, function(resp){
+                SUSUT_BW : parseDecimalID(
+                    $('#masterSusutBw').val()
+                ),
 
-            $('#fpoAdd button[type=submit]')
-                .prop('disabled', false);
+                // ================= OTHER =================
 
-            resp = typeof resp === 'string'
-                ? JSON.parse(resp)
-                : resp;
+                NO_TRUCK : $('#masterTruck').val(),
 
-            alert(resp.message);
+                DRIVER : $('#masterDriver').val(),
 
-            if(resp.status){
+                REMARK : $('textarea[name="REMARK"]').val(),
 
-                $('#poAdd').modal('hide');
+                DETAIL : DETAIL
 
-                $('#fpoAdd')[0].reset();
+            }, function(resp){
 
-                $('#poDetailTableAdd tbody').empty();
+                $('#fpoAdd button[type=submit]')
+                    .prop('disabled', false);
 
-                $('#plantAdd').val(null).trigger('change');
-                $('#supplierAdd').val(null).trigger('change');
-                $('#materialAdd').val(null).trigger('change');
-                $('#hiddenMaterialAdd').val('');
-                $('#hiddenTypeAdd').val('');
-                $('#hiddenPlantAdd').val('');
-                $('#hiddensupplierAdd').val('');
+                resp = typeof resp === 'string'
+                    ? JSON.parse(resp)
+                    : resp;
 
-                calculateSummary();
+                alert(resp.message);
 
-                loadPage(state.page);
-            }
+                if(resp.status){
 
-        }, 'json');
-    });
+                    $('#poAdd').modal('hide');
+
+                    $('#fpoAdd')[0].reset();
+
+                    $('#poDetailTableAdd tbody').empty();
+
+                    $('#plantAdd').val(null).trigger('change');
+
+                    $('#supplierAdd').val(null).trigger('change');
+
+                    $('#materialAdd').val(null).trigger('change');
+
+                    $('#hiddenMaterialAdd').val('');
+
+                    $('#hiddenTypeAdd').val('');
+
+                    $('#hiddenPlantAdd').val('');
+
+                    $('#hiddensupplierAdd').val('');
+
+                    // ================= RESET ACTUAL =================
+
+                    $('#masterAvgBw').val('');
+
+                    $('#masterMatiQty').val('');
+
+                    $('#masterMatiBw').val('');
+
+                    $('#masterSusutBw').val('');
+
+                    $('#masterTerimaQty').val('');
+
+                    $('#masterTerimaBw').val('');
+
+                    calculateActualHeader();
+
+                    calculateSummary();
+
+                    loadPage(state.page);
+
+                }
+
+            }, 'json');
+        });
 
         // Click edit
         $(document).on('click','.editBtn', function(){
@@ -2334,6 +2564,30 @@
                     formatDecimalID(h.BERAT)
                 );
 
+                $('#masterAvgBwEdit').val(
+                    formatDecimalID(h.AVG_BW, 2)
+                );
+
+                $('#masterMatiQtyEdit').val(
+                    formatDecimalID(h.MATI_QTY)
+                );
+
+                $('#masterMatiBwEdit').val(
+                    formatDecimalID(h.MATI_BW)
+                );
+
+                $('#masterSusutBwEdit').val(
+                    formatDecimalID(h.SUSUT_BW)
+                );
+
+                $('#masterTerimaQtyEdit').val(
+                    formatDecimalID(h.TOTAL_TERIMA_QTY)
+                );
+
+                $('#masterTerimaBwEdit').val(
+                    formatDecimalID(h.TOTAL_TERIMA_BW)
+                );
+
                 $('#masterHargaEdit').val(
                     formatMoneyID(h.HARGA)
                 );
@@ -2364,6 +2618,10 @@
 
                 });
 
+                calculateMasterTotalEdit();
+
+                calculateActualHeader(true);
+
                 calculateSummaryEdit();
 
                 $('#poEdit').modal('show');
@@ -2377,13 +2635,6 @@
 
             e.preventDefault();
 
-            if ($('#poDetailTableEdit tbody tr').length === 0) {
-
-                alert('Minimal 1 detail customer');
-
-                return;
-            }
-
             // ================= VALIDASI MASTER =================
 
             let masterJumlah = parseDecimalID(
@@ -2396,14 +2647,21 @@
 
             if(masterJumlah <= 0){
 
-                alert('Jumlah master harus lebih dari 0');
+                alert('Qty / Ekor harus lebih dari 0');
 
                 return;
             }
 
             if(masterBerat <= 0){
 
-                alert('Berat master harus lebih dari 0');
+                alert('Weight / BW harus lebih dari 0');
+
+                return;
+            }
+
+            if(parseRupiah($('#masterHargaEdit').val()) <= 0){
+
+                alert('Harga harus lebih dari 0');
 
                 return;
             }
@@ -2447,11 +2705,8 @@
 
                     HARGA : parseRupiah(
                         $(this).find('.harga').val()
-                    ),
-
-                    TOTAL : parseRupiah(
-                        $(this).find('.total').val()
                     )
+
                 });
 
             });
@@ -2461,7 +2716,7 @@
             if(totalJumlah > masterJumlah){
 
                 alert(
-                    'Total jumlah detail melebihi master'
+                    'Total Qty detail melebihi Qty master'
                 );
 
                 $('#fpoEdit button[type=submit]')
@@ -2473,7 +2728,7 @@
             if(totalBerat > masterBerat){
 
                 alert(
-                    'Total berat detail melebihi master'
+                    'Total Weight detail melebihi Weight master'
                 );
 
                 $('#fpoEdit button[type=submit]')
@@ -2498,6 +2753,8 @@
 
                 SUPPLIER : $('#hiddensupplierEdit').val(),
 
+                // ================= MASTER =================
+
                 JUMLAH : masterJumlah,
 
                 BERAT : masterBerat,
@@ -2506,9 +2763,21 @@
                     $('#masterHargaEdit').val()
                 ),
 
-                TOTAL : parseRupiah(
-                    $('#masterTotalEdit').val()
+                // ================= ACTUAL =================
+
+                MATI_QTY : parseDecimalID(
+                    $('#masterMatiQtyEdit').val()
                 ),
+
+                MATI_BW : parseDecimalID(
+                    $('#masterMatiBwEdit').val()
+                ),
+
+                SUSUT_BW : parseDecimalID(
+                    $('#masterSusutBwEdit').val()
+                ),
+
+                // ================= OTHER =================
 
                 NO_TRUCK : $('#masterTruckEdit').val(),
 
@@ -2534,6 +2803,7 @@
                     $('#poEdit').modal('hide');
 
                     loadPage(state.page);
+
                 }
 
             }, 'json');
