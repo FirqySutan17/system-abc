@@ -84,6 +84,19 @@ $route['credit-note/create'] = 'CreditNote/create';
 $route['credit-note/update'] = 'CreditNote/update';
 $route['credit-note/remove'] = 'CreditNote/remove';
 
+$route['saving'] = 'Saving/index';
+$route['saving/print_pdf'] = 'Saving/print_pdf';
+$route['saving/edit'] = 'Saving/edit';
+$route['saving/load_data'] = 'Saving/load_data';
+$route['saving/get-customer'] = 'Saving/get_customer';
+$route['saving/get_plant'] = 'Saving/get_plant';
+$route['saving/generate_sv_no'] = 'Saving/generate_sv_no';
+$route['saving/get_sv_history'] = 'Saving/get_sv_history';
+
+$route['saving/create'] = 'Saving/create';
+$route['saving/update'] = 'Saving/update';
+$route['saving/remove'] = 'Saving/remove';
+
 // REPORT INVENTORY
 $route['report-inventory/load_data'] = 'ReportInventory/load_data';
 $route['report-inventory/export_excel_po'] = 'ReportInventory/export_excel_po';
