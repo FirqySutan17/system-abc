@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Saving_model extends CI_Model
+class Loan_model extends CI_Model
 {
     public function __construct()
     {
@@ -22,25 +22,25 @@ class Saving_model extends CI_Model
         $limit = 10,
         $start = 0,
         $filters = [],
-        $order = 'SV_DATE',
+        $order = 'LOAN_DATE',
         $dir = 'DESC'
     )
     {
         $allowedOrder = [
 
-            'SV_NO'         => 'sv.SV_NO',
-            'SV_DATE'       => 'sv.SV_DATE',
-            'PLANT'         => 'sv.PLANT',
-            'CUSTOMER'      => 'sv.CUSTOMER',
-            'RELATED'       => 'sv.RELATED',
-            'AMOUNT'        => 'sv.AMOUNT',
-            'CREATED_AT'    => 'sv.CREATED_AT'
+            'LOAN_NO'         => 'loan.LOAN_NO',
+            'LOAN_DATE'       => 'loan.LOAN_DATE',
+            'PLANT'         => 'loan.PLANT',
+            'CUSTOMER'      => 'loan.CUSTOMER',
+            'RELATED'       => 'loan.RELATED',
+            'AMOUNT'        => 'loan.AMOUNT',
+            'CREATED_AT'    => 'loan.CREATED_AT'
 
         ];
 
         $orderBy =
             $allowedOrder[$order]
-            ?? 'sv.CREATED_AT';
+            ?? 'loan.CREATED_AT';
 
         $dir =
             strtoupper($dir) === 'ASC'
@@ -50,7 +50,7 @@ class Saving_model extends CI_Model
         $this->db
 
             ->select("
-                sv.*,
+                loan.*,
 
                 p.CODE_NAME
                     AS PLANT_NAME,
@@ -60,13 +60,13 @@ class Saving_model extends CI_Model
             ", false)
 
             ->from(
-                'abc_mst_saving sv'
+                'abc_mst_loan loan'
             )
 
             ->join(
                 'abc_cd_code p',
                 "
-                    p.CODE = sv.plant
+                    p.CODE = loan.plant
                     AND p.HEAD_CODE='PLANT'
                 ",
                 'left',
@@ -76,14 +76,14 @@ class Saving_model extends CI_Model
             ->join(
                 'abc_cd_customer c',
                 "
-                    c.CUST = sv.customer
+                    c.CUST = loan.customer
                 ",
                 'left',
                 false
             )
 
             ->where(
-                'sv.deleted IS NULL',
+                'loan.deleted IS NULL',
                 null,
                 false
             );
@@ -108,7 +108,7 @@ class Saving_model extends CI_Model
                 ->group_start()
 
                 ->like(
-                    'sv.SV_NO',
+                    'loan.LOAN_NO',
                     $search
                 )
 
@@ -118,7 +118,7 @@ class Saving_model extends CI_Model
                 )
 
                 ->or_like(
-                    'sv.REMARK',
+                    'loan.REMARK',
                     $search
                 )
 
@@ -139,7 +139,7 @@ class Saving_model extends CI_Model
 
             $this->db
                 ->where(
-                    'sv.PLANT',
+                    'loan.PLANT',
                     $filters['plant']
                 );
         }
@@ -158,7 +158,7 @@ class Saving_model extends CI_Model
 
             $this->db
                 ->where(
-                    'sv.CUSTOMER',
+                    'loan.CUSTOMER',
                     $filters['customer']
                 );
         }
@@ -177,7 +177,7 @@ class Saving_model extends CI_Model
 
             $this->db
                 ->where(
-                    'DATE(sv.SV_DATE) >=',
+                    'DATE(loan.LOAN_DATE) >=',
                     $filters['date_from']
                 );
         }
@@ -196,7 +196,7 @@ class Saving_model extends CI_Model
 
             $this->db
                 ->where(
-                    'DATE(sv.SV_DATE) <=',
+                    'DATE(loan.LOAN_DATE) <=',
                     $filters['date_to']
                 );
         }
@@ -215,7 +215,7 @@ class Saving_model extends CI_Model
 
         $this->db
             ->order_by(
-                'sv.SV_NO',
+                'loan.LOAN_NO',
                 'DESC'
             );
 
@@ -250,17 +250,17 @@ class Saving_model extends CI_Model
         $this->db
 
             ->from(
-                'abc_mst_saving sv'
+                'abc_mst_loan loan'
             )
 
             ->join(
                 'abc_cd_customer c',
-                'c.CUST = sv.CUSTOMER',
+                'c.CUST = loan.CUSTOMER',
                 'left'
             )
 
             ->where(
-                'sv.deleted IS NULL',
+                'loan.deleted IS NULL',
                 null,
                 false
             );
@@ -285,7 +285,7 @@ class Saving_model extends CI_Model
                 ->group_start()
 
                 ->like(
-                    'sv.SV_NO',
+                    'loan.LOAN_NO',
                     $search
                 )
 
@@ -295,7 +295,7 @@ class Saving_model extends CI_Model
                 )
 
                 ->or_like(
-                    'sv.REMARK',
+                    'loan.REMARK',
                     $search
                 )
 
@@ -316,7 +316,7 @@ class Saving_model extends CI_Model
 
             $this->db
                 ->where(
-                    'sv.PLANT',
+                    'loan.PLANT',
                     $filters['plant']
                 );
         }
@@ -335,7 +335,7 @@ class Saving_model extends CI_Model
 
             $this->db
                 ->where(
-                    'sv.CUSTOMER',
+                    'loan.CUSTOMER',
                     $filters['customer']
                 );
         }
@@ -354,7 +354,7 @@ class Saving_model extends CI_Model
 
             $this->db
                 ->where(
-                    'DATE(sv.SV_DATE) >=',
+                    'DATE(loan.LOAN_DATE) >=',
                     $filters['date_from']
                 );
         }
@@ -373,7 +373,7 @@ class Saving_model extends CI_Model
 
             $this->db
                 ->where(
-                    'DATE(sv.SV_DATE) <=',
+                    'DATE(loan.LOAN_DATE) <=',
                     $filters['date_to']
                 );
         }
@@ -540,28 +540,28 @@ class Saving_model extends CI_Model
     |--------------------------------------------------------------------------
     */
 
-    public function generate_sv_no()
+    public function generate_LOAN_NO()
     {
         $prefix =
-            'SV' .
+            'LOAN' .
             date('Ymd');
 
         $row =
             $this->db
 
                 ->select("
-                    MAX(SV_NO)
+                    MAX(LOAN_NO)
                     as last_no
                 ")
 
                 ->like(
-                    'SV_NO',
+                    'LOAN_NO',
                     $prefix,
                     'after'
                 )
 
                 ->get(
-                    'abc_mst_saving'
+                    'abc_mst_loan'
                 )
 
                 ->row();
@@ -598,16 +598,16 @@ class Saving_model extends CI_Model
     |--------------------------------------------------------------------------
     */
 
-    public function get_sv_header(
-        $svNo,
+    public function get_loan_header(
+        $loanNo,
         $plant
     )
     {
         return $this->db
 
             ->where(
-                'SV_NO',
-                $svNo
+                'LOAN_NO',
+                $loanNo
             )
 
             ->where(
@@ -622,7 +622,7 @@ class Saving_model extends CI_Model
             )
 
             ->get(
-                'abc_mst_saving'
+                'abc_mst_loan'
             )
 
             ->row_array();
@@ -634,8 +634,8 @@ class Saving_model extends CI_Model
     |--------------------------------------------------------------------------
     */
 
-    public function get_sv_history(
-        $sv_no,
+    public function get_loan_history(
+        $loan_no,
         $plant,
         $customer
     )
@@ -643,7 +643,7 @@ class Saving_model extends CI_Model
         $query = $this->db
 
             ->from(
-                'abc_mst_saving'
+                'abc_mst_loan'
             )
             
             ->where(
@@ -661,16 +661,16 @@ class Saving_model extends CI_Model
                 $plant
             );
         
-        if (!empty($sv_no)) {
+        if (!empty($loan_no)) {
             $query
             ->where(
-                'SV_NO !=',
-                $sv_no
+                'LOAN_NO !=',
+                $loan_no
             );
         }
 
         return    $query->order_by(
-                'SV_DATE',
+                'LOAN_DATE',
                 'ASC'
             )->get()->result_array();
     }
@@ -682,7 +682,7 @@ class Saving_model extends CI_Model
         return $this->db
 
             ->select("
-                sv.*,
+                loan.*,
 
                 p.CODE_NAME
                     AS PLANT_NAME,
@@ -692,13 +692,13 @@ class Saving_model extends CI_Model
             ")
 
             ->from(
-                'abc_mst_saving sv'
+                'abc_mst_loan loan'
             )
 
             ->join(
                 'abc_cd_code p',
                 "
-                    p.CODE = sv.PLANT
+                    p.CODE = loan.PLANT
                     AND p.HEAD_CODE='PLANT'
                 ",
                 'left',
@@ -708,19 +708,19 @@ class Saving_model extends CI_Model
             ->join(
                 'abc_cd_customer c',
                 "
-                    c.CUST = sv.CUSTOMER
+                    c.CUST = loan.CUSTOMER
                 ",
                 'left',
                 false
             )
 
             ->where(
-                'sv.SV_NO',
+                'loan.LOAN_NO',
                 $idno
             )
 
             ->where(
-                'sv.DELETED IS NULL',
+                'loan.DELETED IS NULL',
                 null,
                 false
             )

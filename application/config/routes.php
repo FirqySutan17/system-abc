@@ -97,6 +97,19 @@ $route['saving/create'] = 'Saving/create';
 $route['saving/update'] = 'Saving/update';
 $route['saving/remove'] = 'Saving/remove';
 
+$route['loan'] = 'Loan/index';
+$route['loan/print_pdf'] = 'Loan/print_pdf';
+$route['loan/edit'] = 'Loan/edit';
+$route['loan/load_data'] = 'Loan/load_data';
+$route['loan/get-customer'] = 'Loan/get_customer';
+$route['loan/get_plant'] = 'Loan/get_plant';
+$route['loan/generate_loan_no'] = 'Loan/generate_loan_no';
+$route['loan/get_loan_history'] = 'Loan/get_loan_history';
+
+$route['loan/create'] = 'Loan/create';
+$route['loan/update'] = 'Loan/update';
+$route['loan/remove'] = 'Loan/remove';
+
 // REPORT INVENTORY
 $route['report-inventory/load_data'] = 'ReportInventory/load_data';
 $route['report-inventory/export_excel_po'] = 'ReportInventory/export_excel_po';
