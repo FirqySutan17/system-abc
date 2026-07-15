@@ -348,57 +348,107 @@ class Po_model extends CI_Model {
         $dateTo = ''
     )
     {
-        $subquery = $this->db
-            ->select('po.PO', false)
-            ->from('abc_mst_po po')
+        $this->db->select("
+            po.PO,
 
-            ->join(
-                'abc_cd_customer supplier',
-                '
-                    supplier.CUST COLLATE utf8mb4_unicode_ci =
-                    po.SUPPLIER COLLATE utf8mb4_unicode_ci
-                ',
-                'left',
-                false
-            )
+            CASE
 
-            ->join(
-                'abc_cd_material material',
-                '
-                    material.MATERIAL COLLATE utf8mb4_unicode_ci =
-                    po.MATERIAL COLLATE utf8mb4_unicode_ci
-                ',
-                'left',
-                false
-            )
+                WHEN COALESCE(
+                    SUM(rd.BERAT),
+                    0
+                ) >= po.BERAT
+                THEN 'RECEIVED'
 
-            ->join(
-                'abc_mst_receive r',
-                '
-                    r.PO = po.PO
-                    AND r.PLANT = po.PLANT
-                    AND r.DELETED IS NULL
-                ',
-                'left',
-                false
-            )
+                WHEN COALESCE(
+                    SUM(rd.BERAT),
+                    0
+                ) > 0
+                THEN 'PARTIAL'
 
-            ->join(
-                'abc_mst_receive_detail rd',
-                '
-                    rd.RECEIVE = r.RECEIVE
-                    AND rd.PLANT = r.PLANT
-                    AND rd.DELETED IS NULL
-                ',
-                'left',
-                false
-            )
+                ELSE 'OPEN'
 
-            ->where(
-                'po.DELETED IS NULL',
-                null,
-                false
-            );
+            END AS STATUS_PO
+        ", false);
+
+        $this->db->from('abc_mst_po po');
+
+        /*
+        |--------------------------------------------------------------------------
+        | SUPPLIER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+            'abc_cd_customer supplier',
+            '
+                supplier.CUST COLLATE utf8mb4_unicode_ci =
+                po.SUPPLIER COLLATE utf8mb4_unicode_ci
+            ',
+            'left',
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | MATERIAL
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+            'abc_cd_material material',
+            '
+                material.MATERIAL COLLATE utf8mb4_unicode_ci =
+                po.MATERIAL COLLATE utf8mb4_unicode_ci
+            ',
+            'left',
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | RECEIVE
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+            'abc_mst_receive r',
+            '
+                r.PO = po.PO
+                AND r.PLANT = po.PLANT
+                AND r.DELETED IS NULL
+            ',
+            'left',
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | RECEIVE DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+            'abc_mst_receive_detail rd',
+            '
+                rd.RECEIVE = r.RECEIVE
+                AND rd.PLANT = r.PLANT
+                AND rd.DELETED IS NULL
+            ',
+            'left',
+            false
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->where(
+            'po.DELETED IS NULL',
+            null,
+            false
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -406,27 +456,28 @@ class Po_model extends CI_Model {
         |--------------------------------------------------------------------------
         */
 
-        if($role_id !== 1){
+        if ($role_id != 1) {
 
             $plants = json_decode(
                 $plant,
                 true
             );
 
-            if(!is_array($plants)){
+            if (!is_array($plants)) {
 
                 $plants = explode(
                     ',',
                     $plant
                 );
+
             }
 
-            $subquery->where_in(
+            $this->db->where_in(
                 'po.PLANT',
                 $plants
             );
 
-            $subquery->where(
+            $this->db->where(
                 'po.CREATED_BY',
                 $username
             );
@@ -438,99 +489,94 @@ class Po_model extends CI_Model {
         |--------------------------------------------------------------------------
         */
 
-        if($search !== ''){
+        if ($search !== '') {
 
-            $subquery->group_start();
+            $this->db->group_start();
 
-            $subquery->like(
+            $this->db->like(
                 'po.PO',
                 $search
             );
 
-            $subquery->or_like(
+            $this->db->or_like(
                 'supplier.FULL_NAME',
                 $search
             );
 
-            $subquery->or_like(
+            $this->db->or_like(
                 'material.material_name',
                 $search
             );
 
-            $subquery->group_end();
+            $this->db->or_like(
+                'po.NO_TRUCK',
+                $search
+            );
+
+            $this->db->or_like(
+                'po.DRIVER',
+                $search
+            );
+
+            $this->db->or_like(
+                'po.REMARK',
+                $search
+            );
+
+            $this->db->group_end();
+
         }
 
         /*
         |--------------------------------------------------------------------------
-        | DATE
+        | DATE FILTER
         |--------------------------------------------------------------------------
         */
 
-        if(!empty($dateFrom)){
+        if (!empty($dateFrom)) {
 
-            $subquery->where(
+            $this->db->where(
                 'po.PO_DATE >=',
                 $dateFrom
             );
+
         }
 
-        if(!empty($dateTo)){
+        if (!empty($dateTo)) {
 
-            $subquery->where(
+            $this->db->where(
                 'po.PO_DATE <=',
                 $dateTo
             );
-        }
 
-        $subquery->group_by('po.PO');
+        }
 
         /*
         |--------------------------------------------------------------------------
-        | STATUS
+        | GROUP BY
         |--------------------------------------------------------------------------
         */
 
-        if(!empty($status)){
+        $this->db->group_by('po.PO');
 
-            if($status == 'OPEN'){
+        /*
+        |--------------------------------------------------------------------------
+        | STATUS FILTER
+        |--------------------------------------------------------------------------
+        */
 
-                $subquery->having(
-                    'COALESCE(SUM(rd.BERAT),0) = 0',
-                    null,
-                    false
-                );
-            }
+        if (!empty($status)) {
 
-            if($status == 'PARTIAL'){
+            $this->db->having(
+                'STATUS_PO',
+                $status
+            );
 
-                $subquery->having(
-                    '
-                        COALESCE(SUM(rd.BERAT),0) > 0
-                        AND
-                        COALESCE(SUM(rd.BERAT),0) < po.BERAT
-                    ',
-                    null,
-                    false
-                );
-            }
-
-            if($status == 'RECEIVED'){
-
-                $subquery->having(
-                    '
-                        COALESCE(SUM(rd.BERAT),0) >= po.BERAT
-                    ',
-                    null,
-                    false
-                );
-            }
         }
 
-        return count(
-            $subquery
-                ->get()
-                ->result_array()
-        );
+        return $this->db
+            ->get()
+            ->num_rows();
     }
 
     public function get_user_plants($username)
@@ -892,7 +938,21 @@ class Po_model extends CI_Model {
             return false;
         }
 
-        $this->db->trans_start();
+        $header = $this->db
+            ->where('PLANT', $plant)
+            ->where('PO', $po)
+            ->get('abc_mst_po')
+            ->row();
+
+        if (!$header) {
+            return false;
+        }
+
+        if ((int)$header->STATUS === 1) {
+            return false;
+        }
+
+        $this->db->trans_begin();
 
         $this->db
             ->where('PLANT', $plant)
@@ -904,9 +964,14 @@ class Po_model extends CI_Model {
             ->where('PO', $po)
             ->delete('abc_mst_po');
 
-        $this->db->trans_complete();
+        if ($this->db->trans_status() === false) {
+            $this->db->trans_rollback();
+            return false;
+        }
 
-        return $this->db->trans_status();
+        $this->db->trans_commit();
+
+        return true;
     }
 
     /**

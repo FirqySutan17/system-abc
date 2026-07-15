@@ -185,9 +185,6 @@
     </div>
 </div>
 
-<!-- =========================================
-STYLE
-========================================= -->
 <style>
     .table-modern td,
     .table-modern th{
@@ -370,54 +367,749 @@ STYLE
         overflow-x:hidden;
     }
 
-    .select2-container {
-        width: 100% !important;
+    /*======================================================
+    SECTION
+    ======================================================*/
+
+    .po-section-card{
+
+        background:#fff;
+
+        border:1px solid #e8edf5;
+
+        border-radius:14px;
+
+        padding:22px;
+
+        margin-bottom:24px;
+
+        box-shadow:0 2px 10px rgba(0,0,0,.03);
+
     }
 
-    .select2-container--bootstrap-5
-    .select2-selection {
+    /*======================================================
+    TITLE
+    ======================================================*/
 
-        min-height: 44px !important;
+    .po-section-title{
 
-        border-radius: 12px !important;
+        font-size:18px;
 
-        border: 1px solid #dbe2ea !important;
+        font-weight:600;
 
-        font-size: 12px !important;
+        color:#1f2937;
+
+        margin-bottom:20px;
+
+        padding-bottom:12px;
+
+        border-bottom:1px solid #edf2f7;
+
     }
 
-    .select2-container--bootstrap-5
-    .select2-selection--single {
+    /*======================================================
+    GROUP
+    ======================================================*/
 
-        padding-top: 6px !important;
+    .receive-group-title{
 
-        padding-left: 12px !important;
+        display:flex;
+
+        align-items:center;
+
+        font-size:13px;
+
+        font-weight:600;
+
+        color:#2563eb;
+
+        text-transform:uppercase;
+
+        letter-spacing:.5px;
+
+        margin-bottom:14px;
+
+        padding-left:10px;
+
+        border-left:4px solid #2563eb;
+
     }
 
-    .select2-container--bootstrap-5
-    .select2-selection__rendered {
+    /*======================================================
+    LABEL
+    ======================================================*/
 
-        color: #212529 !important;
+    .po-label{
 
-        line-height: 28px !important;
+        font-size:13px;
 
-        padding-left: 0 !important;
+        font-weight:500;
+
+        color:#4b5563;
+
+        margin-bottom:6px;
+
     }
 
-    .select2-container--bootstrap-5
-    .select2-selection__arrow {
+    /*======================================================
+    REQUIRED
+    ======================================================*/
 
-        height: 42px !important;
+    .required{
+
+        color:#dc2626;
+
     }
 
-    .select2-dropdown {
+    /*======================================================
+    INPUT
+    ======================================================*/
 
-        z-index: 999999 !important;
+    .po-select{
+
+        width:100%;
+
     }
 
-    .select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option {
-        line-height: 1;
-        font-size: 13px !important;
+    .po-input{
+
+        height:42px;
+
+        border-radius:10px;
+
+        border:1px solid #d7dee8;
+
+        font-size:14px;
+
+        transition:.2s;
+
+        box-shadow:none;
+
+    }
+
+    textarea.po-input{
+
+        height:auto;
+
+        min-height:90px;
+
+        resize:vertical;
+
+    }
+
+    /*======================================================
+    FOCUS
+    ======================================================*/
+
+    .po-input:focus{
+
+        border-color:#2563eb;
+
+        box-shadow:0 0 0 .18rem rgba(37,99,235,.15);
+
+    }
+
+    /*======================================================
+    READONLY
+    ======================================================*/
+
+    .po-input.readonly,
+
+    .po-input:read-only{
+
+        background:#f8fafc;
+
+        color:#374151;
+
+        cursor:not-allowed;
+
+    }
+
+    /*======================================================
+    METRIC CARD
+    ======================================================*/
+
+    .metric-card{
+
+        background:#fff;
+
+        border:1px solid #e6edf5;
+
+        border-radius:14px;
+
+        padding:18px;
+
+        text-align:center;
+
+        height:100%;
+
+        transition:.25s;
+
+    }
+
+    .metric-card:hover{
+
+        transform:translateY(-2px);
+
+        box-shadow:0 8px 20px rgba(0,0,0,.07);
+
+    }
+
+    /*======================================================
+    TITLE
+    ======================================================*/
+
+    .metric-label{
+
+        font-size:12px;
+
+        color:#64748b;
+
+        text-transform:uppercase;
+
+        letter-spacing:.5px;
+
+        font-weight:600;
+
+    }
+
+    /*======================================================
+    VALUE
+    ======================================================*/
+
+    .metric-value{
+
+        margin-top:10px;
+
+        font-size:28px;
+
+        font-weight:700;
+
+        color:#1e40af;
+
+    }
+
+    .metric-money{
+
+        margin-top:12px;
+
+        font-size:24px;
+
+        font-weight:700;
+
+        color:#059669;
+
+    }
+
+    /*======================================================
+    UNIT
+    ======================================================*/
+
+    .metric-unit{
+
+        margin-top:4px;
+
+        color:#94a3b8;
+
+        font-size:12px;
+
+    }
+
+    /*======================================================
+    COLOR
+    ======================================================*/
+
+    .metric-card.success{
+
+        border-left:5px solid #16a34a;
+
+    }
+
+    .metric-card.warning{
+
+        border-left:5px solid #f59e0b;
+
+    }
+
+    .metric-card.danger{
+
+        border-left:5px solid #dc2626;
+
+    }
+
+    .metric-card.primary{
+
+        border-left:5px solid #2563eb;
+
+    }
+
+    /*======================================================
+    INFO BOX
+    ======================================================*/
+
+    .info-box{
+
+        background:#f8fafc;
+
+        border:1px solid #e2e8f0;
+
+        border-radius:14px;
+
+        padding:18px;
+
+        height:100%;
+
+    }
+
+    .info-item{
+
+        display:flex;
+
+        justify-content:space-between;
+
+        align-items:center;
+
+    }
+
+    .info-item label{
+
+        color:#64748b;
+
+        font-size:13px;
+
+        margin:0;
+
+    }
+
+    .info-item span{
+
+        font-size:15px;
+
+        font-weight:600;
+
+        color:#1f2937;
+
+    }
+
+    .info-divider{
+
+        border-top:1px dashed #d1d5db;
+
+        margin:15px 0;
+
+    }
+
+    /*======================================================
+    CUSTOMER TABLE
+    ======================================================*/
+
+    .customer-table{
+
+        margin-bottom:0;
+
+    }
+
+    .customer-table thead th{
+
+        background:#f8fafc;
+
+        color:#475569;
+
+        font-size:13px;
+
+        font-weight:600;
+
+        border-bottom:2px solid #e2e8f0;
+
+        white-space:nowrap;
+
+    }
+
+    .customer-table tbody td{
+
+        vertical-align:middle;
+
+        padding:12px 10px;
+
+    }
+
+    .customer-table input,
+    .customer-table select{
+
+        height:40px;
+
+        border-radius:8px;
+
+    }
+
+    /*======================================================
+    SUMMARY
+    ======================================================*/
+
+    .summary-card{
+
+        border:1px solid #e2e8f0;
+
+        border-radius:14px;
+
+        padding:18px;
+
+        background:#fff;
+
+        height:100%;
+
+    }
+
+    .summary-title{
+
+        font-weight:700;
+
+        margin-bottom:15px;
+
+        color:#334155;
+
+    }
+
+    .summary-row{
+
+        display:flex;
+
+        justify-content:space-between;
+
+        padding:10px 0;
+
+        border-bottom:1px dashed #e2e8f0;
+
+    }
+
+    .summary-row:last-child{
+
+        border:none;
+
+    }
+
+    .summary-row.total strong{
+
+        font-size:18px;
+
+        color:#2563eb;
+
+    }
+
+    /*======================================================
+    PROGRESS
+    ======================================================*/
+
+    .progress-card{
+
+        border:1px solid #e2e8f0;
+
+        border-radius:14px;
+
+        padding:18px;
+
+        background:#fff;
+
+        height:100%;
+
+    }
+
+    .progress-title{
+
+        margin-bottom:15px;
+
+        font-weight:700;
+
+        color:#334155;
+
+    }
+
+    .progress{
+
+        height:28px;
+
+        border-radius:20px;
+
+        background:#e5e7eb;
+
+    }
+
+    .progress-bar{
+
+        font-weight:600;
+
+        font-size:12px;
+
+        line-height:28px;
+
+    }
+
+    /*======================================================
+    SECTION DESCRIPTION
+    ======================================================*/
+
+    .section-description{
+
+        color:#64748b;
+
+        font-size:13px;
+
+        margin-bottom:18px;
+
+    }
+
+    /*======================================================
+    SAVING TABLE
+    ======================================================*/
+
+    .saving-table{
+
+        margin-bottom:0;
+
+    }
+
+    .saving-table thead th{
+
+        background:#f8fafc;
+
+        color:#475569;
+
+        font-weight:600;
+
+        font-size:13px;
+
+        border-bottom:2px solid #e2e8f0;
+
+        white-space:nowrap;
+
+    }
+
+    .saving-table tbody td{
+
+        vertical-align:middle;
+
+        padding:12px 10px;
+
+    }
+
+    .saving-table input,
+    .saving-table select{
+
+        height:40px;
+
+        border-radius:8px;
+
+    }
+
+    /*======================================================
+    FOOTER
+    ======================================================*/
+
+    .saving-footer{
+
+        display:flex;
+
+        justify-content:flex-end;
+
+    }
+
+    .saving-total{
+
+        min-width:260px;
+
+        background:#f8fafc;
+
+        border:1px solid #e2e8f0;
+
+        border-radius:12px;
+
+        padding:14px 18px;
+
+        display:flex;
+
+        justify-content:space-between;
+
+        align-items:center;
+
+    }
+
+    .saving-total span{
+
+        color:#64748b;
+
+        font-size:14px;
+
+    }
+
+    .saving-total strong{
+
+        font-size:20px;
+
+        color:#059669;
+
+        font-weight:700;
+
+    }
+
+    /*======================================================
+    PAYMENT TABLE
+    ======================================================*/
+
+    .payment-table{
+
+        margin-bottom:0;
+
+    }
+
+    .payment-table thead th{
+
+        background:#f8fafc;
+
+        color:#475569;
+
+        font-size:13px;
+
+        font-weight:600;
+
+        border-bottom:2px solid #e2e8f0;
+
+    }
+
+    .payment-table tbody td{
+
+        padding:13px 10px;
+
+        vertical-align:middle;
+
+    }
+
+    .payment-table tbody td:not(:first-child){
+
+        text-align:right;
+
+        font-weight:600;
+
+    }
+
+    /*======================================================
+    PAYMENT FOOTER
+    ======================================================*/
+
+    .payment-footer{
+
+        display:flex;
+
+        justify-content:flex-end;
+
+    }
+
+    .payment-summary-box{
+
+        width:380px;
+
+        background:#f8fafc;
+
+        border:1px solid #e2e8f0;
+
+        border-radius:14px;
+
+        padding:18px 22px;
+
+    }
+
+    .payment-row{
+
+        display:flex;
+
+        justify-content:space-between;
+
+        align-items:center;
+
+        margin:10px 0;
+
+    }
+
+    .payment-row span{
+
+        color:#64748b;
+
+    }
+
+    .payment-row strong{
+
+        font-size:18px;
+
+    }
+
+    .payment-summary-box hr{
+
+        margin:15px 0;
+
+        border-top:1px dashed #d6dce5;
+
+    }
+
+    .payment-grand span{
+
+        font-size:16px;
+
+        font-weight:700;
+
+        color:#1f2937;
+
+    }
+
+    .payment-grand strong{
+
+        font-size:24px;
+
+        color:#16a34a;
+
+    }
+
+    .modal-backdrop.show{
+        opacity:.5;
+        background:#000;
+    }
+
+    #lookupModal{
+        z-index:1065;
+    }
+
+    #lookupModal .modal-dialog{
+
+        max-width:1100px;
+
+    }
+
+    #lookupTable tbody tr{
+
+        cursor:pointer;
+
+    }
+
+    #lookupTable tbody tr:hover{
+
+        background:#eef5ff;
+
+    }
+
+    #lookupKeyword{
+
+        border-radius:10px;
+
+    }
+
+    .lookup-row{
+
+        cursor:pointer;
+
+    }
+
+    .lookup-row:hover{
+
+        background:#eef5ff;
+
     }
 
     @media(max-width:768px){
@@ -434,7 +1126,6 @@ STYLE
             min-width:1600px;
         }
     }
-
 </style>
 
 <div class="modal fade"
@@ -442,7 +1133,7 @@ STYLE
     tabindex="-1"
     aria-hidden="true">
 
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-dialog modal-xl">
 
         <form id="freceiveAdd"
             enctype="multipart/form-data">
@@ -464,305 +1155,598 @@ STYLE
 
                 <div class="modal-body">
 
-                    <!-- =====================================
-                    HEADER SECTION
-                    ====================================== -->
+                    <!-- ==========================================================
+                    RECEIVE INFORMATION
+                    =========================================================== -->
+                    <div class="po-section-card">
 
-                    <div class="receive-section">
-
-                        <div class="receive-section-title">
-                            HEADER RECEIVE
+                        <div class="po-section-title">
+                            <span>
+                                <i class="ti ti-truck-delivery me-1"></i>
+                                RECEIVE INFORMATION
+                            </span>
                         </div>
 
-                        <div class="row g-3">
+                        <!-- ===================================================== -->
+                        <!-- GENERAL INFORMATION -->
+                        <!-- ===================================================== -->
 
-                            <div class="col-md-4">
-                                <label class="form-label">
-                                    Plant *
+                        <div class="receive-group-title">
+                            General Information
+                        </div>
+
+                        <div class="row g-3 mb-4">
+
+                            <div class="col-md-6">
+
+                                <label class="po-label">
+                                    Plant <span class="text-danger">*</span>
                                 </label>
 
-                                <select id="plantAdd" class="form-select"
-                                    required></select>
+                                <select
+                                    id="plantAdd"
+                                    name="PLANT"
+                                    class="form-control po-input">
 
-                                <input type="hidden"
-                                    id="hiddenPlantAdd"
-                                    name="PLANT">
-                            </div>
+                                </select>
 
-                            <div class="col-md-4">
-                                <label class="form-label">
-                                    No Receive
-                                </label>
-
-                                <input type="text"
-                                    id="RECEIVE_NO_ADD"
-                                    class="form-control"
-                                    readonly
-                                    placeholder="Auto Generate"
-                                    style="background:#f1f5f9">
-                            </div>
-
-                            <div class="col-md-4">
-                                <label class="form-label">
-                                    Slip No
-                                </label>
-
-                                <input type="text"
-                                    id="SLIP_NO_ADD"
-                                    class="form-control"
-                                    readonly
-                                    placeholder="Auto Generate"
-                                    style="background:#f1f5f9">
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label">
-                                    PO *
+
+                                <label class="po-label">
+                                    Receive Date <span class="required">*</span>
                                 </label>
 
-                                <select id="poAdd" class="form-select"
-                                    required></select>
-
-                                <input type="hidden"
-                                    id="hiddenPoAdd"
-                                    name="PO">
-                            </div>
-
-                            <div class="col-md-3">
-                                <label class="form-label">
-                                    Receive Date
-                                </label>
-
-                                <input type="date"
+                                <input
+                                    type="date"
                                     id="RECEIVE_DATE"
                                     name="RECEIVE_DATE"
-                                    class="form-control"
-                                    value="<?= date('Y-m-d'); ?>">
+                                    class="form-control po-input"
+                                    value="<?= date('Y-m-d'); ?>"
+                                    required>
+
                             </div>
 
-                            <div class="col-md-3">
-                                <label class="form-label">
+                            <div class="col-md-4">
+
+                                <label class="po-label">
+                                    Purchase Order <span class="required">*</span>
+                                </label>
+
+                                <div class="input-group">
+
+                                    <div class="input-group">
+
+                                        <input
+                                            type="text"
+                                            id="poText"
+                                            class="form-control"
+                                            placeholder="Choose Purchase Order..."
+                                            readonly>
+
+                                        <button
+                                            class="btn btn-primary"
+                                            type="button"
+                                            id="btnLookupPO">
+
+                                            <i class="ti ti-search"></i>
+
+                                        </button>
+                                    </div>
+
+                                </div>
+
+                                <input
+                                    type="hidden"
+                                    id="poAdd"
+                                    name="PO">
+
+                            </div>
+
+                            <div class="col-md-4">
+
+                                <label class="po-label">
                                     Supplier
                                 </label>
 
-                                <input type="text"
+                                <input
+                                    type="text"
                                     id="supplierAddText"
-                                    class="form-control"
-                                    readonly
-                                    style="background:#f1f5f9">
+                                    class="form-control po-input"
+                                    readonly>
 
-                                <input type="hidden"
+                                <input
+                                    type="hidden"
                                     id="hiddensupplierAdd"
                                     name="SUPPLIER">
-                            </div>
-
-                            <div class="col-md-3">
-
-                                <label class="form-label">
-                                    Pembayaran *
-                                </label>
-
-                                <select id="paymentAdd" class="form-select"
-                                    name="PEMBAYARAN"
-                                    required>
-
-                                    <option value="">
-                                        -- PILIH --
-                                    </option>
-
-                                    <option value="CASH">
-                                        CASH
-                                    </option>
-
-                                    <option value="TRANSFER">
-                                        TRANSFER
-                                    </option>
-
-                                </select>
 
                             </div>
 
-                            <div class="col-md-3">
+                            <div class="col-md-4">
 
-                                <label class="form-label">
-                                    Jenis Pay *
+                                <label class="po-label">
+                                    Material
                                 </label>
 
-                                <select id="jenisPayAdd" class="form-select"
-                                    name="JENIS_PAY"
-                                    required>
-
-                                    <option value="">
-                                        -- PILIH --
-                                    </option>
-
-                                    <option value="LUNAS">
-                                        LUNAS
-                                    </option>
-
-                                    <option value="TEMPO">
-                                        TEMPO
-                                    </option>
-
-                                </select>
+                                <input
+                                    type="text"
+                                    id="poMaterialAdd"
+                                    class="form-control po-input"
+                                    readonly>
 
                             </div>
 
-                            <div class="col-md-3">
-                                <label class="form-label">
-                                    No Nota
+                        </div>
+
+                        <!-- ===================================================== -->
+                        <!-- DOCUMENT -->
+                        <!-- ===================================================== -->
+
+                        <div class="receive-group-title">
+                            Document Information
+                        </div>
+
+                        <div class="row g-3 mb-4">
+
+                            <div class="col-md-6">
+
+                                <label class="po-label">
+                                    Receive Number
                                 </label>
 
-                                <input type="text"
-                                    name="NOTA"
-                                    class="form-control" placeholder="Opsional..">
-                            </div>
+                                <input
+                                    type="text"
+                                    id="RECEIVE_NO_ADD"
+                                    class="form-control po-input readonly"
+                                    readonly
+                                    placeholder="Auto Generate">
 
-                            <div class="col-md-3">
-                                <label class="form-label">
-                                    No Ref
-                                </label>
-
-                                <input type="text"
-                                    name="NO_REF"
-                                    class="form-control" placeholder="Opsional..">
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label">
+
+                                <label class="po-label">
+                                    Slip Number
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="SLIP_NO_ADD"
+                                    class="form-control po-input readonly"
+                                    readonly
+                                    placeholder="Auto Generate">
+
+                            </div>
+
+                            <div class="col-md-6">
+
+                                <label class="po-label">
+                                    Nota
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="NOTA"
+                                    class="form-control po-input"
+                                    placeholder="Optional">
+
+                            </div>
+
+                            <div class="col-md-6">
+
+                                <label class="po-label">
+                                    No. Ref
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="NO_REF"
+                                    class="form-control po-input"
+                                    placeholder="Optional">
+
+                            </div>
+
+                        </div>
+
+                        <!-- ===================================================== -->
+                        <!-- PAYMENT -->
+                        <!-- ===================================================== -->
+
+                        <div class="receive-group-title">
+                            Payment Information
+                        </div>
+
+                        <div class="row g-3 mb-4">
+
+                            <div class="col-md-6">
+
+                                <label class="po-label">
+                                    Payment <span class="required">*</span>
+                                </label>
+
+                                <select
+                                    id="paymentAdd"
+                                    name="PEMBAYARAN"
+                                    class="form-select po-select"
+                                    required>
+
+                                    <option value="">-- SELECT --</option>
+                                    <option value="CASH">CASH</option>
+                                    <option value="TRANSFER">TRANSFER</option>
+
+                                </select>
+
+                            </div>
+
+                            <div class="col-md-6">
+
+                                <label class="po-label">
+                                    Payment Type <span class="required">*</span>
+                                </label>
+
+                                <select
+                                    id="jenisPayAdd"
+                                    name="JENIS_PAY"
+                                    class="form-select po-select"
+                                    required>
+
+                                    <option value="">-- SELECT --</option>
+                                    <option value="LUNAS">LUNAS</option>
+                                    <option value="TEMPO">TEMPO</option>
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+                        <!-- ===================================================== -->
+                        <!-- OTHER -->
+                        <!-- ===================================================== -->
+
+                        <div class="receive-group-title">
+                            Other Information
+                        </div>
+
+                        <div class="row g-3">
+
+                            <div class="col-md-12">
+
+                                <label class="po-label">
                                     Attachment
                                 </label>
 
-                                <input type="file"
+                                <input
+                                    type="file"
                                     id="ATTACHMENT_ADD"
                                     name="ATTACHMENT"
-                                    class="form-control">
+                                    class="form-control po-input">
+
                             </div>
 
                             <div class="col-md-12">
-                                <label class="form-label">
+
+                                <label class="po-label">
                                     Remark
                                 </label>
 
-                                <textarea name="REMARK"
-                                    rows="2"
-                                    class="form-control" placeholder="Opsional.."></textarea>
+                                <textarea
+                                    name="REMARK"
+                                    rows="3"
+                                    class="form-control po-input"
+                                    placeholder="Input remark..."></textarea>
+
                             </div>
 
                         </div>
 
                     </div>
 
-                    <!-- =====================================
-                    MASTER PO
-                    ====================================== -->
+                    <!-- ==========================================================
+                    PO ACTUAL INFORMATION
+                    =========================================================== -->
+                    <div class="po-section-card">
 
-                    <div class="po-master-card mb-3">
+                        <div class="po-section-title">
 
-                        <div class="po-master-title">
-                            MASTER PO INFORMATION
+                            <span>
+
+                                <i class="ti ti-chart-bar me-2"></i>
+
+                                ACTUAL RECEIVE SUMMARY
+
+                            </span>
+
+                        </div>
+
+                        <!-- ========================================================= -->
+                        <!-- Production -->
+                        <!-- ========================================================= -->
+
+                        <div class="receive-group-title">
+                            Production
+                        </div>
+
+                        <div class="row g-3 mb-4">
+
+                            <div class="col-md-3">
+
+                                <div class="metric-card">
+
+                                    <div class="metric-label">
+                                        Qty Actual
+                                    </div>
+
+                                    <div
+                                        id="masterQtyAdd"
+                                        class="metric-value">
+                                        -
+                                    </div>
+
+                                    <div class="metric-unit">
+                                        Ekor
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-3">
+
+                                <div class="metric-card">
+
+                                    <div class="metric-label">
+                                        Weight
+                                    </div>
+
+                                    <div
+                                        id="masterBwAdd"
+                                        class="metric-value">
+                                        -
+                                    </div>
+
+                                    <div class="metric-unit">
+                                        Kg
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-3">
+
+                                <div class="metric-card">
+
+                                    <div class="metric-label">
+                                        Avg BW
+                                    </div>
+
+                                    <div
+                                        id="masterAvgBwAdd"
+                                        class="metric-value">
+                                        -
+                                    </div>
+
+                                    <div class="metric-unit">
+                                        Kg
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-3">
+
+                                <div class="metric-card">
+
+                                    <div class="metric-label">
+                                        Price
+                                    </div>
+
+                                    <div
+                                        id="masterHargaAdd"
+                                        class="metric-money">
+                                        Rp 0
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- ========================================================= -->
+                        <!-- Quality -->
+                        <!-- ========================================================= -->
+
+                        <div class="receive-group-title">
+                            Quality
+                        </div>
+
+                        <div class="row g-3 mb-4">
+
+                            <div class="col-md-3">
+
+                                <div class="metric-card danger">
+
+                                    <div class="metric-label">
+                                        Dead Qty
+                                    </div>
+
+                                    <div
+                                        id="masterMatiQtyAdd"
+                                        class="metric-value">
+                                        0
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-3">
+
+                                <div class="metric-card danger">
+
+                                    <div class="metric-label">
+                                        Dead BW
+                                    </div>
+
+                                    <div
+                                        id="masterMatiBwAdd"
+                                        class="metric-value">
+                                        0
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-3">
+
+                                <div class="metric-card warning">
+
+                                    <div class="metric-label">
+                                        Shrink BW
+                                    </div>
+
+                                    <div
+                                        id="masterSusutBwAdd"
+                                        class="metric-value">
+                                        0
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-md-3">
+
+                                <div class="metric-card success">
+
+                                    <div class="metric-label">
+                                        Receive Qty
+                                    </div>
+
+                                    <div
+                                        id="masterTerimaQtyAdd"
+                                        class="metric-value">
+                                        0
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- ========================================================= -->
+                        <!-- Financial & Logistic -->
+                        <!-- ========================================================= -->
+
+                        <div class="receive-group-title">
+                            Financial & Logistic
                         </div>
 
                         <div class="row g-3">
 
                             <div class="col-md-4">
-                                <label class="form-label">
-                                    Material
-                                </label>
 
-                                <input type="text"
-                                    id="poMaterialAdd"
-                                    class="form-control"
-                                    readonly>
+                                <div class="metric-card success">
+
+                                    <div class="metric-label">
+                                        Receive BW
+                                    </div>
+
+                                    <div
+                                        id="masterTerimaBwAdd"
+                                        class="metric-value">
+                                        0
+                                    </div>
+
+                                    <div class="metric-unit">
+                                        Kg
+                                    </div>
+
+                                </div>
+
                             </div>
 
-                            <div class="col-md-2">
-                                <label class="form-label">
-                                    Qty
-                                </label>
+                            <div class="col-md-4">
 
-                                <input type="text"
-                                    id="poJumlahAdd"
-                                    class="form-control text-end"
-                                    readonly>
+                                <div class="metric-card primary">
+
+                                    <div class="metric-label">
+                                        Grand Total
+                                    </div>
+
+                                    <div
+                                        id="masterTotalAdd"
+                                        class="metric-money">
+                                        Rp 0
+                                    </div>
+
+                                </div>
+
                             </div>
 
-                            <div class="col-md-2">
-                                <label class="form-label">
-                                    Berat
-                                </label>
+                            <div class="col-md-4">
 
-                                <input type="text"
-                                    id="poBeratAdd"
-                                    class="form-control text-end"
-                                    readonly>
-                            </div>
+                                <div class="info-box">
 
-                            <div class="col-md-2">
-                                <label class="form-label">
-                                    Harga
-                                </label>
+                                    <div class="info-item">
 
-                                <input type="text"
-                                    id="poHargaAdd"
-                                    class="form-control text-end"
-                                    readonly>
-                            </div>
+                                        <label>Truck</label>
 
-                            <div class="col-md-2">
-                                <label class="form-label">
-                                    Total
-                                </label>
+                                        <span id="masterTruckAdd">
+                                            -
+                                        </span>
 
-                                <input type="text"
-                                    id="poTotalAdd"
-                                    class="form-control text-end"
-                                    readonly>
-                            </div>
+                                    </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label">
-                                    Truck
-                                </label>
+                                    <div class="info-divider"></div>
 
-                                <input type="text"
-                                    id="poTruckAdd"
-                                    class="form-control"
-                                    readonly>
-                            </div>
+                                    <div class="info-item">
 
-                            <div class="col-md-6">
-                                <label class="form-label">
-                                    Driver
-                                </label>
+                                        <label>Driver</label>
 
-                                <input type="text"
-                                    id="poDriverAdd"
-                                    class="form-control"
-                                    readonly>
+                                        <span id="masterDriverAdd">
+                                            -
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
                             </div>
 
                         </div>
 
                     </div>
 
-                    <!-- =====================================
-                    DETAIL
-                    ====================================== -->
+                    <!-- ==========================================================
+                    CUSTOMER DETAIL
+                    =========================================================== -->
+                    <div class="po-section-card">
 
-                    <div class="receive-section">
+                        <div class="po-section-title d-flex justify-content-between align-items-center">
 
-                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span>
 
-                            <div class="receive-section-title mb-0">
-                                DETAIL RECEIVE
-                            </div>
+                                <i class="ti ti-users me-2"></i>
 
-                            <button type="button"
-                                class="btn btn-warning btn-sm"
-                                id="btnAddRemainingRow">
+                                CUSTOMER ALLOCATION
 
-                                + Remaining Row
+                            </span>
+
+                            <button
+                                type="button"
+                                id="btnAddCustomer"
+                                class="btn btn-success btn-modern">
+
+                                <i class="ti ti-plus"></i>
+
+                                Add Customer
 
                             </button>
 
@@ -770,30 +1754,359 @@ STYLE
 
                         <div class="table-responsive">
 
-                            <table class="table table-bordered"
-                                id="receiveDetailTableAdd">
+                            <table
+                                class="table customer-table align-middle"
+                                id="customerTableAdd">
 
                                 <thead>
 
                                     <tr>
 
-                                        <th>Customer</th>
-                                        <th>PO Type</th>
-                                        <th>Jumlah</th>
-                                        <th>Berat</th>
-                                        <th>Harga</th>
-                                        <th>Total</th>
-                                        <th>Susut Jumlah</th>
-                                        <th>Susut Berat</th>
-                                        <th>Keterangan</th>
+                                        <th style="width:24%">Customer</th>
+                                        <th style="width:10%">Qty</th>
+                                        <th style="width:10%">BW</th>
+                                        <th style="width:12%">Price</th>
+                                        <th style="width:12%">Discount</th>
+                                        <th>Remark</th>
+                                        <th style="width:14%">Total</th>
+                                        <th style="width:5%"></th>
 
                                     </tr>
 
                                 </thead>
 
-                                <tbody></tbody>
+                                <tbody>
+
+                                </tbody>
 
                             </table>
+
+                        </div>
+
+                        <div class="allocation-summary mt-4">
+
+                            <div class="row">
+
+                                <div class="col-md-5">
+
+                                    <div class="summary-card">
+
+                                        <div class="summary-title">
+
+                                            Qty Allocation
+
+                                        </div>
+
+                                        <div class="summary-row">
+
+                                            <span>Actual</span>
+
+                                            <strong id="summaryQtyActual">
+                                                0
+                                            </strong>
+
+                                        </div>
+
+                                        <div class="summary-row">
+
+                                            <span>Allocated</span>
+
+                                            <strong id="summaryQtyUsed">
+                                                0
+                                            </strong>
+
+                                        </div>
+
+                                        <div class="summary-row total">
+
+                                            <span>Remaining</span>
+
+                                            <strong id="summaryQtyRemaining">
+                                                0
+                                            </strong>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-md-5">
+
+                                    <div class="summary-card">
+
+                                        <div class="summary-title">
+
+                                            BW Allocation
+
+                                        </div>
+
+                                        <div class="summary-row">
+
+                                            <span>Actual</span>
+
+                                            <strong id="summaryBwActual">
+                                                0
+                                            </strong>
+
+                                        </div>
+
+                                        <div class="summary-row">
+
+                                            <span>Allocated</span>
+
+                                            <strong id="summaryBwUsed">
+                                                0
+                                            </strong>
+
+                                        </div>
+
+                                        <div class="summary-row total">
+
+                                            <span>Remaining</span>
+
+                                            <strong id="summaryBwRemaining">
+                                                0
+                                            </strong>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-md-2">
+
+                                    <div class="progress-card">
+
+                                        <div class="progress-title">
+
+                                            Allocation
+
+                                        </div>
+
+                                        <div class="progress">
+
+                                            <div
+                                                id="allocationProgress"
+                                                class="progress-bar"
+                                                role="progressbar"
+                                                style="width:0%">
+
+                                                0%
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- ==========================================================
+                    SAVING
+                    =========================================================== -->
+                    <div class="po-section-card">
+
+                        <div class="po-section-title d-flex justify-content-between align-items-center">
+
+                            <span>
+
+                                <i class="ti ti-pig-money me-2"></i>
+
+                                CUSTOMER SAVING
+
+                            </span>
+
+                            <button
+                                type="button"
+                                id="btnAddSaving"
+                                class="btn btn-success btn-modern">
+
+                                <i class="ti ti-plus"></i>
+
+                                Add Saving
+
+                            </button>
+
+                        </div>
+
+                        <p class="section-description">
+
+                            Tambahkan tabungan customer apabila ada potongan yang akan disimpan
+                            sebagai saldo/tabungan.
+
+                        </p>
+
+                        <div class="table-responsive">
+
+                            <table
+                                class="table saving-table align-middle"
+                                id="savingTableAdd">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th style="width:35%">
+                                            Customer
+                                        </th>
+
+                                        <th style="width:20%">
+                                            Saving Amount
+                                        </th>
+
+                                        <th>
+                                            Remark
+                                        </th>
+
+                                        <th style="width:6%">
+                                        </th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                        <div class="saving-footer mt-3">
+
+                            <div class="saving-total">
+
+                                <span>
+
+                                    Total Saving
+
+                                </span>
+
+                                <strong id="savingGrandTotal">
+
+                                    Rp 0
+
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- ==========================================================
+                    PAYMENT SUMMARY
+                    =========================================================== -->
+                    <div class="po-section-card">
+
+                        <div class="po-section-title">
+
+                            <span>
+
+                                <i class="ti ti-cash-banknote me-2"></i>
+
+                                PAYMENT SUMMARY
+
+                            </span>
+
+                        </div>
+
+                        <p class="section-description">
+
+                            Ringkasan pembayaran customer setelah dikurangi discount dan ditambah tabungan.
+
+                        </p>
+
+                        <div class="table-responsive">
+
+                            <table
+                                class="table payment-table align-middle"
+                                id="paymentSummaryTableAdd">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th style="width:40%">
+                                            Customer
+                                        </th>
+
+                                        <th class="text-end">
+                                            Sales
+                                        </th>
+
+                                        <th class="text-end">
+                                            Saving
+                                        </th>
+
+                                        <th class="text-end">
+                                            Total Payment
+                                        </th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                        <div class="payment-footer mt-4">
+
+                            <div class="payment-summary-box">
+
+                                <div class="payment-row">
+
+                                    <span>Total Sales</span>
+
+                                    <strong id="grandSalesAdd">
+
+                                        Rp 0
+
+                                    </strong>
+
+                                </div>
+
+                                <div class="payment-row">
+
+                                    <span>Total Saving</span>
+
+                                    <strong id="grandSavingAdd">
+
+                                        Rp 0
+
+                                    </strong>
+
+                                </div>
+
+                                <hr>
+
+                                <div class="payment-row payment-grand">
+
+                                    <span>Grand Payment</span>
+
+                                    <strong id="grandPaymentAdd">
+
+                                        Rp 0
+
+                                    </strong>
+
+                                </div>
+
+                            </div>
 
                         </div>
 
@@ -1324,2490 +2637,1460 @@ STYLE
 
 </div>
 
+<!-- ===================================================== -->
+<!-- LOOKUP MODAL -->
+<!-- ===================================================== -->
+
+<div
+    class="modal fade"
+    id="lookupModal"
+    tabindex="-1">
+
+    <div class="modal-dialog modal-xl">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5
+                    class="modal-title"
+                    id="lookupTitle">
+
+                    Lookup
+
+                </h5>
+
+                <button
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <div class="row mb-3">
+
+                    <div class="col-md-12">
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+
+                                <i class="ti ti-search"></i>
+
+                            </span>
+
+                            <input
+                                id="lookupKeyword"
+                                class="form-control"
+                                placeholder="Search...">
+
+                        </div>
+
+                        <div
+                            id="lookupLoading"
+                            class="text-center py-4 d-none">
+
+                            <div
+                                class="spinner-border text-primary">
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="table-responsive" style="max-height:420px">
+
+                    <table
+                        id="lookupTable"
+                        class="table table-hover table-bordered align-middle">
+
+                        <thead>
+
+                        </thead>
+
+                        <tbody>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <div
+                    id="lookupEmpty"
+                    class="text-center py-4 d-none">
+
+                    Tidak ada data.
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
 <script>
-    const LOGIN_ROLE =
-        <?= (int)$this->session->userdata('role_id'); ?>;
+    const base_url = "<?= base_url(); ?>";
+/**************************************************************************
+ *
+ * RECEIVE CREATE
+ *
+ **************************************************************************/
 
-    const LOGIN_USER =
-        '<?= $this->session->userdata('username'); ?>';
-    let today = new Date();
+/*
+|--------------------------------------------------------------------------
+| UTILITY
+|--------------------------------------------------------------------------
+*/
 
-    let firstDay = new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        1
+function liveDecimal(input){
+
+    let value = input.value;
+
+    value = value.replace(/\./g,'');
+
+    value = value.replace(",", ".");
+
+    let number = parseFloat(value);
+
+    if(isNaN(number)){
+        number = 0;
+    }
+
+    input.value = formatDecimal(number);
+
+}
+
+function liveMoney(input){
+
+    let value = input.value;
+
+    value = value.replace(/[^\d]/g,'');
+
+    if(value==""){
+        value=0;
+    }
+
+    input.value = formatMoney(value);
+
+}
+
+function parseDecimal(value)
+{
+    if(value === null || value === undefined){
+        return 0;
+    }
+
+    value = value.toString();
+
+    value = value
+        .replace(/\./g,'')
+        .replace(',','.');
+
+    let number = parseFloat(value);
+
+    return isNaN(number)
+        ? 0
+        : number;
+}
+
+function formatDecimal(value)
+{
+    value = parseFloat(value);
+
+    if(isNaN(value)){
+        value = 0;
+    }
+
+    return value.toLocaleString(
+        'id-ID',
+        {
+            minimumFractionDigits:2,
+            maximumFractionDigits:2
+        }
+    );
+}
+
+function parseMoney(value)
+{
+    if(value === null || value === undefined){
+        return 0;
+    }
+
+    value = value.toString();
+
+    value = value.replace(/[^\d]/g,'');
+
+    return parseFloat(value) || 0;
+}
+
+function formatMoney(value)
+{
+    value = parseFloat(value);
+
+    if(isNaN(value)){
+        value = 0;
+    }
+
+    return value.toLocaleString('id-ID');
+}
+
+function formatDecimalID(value, decimals = 2) {
+    if (value === null || value === '' || isNaN(value)) return '';
+
+    return parseFloat(value)
+        .toLocaleString('id-ID', {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals
+        });
+}
+
+function parseDecimalID(value) {
+        if (!value) return 0;
+        return parseFloat(
+            value.replace(/\./g, '').replace(',', '.')
+        ) || 0;
+    }
+
+$(document).on('input', '.decimal-input', function () {
+
+    let value = $(this).val();
+
+    value = value.replace(/[^0-9,]/g, '');
+
+    let parts = value.split(',');
+
+    let integer = parts[0];
+
+    let decimal = parts.length > 1
+        ? parts[1].substring(0, 2)
+        : '';
+
+    integer = integer.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+    if(parts.length > 1){
+
+        value = integer + ',' + decimal;
+
+    }else{
+
+        value = integer;
+
+    }
+
+    $(this).val(value);
+
+});
+
+$(document).on('blur', '.decimal-input', function () {
+    let val = parseDecimalID(this.value);
+    this.value = formatDecimalID(val);
+});
+
+$(document).on('input', '.rupiah-input', function(){
+
+    let value = $(this).val().replace(/\D/g,'');
+
+    if(value === ''){
+        $(this).val('');
+        return;
+    }
+
+    $(this).val(
+        parseInt(value,10).toLocaleString('id-ID')
     );
 
-    let state = {
+});
 
-        page : 1,
+/*
+|--------------------------------------------------------------------------
+| STATE
+|--------------------------------------------------------------------------
+*/
 
-        limit : 10,
+const receiveState = {
 
-        search : '',
+    po : null,
 
-        order : 'RECEIVE_DATE',
+    customerMaster : [],
 
-        dir : 'DESC',
+    customerRows : [],
 
-        status : '',
+    savingRows : [],
 
-        date_from : convertDateToMysql(
-            $('#dateFrom').val()
-        ),
+    actual : {
 
-        date_to : convertDateToMysql(
-            $('#dateTo').val()
+        qty : 0,
+
+        bw : 0,
+
+        avgBw : 0,
+
+        matiQty : 0,
+
+        matiBw : 0,
+
+        susutBw : 0,
+
+        receiveQty : 0,
+
+        receiveBw : 0,
+
+        harga : 0,
+
+        total : 0
+
+    }
+
+};
+
+/*
+|--------------------------------------------------------------------------
+| INIT
+|--------------------------------------------------------------------------
+*/
+
+function openLookup(type){
+
+    lookupType = type;
+
+    $("#lookupKeyword").val("");
+
+    switch(type){
+
+        case "PO":
+
+            $("#lookupTitle").text("Purchase Order");
+
+            renderPOHeader();
+
+            loadLookupPO();
+
+            break;
+
+        case "CUSTOMER":
+
+            $("#lookupTitle").text("Customer");
+
+            renderCustomerHeader();
+
+            loadLookupCustomer();
+
+            break;
+
+    }
+
+    bootstrap.Modal
+    .getOrCreateInstance(
+        document.getElementById("lookupModal")
+    )
+    .show();
+
+}
+
+$("#btnLookupPO").click(function(){
+
+    openLookup("PO");
+
+});
+
+function renderPOHeader(){
+
+    $("#lookupTable thead").html(`
+        <tr>
+            <th>PO</th>
+            <th>Supplier</th>
+            <th>Material</th>
+            <th class="text-end">Qty</th>
+            <th class="text-end">BW</th>
+        </tr>
+    `);
+
+}
+
+function renderCustomerHeader(){
+
+    $("#lookupTable thead").html(`
+        <tr>
+            <th>Customer</th>
+            <th>Nama</th>
+            <th>Alamat</th>
+        </tr>
+    `);
+
+}
+
+let lookupTimer;
+
+$("#lookupKeyword").keyup(function(){
+
+    clearTimeout(lookupTimer);
+
+    const keyword=$(this).val();
+
+    lookupTimer=setTimeout(function(){
+
+        switch(lookupType){
+
+            case "PO":
+
+                loadLookupPO(keyword);
+
+                break;
+
+            case "CUSTOMER":
+
+                loadLookupCustomer(keyword);
+
+                break;
+
+        }
+
+    },300);
+
+});
+
+function showLookupLoading(){
+
+    $("#lookupLoading").removeClass("d-none");
+    $("#lookupEmpty").addClass("d-none");
+    $("#lookupTable").hide();
+
+}
+
+function hideLookupLoading(hasData){
+
+    $("#lookupLoading").addClass("d-none");
+
+    if(hasData){
+
+        $("#lookupEmpty").addClass("d-none");
+        $("#lookupTable").show();
+
+    }else{
+
+        $("#lookupEmpty").removeClass("d-none");
+        $("#lookupTable").hide();
+
+    }
+
+}
+
+let lookupType = "";
+let lookupData = [];
+
+function loadLookupPO(keyword = ""){
+
+    $.ajax({
+
+        url : base_url+"receive/lookup_po",
+
+        type : "GET",
+
+        dataType : "json",
+
+        data : {
+
+            plant : $("#plantAdd").val(),
+
+            keyword : keyword
+
+        },
+
+        beforeSend:function(){
+
+            showLookupLoading();
+
+        },
+
+        success:function(res){
+
+            lookupData = res;
+
+            renderLookupPO();
+
+        },
+
+        complete:function(){
+
+            hideLookupLoading(lookupData.length > 0);
+
+        }
+
+            });
+        }
+
+function loadLookupCustomer(keyword=""){
+
+    $.ajax({
+
+        url:base_url+"receive/lookup_customer",
+
+        type:"GET",
+
+        dataType:"json",
+
+        data:{
+            keyword:keyword
+        },
+
+        beforeSend:function(){
+
+            showLookupLoading();
+
+        },
+
+        success:function(res){
+
+            lookupData = res;
+
+            renderLookupCustomer();
+
+        },
+
+        complete:function(){
+
+            hideLookupLoading(lookupData.length > 0);
+
+        }
+
+    });
+
+}
+
+function renderLookupPO(){
+
+    let tbody=$("#lookupTable tbody");
+
+    tbody.empty();
+
+    $.each(lookupData,function(i,row){
+
+        let tr=$(`
+            <tr class="lookup-row">
+                <td>${row.PO}</td>
+                <td>${row.SUPPLIER_NAME}</td>
+                <td>${row.MATERIAL_NAME}</td>
+                <td class="text-end">${formatDecimal(row.TOTAL_TERIMA_QTY)}</td>
+                <td class="text-end">${formatDecimal(row.TOTAL_TERIMA_BW)}</td>
+            </tr>
+        `);
+
+        tr.data("row",row);
+
+        tbody.append(tr);
+
+    });
+
+}
+
+function renderLookupCustomer(){
+
+    let tbody=$("#lookupTable tbody");
+
+    tbody.empty();
+
+    $.each(lookupData,function(i,row){
+
+        let tr=$(`
+            <tr class="lookup-row">
+                <td>${row.CUSTOMER}</td>
+                <td>${row.CUSTOMER_NAME}</td>
+                <td>${row.ADDRESS ?? "-"}</td>
+            </tr>
+        `);
+
+        tr.data("row",row);
+
+        tbody.append(tr);
+
+    });
+
+}
+
+$(document).on("click",".lookup-row",function(){
+
+    const row=$(this).data("row");
+
+    switch(lookupType){
+
+        case "PO":
+
+            fillPO(row);
+
+            break;
+
+        case "CUSTOMER":
+
+            addCustomer(row);
+
+            break;
+
+    }
+
+    bootstrap.Modal
+        .getOrCreateInstance(
+            document.getElementById("lookupModal")
         )
+        .hide();
+
+});
+
+function fillPO(po)
+{
+    /*
+    |--------------------------------------------------------------------------
+    | RECEIVE INFORMATION
+    |--------------------------------------------------------------------------
+    */
+    receiveState.po = po;
+    receiveState.actual = {
+
+        qty : Number(po.JUMLAH),
+
+        bw : Number(po.BERAT),
+
+        avgBw : Number(po.AVG_BW),
+
+        matiQty : Number(po.MATI_QTY),
+
+        matiBw : Number(po.MATI_BW),
+
+        susutBw : Number(po.SUSUT_BW),
+
+        receiveQty : Number(po.TOTAL_TERIMA_QTY),
+
+        receiveBw : Number(po.TOTAL_TERIMA_BW),
+
+        harga : Number(po.HARGA),
+
+        total : Number(po.TOTAL)
 
     };
 
-    $('#search').on(
-        'keyup',
-        debounce(function(){
+    $("#hiddenPoAdd").val(po.PO);
 
-            state.search =
-                $('#search').val();
+    $("#poText").val(po.PO);
 
-            loadPage(1);
+    $("#poAdd").val(po.PO);
 
-        }, 400)
+    $("#supplierAddText").val(po.SUPPLIER_NAME);
+
+    $("#hiddensupplierAdd").val(po.SUPPLIER);
+
+    $("#poMaterialAdd").val(po.MATERIAL_NAME);
+
+    /*
+    |--------------------------------------------------------------------------
+    | PO INFORMATION
+    |--------------------------------------------------------------------------
+    */
+
+    $("#masterQtyAdd").text(
+        formatDecimal(po.JUMLAH)
     );
 
-    $('#filterStatus').change(function(){
+    $("#masterBwAdd").text(
+        formatDecimal(po.BERAT)
+    );
 
-        state.status =
-            $(this).val();
+    $("#masterAvgBwAdd").text(
+        formatDecimal(po.AVG_BW)
+    );
 
-        loadPage(1);
+    $("#masterMatiQtyAdd").text(
+        formatDecimal(po.MATI_QTY)
+    );
 
-    });
+    $("#masterMatiBwAdd").text(
+        formatDecimal(po.MATI_BW)
+    );
 
-    $('#dateFrom, #dateTo').change(function(){
+    $("#masterSusutBwAdd").text(
+        formatDecimal(po.SUSUT_BW)
+    );
 
-        state.date_from =
-            convertDateToMysql(
-                $('#dateFrom').val()
-            );
+    $("#masterTerimaQtyAdd").text(
+        formatDecimal(po.TOTAL_TERIMA_QTY)
+    );
 
-        state.date_to =
-            convertDateToMysql(
-                $('#dateTo').val()
-            );
+    $("#masterTerimaBwAdd").text(
+        formatDecimal(po.TOTAL_TERIMA_BW)
+    );
 
-        loadPage(1);
+    $("#masterHargaAdd").text(
+        formatMoney(po.HARGA)
+    );
 
-    });
+    $("#masterTotalAdd").text(
+        formatMoney(po.TOTAL)
+    );
 
-    $('#btnResetFilter').click(function(){
+    $("#masterTruckAdd").text(
+        po.NO_TRUCK
+    );
 
-        $('#search').val('');
+    $("#masterDriverAdd").text(
+        po.DRIVER
+    );
 
-        $('#filterStatus').val('');
+    /*
+    |--------------------------------------------------------------------------
+    | RESET DETAIL
+    |--------------------------------------------------------------------------
+    */
 
-        let firstDay =
-            new Date(
-                new Date().getFullYear(),
-                new Date().getMonth(),
-                1
-            )
-            .toISOString()
-            .split('T')[0];
+    resetCustomerSummary();
 
-        let today =
-            new Date()
-            .toISOString()
-            .split('T')[0];
+    receiveState.customerRows = [];
+    receiveState.savingRows = [];
 
-        $('#dateFrom').val(firstDay);
+    refreshCustomer();
 
-        $('#dateTo').val(today);
+    $("#savingTableAdd tbody").empty();
 
-        state.date_from =
-            convertDateToMysql(firstDay);
+    $("#paymentSummaryTableAdd tbody").empty();
 
-        state.date_to =
-            convertDateToMysql(today);
+    /*
+    |--------------------------------------------------------------------------
+    | CLOSE LOOKUP
+    |--------------------------------------------------------------------------
+    */
 
-        state.search = '';
+    bootstrap.Modal
+        .getOrCreateInstance(
+            document.getElementById("lookupModal")
+        )
+        .hide();
+}
 
-        state.status = '';
+function addCustomer(customer)
+{
+    console.log("ADD CUSTOMER", customer);
+    let exists =
+        receiveState.customerRows.some(function(item){
 
-        loadPage(1);
+            return item.customer === customer.CUSTOMER;
 
-    });
+        });
 
-    function debounce(func, wait){
+    if(exists){
 
-        let timeout;
+        Swal.fire({
 
-        return function(){
+            icon:"warning",
 
-            let context = this;
+            title:"Customer sudah dipilih."
 
-            let args = arguments;
+        });
 
-            clearTimeout(timeout);
-
-            timeout = setTimeout(function(){
-
-                func.apply(
-                    context,
-                    args
-                );
-
-            }, wait);
-
-        };
+        return;
 
     }
 
-    function convertDateToMysql(date){
+    receiveState.customerRows.push({
 
-        if(!date){
-            return '';
-        }
+        customer : customer.CUSTOMER,
 
-        // sudah format mysql
-        if(date.includes('-')){
-            return date;
-        }
+        customer_name : customer.CUSTOMER_NAME,
 
-        // format dd/mm/yyyy
-        let split = date.split('/');
+        qty : 0,
 
-        if(split.length !== 3){
-            return '';
-        }
+        bw : 0,
 
-        return `${split[2]}-${split[1]}-${split[0]}`;
+        harga : receiveState.actual.harga,
+
+        discount : 0,
+
+        remark : "",
+
+        avgBw : 0,
+
+        total : 0
+
+    });
+
+    refreshCustomer();
+    $("#lookupKeyword").val("");
+
+    bootstrap.Modal
+    .getOrCreateInstance(
+        document.getElementById("lookupModal")
+    )
+    .hide();
+}
+
+function updateCustomerRow(index)
+{
+    let row = receiveState.customerRows[index];
+
+    row.total =
+        (row.bw * row.harga)
+        - row.discount;
+
+    if(row.total < 0){
+        row.total = 0;
     }
+}
 
-    function initPlantSelect2(selector, modalId){
+function getCustomer(index)
+{
+    return receiveState.customerRows[index];
+}
 
-        $(selector).select2({
-            theme:'bootstrap-5',
-            placeholder:'-- PILIH PLANT --',
+function removeCustomer(index)
+{
+    receiveState.customerRows.splice(
+        index,
+        1
+    );
 
-            dropdownParent: $(modalId),
+    refreshCustomer();
+}
 
-            width:'100%',
+function renderCustomerTable()
+{
+    let tbody =
+        $("#customerTableAdd tbody");
 
-            ajax:{
+    tbody.empty();
 
-                url:'<?= base_url("receive/get_plant"); ?>',
+    
 
-                dataType:'json',
+    $.each(
+        receiveState.customerRows,
+        function(i,row){
+            let avg = 0;
 
-                delay:250,
+            if(row.qty>0){
 
-                processResults:function(data){
-
-                    return {
-                        results:data
-                    };
-
-                }
+                avg = row.bw / row.qty;
 
             }
 
-        });
-
-    }
-
-    function setDefaultPlant(selector){
-        $.ajax({
-            url: "<?= base_url('receive/get_plant'); ?>",
-            dataType: "json",
-            success: function(data){
-
-                if(data.length > 0){
-
-                    let first = data[0];
-
-                    let option = new Option(
-                        first.text,
-                        first.id,
-                        true,
-                        true
-                    );
-
-                    $(selector)
-                        .append(option)
-                        .trigger('change');
-
-                    $('#hiddenPlantAdd').val(first.id);
-                }
-            }
-        });
-    }
-
-    function initReceiveAddSelect2(){
-        // ================= PAYMENT =================
-
-        $('#paymentAdd').select2({
-            theme:'bootstrap-5',
-            placeholder:'-- PILIH PAYMENT --',
-            dropdownParent: $('#receiveAdd .modal-body'),
-            width:'100%',
-            minimumResultsForSearch: Infinity
-        });
-
-        // ================= JENIS PAY =================
-
-        $('#jenisPayAdd').select2({
-            theme:'bootstrap-5',
-            placeholder:'-- PILIH JENIS --',
-            dropdownParent: $('#receiveAdd .modal-body'),
-            width:'100%',
-            minimumResultsForSearch: Infinity
-        });
-
-    }
-
-    function initReceiveEditSelect2(){
-        $('#paymentEdit').select2({
-            theme:'bootstrap-5',
-            placeholder:'-- PILIH PAYMENT --',
-            dropdownParent: $('#receiveEdit .modal-body'),
-            width:'100%',
-            minimumResultsForSearch: Infinity
-        });
+            tbody.append(`
 
-        $('#jenisPayEdit').select2({
-            theme:'bootstrap-5',
-            placeholder:'-- PILIH JENIS --',
-            dropdownParent: $('#receiveEdit .modal-body'),
-            width:'100%',
-            minimumResultsForSearch: Infinity
-        });
-    }
+                <tr>
 
-    function formatDate(dateString) {
-        if (!dateString) return '-';
+                    <td>
 
-        const d = new Date(dateString);
-        if (isNaN(d)) return dateString;
+                        <strong>
 
-        const day = String(d.getDate()).padStart(2, '0');
-        const months = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
-        const month = months[d.getMonth()];
-        const year = d.getFullYear();
+                            ${row.customer_name}
 
-        return `${day} ${month} ${year}`;
-    }
-
-    function previewAttachmentEdit(fileName){
+                        </strong>
 
-        // RESET
-        $('#attachmentPreviewEdit').addClass('d-none');
+                    </td>
 
-        $('#attachmentImageEdit')
-            .addClass('d-none')
-            .attr('src','');
+                    <td>
+                        <input
+                            type="text"
+                            class="form-control decimal-input qty-input"
+                            data-index="${i}"
+                            value="${formatDecimalID(row.qty)}">
+                    </td>
 
-        $('#attachmentPdfEdit')
-            .addClass('d-none')
-            .attr('src','');
+                    <td>
+                        <input
+                            type="text"
+                            class="form-control decimal-input bw-input"
+                            data-index="${i}"
+                            value="${formatDecimalID(row.bw)}">
+                    </td>
 
-        $('#attachmentFileEdit')
-            .addClass('d-none');
+                    <td>
+                        <input
+                            type="text"
+                            class="form-control rupiah-input harga-input"
+                            data-index="${i}"
+                            value="${formatMoney(row.harga)}">
+                    </td>
 
-        if(!fileName){
-            return;
-        }
+                    <td>
+                        <input
+                            type="text"
+                            class="form-control rupiah-input discount-input"
+                            data-index="${i}"
+                            value="${formatMoney(row.discount)}">
+                    </td>
 
-        let fileUrl =
-            '<?= base_url("uploads/receive/"); ?>' +
-            fileName;
+                    <td>
 
-        let ext =
-            fileName
-                .split('.')
-                .pop()
-                .toLowerCase();
+                        <input
+                            type="text"
+                            class="form-control remark-input"
+                            data-index="${i}"
+                            value="${row.remark}">
 
-        $('#attachmentPreviewEdit')
-            .removeClass('d-none');
+                    </td>
 
-        // =========================
-        // IMAGE
-        // =========================
+                    <td>
 
-        if(
-            ['jpg','jpeg','png','webp']
-            .includes(ext)
-        ){
+                        <input
+                            class="form-control"
+                            readonly
+                            value="${formatMoney(row.total)}">
 
-            $('#attachmentImageEdit')
-                .removeClass('d-none')
-                .attr('src', fileUrl);
+                    </td>
 
-        }
+                    <td>
 
-        // =========================
-        // PDF
-        // =========================
-
-        else if(ext === 'pdf'){
-
-            $('#attachmentPdfEdit')
-                .removeClass('d-none')
-                .attr('src', fileUrl);
-
-        }
-
-        // =========================
-        // OTHER FILE
-        // =========================
-
-        else{
-
-            $('#attachmentFileEdit')
-                .removeClass('d-none');
-
-            $('#ATTACHMENT_EDIT_LINK')
-                .attr('href', fileUrl);
-
-        }
-
-    }
-
-    function showTableLoading(){
-        $('#tableLoading').removeClass('d-none');
-        $('#tableWrapper').addClass('loading-hide');
-    }
-
-    function hideTableLoading(){
-        $('#tableLoading').addClass('d-none');
-        $('#tableWrapper').removeClass('loading-hide');
-    }
-
-    function formatTanggalIndo(dateStr) {
-        if (!dateStr) return '';
-
-        const bulan = [
-            'Januari','Februari','Maret','April','Mei','Juni',
-            'Juli','Agustus','September','Oktober','November','Desember'
-        ];
-
-        const d = new Date(dateStr);
-        return d.getDate() + ' ' +
-            bulan[d.getMonth()] + ' ' +
-            d.getFullYear();
-    }
-
-    function loadPage(page = 1){
-
-        state.page = page;
-
-        showTableLoading();
-        console.log(state);
-
-        $.get(
-            '<?= base_url("receive/load_data"); ?>',
-            state,
-            function(resp){
-
-                resp =
-                    typeof resp === 'string'
-                        ? JSON.parse(resp)
-                        : resp;
-
-                let tbody =
-                    $('#table-body');
-
-                tbody.empty();
-
-                resp.rows.forEach(function(row){
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | STATUS BADGE
-                    |--------------------------------------------------------------------------
-                    */
-
-                    let statusBadge = `
-                        <span class="badge bg-warning text-dark">
-                            OPEN
-                        </span>
-                    `;
-
-                    if(
-                        row.STATUS_RECEIVE === 'POSTED'
-                    ){
-
-                        statusBadge = `
-                            <span class="badge bg-success">
-                                POSTED
-                            </span>
-                        `;
-
-                    }
-
-                    if(
-                        row.STATUS_RECEIVE === 'CANCEL'
-                    ){
-
-                        statusBadge = `
-                            <span class="badge bg-danger">
-                                CANCEL
-                            </span>
-                        `;
-
-                    }
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | ATTACHMENT ICON
-                    |--------------------------------------------------------------------------
-                    */
-
-                    let attachmentIcon = '';
-
-                    if(
-                        row.ATTACH_FILE_NAME &&
-                        row.ATTACH_FILE_NAME !== ''
-                    ){
-
-                        attachmentIcon = `
-                            <i class="ti ti-paperclip text-primary ms-1"></i>
-                        `;
-
-                    }
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | PO DISPLAY
-                    |--------------------------------------------------------------------------
-                    */
-
-                    let poDisplay = `
-                        <div class="fw-semibold text-muted">
-                            NON PO RECEIVE
-                        </div>
-                    `;
-
-                    if(
-                        row.PO &&
-                        row.PO !== ''
-                    ){
-
-                        poDisplay = `
-                            <div class="fw-bold text-primary">
-                                #${row.PO}
-                            </div>
-
-                            <small class="text-muted">
-                                ${row.PO_TYPE_NAME ?? '-'}
-                            </small>
-                        `;
-
-                    }
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | ACTION BUTTON
-                    |--------------------------------------------------------------------------
-                    */
-
-                    let actionBtn = `
                         <button
-                            class="btn btn-outline-primary exportPdf"
-                            data-receive="${row.RECEIVE}"
-                            data-plant="${row.PLANT}">
+                            class="btn btn-danger btn-sm deleteCustomer"
+                            data-index="${i}">
 
-                            Slip
+                            <i class="ti ti-trash"></i>
 
                         </button>
-                    `;
 
-                    if(
-                        LOGIN_ROLE == 1 ||
-                        row.CREATED_BY === LOGIN_USER
-                    ){
+                    </td>
 
-                        actionBtn += `
+                </tr>
 
-                            <button
-                                class="btn btn-outline-warning editBtn"
-                                data-receive="${row.RECEIVE}"
-                                data-plant="${row.PLANT}">
-
-                                Edit
-
-                            </button>
-
-                            <button
-                                class="btn btn-outline-danger deleteBtn"
-                                data-receive="${row.RECEIVE}"
-                                data-plant="${row.PLANT}">
-
-                                Hapus
-
-                            </button>
-
-                        `;
-
-                    }
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | ROW
-                    |--------------------------------------------------------------------------
-                    */
-
-                    let tr = `
-
-                        <tr>
-
-                            <!-- =========================
-                            PLANT
-                            ========================== -->
-
-                            <td class="text-center align-middle">
-
-                                <div class="fw-semibold">
-
-                                    ${row.PLANT_NAME || '-'}
-
-                                </div>
-
-                            </td>
-
-                            <!-- =========================
-                            RECEIVE
-                            ========================== -->
-
-                            <td class="text-center align-middle">
-
-                                <div class="fw-bold text-primary">
-
-                                    #${row.RECEIVE}
-
-                                </div>
-
-                                <small class="text-muted">
-
-                                    ${row.SLIP_NO || '-'}
-
-                                </small>
-
-                            </td>
-
-                            <!-- =========================
-                            PO
-                            ========================== -->
-
-                            <td class="text-center align-middle">
-
-                                ${poDisplay}
-
-                            </td>
-
-                            <!-- =========================
-                            DATE
-                            ========================== -->
-
-                            <td class="text-center align-middle">
-
-                                ${formatTanggalIndo(
-                                    row.RECEIVE_DATE
-                                )}
-
-                            </td>
-
-                            <!-- =========================
-                            SUPPLIER
-                            ========================== -->
-
-                            <td class="text-center align-middle">
-
-                                <div class="fw-semibold">
-
-                                    ${row.SUPPLIER_NAME || '-'}
-
-                                </div>
-
-                                <small class="text-muted">
-
-                                    ${row.SUPPLIER || '-'}
-
-                                </small>
-
-                            </td>
-
-                            <!-- =========================
-                            MATERIAL
-                            ========================== -->
-
-                            <td class="text-center align-middle">
-
-                                <div class="fw-semibold">
-
-                                    ${row.MATERIAL_NAME || '-'}
-
-                                </div>
-
-                                <small class="text-muted">
-
-                                    ${row.MATERIAL || '-'}
-
-                                </small>
-
-                            </td>
-
-                            <!-- =========================
-                            QTY / WEIGHT
-                            ========================== -->
-
-                            <td class="text-end align-middle">
-
-                                <div>
-
-                                    <span class="fw-semibold">
-                                        Qty :
-                                    </span>
-
-                                    ${formatDecimalID(
-                                        row.TOTAL_QTY ?? 0
-                                    )}
-
-                                </div>
-
-                                <div>
-
-                                    <span class="fw-semibold">
-                                        Weight :
-                                    </span>
-
-                                    ${formatDecimalID(
-                                        row.TOTAL_BERAT ?? 0
-                                    )}
-
-                                </div>
-
-                            </td>
-
-                            <td class="text-center align-middle">
-
-                                <div>
-
-                                    <span class="badge bg-info">
-
-                                        ${row.TOTAL_CUSTOMER ?? 0}
-                                        Customer
-
-                                    </span>
-
-                                </div>
-
-                                <div class="mt-1">
-
-                                    <span class="badge bg-secondary">
-
-                                        ${row.TOTAL_SALES ?? 0}
-                                        Sales
-
-                                    </span>
-
-                                </div>
-
-                            </td>
-
-                            <!-- =========================
-                            STATUS
-                            ========================== -->
-
-                            <td class="text-center align-middle">
-
-                                ${statusBadge}
-
-                            </td>
-
-                            <!-- =========================
-                            ACTION
-                            ========================== -->
-
-                            <td class="text-center align-middle">
-
-                                <div class="btn-group btn-group-sm">
-
-                                    ${actionBtn}
-
-                                </div>
-
-                            </td>
-
-                        </tr>
-
-                    `;
-
-                    tbody.append(tr);
-
-                });
-
-                $('#pagination').html(
-                    resp.pagination
-                );
-
-                $('#info').text(
-                    `Menampilkan halaman ${resp.page} dari ${
-                        Math.ceil(
-                            resp.total /
-                            state.limit
-                        )
-                    } (Total ${resp.total} data)`
-                );
-
-            }
-
-        ).always(function(){
-
-            hideTableLoading();
-
-        });
-
-    }
-
-    /* -------------------------
-    Select2 inits
-    ------------------------- */
-    function initSupplierSelect2(selector, modalId){
-        $(selector).select2({
-            theme:'bootstrap-5',
-            placeholder:'-- PILIH PLANT --',
-            dropdownParent: $('#receiveAdd .modal-body'),
-            width:'100%',
-            ajax: {
-                url: "<?= base_url('receive/get_supplier'); ?>",
-                dataType: "json",
-                delay: 250,
-                data: function(params){ return { q: params.term }; },
-                processResults: function(data){ return { results: data }; }
-            }
-        }).on('select2:select', function(e){
-            let isEdit = $(this).attr('id') === 'supplierEdit';
-            if (isEdit) {
-                $('#hiddensupplierEdit').val(e.params.data.id);
-            } else {
-                $('#hiddensupplierAdd').val(e.params.data.id);
-            }
-        });
-    }
-
-    function setDefaultSupplier(selector){
-        $.ajax({
-            url: "<?= base_url('receive/get_supplier'); ?>",
-            dataType: "json",
-            success: function(data){
-                let found = data.find(x => x.id === 'CS000001');
-                if(found){
-                    let option = new Option(found.text, found.id, true, true);
-                    $(selector).append(option).trigger('change');
-                    $('#hiddensupplierAdd').val(found.id);
-                }
-            }
-        });
-    }
-
-    function setSupplierFromPO(selector, supplierId, supplierText){
-        let option = new Option(supplierText, supplierId, true, true);
-        $(selector).empty().append(option).trigger('change');
-        $('#hiddensupplierAdd').val(supplierId);
-    }
-
-    function setSupplier(selector, supplierId, supplierText){
-        let option = new Option(supplierText, supplierId, true, true);
-        $(selector)
-            .empty()                 // hapus supplier lama
-            .append(option)
-            .trigger('change');
-
-        $('#hiddensupplierAdd').val(supplierId);
-    }
-
-    function formatMoneyID(value){
-
-        if(
-            value === null ||
-            value === '' ||
-            isNaN(value)
-        ){
-            return '';
-        }
-
-        return Number(value).toLocaleString(
-            'id-ID',
-            {
-                minimumFractionDigits:2,
-                maximumFractionDigits:2
-            }
-        );
-
-    }
-
-    function parseRupiah(value){
-
-        if(!value) return 0;
-
-        return parseFloat(
-            value.toString()
-                .replace(/\./g,'')
-                .replace(',', '.')
-        ) || 0;
-
-    }
-
-    function initPoSelect2(){
-        $('#poAdd').select2({
-            theme:'bootstrap-5',
-            placeholder:'-- PILIH PO --',
-            dropdownParent: $('#receiveAdd .modal-body'),
-            width:'100%',
-            ajax:{
-                url:'<?= base_url("receive/get_po"); ?>',
-                dataType:'json',
-                delay:250,
-                data:function(params){
-                    return {
-                        q: params.term,
-                        plant: $('#hiddenPlantAdd').val()
-
-                    };
-                },
-
-                processResults:function(data){
-                    return {
-                        results:data
-                    };
-                }
-            }
-        });
-    }
-
-    function fillPoMaster(header){
-
-        $('#supplierAddText').val(
-            header.SUPPLIER + ' - ' + header.SUPPLIER_NAME
-        );
-
-        $('#hiddensupplierAdd').val(
-            header.SUPPLIER
-        );
-
-        $('#poMaterialAdd').val(
-            header.MATERIAL + ' - ' + header.MATERIAL_NAME
-        );
-
-        $('#poJumlahAdd').val(
-            formatDecimalID(header.JUMLAH)
-        );
-
-        $('#poBeratAdd').val(
-            formatDecimalID(header.BERAT)
-        );
-
-        $('#poHargaAdd').val(
-            formatMoneyID(header.HARGA)
-        );
-
-        $('#poTotalAdd').val(
-            formatMoneyID(header.TOTAL)
-        );
-
-        $('#poTruckAdd').val(
-            header.NO_TRUCK
-        );
-
-        $('#poDriverAdd').val(
-            header.DRIVER
-        );
-
-    }
-
-    function formatDecimalID(value, decimals = 2){
-
-        if(
-            value === null ||
-            value === '' ||
-            isNaN(value)
-        ){
-            return '';
-        }
-
-        return Number(value).toLocaleString(
-            'id-ID',
-            {
-                minimumFractionDigits: decimals,
-                maximumFractionDigits: decimals
-            }
-        );
-
-    }
-
-    function parseDecimalID(value){
-
-        if(!value) return 0;
-
-        value = value.toString();
-
-        // hapus titik ribuan
-        value = value.replace(/\./g,'');
-
-        // ubah koma decimal ke titik
-        value = value.replace(',', '.');
-
-        return parseFloat(value) || 0;
-
-    }
-
-    function unformatNumber(value) {
-        if (!value) return 0;
-        return parseFloat(value.replace(/\./g, '').replace(',', '.')) || 0;
-    }
-
-    /* -------------------------
-    Load PO detail into table
-    ------------------------- */
-    function loadPoDetail(po, plant){
-
-        $.get(
-            '<?= base_url("receive/get_po_detail"); ?>',
-            {
-                po:po,
-                plant:plant
-            },
-            function(resp){
-
-                resp = typeof resp === 'string'
-                    ? JSON.parse(resp)
-                    : resp;
-
-                if(!resp.status){
-
-                    alert(resp.message);
-
-                    return;
-
-                }
-
-                fillPoMaster(resp.header);
-
-                let tbody = $('#receiveDetailTableAdd tbody');
-
-                tbody.empty();
-
-                resp.detail.forEach(function(row){
-
-                    tbody.append(`
-                        <tr class="receive-po-row">
-
-                            <td>
-                                <input type="hidden"
-                                    class="po-seq"
-                                    value="${row.SEQ_NO}">
-
-                                <input type="hidden"
-                                    class="customer-code"
-                                    value="${row.CUSTOMER}">
-
-                                <input type="text"
-                                    class="form-control"
-                                    value="${row.CUSTOMER_NAME}"
-                                    readonly>
-                            </td>
-
-                            <td>
-                                <input type="text"
-                                    class="form-control"
-                                    value="${resp.header.PO_TYPE_NAME}"
-                                    readonly>
-                            </td>
-
-                            <td>
-                                <input type="text"
-                                    class="form-control text-end jumlah"
-                                    value="${formatDecimalID(row.JUMLAH)}">
-                            </td>
-
-                            <td>
-                                <input type="text"
-                                    class="form-control text-end berat"
-                                    value="${formatDecimalID(row.BERAT)}">
-                            </td>
-
-                            <td>
-                                <input type="text"
-                                    class="form-control text-end harga"
-                                    value="${formatMoneyID(row.HARGA)}">
-                            </td>
-
-                            <td>
-                                <input type="text"
-                                    class="form-control text-end total"
-                                    value="${formatMoneyID(row.TOTAL)}">
-                            </td>
-
-                            <td>
-                                <input type="text"
-                                    class="form-control text-end susut-jumlah"
-                                    value="0">
-                            </td>
-
-                            <td>
-                                <input type="text"
-                                    class="form-control text-end susut-berat"
-                                    value="0">
-                            </td>
-
-                            <td>
-                                <input type="text"
-                                    class="form-control keterangan">
-                            </td>
-
-                        </tr>
-                    `);
-
-                });
-
-                calculateReceiveSummary();
-
-            }
-        );
-
-    }
-
-    function initPoTypeSelect2(el, modal){
-
-        $(el).select2({
-            theme:'bootstrap-5',
-
-            placeholder:'-- PILIH TYPE --',
-
-            dropdownParent: $(el).closest('tr'),
-
-            width:'100%',
-
-            ajax:{
-                url:'<?= base_url("receive/get_po_type"); ?>',
-
-                dataType:'json',
-
-                delay:250,
-
-                data:function(params){
-
-                    return {
-                        q:params.term
-                    };
-
-                },
-
-                processResults:function(data){
-
-                    return {
-                        results:data
-                    };
-
-                }
-            }
-
-        });
-
-    }
-
-    function initCustomerSelect2(el, modal){
-
-        $(el).select2({
-            theme:'bootstrap-5',
-
-            placeholder:'-- PILIH CUSTOMER --',
-
-            dropdownParent: $('#receiveAdd .modal-body'),
-
-            width:'100%',
-
-            ajax:{
-
-                url:'<?= base_url("receive/get_customer"); ?>',
-
-                dataType:'json',
-
-                delay:250,
-
-                data:function(params){
-
-                    return {
-                        q: params.term
-                    };
-
-                },
-
-                processResults:function(data){
-
-                    return {
-                        results:data
-                    };
-
-                }
-
-            }
-
-        });
-
-    }
-
-    function addRemainingRow(){
-
-        $('#receiveDetailTableAdd tbody').append(`
-
-            <tr class="receive-extra-row">
-
-                <td>
-                    <select class="customer-extra"></select>
-                </td>
-
-                <td>
-                    <select class="po-type-extra"></select>
-                </td>
-
-                <td>
-                    <input type="text"
-                        class="form-control text-end jumlah-extra">
-                </td>
-
-                <td>
-                    <input type="text"
-                        class="form-control text-end berat-extra">
-                </td>
-
-                <td>
-                    <input type="text"
-                        class="form-control text-end harga-extra">
-                </td>
-
-                <td>
-                    <input type="text"
-                        class="form-control text-end total-extra"
-                        readonly
-                        style="background:#f1f5f9">
-                </td>
-
-                <td>
-                    <input type="text"
-                        class="form-control text-end susut-jumlah"
-                        value="0">
-                </td>
-
-                <td>
-                    <input type="text"
-                        class="form-control text-end susut-berat"
-                        value="0">
-                </td>
-
-                <td>
-                    <input type="text"
-                        class="form-control keterangan">
-                </td>
-
-            </tr>
-
-        `);
-
-        // =========================================
-        // LAST ROW
-        // =========================================
-
-        let lastRow =
-            $('#receiveDetailTableAdd tbody tr:last');
-
-        // =========================================
-        // INIT CUSTOMER SELECT2
-        // =========================================
-
-        initCustomerSelect2(
-            lastRow.find('.customer-extra'),
-            '#receiveAdd'
-        );
-
-        // =========================================
-        // INIT PO TYPE SELECT2
-        // =========================================
-
-        initPoTypeSelect2(
-            lastRow.find('.po-type-extra'),
-            '#receiveAdd'
-        );
-
-        // =========================================
-        // DEFAULT CUSTOMER
-        // =========================================
-
-        let customerOption = new Option(
-            'INTERNAL FARM',
-            'INTERNAL FARM',
-            true,
-            true
-        );
-
-        lastRow
-            .find('.customer-extra')
-            .append(customerOption)
-            .trigger('change');
-
-        // =========================================
-        // DEFAULT TYPE
-        // =========================================
-
-        let typeOption = new Option(
-            'AMBIL SENDIRI',
-            'AMBIL SENDIRI',
-            true,
-            true
-        );
-
-        lastRow
-            .find('.po-type-extra')
-            .append(typeOption)
-            .trigger('change');
-
-        lastRow.on(
-            'keyup input change',
-            '.berat-extra, .harga-extra',
-            function(){
-
-                calculateReceiveRowTotal(
-                    lastRow,
-                    'add'
-                );
-            }
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | INITIAL
-        |--------------------------------------------------------------------------
-        */
-
-        calculateReceiveRowTotal(
-            lastRow,
-            'add'
-        );
-
-    }
-
-    function addRemainingRowEdit(data = null)
-    {
-
-        $('#receiveDetailTableEdit tbody').append(`
-
-            <tr class="receive-extra-row"
-                data-seq="${data?.SEQ_NO ?? ''}"
-                data-is-extra="1">
-
-                <td>
-                    <select class="customer-edit"></select>
-                </td>
-
-                <td>
-                    <select class="po-type-edit"></select>
-                </td>
-
-                <td>
-                    <input type="text"
-                        class="form-control text-end jumlah-edit"
-                        value="${formatDecimalID(data?.JUMLAH ?? 0)}">
-                </td>
-
-                <td>
-                    <input type="text"
-                        class="form-control text-end berat-edit"
-                        value="${formatDecimalID(data?.BERAT ?? 0)}">
-                </td>
-
-                <td>
-                    <input type="text"
-                        class="form-control text-end harga-edit"
-                        value="${formatMoneyID(data?.HARGA ?? 0)}">
-                </td>
-
-                <td>
-                    <input type="text"
-                        class="form-control text-end total-edit"
-                        readonly style="background:#f1f5f9"
-                        value="${formatMoneyID(data?.TOTAL ?? 0)}">
-                </td>
-
-                <td>
-                    <input type="text"
-                        class="form-control text-end susut-jumlah"
-                        value="${formatDecimalID(data?.SUSUT_JUMLAH ?? 0)}">
-                </td>
-
-                <td>
-                    <input type="text"
-                        class="form-control text-end susut-berat"
-                        value="${formatDecimalID(data?.SUSUT_BERAT ?? 0)}">
-                </td>
-
-                <td>
-                    <input type="text"
-                        class="form-control keterangan"
-                        value="${data?.KETERANGAN ?? ''}">
-                </td>
-
-            </tr>
-
-        `);
-
-        let lastRow =
-            $('#receiveDetailTableEdit tbody tr:last');
-
-        initCustomerSelect2(
-            lastRow.find('.customer-edit'),
-            '#receiveEdit'
-        );
-
-        initPoTypeSelect2(
-            lastRow.find('.po-type-edit'),
-            '#receiveEdit'
-        );
-
-        // =========================
-        // CUSTOMER
-        // =========================
-
-        let customerOption = new Option(
-            data?.CUSTOMER_NAME ?? 'INTERNAL FARM',
-            data?.CUSTOMER ?? 'CS000001',
-            true,
-            true
-        );
-
-        lastRow
-            .find('.customer-edit')
-            .append(customerOption)
-            .trigger('change');
-
-        // =========================
-        // PO TYPE
-        // =========================
-
-        let poTypeText =
-            data?.PO_TYPE_NAME ?? '';
-
-        let poTypeValue =
-            data?.PO_TYPE ?? '';
-
-        if(
-            data?.PO_TYPE &&
-            data?.PO_TYPE_NAME
-        ){
-
-            let option = new Option(
-                data.PO_TYPE_NAME,
-                data.PO_TYPE,
-                true,
-                true
-            );
-
-            lastRow
-                .find('.po-type-edit')
-                .append(option)
-                .trigger('change');
-
-        }
-
-        lastRow.on(
-            'keyup input change',
-            '.berat-edit, .harga-edit',
-            function(){
-
-                calculateReceiveRowTotal(
-                    lastRow,
-                    'edit'
-                );
-            }
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | INITIAL
-        |--------------------------------------------------------------------------
-        */
-
-        calculateReceiveRowTotal(
-            lastRow,
-            'edit'
-        );
-
-    }
-
-    function calculateReceiveRowTotal(row, mode = 'add')
-    {
-        let beratSelector =
-            mode === 'edit'
-            ? '.berat-edit'
-            : '.berat-extra';
-
-        let hargaSelector =
-            mode === 'edit'
-            ? '.harga-edit'
-            : '.harga-extra';
-
-        let totalSelector =
-            mode === 'edit'
-            ? '.total-edit'
-            : '.total-extra';
-
-        let berat = parseDecimalID(
-            row.find(beratSelector).val()
-        ) || 0;
-
-        let harga = parseRupiah(
-            row.find(hargaSelector).val()
-        ) || 0;
-
-        let total = berat * harga;
-
-        row.find(totalSelector).val(
-            formatMoneyID(total)
-        );
-
-        calculateReceiveSummary();
-    }
-
-    function calculateReceiveSummary(){
-
-        let qty = 0;
-
-        let berat = 0;
-
-        let total = 0;
-
-        $('#receiveDetailTableAdd tbody tr').each(function(){
-
-            qty += parseDecimalID(
-                $(this)
-                    .find('.jumlah,.jumlah-extra')
-                    .val()
-            );
-
-            berat += parseDecimalID(
-                $(this)
-                    .find('.berat,.berat-extra')
-                    .val()
-            );
-
-            total += parseRupiah(
-                $(this)
-                    .find('.total,.total-extra,.total-edit')
-                    .val()
-            );
-
-        });
-
-        $('#summaryQty').text(
-            formatDecimalID(qty)
-        );
-
-        $('#summaryBerat').text(
-            formatDecimalID(berat)
-        );
-
-        $('#summaryTotal').text(
-            formatMoneyID(total)
-        );
-
-    }
-
-    /* -------------------------
-    DOM Ready
-    ------------------------- */
-    $(function(){
-        $('#dateFrom').val(state.date_from);
-        $('#dateTo').val(state.date_to);
-        loadPage(1);
-
-        // init select2 supplier & PO
-        initPlantSelect2('#plantAdd', '#receiveAdd');
-        setDefaultPlant('#plantAdd');
-
-        initPoSelect2();
-
-        initReceiveAddSelect2();
-        initReceiveEditSelect2();
-        $('#paymentAdd').val('').trigger('change');
-        $('#jenisPayAdd').val('').trigger('change');
-
-        // remove row
-        $('#receiveDetailTableAdd, #receiveDetailTableEdit').on('click','.removeRow', function(){ $(this).closest('tr').remove(); });
-
-        
-        $('#plantAdd').on(
-            'select2:select',
-            function(e){
-
-                $('#hiddenPlantAdd').val(
-                    e.params.data.id
-                );
-
-                $('#poAdd')
-                    .val(null)
-                    .trigger('change');
-
-                $('#receiveDetailTableAdd tbody').empty();
-
-            }
-        );
-
-        /* =========================================================
-        SELECT PO
-        ========================================================= */
-
-        $('#poAdd').on(
-            'select2:select',
-            function(e){
-
-                $('#hiddenPoAdd').val(
-                    e.params.data.id
-                );
-
-                let po = e.params.data.id;
-
-                let plant = $('#hiddenPlantAdd').val();
-
-                loadPoDetail(po, plant);
-
-            }
-        );
-
-        /* =========================================================
-        ADD REMAINING ROW
-        ========================================================= */
-
-        $('#btnAddRemainingRow').click(function(){
-            addRemainingRow();
-        });
-
-        $('#btnAddRemainingRowEdit').click(function(){
-            addRemainingRowEdit();
-        });
-
-        $(document).on(
-            'blur',
-            '.jumlah,.berat,.susut-jumlah,.susut-berat,.jumlah-extra,.berat-extra',
-            function(){
-
-                let val = parseDecimalID(
-                    $(this).val()
-                );
-
-                $(this).val(
-                    formatDecimalID(val)
-                );
-
-                calculateReceiveSummary();
-
-            }
-        );
-
-        $(document).on(
-            'blur',
-            '.harga,.total,.harga-extra,.total-extra',
-            function(){
-
-                let val = parseRupiah(
-                    $(this).val()
-                );
-
-                $(this).val(
-                    formatMoneyID(val)
-                );
-
-                calculateReceiveSummary();
-
-            }
-        );
-
-        $(document).on(
-            'blur',
-            '.jumlah-edit,.berat-edit,.susut-jumlah,.susut-berat',
-            function(){
-
-                let val = parseDecimalID(
-                    $(this).val()
-                );
-
-                $(this).val(
-                    formatDecimalID(val)
-                );
-
-            }
-        );
-
-        $(document).on(
-            'blur',
-            '.harga-edit,.total-edit',
-            function(){
-
-                let val = parseRupiah(
-                    $(this).val()
-                );
-
-                $(this).val(
-                    formatMoneyID(val)
-                );
-
-            }
-        );
-
-        function validateRemainingRow(){
-
-            let valid = true;
-
-            $('.receive-extra-row').each(function(){
-
-                let customer = $(this)
-                    .find('.customer-extra')
-                    .val();
-
-                let qty = parseDecimalID(
-                    $(this)
-                        .find('.jumlah-extra')
-                        .val()
-                );
-
-                let berat = parseDecimalID(
-                    $(this)
-                        .find('.berat-extra')
-                        .val()
-                );
-
-                if(
-                    !customer ||
-                    qty <= 0 ||
-                    berat <= 0
-                ){
-
-                    valid = false;
-
-                }
-
-            });
-
-            if(!valid){
-
-                alert(
-                    'Remaining row belum lengkap'
-                );
-
-            }
-
-            return valid;
-
-        }
-
-        // Submit Add
-        $('#freceiveAdd').submit(function(e){
-
-            e.preventDefault();
-
-            if(!validateRemainingRow()){
-                return;
-            }
-
-            let btn = $('#freceiveAdd button[type=submit]');
-
-            btn.prop('disabled', true);
-
-            btn.html(`
-                <span class="spinner-border spinner-border-sm"></span>
-                Saving...
             `);
 
-            let DETAIL = [];
+        }
 
-            $('#receiveDetailTableAdd tbody tr').each(function(){
+    );
 
-                let isExtra = $(this).hasClass('receive-extra-row')
-                    ? 1
-                    : 0;
+}
 
-                DETAIL.push({
+function renderCustomerSummary()
+{
+    let summary =
+        calculateAllocation();
 
-                    PO_SEQ : $(this).find('.po-seq').val() || null,
+    $("#summaryQtyActual")
 
-                    IS_EXTRA : isExtra,
+        .text(
 
-                    CUSTOMER :
-                    isExtra
-                        ? $(this).find('.customer-extra').val()
-                        : $(this).find('.customer-code').val(),
+            formatDecimal(
+                receiveState.actual.receiveQty
+            )
 
-                    PO_TYPE :
-                        isExtra
-                            ? $(this).find('.po-type-extra').val()
-                            : null,
-
-                    JUMLAH :
-                        parseDecimalID(
-                            $(this).find('.jumlah,.jumlah-extra').val()
-                        ),
-
-                    BERAT :
-                        parseDecimalID(
-                            $(this).find('.berat,.berat-extra').val()
-                        ),
-
-                    HARGA :
-                        parseRupiah(
-                            $(this).find('.harga,.harga-extra').val()
-                        ),
-
-                    TOTAL :
-                        parseRupiah(
-                            $(this).find('.total,.total-extra').val()
-                        ),
-
-                    SUSUT_JUMLAH :
-                        parseDecimalID(
-                            $(this).find('.susut-jumlah').val()
-                        ),
-
-                    SUSUT_BERAT :
-                        parseDecimalID(
-                            $(this).find('.susut-berat').val()
-                        ),
-
-                    KETERANGAN :
-                        $(this).find('.keterangan').val()
-
-                });
-
-            });
-
-            let formData = new FormData(this);
-
-            formData.append(
-                'DETAIL',
-                JSON.stringify(DETAIL)
-            );
-
-            $.ajax({
-
-                url:'<?= base_url("receive/create"); ?>',
-
-                type:'POST',
-
-                data:formData,
-
-                processData:false,
-
-                contentType:false,
-
-                success:function(resp){
-
-                    resp = typeof resp === 'string'
-                        ? JSON.parse(resp)
-                        : resp;
-
-                    alert(resp.message);
-
-                    if(resp.status){
-
-                        $('#receiveAdd').modal('hide');
-
-                        $('#freceiveAdd')[0].reset();
-
-                        $('#receiveDetailTableAdd tbody').empty();
-
-                        loadPage(1);
-
-                    }
-
-                },
-                complete:function(){
-
-                    btn.prop('disabled', false);
-
-                    btn.html('Simpan Receive');
-
-                }
-
-            });
-
-        });
-
-        $(document).on('click','.editBtn', function(){
-
-            let receive =
-                $(this).data('receive');
-
-            let plant =
-                $(this).data('plant');
-
-            $.get(
-                '<?= base_url("receive/edit"); ?>',
-                {
-                    receive: receive,
-                    plant: plant
-                },
-                function(resp){
-
-                    resp =
-                        typeof resp === 'string'
-                            ? JSON.parse(resp)
-                            : resp;
-
-                    if(!resp.status){
-
-                        alert(
-                            resp.message ||
-                            'Gagal mengambil data'
-                        );
-
-                        return;
-                    }
-
-                    let header =
-                        resp.header;
-
-                    let detail =
-                        resp.detail;
-
-                    // =================================================
-                    // RESET
-                    // =================================================
-
-                    $('#freceiveEdit')[0].reset();
-
-                    $('#receiveDetailTableEdit tbody')
-                        .empty();
-
-                    // =================================================
-                    // HEADER
-                    // =================================================
-
-                    $('#RECEIVE_EDIT_DISPLAY')
-                        .val(header.RECEIVE);
-
-                    $('#RECEIVE_EDIT_HIDDEN')
-                        .val(header.RECEIVE);
-
-                    $('#PLANT_EDIT_DISPLAY')
-                        .val(
-                            header.PLANT_NAME
-                                ? header.PLANT +
-                                    ' - ' +
-                                    header.PLANT_NAME
-                                : header.PLANT
-                        );
-
-                    $('#PLANT_EDIT_HIDDEN')
-                        .val(header.PLANT);
-
-                    $('#SLIP_NO_EDIT')
-                        .val(header.SLIP_NO ?? '');
-
-                    // =================================================
-                    // PO
-                    // =================================================
-
-                    if(!header.PO){
-
-                        $('#PO_EDIT_DISPLAY')
-                            .val('-');
-
-                        $('#PO_EDIT_HIDDEN')
-                            .val('');
-
-                    }else{
-
-                        $('#PO_EDIT_DISPLAY')
-                            .val(
-                                `${header.PO} - ${header.SUPPLIER_NAME}`
-                            );
-
-                        $('#PO_EDIT_HIDDEN')
-                            .val(header.PO);
-
-                    }
-
-                    // =================================================
-                    // DATE
-                    // =================================================
-
-                    $('#RECEIVE_DATE_EDIT')
-                        .val(
-                            header.RECEIVE_DATE
-                                ? header.RECEIVE_DATE.substr(0,10)
-                                : ''
-                        );
-
-                    // =================================================
-                    // PAYMENT
-                    // =================================================
-
-                    $('#paymentEdit')
-                        .val(header.PEMBAYARAN)
-                        .trigger('change');
-
-                    $('#jenisPayEdit')
-                        .val(header.JENIS_PAY)
-                        .trigger('change');
-
-                    // =================================================
-                    // SUPPLIER
-                    // =================================================
-
-                    let supplierText =
-                        `${header.SUPPLIER} - ${header.SUPPLIER_NAME}`;
-
-                    $('#SUPPLIER_EDIT_DISPLAY')
-                        .val(supplierText);
-
-                    $('#SUPPLIER_EDIT_HIDDEN')
-                        .val(header.SUPPLIER);
-
-                    // =================================================
-                    // OTHER
-                    // =================================================
-
-                    $('#NOTA_EDIT')
-                        .val(header.NOTA ?? '');
-
-                    $('#NO_REF_EDIT')
-                        .val(header.NO_REF ?? '');
-
-                    $('#REMARK_EDIT')
-                        .val(header.REMARK ?? '');
-
-                    // =================================================
-                    // PO MASTER
-                    // =================================================
-
-                    $('#poMaterialEdit')
-                        .val(
-                            header.MATERIAL_NAME ?? '-'
-                        );
-
-                    $('#poJumlahEdit')
-                        .val(
-                            formatDecimalID(
-                                header.JUMLAH ?? 0
-                            )
-                        );
-
-                    $('#poBeratEdit')
-                        .val(
-                            formatDecimalID(
-                                header.BERAT ?? 0
-                            )
-                        );
-
-                    $('#poHargaEdit')
-                        .val(
-                            formatMoneyID(
-                                header.HARGA ?? 0
-                            )
-                        );
-
-                    $('#poTotalEdit')
-                        .val(
-                            formatMoneyID(
-                                header.TOTAL ?? 0
-                            )
-                        );
-
-                    $('#poTruckEdit')
-                        .val(
-                            header.NO_TRUCK ?? '-'
-                        );
-
-                    $('#poDriverEdit')
-                        .val(
-                            header.DRIVER ?? '-'
-                        );
-
-                    // =================================================
-                    // ATTACHMENT PREVIEW
-                    // =================================================
-
-                    previewAttachmentEdit(
-                        header.ATTACH_FILE_NAME
-                    );
-
-                    // =================================================
-                    // DETAIL
-                    // =================================================
-
-                    detail.forEach(function(row){
-
-                        // =====================================================
-                        // EXTRA ROW
-                        // =====================================================
-
-                        if(parseInt(row.IS_EXTRA) === 1){
-
-                            addRemainingRowEdit(row);
-
-                            return;
-                        }
-
-                        
-
-                        // =====================================================
-                        // NORMAL ROW
-                        // =====================================================
-
-                        $('#receiveDetailTableEdit tbody').append(`
-
-                            <tr
-                                class="receive-po-row"
-                                data-po-seq="${row.PO_SEQ ?? ''}"
-                                data-seq="${row.SEQ_NO}"
-                                data-is-extra="0">
-
-                                <td>
-
-                                    <input type="hidden"
-                                        class="customer-code"
-                                        value="${row.CUSTOMER ?? ''}">
-
-                                    <input type="text"
-                                        class="form-control"
-                                        value="${row.CUSTOMER_NAME ?? '-'}"
-                                        readonly>
-
-                                </td>
-
-                                <td>
-
-                                    <input type="text"
-                                        class="form-control"
-                                        value="${
-                                            row.PO_TYPE_NAME &&
-                                            row.PO_TYPE_NAME !== ''
-                                                ? row.PO_TYPE_NAME
-                                                : '-'
-                                        }"
-                                        readonly>
-
-                                </td>
-
-                                <td>
-
-                                    <input type="text"
-                                        class="form-control text-end jumlah-edit"
-                                        value="${formatDecimalID(row.JUMLAH)}">
-
-                                </td>
-
-                                <td>
-
-                                    <input type="text"
-                                        class="form-control text-end berat-edit"
-                                        value="${formatDecimalID(row.BERAT)}">
-
-                                </td>
-
-                                <td>
-
-                                    <input type="text"
-                                        class="form-control text-end harga-edit"
-                                        value="${formatMoneyID(row.HARGA)}">
-
-                                </td>
-
-                                <td>
-
-                                    <input type="text"
-                                        class="form-control text-end total-edit"
-                                        value="${formatMoneyID(row.TOTAL)}">
-
-                                </td>
-
-                                <td>
-
-                                    <input type="text"
-                                        class="form-control text-end susut-jumlah"
-                                        value="${formatDecimalID(row.SUSUT_JUMLAH ?? 0)}">
-
-                                </td>
-
-                                <td>
-
-                                    <input type="text"
-                                        class="form-control text-end susut-berat"
-                                        value="${formatDecimalID(row.SUSUT_BERAT ?? 0)}">
-
-                                </td>
-
-                                <td>
-
-                                    <input type="text"
-                                        class="form-control keterangan"
-                                        value="${row.KETERANGAN ?? ''}">
-
-                                </td>
-
-                            </tr>
-
-                        `);
-
-                    });
-
-
-                    // =================================================
-                    // SHOW MODAL
-                    // =================================================
-
-                    $('#receiveEdit')
-                        .modal('show');
-
-                }
-            );
-
-        });
-
-        $('#ATTACHMENT_EDIT').change(function(){
-
-            let file = this.files[0];
-
-            if(!file){
-                return;
-            }
-
-            let ext =
-                file.name
-                    .split('.')
-                    .pop()
-                    .toLowerCase();
-
-            let objectUrl =
-                URL.createObjectURL(file);
-
-            // RESET
-            $('#attachmentPreviewEdit')
-                .removeClass('d-none');
-
-            $('#attachmentImageEdit')
-                .addClass('d-none');
-
-            $('#attachmentPdfEdit')
-                .addClass('d-none');
-
-            $('#attachmentFileEdit')
-                .addClass('d-none');
-
-            // IMAGE
-            if(
-                ['jpg','jpeg','png','webp']
-                .includes(ext)
-            ){
-
-                $('#attachmentImageEdit')
-                    .removeClass('d-none')
-                    .attr('src', objectUrl);
-
-            }
-
-            // PDF
-            else if(ext === 'pdf'){
-
-                $('#attachmentPdfEdit')
-                    .removeClass('d-none')
-                    .attr('src', objectUrl);
-
-            }
-
-            // OTHER
-            else{
-
-                $('#attachmentFileEdit')
-                    .removeClass('d-none');
-
-                $('#ATTACHMENT_EDIT_LINK')
-                    .attr('href', objectUrl);
-
-            }
-
-        });
-
-        $('#freceiveEdit').submit(function(e){
-
-            e.preventDefault();
-
-            let formData =
-                new FormData(this);
-
-            let DETAIL = [];
-
-            $('#receiveDetailTableEdit tbody tr')
-                .each(function(){
-
-                    DETAIL.push({
-
-                        SEQ_NO :
-
-                            $(this).data('seq'),
-
-                        PO_SEQ :
-
-                            $(this).data('po-seq'),
-
-                        CUSTOMER :
-
-                            $(this)
-                                .find('.customer-code')
-                                .val()
-
-                            ||
-
-                            $(this)
-                                .find('.customer-edit')
-                                .val(),
-
-                        PO_TYPE :
-                            $(this)
-                                .find('.po-type-edit')
-                                .val()
-                            || null,
-
-                        JUMLAH :
-
-                            parseDecimalID(
-                                $(this)
-                                    .find('.jumlah-edit')
-                                    .val()
-                            ),
-
-                        BERAT :
-
-                            parseDecimalID(
-                                $(this)
-                                    .find('.berat-edit')
-                                    .val()
-                            ),
-
-                        HARGA :
-
-                            parseRupiah(
-                                $(this)
-                                    .find('.harga-edit')
-                                    .val()
-                            ),
-
-                        TOTAL :
-
-                            parseRupiah(
-                                $(this)
-                                    .find('.total-edit')
-                                    .val()
-                            ),
-
-                        SUSUT_JUMLAH :
-
-                            parseDecimalID(
-                                $(this)
-                                    .find('.susut-jumlah')
-                                    .val()
-                            ),
-
-                        SUSUT_BERAT :
-
-                            parseDecimalID(
-                                $(this)
-                                    .find('.susut-berat')
-                                    .val()
-                            ),
-
-                        KETERANGAN :
-
-                            $(this)
-                                .find('.keterangan')
-                                .val(),
-
-                        IS_EXTRA :
-
-                            $(this)
-                                .hasClass('receive-extra-row')
-                                    ? 1
-                                    : 0
-
-                    });
-
-                });
-
-            formData.set(
-                'RECEIVE',
-                $('#RECEIVE_EDIT_HIDDEN').val()
-            );
-
-            formData.set(
-                'PLANT',
-                $('#PLANT_EDIT_HIDDEN').val()
-            );
-
-            formData.set(
-                'PO',
-                $('#PO_EDIT_HIDDEN').val()
-            );
-
-            formData.set(
-                'SUPPLIER',
-                $('#SUPPLIER_EDIT_HIDDEN').val()
-            );
-
-            formData.set(
-                'DETAIL',
-                JSON.stringify(DETAIL)
-            );
-
-            $.ajax({
-
-                url:
-                    "<?= base_url('receive/update'); ?>",
-
-                type: "POST",
-
-                data: formData,
-
-                processData: false,
-
-                contentType: false,
-
-                dataType: "json",
-
-                beforeSend(){
-
-                    $('#freceiveEdit button[type=submit]')
-                        .prop('disabled', true);
-
-                },
-
-                success(resp){
-
-                    $('#freceiveEdit button[type=submit]')
-                        .prop('disabled', false);
-
-                    alert(resp.message);
-
-                    if(resp.status){
-
-                        $('#receiveEdit')
-                            .modal('hide');
-
-                        loadPage(state.page);
-
-                    }
-
-                },
-
-                error(xhr){
-
-                    $('#freceiveEdit button[type=submit]')
-                        .prop('disabled', false);
-
-                    console.log(xhr.responseText);
-
-                    alert(
-                        'Gagal update receive'
-                    );
-
-                }
-
-            });
-
-        });
-
-        // PDF
-        $(document).on("click", ".exportPdf", function () {
-            let receive = $(this).data("receive");
-            let plant   = $(this).data("plant");
-
-            window.open(
-                "<?= base_url('receive/print_slip_pdf'); ?>?receive=" 
-                + receive + "&plant=" + plant,
-                "_blank"
-            );
-        });
-
-        // Delete
-        $(document).on('click', '.deleteBtn', function() {
-            var receive = $(this).data('receive');
-            var plant   = $(this).data('plant'); // ambil plant dari row
-            if (!confirm("Yakin ingin menghapus RECEIVE: " + receive + " ?")) return;
-
-            $.ajax({
-                url: "<?= base_url('receive/remove'); ?>",
-                type: "POST",
-                data: { receive: receive, plant: plant },
-                success: function(res) {
-                    res = typeof res === 'string' ? JSON.parse(res) : res;
-                    alert(res.message);
-                    if (res.status) loadPage(state.page);
-                },
-                error: function(){ alert("Gagal menghubungi server"); }
-            });
-        });
-
-    }); // end ready
-
-    // Format ribuan TAPI tidak mengubah desimal
-    function formatRupiah(x){
-        if (x === null || x === undefined || x === '') return '';
-
-        let num = cleanNumber(x);
-        let parts = num.toString().split('.');
-
-        let integer = parts[0];
-        let decimal = parts.length > 1 ? '.' + parts[1] : '';
-
-        let ribuan = integer.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-
-        return ribuan + decimal;
-    }
-</script>
-
-<script>
-        $('#receiveAdd').on('shown.bs.modal', function () {
-            let today = new Date().toISOString().split("T")[0];
-            const dateInput = document.getElementById("RECEIVE_DATE");
-            dateInput.value = today; // hari ini
-            dateInput.min = today;   // tidak bisa backdate
-        });
-
-        $('#receiveAdd').on(
-            'hidden.bs.modal',
-            function(){
-
-                $('#freceiveAdd')[0].reset();
-
-                $('#receiveDetailTableAdd tbody').empty();
-
-                $('#poAdd')
-                    .val(null)
-                    .trigger('change');
-
-                $('#poMaterialAdd').val('');
-
-                $('#poJumlahAdd').val('');
-
-                $('#poBeratAdd').val('');
-
-                $('#poHargaAdd').val('');
-
-                $('#poTotalAdd').val('');
-
-                $('#poTruckAdd').val('');
-
-                $('#poDriverAdd').val('');
-
-                $('#supplierAddText').val('');
-
-            }
         );
+
+    $("#summaryQtyUsed")
+
+        .text(
+
+            formatDecimal(
+                summary.qtyUsed
+            )
+
+        );
+
+    $("#summaryQtyRemaining")
+
+        .text(
+
+            formatDecimal(
+                summary.qtyRemaining
+            )
+
+        );
+
+    $("#summaryBwActual")
+
+        .text(
+
+            formatDecimal(
+                receiveState.actual.receiveBw
+            )
+
+        );
+
+    $("#summaryBwUsed")
+
+        .text(
+
+            formatDecimal(
+                summary.bwUsed
+            )
+
+        );
+
+    $("#summaryBwRemaining")
+
+        .text(
+
+            formatDecimal(
+                summary.bwRemaining
+            )
+
+        );
+
+}
+
+function renderPaymentSummary()
+{
+
+}
+
+function resetCustomerSummary(){
+
+    $("#summaryQtyActual").text(
+        formatDecimal(receiveState.actual.receiveQty)
+    );
+
+    $("#summaryQtyUsed").text("0.00");
+
+    $("#summaryQtyRemaining").text(
+        formatDecimal(receiveState.actual.receiveQty)
+    );
+
+    $("#summaryBwActual").text(
+        formatDecimal(receiveState.actual.receiveBw)
+    );
+
+    $("#summaryBwUsed").text("0.00");
+
+    $("#summaryBwRemaining").text(
+        formatDecimal(receiveState.actual.receiveBw)
+    );
+}
+
+function resetReceiveForm()
+{
+    /*
+    |--------------------------------------------------------------------------
+    | FORM
+    |--------------------------------------------------------------------------
+    */
+
+    $("#freceiveAdd")[0].reset();
+
+    /*
+    |--------------------------------------------------------------------------
+    | DEFAULT PLANT
+    |--------------------------------------------------------------------------
+    */
+
+    $("#plantAdd")
+        .val("0001")
+        .trigger("change");
+
+    /*
+    |--------------------------------------------------------------------------
+    | CLEAR PO
+    |--------------------------------------------------------------------------
+    */
+
+    clearPO();
+
+    /*
+    |--------------------------------------------------------------------------
+    | STATE
+    |--------------------------------------------------------------------------
+    */
+
+    receiveState.po = null;
+
+    receiveState.customerRows = [];
+
+    receiveState.savingRows = [];
+
+    receiveState.actual = {
+        qty : 0,
+        bw : 0,
+        avgBw : 0,
+        matiQty : 0,
+        matiBw : 0,
+        susutBw : 0,
+        receiveQty : 0,
+        receiveBw : 0,
+        harga : 0,
+        total : 0
+    };
+}
+
+function clearPO()
+{
+    $("#hiddenPoAdd").val("");
+
+    $("#poAdd").val("");
+
+    $("#supplierAddText").val("");
+
+    $("#hiddensupplierAdd").val("");
+
+    $("#poMaterialAdd").val("");
+
+    $("#masterQtyAdd").text("-");
+
+    $("#masterBwAdd").text("-");
+
+    $("#masterAvgBwAdd").text("-");
+
+    $("#masterMatiQtyAdd").text("0");
+
+    $("#masterMatiBwAdd").text("0");
+
+    $("#masterSusutBwAdd").text("0");
+
+    $("#masterTerimaQtyAdd").text("0");
+
+    $("#masterTerimaBwAdd").text("0");
+
+    $("#masterHargaAdd").text("Rp 0");
+
+    $("#masterTotalAdd").text("Rp 0");
+
+    $("#masterTruckAdd").text("-");
+
+    $("#masterDriverAdd").text("-");
+
+    resetCustomerSummary();
+
+    refreshCustomer();
+
+    $("#savingTableAdd tbody").empty();
+
+    $("#paymentSummaryTableAdd tbody").empty();
+
+    receiveState.po = null;
+    receiveState.customerRows = [];
+    receiveState.savingRows = [];
+}
+
+function bindCustomerEvent()
+{
+    $("#btnAddCustomer").on("click",function(){
+
+        openLookup("CUSTOMER");
+
+    });
+
+    $(document).on(
+        "click",
+        ".deleteCustomer",
+        function(){
+
+            let index =
+                $(this).data("index");
+
+            removeCustomer(index);
+
+        }
+    );
+
+    $(document).on("input",".qty-input",function(){
+
+        let index=$(this).data("index");
+
+        receiveState.customerRows[index].qty=
+            parseDecimalID($(this).val());
+
+        updateCustomerRow(index);
+
+        renderCustomerSummary();
+
+        renderPaymentSummary();
+
+    });
+
+    $(document).on(
+        "input",
+        ".bw-input",
+        function(){
+
+            let index=$(this).data("index");
+
+            receiveState.customerRows[index].bw =
+                parseDecimalID($(this).val());
+
+            updateCustomerRow(index);
+
+            renderCustomerSummary();
+
+            renderPaymentSummary();
+
+        }
+    );
+
+    $(document).on(
+        "input",
+        ".harga-input",
+        function(){
+
+            let index=$(this).data("index");
+
+            receiveState.customerRows[index].harga =
+                parseMoney($(this).val());
+
+            updateCustomerRow(index);
+
+            renderPaymentSummary();
+
+            renderCustomerSummary();
+
+        }
+    );
+
+    $(document).on(
+        "input",
+        ".discount-input",
+        function(){
+
+            liveMoney(this);
+
+            let index=$(this).data("index");
+
+            receiveState.customerRows[index].discount =
+                parseMoney($(this).val());
+
+            updateCustomerRow(index);
+
+            renderPaymentSummary();
+
+        }
+    );
+
+    $(document).on(
+        "input",
+        ".remark-input",
+        function(){
+
+            let index=
+                $(this).data("index");
+
+            receiveState
+                .customerRows[index]
+                .remark=
+
+                $(this).val();
+
+        }
+    );
+}
+
+function calculateAllocation()
+{
+    let qty=0;
+
+    let bw=0;
+
+    $.each(
+        receiveState.customerRows,
+        function(i,row){
+
+            qty+=row.qty;
+
+            bw+=row.bw;
+
+        }
+    );
+
+    return{
+
+        qtyUsed:qty,
+
+        bwUsed:bw,
+
+        qtyRemaining:
+
+            receiveState.actual.receiveQty
+            -
+            qty,
+
+        bwRemaining:
+
+            receiveState.actual.receiveBw
+            -
+            bw
+
+    };
+
+}
+
+function refreshCustomer()
+{
+    renderCustomerTable();
+
+    renderCustomerSummary();
+
+    renderPaymentSummary();
+}
+
+let receiveInitialized = false;
+
+$("#receiveAdd").on("shown.bs.modal", function(){
+    if(!receiveInitialized){
+        receiveInitialized = true;
+        initReceive();
+    }
+    resetReceiveForm();
+});
+
+function initReceive()
+{
+    initPlant();
+
+    bindEvents();
+}
+
+/*
+|--------------------------------------------------------------------------
+| EVENT
+|--------------------------------------------------------------------------
+*/
+
+function bindEvents()
+{
+
+    bindCustomerEvent();
+
+    bindSavingEvent();
+
+    bindSubmitEvent();
+}
+
+/*
+|--------------------------------------------------------------------------
+| PLANT
+|--------------------------------------------------------------------------
+*/
+
+function initPlant()
+{
+    loadPlant();
+
+    $("#plantAdd").on("change", function(){
+
+        $("#hiddenPlantAdd").val(
+            $(this).val()
+        );
+
+    });
+}
+
+function loadPlant(){
+
+    $.get(
+        base_url + "receive/get_plant",
+        function(res){
+
+            let html = "";
+
+            $.each(res,function(i,row){
+
+                let selected = "";
+
+                if(row.id==="0001"){
+                    selected="selected";
+                }
+
+                html += `
+                    <option
+                        value="${row.id}"
+                        ${selected}>
+
+                        ${row.id} - ${row.text}
+
+                    </option>
+                `;
+
+            });
+
+            let select = $("#plantAdd");
+
+            select.html(html);
+
+            select.val("0001");
+
+            select.trigger("change");
+
+        },
+        "json"
+    );
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| PO
+|--------------------------------------------------------------------------
+*/
+
+
+
+/*
+|--------------------------------------------------------------------------
+| CUSTOMER
+|--------------------------------------------------------------------------
+*/
+
+
+
+/*
+|--------------------------------------------------------------------------
+| SAVING
+|--------------------------------------------------------------------------
+*/
+
+
+
+/*
+|--------------------------------------------------------------------------
+| PAYMENT SUMMARY
+|--------------------------------------------------------------------------
+*/
+
+
+
+/*
+|--------------------------------------------------------------------------
+| VALIDATION
+|--------------------------------------------------------------------------
+*/
+
+
+
+/*
+|--------------------------------------------------------------------------
+| SUBMIT
+|--------------------------------------------------------------------------
+*/
+
+
+
+/*
+|--------------------------------------------------------------------------
+| RESET
+|--------------------------------------------------------------------------
+*/
+
+
+
+
+/*
+|--------------------------------------------------------------------------
+| RECEIVE NUMBER
+|--------------------------------------------------------------------------
+*/
+
+function loadReceiveNumber()
+{
+
+}
+
+/*
+|--------------------------------------------------------------------------
+| SLIP NUMBER
+|--------------------------------------------------------------------------
+*/
+
+function loadSlipNumber()
+{
+
+}
 </script>

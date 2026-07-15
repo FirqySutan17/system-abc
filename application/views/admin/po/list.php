@@ -52,15 +52,6 @@
                         class="form-control">
                 </div>
 
-                <div class="col-md-2">
-                    <button
-                        class="btn btn-primary w-100"
-                        id="btnFilter">
-
-                        Filter
-                    </button>
-                </div>
-                <div class="col-md-10"></div>
                 <div class="col-md-2 text-end">
 
                     <button
@@ -85,8 +76,8 @@
                 <div id="tableLoading" class="table-loading d-none">
                     <div class="loading-card">
                         <div class="spinner-border text-primary"></div>
-                        <div class="mt-3 fw-semibold">Loading data...</div>
-                        <small class="text-muted">Please wait a moment</small>
+                        <div class="mt-3 fw-semibold">Memuat data...</div>
+                        <small class="text-muted">Mohon tunggu sesaat</small>
                     </div>
                 </div>
 
@@ -96,14 +87,15 @@
 
                             <thead>
                                 <tr>
-                                    <th style="text-align: center; vertical-align: middle">Plant</th>
+                                    <th style="text-align: center; vertical-align: middle">PLANT</th>
                                     <th style="text-align: center; vertical-align: middle">PO</th>
-                                    <th style="text-align: center; vertical-align: middle">Date</th>
-                                    <th style="text-align: center; vertical-align: middle">Supplier</th>
-                                    <th style="text-align: center; vertical-align: middle">Material</th>
-                                    <th style="text-align: center; vertical-align: middle">Qty / Weight</th>
-                                    <th style="text-align: center; vertical-align: middle">Truck</th>
-                                    <th style="text-align: center; vertical-align: middle">Status</th>
+                                    <th style="text-align: center; vertical-align: middle">TANGGAL</th>
+                                    <th style="text-align: center; vertical-align: middle">SUPPLIER</th>
+                                    <th style="text-align: center; vertical-align: middle">MATERIAL</th>
+                                    <th style="text-align: center; vertical-align: middle">EKOR / BERAT</th>
+                                    <th style="text-align: center; vertical-align: middle">AKTUAL</th>
+                                    <th style="text-align: center; vertical-align: middle">TRUCK</th>
+                                    <th style="text-align: center; vertical-align: middle">STATUS</th>
                                     <th class="text-center">#</th>
                                 </tr>
                             </thead>
@@ -296,19 +288,19 @@
                             </div>
 
                             <div class="col-md-4">
-                                <label class="po-label">PO Number</label>
+                                <label class="po-label">No. PO</label>
 
                                 <input
                                     type="text"
                                     id="PO_ADD_AUTO"
                                     class="form-control po-input"
                                     readonly
-                                    placeholder="Auto Generate"
+                                    placeholder="Otomatis"
                                     style="background:#f5f6f8">
                             </div>
 
                             <div class="col-md-4">
-                                <label class="po-label">PO Date *</label>
+                                <label class="po-label">Tanggal PO *</label>
 
                                 <input
                                     type="date"
@@ -319,7 +311,7 @@
                             </div>
 
                             <div class="col-md-4">
-                                <label class="po-label">PO Type *</label>
+                                <label class="po-label">Tipe PO *</label>
 
                                 <select
                                     id="typeAdd"
@@ -374,7 +366,7 @@
                             </div>
 
                             <div class="col-md-4">
-                                <label class="po-label">Weight / BW *</label>
+                                <label class="po-label">Berat / BW *</label>
 
                                 <input
                                     type="text"
@@ -511,7 +503,7 @@
                     </div>
 
                     <!-- ================= DETAIL ================= -->
-                    <div class="po-section-card">
+                    <!-- <div class="po-section-card">
 
                         <div class="po-section-title">
 
@@ -555,9 +547,6 @@
                             </div>
                         </div>
 
-                        
-
-                        <!-- ================= SUMMARY ================= -->
                         <div class="po-summary mt-3">
 
                             <div class="row">
@@ -628,7 +617,7 @@
 
                         </div>
 
-                    </div>
+                    </div> -->
 
                 </div>
 
@@ -663,291 +652,323 @@
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <form id="fpoEdit">
 
-            <div class="modal-content border-0 shadow-lg">
+            <div class="modal-content">
 
-                <!-- HEADER -->
-                <div class="modal-header bg-warning text-dark">
-
-                    <div>
-                        <h5 class="modal-title fw-bold mb-0">
-                            EDIT PURCHASE ORDER
-                        </h5>
-
-                        <small>
-                            Update master & detail customer
-                        </small>
-                    </div>
+                <div class="modal-header">
+                    <h5 class="modal-title mb-0" style="color:#fff">
+                        PURCHASE ORDER - EDIT
+                    </h5>
 
                     <button
                         type="button"
                         class="btn-close"
                         data-bs-dismiss="modal">
                     </button>
-
                 </div>
 
-                <!-- BODY -->
                 <div class="modal-body">
 
-                    <!-- TOP INFO -->
-                    <div class="row g-3 mb-4">
+                    <!-- ================= HEADER ================= -->
 
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">
-                                Plant
-                            </label>
+                    <div class="po-section-card">
 
-                            <input
-                                type="text"
-                                id="PLANT_NAME_EDIT"
-                                class="form-control bg-light"
-                                readonly>
-
-                            <input
-                                type="hidden"
-                                id="PLANT_EDIT">
+                        <div class="po-section-title">
+                            <span>
+                                <i class="ti ti-package me-1"></i>
+                                PO INFORMATION
+                            </span>
                         </div>
 
-                        <div class="col-md-6">
+                        <input
+                            type="hidden"
+                            id="orig_po">
 
-                            <label class="form-label fw-semibold">
-                                PO Number
-                            </label>
+                        <div class="row g-3">
 
-                            <input
-                                type="text"
-                                id="PO_EDIT_AUTO"
-                                class="form-control bg-light fw-bold"
-                                readonly>
+                            <div class="col-md-4">
 
-                            <input
-                                type="hidden"
-                                id="orig_po">
-                        </div>
+                                <label class="po-label">
+                                    Plant *
+                                </label>
 
-                    </div>
+                                <input
+                                    type="text"
+                                    id="PLANT_NAME_EDIT"
+                                    class="form-control po-input"
+                                    readonly
+                                    style="background:#f5f6f8">
 
-                    <!-- MASTER -->
-                    <div class="card border-0 shadow-sm mb-4">
+                                <input
+                                    type="hidden"
+                                    id="PLANT_EDIT">
 
-                        <div class="card-header bg-light fw-bold">
-                            MASTER INFORMATION
-                        </div>
+                            </div>
 
-                        <div class="card-body">
+                            <div class="col-md-4">
 
-                            <div class="row g-3">
+                                <label class="po-label">
+                                    No. PO
+                                </label>
 
-                                <div class="col-md-4">
-                                    <label class="form-label">
-                                        PO Type *
-                                    </label>
+                                <input
+                                    type="text"
+                                    id="PO_EDIT_AUTO"
+                                    class="form-control po-input"
+                                    readonly
+                                    style="background:#f5f6f8">
 
-                                    <select
-                                        id="typeEdit"
-                                        class="form-control">
-                                    </select>
+                            </div>
 
-                                    <input
-                                        type="hidden"
-                                        id="hiddenTypeEdit">
-                                </div>
+                            <div class="col-md-4">
 
-                                <div class="col-md-4">
-                                    <label class="form-label">
-                                        Tanggal *
-                                    </label>
+                                <label class="po-label">
+                                    Tanggal PO *
+                                </label>
 
-                                    <input
-                                        type="date"
-                                        name="PO_DATE"
-                                        class="form-control">
-                                </div>
+                                <input
+                                    type="date"
+                                    name="PO_DATE"
+                                    class="form-control po-input">
 
-                                <div class="col-md-4">
-                                    <label class="form-label">
-                                        Supplier *
-                                    </label>
+                            </div>
 
-                                    <select
-                                        id="supplierEdit"
-                                        class="form-control">
-                                    </select>
+                            <div class="col-md-4">
 
-                                    <input
-                                        type="hidden"
-                                        id="hiddensupplierEdit">
-                                </div>
+                                <label class="po-label">
+                                    Tipe PO *
+                                </label>
 
-                                <div class="col-md-4">
-                                    <label class="form-label">
-                                        Material *
-                                    </label>
+                                <select
+                                    id="typeEdit"
+                                    class="form-control po-input">
+                                </select>
 
-                                    <select
-                                        id="materialEdit"
-                                        class="form-control">
-                                    </select>
+                                <input
+                                    type="hidden"
+                                    id="hiddenTypeEdit">
 
-                                    <input
-                                        type="hidden"
-                                        id="hiddenMaterialEdit">
-                                </div>
+                            </div>
 
-                                <div class="col-md-4">
-                                    <label class="po-label">
-                                        Qty / Ekor *
-                                    </label>
+                            <div class="col-md-4">
 
-                                    <input
-                                        type="text"
-                                        id="masterJumlahEdit"
-                                        class="form-control po-input decimal-input"
-                                        placeholder="0,00">
-                                </div>
+                                <label class="po-label">
+                                    Supplier *
+                                </label>
 
-                                <div class="col-md-4">
-                                    <label class="po-label">
-                                        Weight / BW *
-                                    </label>
+                                <select
+                                    id="supplierEdit"
+                                    class="form-control po-input">
+                                </select>
 
-                                    <input
-                                        type="text"
-                                        id="masterBeratEdit"
-                                        class="form-control po-input decimal-input"
-                                        placeholder="0,00">
-                                </div>
+                                <input
+                                    type="hidden"
+                                    id="hiddensupplierEdit">
 
-                                <div class="col-md-4">
-                                    <label class="form-label">
-                                        Avg BW
-                                    </label>
+                            </div>
 
-                                    <input
-                                        type="text"
-                                        id="masterAvgBwEdit"
-                                        class="form-control decimal-input"
-                                        readonly
-                                        style="background:#f5f6f8">
-                                </div>
+                            <div class="col-md-4">
 
-                                <div class="col-md-4">
-                                    <label class="form-label">
-                                        Mati (Qty)
-                                    </label>
+                                <label class="po-label">
+                                    Material *
+                                </label>
 
-                                    <input
-                                        type="text"
-                                        id="masterMatiQtyEdit"
-                                        class="form-control decimal-input">
-                                </div>
+                                <select
+                                    id="materialEdit"
+                                    class="form-control po-input">
+                                </select>
 
-                                <div class="col-md-4">
-                                    <label class="form-label">
-                                        Mati (BW)
-                                    </label>
+                                <input
+                                    type="hidden"
+                                    id="hiddenMaterialEdit">
 
-                                    <input
-                                        type="text"
-                                        id="masterMatiBwEdit"
-                                        class="form-control decimal-input">
-                                </div>
+                            </div>
 
-                                <div class="col-md-4">
-                                    <label class="form-label">
-                                        Susut (BW)
-                                    </label>
+                            <div class="col-md-4">
 
-                                    <input
-                                        type="text"
-                                        id="masterSusutBwEdit"
-                                        class="form-control decimal-input">
-                                </div>
+                                <label class="po-label">
+                                    Qty / Ekor *
+                                </label>
 
-                                <div class="col-md-4">
-                                    <label class="form-label">
-                                        Total Terima Qty
-                                    </label>
+                                <input
+                                    type="text"
+                                    id="masterJumlahEdit"
+                                    class="form-control po-input decimal-input"
+                                    placeholder="0,00">
 
-                                    <input
-                                        type="text"
-                                        id="masterTerimaQtyEdit"
-                                        class="form-control decimal-input"
-                                        readonly
-                                        style="background:#f5f6f8">
-                                </div>
+                            </div>
 
-                                <div class="col-md-4">
-                                    <label class="form-label">
-                                        Total Terima BW
-                                    </label>
+                            <div class="col-md-4">
 
-                                    <input
-                                        type="text"
-                                        id="masterTerimaBwEdit"
-                                        class="form-control decimal-input"
-                                        readonly
-                                        style="background:#f5f6f8">
-                                </div>
+                                <label class="po-label">
+                                    Berat / BW *
+                                </label>
 
-                                <div class="col-md-4">
-                                    <label class="form-label">
-                                        Harga Master
-                                    </label>
+                                <input
+                                    type="text"
+                                    id="masterBeratEdit"
+                                    class="form-control po-input decimal-input"
+                                    placeholder="0,00">
 
-                                    <input
-                                        type="text"
-                                        id="masterHargaEdit"
-                                        class="form-control rupiah-input text-end"
-                                        placeholder="0">
-                                </div>
+                            </div>
 
-                                <div class="col-md-4">
-                                    <label class="form-label">
-                                        Total Master
-                                    </label>
+                            <div class="col-md-4">
 
-                                    <input
-                                        type="text"
-                                        id="masterTotalEdit"
-                                        class="form-control rupiah-input text-end"
-                                        placeholder="0"
-                                        readonly
-                                        style="background:#f5f6f8">
-                                </div>
+                                <label class="po-label">
+                                    Avg BW
+                                </label>
 
-                                <div class="col-md-2">
-                                    <label class="form-label">
-                                        No Truck
-                                    </label>
+                                <input
+                                    type="text"
+                                    id="masterAvgBwEdit"
+                                    class="form-control po-input decimal-input"
+                                    readonly
+                                    style="background:#f5f6f8"
+                                    placeholder="0,00">
 
-                                    <input
-                                        type="text"
-                                        id="masterTruckEdit"
-                                        class="form-control">
-                                </div>
+                            </div>
 
-                                <div class="col-md-2">
-                                    <label class="form-label">
-                                        Driver
-                                    </label>
+                            <div class="col-md-4">
 
-                                    <input
-                                        type="text"
-                                        id="masterDriverEdit"
-                                        class="form-control">
-                                </div>
+                                <label class="po-label">
+                                    Mati (Qty)
+                                </label>
 
-                                <div class="col-md-12">
-                                    <label class="form-label">
-                                        Remark
-                                    </label>
+                                <input
+                                    type="text"
+                                    id="masterMatiQtyEdit"
+                                    class="form-control po-input decimal-input"
+                                    placeholder="0,00">
 
-                                    <textarea
-                                        name="REMARK"
-                                        class="form-control"
-                                        rows="2"></textarea>
-                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+
+                                <label class="po-label">
+                                    Mati (BW)
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="masterMatiBwEdit"
+                                    class="form-control po-input decimal-input"
+                                    placeholder="0,00">
+
+                            </div>
+
+                            <div class="col-md-4">
+
+                                <label class="po-label">
+                                    Susut (BW)
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="masterSusutBwEdit"
+                                    class="form-control po-input decimal-input"
+                                    placeholder="0,00">
+
+                            </div>
+
+                            <div class="col-md-6">
+
+                                <label class="po-label">
+                                    Total Terima Qty
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="masterTerimaQtyEdit"
+                                    class="form-control po-input decimal-input"
+                                    readonly
+                                    style="background:#f5f6f8"
+                                    placeholder="0,00">
+
+                            </div>
+
+                            <div class="col-md-6">
+
+                                <label class="po-label">
+                                    Total Terima BW
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="masterTerimaBwEdit"
+                                    class="form-control po-input decimal-input"
+                                    readonly
+                                    style="background:#f5f6f8"
+                                    placeholder="0,00">
+
+                            </div>
+                                                        <div class="col-md-6">
+
+                                <label class="po-label">
+                                    Harga *
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="masterHargaEdit"
+                                    class="form-control po-input rupiah-input"
+                                    placeholder="0">
+
+                            </div>
+
+                            <div class="col-md-6">
+
+                                <label class="po-label">
+                                    Total *
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="masterTotalEdit"
+                                    class="form-control po-input rupiah-input"
+                                    readonly
+                                    style="background:#f5f6f8"
+                                    placeholder="0">
+
+                            </div>
+
+                            <div class="col-md-6">
+
+                                <label class="po-label">
+                                    No Truck
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="masterTruckEdit"
+                                    class="form-control po-input"
+                                    placeholder="Input truck number">
+
+                            </div>
+
+                            <div class="col-md-6">
+
+                                <label class="po-label">
+                                    Driver
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="masterDriverEdit"
+                                    class="form-control po-input"
+                                    placeholder="Input driver name">
+
+                            </div>
+
+                            <div class="col-md-12">
+
+                                <label class="po-label">
+                                    Remark
+                                </label>
+
+                                <textarea
+                                    name="REMARK"
+                                    rows="2"
+                                    class="form-control po-input"
+                                    placeholder="Input remark..."></textarea>
 
                             </div>
 
@@ -955,92 +976,62 @@
 
                     </div>
 
-                    <!-- DETAIL -->
-                    <div class="card border-0 shadow-sm">
+                    <!-- ================= DETAIL ================= -->
 
-                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <!--
+                    <div class="po-section-card">
 
-                            <div class="fw-bold">
-                                DETAIL CUSTOMER
-                            </div>
+                        <div class="po-section-title">
+
+                            <span>
+                                <i class="ti ti-list-details me-1"></i>
+                                CUSTOMER DETAIL
+                            </span>
 
                             <button
                                 type="button"
-                                class="btn btn-success btn-sm"
+                                class="btn btn-success btn-sm btn-modern"
                                 id="addDetailRowEdit">
 
                                 <i class="ti ti-plus"></i>
-                                Tambah Detail
+                                Add Detail
                             </button>
 
                         </div>
 
-                        <div class="card-body">
+                        <div class="tableWrapper">
 
-                            <!-- SUMMARY -->
-                            <div class="row mb-3">
-
-                                <div class="col-md-3">
-                                    <div class="summary-box">
-                                        <small>Master Jumlah</small>
-                                        <h6 id="sumMasterJumlahEdit">0</h6>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-3">
-                                    <div class="summary-box">
-                                        <small>Detail Jumlah</small>
-                                        <h6 id="sumDetailJumlahEdit">0</h6>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-3">
-                                    <div class="summary-box">
-                                        <small>Remaining Jumlah</small>
-                                        <h6 id="remainingJumlahEdit">0</h6>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-3">
-                                    <div class="summary-box">
-                                        <small>Remaining Berat</small>
-                                        <h6 id="remainingBeratEdit">0</h6>
-                                    </div>
-                                </div>
-
-                            </div>
-
-                            <!-- TABLE -->
                             <div class="table-responsive">
 
-                                <table class="table table-bordered align-middle"
+                                <table
+                                    class="table table-bordered po-table"
                                     id="poDetailTableEdit">
 
-                                    <thead class="table-light">
+                                    <thead>
 
                                         <tr>
 
-                                            <th class="text-center">
+                                            <th style="width:25%">
                                                 Customer
                                             </th>
 
-                                            <th class="text-center">
+                                            <th>
                                                 Jumlah
                                             </th>
 
-                                            <th class="text-center">
+                                            <th>
                                                 Berat
                                             </th>
 
-                                            <th class="text-center">
+                                            <th>
                                                 Harga
                                             </th>
 
-                                            <th class="text-center">
+                                            <th>
                                                 Total
                                             </th>
 
-                                            <th width="60" class="text-center">
+                                            <th style="width:60px">
                                                 #
                                             </th>
 
@@ -1056,27 +1047,140 @@
 
                         </div>
 
+                        <div class="po-summary mt-3">
+
+                            <div class="row">
+
+                                <div class="col-md-6">
+
+                                    <div class="summary-item">
+
+                                        <span>
+                                            Master Jumlah
+                                        </span>
+
+                                        <span
+                                            class="summary-value"
+                                            id="sumMasterJumlahEdit">
+
+                                            0.00
+
+                                        </span>
+
+                                    </div>
+
+                                    <div class="summary-item">
+
+                                        <span>
+                                            Used Jumlah
+                                        </span>
+
+                                        <span
+                                            class="summary-value"
+                                            id="sumDetailJumlahEdit">
+
+                                            0.00
+
+                                        </span>
+
+                                    </div>
+
+                                    <div class="summary-item">
+
+                                        <span>
+                                            Remaining Jumlah
+                                        </span>
+
+                                        <span
+                                            class="summary-value summary-ok"
+                                            id="remainingJumlahEdit">
+
+                                            0.00
+
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-md-6">
+
+                                    <div class="summary-item">
+
+                                        <span>
+                                            Master Berat
+                                        </span>
+
+                                        <span
+                                            class="summary-value"
+                                            id="sumMasterBeratEdit">
+
+                                            0.00
+
+                                        </span>
+
+                                    </div>
+
+                                    <div class="summary-item">
+
+                                        <span>
+                                            Used Berat
+                                        </span>
+
+                                        <span
+                                            class="summary-value"
+                                            id="sumDetailBeratEdit">
+
+                                            0.00
+
+                                        </span>
+
+                                    </div>
+
+                                    <div class="summary-item">
+
+                                        <span>
+                                            Remaining Berat
+                                        </span>
+
+                                        <span
+                                            class="summary-value summary-ok"
+                                            id="remainingBeratEdit">
+
+                                            0.00
+
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
                     </div>
+                    -->
+                                    </div>
 
-                </div>
-
-                <!-- FOOTER -->
                 <div class="modal-footer">
 
                     <button
                         type="button"
-                        class="btn btn-secondary"
+                        class="btn btn-light btn-modern"
                         data-bs-dismiss="modal">
 
-                        Tutup
+                        Close
+
                     </button>
 
                     <button
                         type="submit"
-                        class="btn btn-warning">
+                        class="btn btn-primary btn-modern">
 
-                        <i class="ti ti-device-floppy"></i>
+                        <i class="ti ti-device-floppy me-1"></i>
                         Update PO
+
                     </button>
 
                 </div>
@@ -1084,7 +1188,9 @@
             </div>
 
         </form>
+
     </div>
+
 </div>
 
 <!-- MODAL DETAIL PO -->
@@ -1146,7 +1252,7 @@
         border-radius:16px;
         box-shadow:0 10px 30px rgba(0,0,0,.08);
         text-align:center;
-}
+    }   
 
     .loading-hide{
         opacity:.35;
@@ -1266,6 +1372,23 @@
 
     });
 
+    $('#statusFilter').on('change', function(){
+        state.status = $(this).val();
+        loadPage(1);
+    });
+
+    $('#dateFrom, #dateTo').on('change', function(){
+        let from = $('#dateFrom').val();
+        let to = $('#dateTo').val();
+        if(from && to && from > to){
+            alert('Tanggal From tidak boleh lebih besar dari Date To');
+            return;
+        }
+        state.date_from = from;
+        state.date_to = to;
+        loadPage(1);
+    });
+
     $('#btnFilter').on('click', function(){
 
         state.status = $('#statusFilter').val();
@@ -1351,7 +1474,7 @@
     function initTypeSelect2(selector, modalId, hiddenInput){
         $(selector).select2({
             theme:'bootstrap-5',
-            placeholder:'-- PILIH PO TYPE --',
+            placeholder:'-- PILIH TIPE PO --',
             dropdownParent: $(modalId + ' .modal-body'),
             width:'100%',
             ajax: {
@@ -1549,13 +1672,25 @@
 
                     <td class="text-end" style="vertical-align: middle">
                         <div>
-                            <span class="fw-semibold">Qty :</span>
+                            <span class="fw-semibold">Ekor :</span>
                             ${formatDecimalID(row.JUMLAH)}
                         </div>
 
                         <div>
-                            <span class="fw-semibold">Weight :</span>
+                            <span class="fw-semibold">Berat :</span>
                             ${formatDecimalID(row.BERAT)}
+                        </div>
+                    </td>
+
+                    <td class="text-end" style="vertical-align: middle">
+                        <div>
+                            <span class="fw-semibold">Ekor :</span>
+                            ${formatDecimalID(row.TOTAL_TERIMA_QTY)}
+                        </div>
+
+                        <div>
+                            <span class="fw-semibold">Berat :</span>
+                            ${formatDecimalID(row.TOTAL_TERIMA_BW)}
                         </div>
                     </td>
 
@@ -2207,6 +2342,42 @@
     );
 
     $(function(){
+        const today = new Date();
+
+        const firstDay = new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            1
+        );
+
+        const formatDate = (date) => {
+
+            let y = date.getFullYear();
+
+            let m = String(
+                date.getMonth() + 1
+            ).padStart(2, '0');
+
+            let d = String(
+                date.getDate()
+            ).padStart(2, '0');
+
+            return `${y}-${m}-${d}`;
+
+        };
+
+        $('#dateFrom').val(
+            formatDate(firstDay)
+        );
+
+        $('#dateTo').val(
+            formatDate(today)
+        );
+
+        state.date_from = $('#dateFrom').val();
+
+        state.date_to = $('#dateTo').val();
+
         loadPage(1);
 
         // Inisialisasi select2 add
@@ -2466,176 +2637,214 @@
         });
 
         // Click edit
-        $(document).on('click','.editBtn', function(){
+        $(document).on('click', '.editBtn', function () {
 
             let po    = $(this).data('po');
             let plant = $(this).data('plant');
 
-            $.get('<?= base_url("po/edit"); ?>',{ po, plant }, function(resp){
+            $.get(
+                '<?= base_url("po/edit"); ?>',
+                {
+                    po: po,
+                    plant: plant
+                },
+                function (resp) {
 
-                resp = typeof resp === 'string'
-                    ? JSON.parse(resp)
-                    : resp;
+                    resp = (typeof resp === 'string')
+                        ? JSON.parse(resp)
+                        : resp;
 
-                if(!resp.status){
+                    if (!resp.status) {
 
-                    alert('Gagal mengambil data');
+                        alert(resp.message);
 
-                    return;
-                }
+                        return;
 
-                let h = resp.header;
+                    }
 
-                // ================= HEADER =================
+                    let h = resp.header;
 
-                $('#PLANT_EDIT').val(h.PLANT);
+                    // =====================================
+                    // KEY
+                    // =====================================
 
-                $('#PLANT_NAME_EDIT').val(
-                    h.PLANT_NAME
-                );
+                    $('#orig_po').val(h.PO);
 
-                $('#PO_EDIT_AUTO').val(h.PO);
+                    $('#PLANT_EDIT').val(h.PLANT);
 
-                $('#orig_po').val(h.PO);
+                    $('#PLANT_NAME_EDIT').val(h.PLANT_NAME);
 
-                $('#fpoEdit input[name="PO_DATE"]')
-                    .val(h.PO_DATE);
+                    $('#PO_EDIT_AUTO').val(h.PO);
 
-                $('#fpoEdit textarea[name="REMARK"]')
-                    .val(h.REMARK);
+                    // =====================================
+                    // DATE
+                    // =====================================
 
-                // ================= TYPE =================
+                    $('#fpoEdit input[name="PO_DATE"]')
+                        .val(h.PO_DATE);
 
-                let typeOpt = new Option(
-                    h.PO_TYPE_NAME,
-                    h.PO_TYPE,
-                    true,
-                    true
-                );
+                    // =====================================
+                    // TYPE
+                    // =====================================
 
-                $('#typeEdit')
-                    .empty()
-                    .append(typeOpt)
-                    .trigger('change');
+                    $('#typeEdit')
+                        .empty()
+                        .append(
+                            new Option(
+                                h.PO_TYPE_NAME,
+                                h.PO_TYPE,
+                                true,
+                                true
+                            )
+                        )
+                        .trigger('change');
 
-                $('#hiddenTypeEdit').val(h.PO_TYPE);
+                    $('#hiddenTypeEdit')
+                        .val(h.PO_TYPE);
 
-                // ================= SUPPLIER =================
+                    // =====================================
+                    // SUPPLIER
+                    // =====================================
 
-                let supplierOpt = new Option(
-                    h.SUPPLIER + ' - ' + h.SUPPLIER_NAME,
-                    h.SUPPLIER,
-                    true,
-                    true
-                );
+                    $('#supplierEdit')
+                        .empty()
+                        .append(
+                            new Option(
+                                h.SUPPLIER + ' - ' + h.SUPPLIER_NAME,
+                                h.SUPPLIER,
+                                true,
+                                true
+                            )
+                        )
+                        .trigger('change');
 
-                $('#supplierEdit')
-                    .empty()
-                    .append(supplierOpt)
-                    .trigger('change');
+                    $('#hiddensupplierEdit')
+                        .val(h.SUPPLIER);
 
-                $('#hiddensupplierEdit')
-                    .val(h.SUPPLIER);
+                    // =====================================
+                    // MATERIAL
+                    // =====================================
 
-                // ================= MATERIAL =================
+                    $('#materialEdit')
+                        .empty()
+                        .append(
+                            new Option(
+                                h.MATERIAL_NAME,
+                                h.MATERIAL,
+                                true,
+                                true
+                            )
+                        )
+                        .trigger('change');
 
-                let materialOpt = new Option(
-                    h.MATERIAL_NAME,
-                    h.MATERIAL,
-                    true,
-                    true
-                );
+                    $('#hiddenMaterialEdit')
+                        .val(h.MATERIAL);
 
-                $('#materialEdit')
-                    .empty()
-                    .append(materialOpt)
-                    .trigger('change');
+                    // =====================================
+                    // MASTER
+                    // =====================================
 
-                $('#hiddenMaterialEdit')
-                    .val(h.MATERIAL);
+                    $('#masterJumlahEdit')
+                        .val(formatDecimalID(h.JUMLAH));
 
-                // ================= MASTER =================
+                    $('#masterBeratEdit')
+                        .val(formatDecimalID(h.BERAT));
 
-                $('#masterJumlahEdit').val(
-                    formatDecimalID(h.JUMLAH)
-                );
+                    $('#masterAvgBwEdit')
+                        .val(formatDecimalID(h.AVG_BW));
 
-                $('#masterBeratEdit').val(
-                    formatDecimalID(h.BERAT)
-                );
+                    $('#masterMatiQtyEdit')
+                        .val(formatDecimalID(h.MATI_QTY));
 
-                $('#masterAvgBwEdit').val(
-                    formatDecimalID(h.AVG_BW, 2)
-                );
+                    $('#masterMatiBwEdit')
+                        .val(formatDecimalID(h.MATI_BW));
 
-                $('#masterMatiQtyEdit').val(
-                    formatDecimalID(h.MATI_QTY)
-                );
+                    $('#masterSusutBwEdit')
+                        .val(formatDecimalID(h.SUSUT_BW));
 
-                $('#masterMatiBwEdit').val(
-                    formatDecimalID(h.MATI_BW)
-                );
+                    $('#masterTerimaQtyEdit')
+                        .val(formatDecimalID(h.TOTAL_TERIMA_QTY));
 
-                $('#masterSusutBwEdit').val(
-                    formatDecimalID(h.SUSUT_BW)
-                );
+                    $('#masterTerimaBwEdit')
+                        .val(formatDecimalID(h.TOTAL_TERIMA_BW));
 
-                $('#masterTerimaQtyEdit').val(
-                    formatDecimalID(h.TOTAL_TERIMA_QTY)
-                );
+                    $('#masterHargaEdit')
+                        .val(formatMoneyID(h.HARGA));
 
-                $('#masterTerimaBwEdit').val(
-                    formatDecimalID(h.TOTAL_TERIMA_BW)
-                );
+                    $('#masterTotalEdit')
+                        .val(formatMoneyID(h.TOTAL));
 
-                $('#masterHargaEdit').val(
-                    formatMoneyID(h.HARGA)
-                );
+                    $('#masterTruckEdit')
+                        .val(h.NO_TRUCK);
 
-                $('#masterTotalEdit').val(
-                    formatMoneyID(h.TOTAL)
-                );
+                    $('#masterDriverEdit')
+                        .val(h.DRIVER);
 
-                $('#masterTruckEdit').val(
-                    h.NO_TRUCK
-                );
+                    $('#fpoEdit textarea[name="REMARK"]')
+                        .val(h.REMARK);
 
-                $('#masterDriverEdit').val(
-                    h.DRIVER
-                );
+                    // =====================================
+                    // DETAIL
+                    // =====================================
 
-                // ================= DETAIL =================
+                    $('#poDetailTableEdit tbody').empty();
 
-                $('#poDetailTableEdit tbody').empty();
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Customer Detail sementara disable
+                    |--------------------------------------------------------------------------
+                    */
 
-                resp.detail.forEach(row => {
+                    /*
+                    if(resp.detail){
 
-                    addDetailRow(
-                        '#poDetailTableEdit',
-                        '#poEdit',
-                        row
-                    );
+                        resp.detail.forEach(function(row){
 
-                });
+                            addDetailRow(
+                                '#poDetailTableEdit',
+                                '#poEdit',
+                                row
+                            );
 
-                calculateMasterTotalEdit();
+                        });
 
-                calculateActualHeader(true);
+                    }
+                    */
 
-                calculateSummaryEdit();
+                    // =====================================
+                    // RECALCULATE
+                    // =====================================
 
-                $('#poEdit').modal('show');
+                    calculateActualHeader(true);
 
-            });
+                    if (typeof calculateSummaryEdit === 'function') {
+
+                        calculateSummaryEdit();
+
+                    }
+
+                    // =====================================
+                    // SHOW
+                    // =====================================
+
+                    $('#poEdit').modal('show');
+
+                },
+                'json'
+            );
 
         });
 
         // Submit edit
-        $('#fpoEdit').submit(function(e){
+        $('#fpoEdit').submit(function (e) {
 
             e.preventDefault();
 
-            // ================= VALIDASI MASTER =================
+            /*
+            |--------------------------------------------------------------------------
+            | MASTER
+            |--------------------------------------------------------------------------
+            */
 
             let masterJumlah = parseDecimalID(
                 $('#masterJumlahEdit').val()
@@ -2645,51 +2854,92 @@
                 $('#masterBeratEdit').val()
             );
 
-            if(masterJumlah <= 0){
+            let masterHarga = parseRupiah(
+                $('#masterHargaEdit').val()
+            );
+
+            let matiQty = parseDecimalID(
+                $('#masterMatiQtyEdit').val()
+            );
+
+            let matiBw = parseDecimalID(
+                $('#masterMatiBwEdit').val()
+            );
+
+            let susutBw = parseDecimalID(
+                $('#masterSusutBwEdit').val()
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | VALIDASI
+            |--------------------------------------------------------------------------
+            */
+
+            if (masterJumlah <= 0) {
 
                 alert('Qty / Ekor harus lebih dari 0');
 
                 return;
+
             }
 
-            if(masterBerat <= 0){
+            if (masterBerat <= 0) {
 
-                alert('Weight / BW harus lebih dari 0');
+                alert('Berat / BW harus lebih dari 0');
 
                 return;
+
             }
 
-            if(parseRupiah($('#masterHargaEdit').val()) <= 0){
+            if (masterHarga <= 0) {
 
                 alert('Harga harus lebih dari 0');
 
                 return;
+
             }
 
-            $('#fpoEdit button[type=submit]')
-                .prop('disabled', true);
+            if (matiQty > masterJumlah) {
 
-            // ================= DETAIL =================
+                alert('Mati Qty tidak boleh melebihi Qty');
+
+                return;
+
+            }
+
+            if (matiBw > masterBerat) {
+
+                alert('Mati BW tidak boleh melebihi Weight');
+
+                return;
+
+            }
+
+            if ((matiBw + susutBw) > masterBerat) {
+
+                alert('Mati BW + Susut BW melebihi Weight');
+
+                return;
+
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | DETAIL
+            |--------------------------------------------------------------------------
+            */
 
             let DETAIL = [];
 
-            let totalJumlah = 0;
+            /*
+            |--------------------------------------------------------------------------
+            | Customer Detail sementara disable
+            |--------------------------------------------------------------------------
+            */
 
-            let totalBerat = 0;
-
+            /*
             $('#poDetailTableEdit tbody tr').each(function(){
-
-                let jumlah = parseDecimalID(
-                    $(this).find('.jumlah').val()
-                );
-
-                let berat = parseDecimalID(
-                    $(this).find('.berat').val()
-                );
-
-                totalJumlah += jumlah;
-
-                totalBerat += berat;
 
                 DETAIL.push({
 
@@ -2699,114 +2949,106 @@
                         .find('.customerSelect')
                         .val(),
 
-                    JUMLAH : jumlah,
+                    JUMLAH : parseDecimalID(
+                        $(this).find('.jumlah').val()
+                    ),
 
-                    BERAT : berat,
+                    BERAT : parseDecimalID(
+                        $(this).find('.berat').val()
+                    ),
 
                     HARGA : parseRupiah(
                         $(this).find('.harga').val()
+                    ),
+
+                    TOTAL : parseRupiah(
+                        $(this).find('.total').val()
                     )
 
                 });
 
             });
+            */
 
-            // ================= VALIDASI DETAIL =================
+            /*
+            |--------------------------------------------------------------------------
+            | BUTTON
+            |--------------------------------------------------------------------------
+            */
 
-            if(totalJumlah > masterJumlah){
+            $('#fpoEdit button[type=submit]')
+                .prop('disabled', true);
 
-                alert(
-                    'Total Qty detail melebihi Qty master'
-                );
+            /*
+            |--------------------------------------------------------------------------
+            | SUBMIT
+            |--------------------------------------------------------------------------
+            */
 
-                $('#fpoEdit button[type=submit]')
-                    .prop('disabled', false);
+            $.post(
 
-                return;
-            }
+                '<?= base_url("po/update"); ?>',
 
-            if(totalBerat > masterBerat){
+                {
 
-                alert(
-                    'Total Weight detail melebihi Weight master'
-                );
+                    orig_po: $('#orig_po').val(),
 
-                $('#fpoEdit button[type=submit]')
-                    .prop('disabled', false);
+                    PLANT: $('#PLANT_EDIT').val(),
 
-                return;
-            }
+                    TYPE: $('#hiddenTypeEdit').val(),
 
-            // ================= SUBMIT =================
+                    MATERIAL: $('#hiddenMaterialEdit').val(),
 
-            $.post('<?= base_url("po/update"); ?>',{
+                    PO_DATE: $('#fpoEdit input[name="PO_DATE"]').val(),
 
-                orig_po : $('#orig_po').val(),
+                    SUPPLIER: $('#hiddensupplierEdit').val(),
 
-                PLANT : $('#PLANT_EDIT').val(),
+                    JUMLAH: masterJumlah,
 
-                TYPE : $('#hiddenTypeEdit').val(),
+                    BERAT: masterBerat,
 
-                MATERIAL : $('#hiddenMaterialEdit').val(),
+                    MATI_QTY: matiQty,
 
-                PO_DATE : $('#poEdit input[name="PO_DATE"]').val(),
+                    MATI_BW: matiBw,
 
-                SUPPLIER : $('#hiddensupplierEdit').val(),
+                    SUSUT_BW: susutBw,
 
-                // ================= MASTER =================
+                    HARGA: masterHarga,
 
-                JUMLAH : masterJumlah,
+                    NO_TRUCK: $('#masterTruckEdit').val(),
 
-                BERAT : masterBerat,
+                    DRIVER: $('#masterDriverEdit').val(),
 
-                HARGA : parseRupiah(
-                    $('#masterHargaEdit').val()
-                ),
+                    REMARK: $('#fpoEdit textarea[name="REMARK"]').val(),
 
-                // ================= ACTUAL =================
+                    DETAIL: DETAIL
 
-                MATI_QTY : parseDecimalID(
-                    $('#masterMatiQtyEdit').val()
-                ),
+                },
 
-                MATI_BW : parseDecimalID(
-                    $('#masterMatiBwEdit').val()
-                ),
+                function (resp) {
 
-                SUSUT_BW : parseDecimalID(
-                    $('#masterSusutBwEdit').val()
-                ),
+                    $('#fpoEdit button[type=submit]')
+                        .prop('disabled', false);
 
-                // ================= OTHER =================
+                    resp = (typeof resp === 'string')
+                        ? JSON.parse(resp)
+                        : resp;
 
-                NO_TRUCK : $('#masterTruckEdit').val(),
+                    alert(resp.message);
 
-                DRIVER : $('#masterDriverEdit').val(),
+                    if (resp.status) {
 
-                REMARK : $('#fpoEdit textarea[name="REMARK"]').val(),
+                        $('#poEdit').modal('hide');
 
-                DETAIL : DETAIL
+                        loadPage(state.page);
 
-            }, function(resp){
+                    }
 
-                $('#fpoEdit button[type=submit]')
-                    .prop('disabled', false);
+                },
 
-                resp = typeof resp === 'string'
-                    ? JSON.parse(resp)
-                    : resp;
+                'json'
 
-                alert(resp.message);
-
-                if(resp.status){
-
-                    $('#poEdit').modal('hide');
-
-                    loadPage(state.page);
-
-                }
-
-            }, 'json');
+            );
 
         });
 

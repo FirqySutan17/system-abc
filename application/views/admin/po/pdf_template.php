@@ -9,73 +9,76 @@ $logo64 = file_exists($logo)
 <style>
 
     body{
-        font-family:sans-serif;
-        font-size:11px;
+        font-family: DejaVu Sans, sans-serif;
+        font-size:10px;
         color:#222;
+        margin:0;
+        padding:0;
     }
 
     .header{
-        margin-bottom:20px;
+        width:100%;
+        border-bottom:3px solid #0F4C81;
+        padding-bottom:10px;
+        margin-bottom:15px;
     }
 
-    .title{
+    .logo{
+        width:70px;
+    }
+
+    .company{
         text-align:center;
-        font-size:22px;
+    }
+
+    .company-name{
+        font-size:20px;
         font-weight:bold;
-        margin-bottom:4px;
+        color:#0F4C81;
     }
 
-    .subtitle{
-        text-align:center;
+    .company-sub{
         font-size:12px;
         color:#666;
     }
 
-    .card{
-        border:1px solid #dfe7ef;
-        border-radius:12px;
-        overflow:hidden;
+    .doc-title{
+        margin-top:5px;
+        font-size:18px;
+        font-weight:bold;
+        letter-spacing:1px;
     }
 
-    .card-head{
+    .section{
+        margin-top:18px;
+    }
+
+    .section-title{
         background:#0F4C81;
         color:#fff;
-        padding:12px 15px;
-        font-size:14px;
+        padding:7px 10px;
+        font-size:11px;
         font-weight:bold;
     }
 
-    .meta{
-        padding:15px;
-        background:#f8fafc;
-        border-bottom:1px solid #e5e7eb;
-    }
-
-    .meta-table{
+    .info-table{
         width:100%;
         border-collapse:collapse;
     }
 
-    .meta-table td{
-        border:none;
-        padding:4px 0;
-        vertical-align:top;
+    .info-table td{
+        padding:5px 8px;
+        border:1px solid #d9dee5;
     }
 
     .label{
-        width:90px;
-        font-weight:bold;
-        white-space:nowrap;
-    }
-
-    .sep{
-        width:10px;
-        text-align:center;
+        width:22%;
+        background:#f4f7fb;
         font-weight:bold;
     }
 
-    .gap{
-        width:35px;
+    .value{
+        width:28%;
     }
 
     .table{
@@ -83,17 +86,17 @@ $logo64 = file_exists($logo)
         border-collapse:collapse;
     }
 
-    .table th,
-    .table td{
+    .table th{
+        background:#0F4C81;
+        color:#fff;
         border:1px solid #d9dee5;
         padding:8px;
-        font-size:11px;
+        font-size:10px;
     }
 
-    .table th{
-        background:#eef2f7;
-        font-weight:bold;
-        text-align:center;
+    .table td{
+        border:1px solid #d9dee5;
+        padding:7px;
     }
 
     .right{
@@ -105,74 +108,294 @@ $logo64 = file_exists($logo)
     }
 
     .subtotal{
-        background:#f8fafc;
+        background:#f5f7fa;
         font-weight:bold;
     }
 
-    .remark-box{
-        margin-top:18px;
-        padding:12px;
-        border:1px dashed #cbd5e1;
-        border-radius:10px;
-        background:#fcfcfc;
-    }
-
-    .remark-title{
-        font-weight:bold;
-        margin-bottom:6px;
-    }
-
-    .section-title{
-        margin-top:20px;
-        margin-bottom:10px;
-        font-size:13px;
-        font-weight:bold;
-        color:#0F4C81;
+    .remark{
+        border:1px solid #d9dee5;
+        min-height:55px;
+        padding:10px;
     }
 
     .sign{
-        margin-top:55px;
+        margin-top:60px;
         width:100%;
+        border-collapse:collapse;
     }
 
     .sign td{
-        width:50%;
         text-align:center;
         border:none;
+        width:33%;
     }
 
     .sign-line{
-        margin-top:55px;
-        font-weight:bold;
+        padding-top:55px;
     }
 
+    .page-break{
+        page-break-after:always;
+    }
+
+    .table tr:nth-child(even){
+        background:#fafafa;
+    }
+
+    .section{
+        margin-bottom:15px;
+    }
+
+    .info-table tr:nth-child(even){
+        background:#fcfcfc;
+    }
 </style>
 
 <div class="header">
-
-    <table width="100%" border="0">
-
+    <table width="100%">
         <tr>
 
-            <td width="70" style="border:none;">
+            <td width="80">
 
                 <?php if($logo64): ?>
 
-                    <img src="<?= $logo64 ?>" height="60">
+                <img src="<?= $logo64 ?>" width="65">
 
                 <?php endif; ?>
 
             </td>
 
-            <td style="border:none;">
+            <td class="company">
 
-                <div class="title">
-                    PT. Abadi Bersama Cerah
+                <div class="company-name">
+
+                PT. ABADI BERSAMA CERAH
+
                 </div>
 
-                <div class="subtitle">
-                    PURCHASE ORDER
+                <div class="company-sub">
+
+                Purchase Order Management System
+
                 </div>
+
+                <div class="doc-title">
+
+                PURCHASE ORDER
+
+                </div>
+
+            </td>
+
+        </tr>
+    </table>
+</div>
+
+<div class="section">
+
+    <div class="section-title">
+        PO INFORMATION
+    </div>
+
+    <table class="info-table">
+
+        <tr>
+            <td class="label">
+                PO Number
+            </td>
+
+            <td class="value">
+                <?= $header->PO ?>
+            </td>
+
+            <td class="label">
+                PO Date
+            </td>
+
+            <td class="value">
+                <?= date('d-m-Y',strtotime($header->PO_DATE)) ?>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="label">
+                Plant
+            </td>
+
+            <td>
+                <?= $header->PLANT_NAME ?>
+            </td>
+
+            <td class="label">
+                PO Type
+            </td>
+
+            <td>
+                <?= $header->PO_NAME ?>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="label">
+                upplier
+            </td>
+
+            <td>
+                <?= $header->SUPPLIER ?>
+                -
+                <?= $header->SUPPLIER_NAME ?>
+            </td>
+
+            <td class="label">
+                Material
+            </td>
+
+            <td>
+                <?= $header->MATERIAL ?>
+                -
+                <?= $header->MATERIAL_NAME ?>
+            </td>
+        </tr>
+
+    </table>
+
+</div>
+
+<div class="section">
+
+    <div class="section-title">
+        ACTUAL INFORMATION
+    </div>
+
+    <table class="info-table">
+
+        <tr>
+
+            <td class="label">
+                Qty / Ekor
+            </td>
+
+            <td class="value right">
+                <?= number_format($header->JUMLAH,2,',','.') ?>
+            </td>
+
+            <td class="label">
+                Weight / BW
+            </td>
+
+            <td class="value right">
+                <?= number_format($header->BERAT,2,',','.') ?>
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td class="label">
+                Average BW
+            </td>
+
+            <td class="value right">
+                <?= number_format($header->AVG_BW,2,',','.') ?>
+            </td>
+
+            <td class="label">
+                Mati Qty
+            </td>
+
+            <td class="value right">
+                <?= number_format($header->MATI_QTY,2,',','.') ?>
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td class="label">
+                Mati BW
+            </td>
+
+            <td class="value right">
+                <?= number_format($header->MATI_BW,2,',','.') ?>
+            </td>
+
+            <td class="label">
+                Susut BW
+            </td>
+
+            <td class="value right">
+                <?= number_format($header->SUSUT_BW,2,',','.') ?>
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td class="label">
+                Total Terima Qty
+            </td>
+
+            <td class="value right">
+                <?= number_format($header->TOTAL_TERIMA_QTY,2,',','.') ?>
+            </td>
+
+            <td class="label">
+                Total Terima BW
+            </td>
+
+            <td class="value right">
+                <?= number_format($header->TOTAL_TERIMA_BW,2,',','.') ?>
+            </td>
+
+        </tr>
+
+    </table>
+
+</div>
+
+<div class="section">
+
+    <div class="section-title">
+
+        PRICE INFORMATION
+
+    </div>
+
+    <table class="info-table">
+
+        <tr>
+
+            <td class="label">
+
+                Harga / Kg
+
+            </td>
+
+            <td class="value right">
+
+                Rp <?= number_format(
+                    $header->HARGA,
+                    0,
+                    ',',
+                    '.'
+                ) ?>
+
+            </td>
+
+            <td class="label">
+
+                Total
+
+            </td>
+
+            <td class="value right">
+
+                Rp <?= number_format(
+                    $header->TOTAL,
+                    0,
+                    ',',
+                    '.'
+                ) ?>
 
             </td>
 
@@ -182,168 +405,111 @@ $logo64 = file_exists($logo)
 
 </div>
 
-<div class="card">
+<div class="section">
 
-    <div class="card-head">
-        #<?= $header->PO ?>
+    <div class="section-title">
+
+        TRANSPORT
+
     </div>
 
-    <div class="meta">
+    <table class="info-table">
 
-        <table class="meta-table">
+        <tr>
 
-            <tr>
+            <td class="label">
 
-                <td class="label">PLANT</td>
-                <td class="sep">:</td>
-                <td><?= $header->PLANT_NAME ?></td>
+                Truck
 
-                <td class="gap"></td>
+            </td>
 
-                <td class="label">PO DATE</td>
-                <td class="sep">:</td>
+            <td class="value">
 
-                <td>
-                    <?= strtoupper(
-                        date(
-                            'd F Y',
-                            strtotime($header->PO_DATE)
-                        )
-                    ) ?>
-                </td>
+                <?= $header->NO_TRUCK ?: '-' ?>
 
-            </tr>
+            </td>
 
-            <tr>
+            <td class="label">
 
-                <td class="label">SUPPLIER</td>
-                <td class="sep">:</td>
+                Driver
 
-                <td>
-                    <?= $header->SUPPLIER ?>
-                    -
-                    <?= $header->SUPPLIER_NAME ?>
-                </td>
+            </td>
 
-                <td class="gap"></td>
+            <td class="value">
 
-                <td class="label">PO TYPE</td>
-                <td class="sep">:</td>
+                <?= $header->DRIVER ?: '-' ?>
 
-                <td><?= $header->PO_NAME ?></td>
+            </td>
 
-            </tr>
+        </tr>
 
-            <tr>
+    </table>
 
-                <td class="label">MATERIAL</td>
-                <td class="sep">:</td>
+</div>
 
-                <td>
-                    <?= $header->MATERIAL ?>
-                    -
-                    <?= $header->MATERIAL_NAME ?>
-                </td>
+<div class="section">
 
-                <td class="gap"></td>
+    <div class="section-title">
 
-                <td class="label">TRUCK</td>
-                <td class="sep">:</td>
+        STATUS
 
-                <td>
-                    <?= $header->NO_TRUCK ?: '-' ?>
-                </td>
+    </div>
 
-            </tr>
+    <table class="info-table">
 
-            <tr>
+        <tr>
 
-                <td class="label">QTY</td>
-                <td class="sep">:</td>
+            <td class="label">
 
-                <td>
-                    <?= number_format(
-                        $header->JUMLAH,
-                        2,
-                        ',',
-                        '.'
-                    ) ?>
-                </td>
+                Purchase Order Status
 
-                <td class="gap"></td>
+            </td>
 
-                <td class="label">DRIVER</td>
-                <td class="sep">:</td>
+            <td colspan="3">
 
-                <td>
-                    <?= $header->DRIVER ?: '-' ?>
-                </td>
+                <strong>
 
-            </tr>
+                    <?= $header->STATUS_PO ?>
 
-            <tr>
+                </strong>
 
-                <td class="label">WEIGHT</td>
-                <td class="sep">:</td>
+            </td>
 
-                <td>
-                    <?= number_format(
-                        $header->BERAT,
-                        2,
-                        ',',
-                        '.'
-                    ) ?>
-                </td>
+        </tr>
 
-                <td class="gap"></td>
+    </table>
 
-                <td class="label">PRICE</td>
-                <td class="sep">:</td>
+</div>
 
-                <td>
-                    Rp <?= number_format(
-                        $header->HARGA,
-                        0,
-                        ',',
-                        '.'
-                    ) ?>
-                </td>
+<div class="section">
 
-            </tr>
+    <div class="section-title">
 
-            <tr>
+        REMARK
 
-                <td class="label">TOTAL</td>
-                <td class="sep">:</td>
+    </div>
 
-                <td colspan="5">
-                    Rp <?= number_format(
-                        $header->TOTAL,
-                        0,
-                        ',',
-                        '.'
-                    ) ?>
-                </td>
+    <div class="remark">
 
-            </tr>
+        <?= !empty($header->REMARK)
 
-            <tr>
+            ? nl2br($header->REMARK)
 
-                <td class="label">STATUS</td>
-                <td class="sep">:</td>
+            : '-'
 
-                <td colspan="5">
+        ?>
 
-                    <?= $header->STATUS
-                        ? 'RECEIVED'
-                        : 'OPEN'
-                    ?>
+    </div>
 
-                </td>
+</div>
 
-            </tr>
+<?php if(!empty($detail)): ?>
 
-        </table>
+<div class="section">
+
+    <div class="section-title">
+
+        CUSTOMER DETAIL
 
     </div>
 
@@ -353,17 +519,17 @@ $logo64 = file_exists($logo)
 
             <tr>
 
-                <th width="6%">NO</th>
+                <th width="6%">No</th>
 
-                <th>CUSTOMER</th>
+                <th>Customer</th>
 
-                <th width="13%">QTY</th>
+                <th width="12%">Qty</th>
 
-                <th width="13%">WEIGHT</th>
+                <th width="12%">BW</th>
 
-                <th width="15%">PRICE</th>
+                <th width="15%">Harga</th>
 
-                <th width="18%">TOTAL</th>
+                <th width="18%">Total</th>
 
             </tr>
 
@@ -371,102 +537,118 @@ $logo64 = file_exists($logo)
 
         <tbody>
 
-            <?php foreach($detail as $i => $d): ?>
+        <?php foreach($detail as $i => $d): ?>
 
             <tr>
 
                 <td class="center">
-                    <?= $i + 1 ?>
+
+                    <?= $i+1 ?>
+
                 </td>
 
                 <td>
+
                     <?= $d->CUSTOMER ?>
+
                     -
+
                     <?= $d->CUSTOMER_NAME ?>
+
                 </td>
 
                 <td class="right">
+
                     <?= number_format(
                         $d->JUMLAH,
                         2,
                         ',',
                         '.'
                     ) ?>
+
                 </td>
 
                 <td class="right">
+
                     <?= number_format(
                         $d->BERAT,
                         2,
                         ',',
                         '.'
                     ) ?>
+
                 </td>
 
                 <td class="right">
-                    <?= number_format(
+
+                    Rp <?= number_format(
                         $d->HARGA,
                         0,
                         ',',
                         '.'
                     ) ?>
+
                 </td>
 
                 <td class="right">
-                    <?= number_format(
+
+                    Rp <?= number_format(
                         $d->TOTAL,
                         0,
                         ',',
                         '.'
                     ) ?>
-                </td>
-
-            </tr>
-
-            <?php endforeach; ?>
-
-            <tr class="subtotal">
-
-                <td colspan="2">
-                    TOTAL CUSTOMER
-                </td>
-
-                <td class="right">
-
-                    <?= number_format(
-                        $subtotal['qty'],
-                        2,
-                        ',',
-                        '.'
-                    ) ?>
-
-                </td>
-
-                <td class="right">
-
-                    <?= number_format(
-                        $subtotal['weight'],
-                        2,
-                        ',',
-                        '.'
-                    ) ?>
-
-                </td>
-
-                <td></td>
-
-                <td class="right">
-
-                    <?= number_format(
-                        $subtotal['total'],
-                        0,
-                        ',',
-                        '.'
-                    ) ?>
 
                 </td>
 
             </tr>
+
+        <?php endforeach; ?>
+
+        <tr class="subtotal">
+
+            <td colspan="2">
+
+                TOTAL CUSTOMER
+
+            </td>
+
+            <td class="right">
+
+                <?= number_format(
+                    $subtotal['qty'],
+                    2,
+                    ',',
+                    '.'
+                ) ?>
+
+            </td>
+
+            <td class="right">
+
+                <?= number_format(
+                    $subtotal['weight'],
+                    2,
+                    ',',
+                    '.'
+                ) ?>
+
+            </td>
+
+            <td></td>
+
+            <td class="right">
+
+                Rp <?= number_format(
+                    $subtotal['total'],
+                    0,
+                    ',',
+                    '.'
+                ) ?>
+
+            </td>
+
+        </tr>
 
         </tbody>
 
@@ -474,28 +656,28 @@ $logo64 = file_exists($logo)
 
 </div>
 
-<div class="remark-box">
-
-    <div class="remark-title">
-        Remark
-    </div>
-
-    <?= !empty($header->REMARK)
-        ? nl2br($header->REMARK)
-        : '-' ?>
-
-</div>
+<?php endif; ?>
 
 <table class="sign">
 
     <tr>
 
         <td>
+
             Prepared By
+
         </td>
 
         <td>
+
+            Checked By
+
+        </td>
+
+        <td>
+
             Approved By
+
         </td>
 
     </tr>
@@ -503,13 +685,40 @@ $logo64 = file_exists($logo)
     <tr>
 
         <td class="sign-line">
-            (_____________________)
+
+            ________________________
+
         </td>
 
         <td class="sign-line">
-            (_____________________)
+
+            ________________________
+
+        </td>
+
+        <td class="sign-line">
+
+            ________________________
+
         </td>
 
     </tr>
 
 </table>
+
+<div style="margin-top:20px;
+            text-align:center;
+            font-size:9px;
+            color:#888;">
+
+    This document is generated automatically by
+
+    <strong>ABC ERP System</strong>
+
+    <br>
+
+    Printed on
+
+    <?= date('d-m-Y H:i:s') ?>
+
+</div>

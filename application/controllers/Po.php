@@ -394,17 +394,17 @@ class Po extends MY_Controller {
             |--------------------------------------------------------------------------
             */
 
-            $total = round(
-                $actual['TOTAL_TERIMA_BW'] * $harga,
-                2
-            );
-
             $actual = $this->calculateActual(
                 $jumlah,
                 $berat,
                 $matiQty,
                 $matiBw,
                 $susutBw
+            );
+
+            $total = round(
+                $actual['TOTAL_TERIMA_BW'] * $harga,
+                2
             );
 
             $no_truck = trim(
@@ -712,7 +712,7 @@ class Po extends MY_Controller {
 
             'REMARK'  => $remark,
 
-            'STATUS'  => 0,
+            'STATUS'  => 'OPEN',
 
             'CREATED_BY' => $this->session->userdata('username'),
             'CREATED_AT' => date('Y-m-d H:i:s')
@@ -1009,17 +1009,17 @@ class Po extends MY_Controller {
             |--------------------------------------------------------------------------
             */
 
-            $total = round(
-                $actual['TOTAL_TERIMA_BW'] * $harga,
-                2
-            );
-
             $actual = $this->calculateActual(
                 $jumlah,
                 $berat,
                 $matiQty,
                 $matiBw,
                 $susutBw
+            );
+
+            $total = round(
+                $actual['TOTAL_TERIMA_BW'] * $harga,
+                2
             );
 
             $detail = $this->input->post('DETAIL');
@@ -1476,8 +1476,7 @@ class Po extends MY_Controller {
         | HEADER
         |--------------------------------------------------------------------------
         */
-        $header = $this->db
-            ->select("
+        $header = $this->db->select("
                 p.PO,
 
                 p.PLANT,
@@ -1498,21 +1497,49 @@ class Po extends MY_Controller {
 
                 material.MATERIAL_NAME,
 
+                p.NO_TRUCK,
+
+                p.DRIVER,
+
                 p.JUMLAH,
 
                 p.BERAT,
+
+                p.AVG_BW,
+
+                p.MATI_QTY,
+
+                p.MATI_BW,
+
+                p.SUSUT_BW,
+
+                p.TOTAL_TERIMA_QTY,
+
+                p.TOTAL_TERIMA_BW,
 
                 p.HARGA,
 
                 p.TOTAL,
 
-                p.NO_TRUCK,
+                p.REMARK,
 
-                p.DRIVER,
+                CASE
 
-                p.STATUS,
+                    WHEN COALESCE(
+                        SUM(rd.BERAT),
+                        0
+                    ) >= p.BERAT
+                    THEN 'RECEIVED'
 
-                p.REMARK
+                    WHEN COALESCE(
+                        SUM(rd.BERAT),
+                        0
+                    ) > 0
+                    THEN 'PARTIAL'
+
+                    ELSE 'OPEN'
+
+                END AS STATUS_PO
             ", false)
 
             ->from('abc_mst_po p')
@@ -1555,11 +1582,35 @@ class Po extends MY_Controller {
                 false
             )
 
+            ->join(
+                'abc_mst_receive r',
+                '
+                    r.PO = p.PO
+                    AND r.PLANT = p.PLANT
+                    AND r.DELETED IS NULL
+                ',
+                'left',
+                false
+            )
+
+            ->join(
+                'abc_mst_receive_detail rd',
+                '
+                    rd.RECEIVE = r.RECEIVE
+                    AND rd.PLANT = r.PLANT
+                    AND rd.DELETED IS NULL
+                ',
+                'left',
+                false
+            )
+
             ->where('p.PO', $po)
 
             ->where('p.PLANT', $plant)
 
             ->where('p.DELETED IS NULL', null, false)
+
+            ->group_by('p.PO')
 
             ->get()
 
@@ -1615,32 +1666,32 @@ class Po extends MY_Controller {
 
         if (empty($detail)) {
 
-            show_error(
-                'Detail PO tidak ditemukan'
-            );
+            $detail = [];
+
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | SUBTOTAL DETAIL
-        |--------------------------------------------------------------------------
-        */
         $subtotal = [
+
             'qty'    => 0,
+
             'weight' => 0,
+
             'total'  => 0
+
         ];
 
-        foreach ($detail as $d) {
+        if (!empty($detail)) {
 
-            $subtotal['qty']
-                += (float)$d->JUMLAH;
+            foreach ($detail as $d) {
 
-            $subtotal['weight']
-                += (float)$d->BERAT;
+                $subtotal['qty'] += (float)$d->JUMLAH;
 
-            $subtotal['total']
-                += (float)$d->TOTAL;
+                $subtotal['weight'] += (float)$d->BERAT;
+
+                $subtotal['total'] += (float)$d->TOTAL;
+
+            }
+
         }
 
         /*
@@ -1806,13 +1857,9 @@ class Po extends MY_Controller {
         }
 
         return [
-
             'AVG_BW' => round($avgBw, 2),
-
-            'TOTAL_TERIMA_QTY' => round($totalQty, 2),
-
-            'TOTAL_TERIMA_BW' => round($totalBw, 2),
-
+            'TOTAL_TERIMA_QTY' => round($totalTerimaQty, 2),
+            'TOTAL_TERIMA_BW' => round($totalTerimaBw, 2),
         ];
     }
 

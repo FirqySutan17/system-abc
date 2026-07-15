@@ -497,6 +497,151 @@ class Receive_model extends CI_Model {
         return $this->db->count_all_results();
     }
 
+    public function getLookupPO()
+    {
+        return $this->db
+
+            ->select("
+                PO,
+                SUPPLIER,
+                MATERIAL,
+                TOTAL_TERIMA_QTY,
+                TOTAL_TERIMA_BW,
+                HARGA
+            ")
+
+            ->from("abc_mst_po")
+
+            ->where("STATUS",0)
+
+            ->where("DELETED IS NULL",null,false)
+
+            ->order_by("PO","DESC")
+
+            ->get()
+
+            ->result_array();
+    }
+
+    public function lookupPO($plant, $keyword = '')
+    {
+        $this->db
+            ->select("
+                p.PO,
+                p.PLANT,
+
+                p.SUPPLIER,
+                s.FULL_NAME AS SUPPLIER_NAME,
+
+                p.MATERIAL,
+                m.MATERIAL_NAME,
+
+                p.JUMLAH,
+                p.BERAT,
+                p.AVG_BW,
+
+                p.MATI_QTY,
+                p.MATI_BW,
+                p.SUSUT_BW,
+
+                p.TOTAL_TERIMA_QTY,
+                p.TOTAL_TERIMA_BW,
+
+                p.HARGA,
+                p.TOTAL,
+
+                p.NO_TRUCK,
+                p.DRIVER
+            ")
+            ->from("abc_mst_po p")
+
+            ->join(
+                "abc_cd_customer s",
+                "s.CUST = p.SUPPLIER",
+                "left"
+            )
+
+            ->join(
+                "abc_cd_material m",
+                "m.MATERIAL = p.MATERIAL",
+                "left"
+            )
+
+            ->where("p.PLANT", $plant)
+
+            ->where("p.STATUS", 0)
+
+            ->where("p.DELETED IS NULL", null, false);
+
+        if ($keyword != '') {
+
+            $this->db
+                ->group_start()
+
+                ->like("p.PO", $keyword)
+
+                ->or_like("s.FULL_NAME", $keyword)
+
+                ->or_like("m.MATERIAL_NAME", $keyword)
+
+                ->group_end();
+        }
+
+        return $this->db
+            ->order_by("p.PO", "DESC")
+            ->limit(20)
+            ->get()
+            ->result_array();
+    }
+
+    public function lookupCustomer(
+        $keyword=""
+    )
+    {
+        $this->db
+        ->select("
+            CUST AS CUSTOMER,
+            FULL_NAME AS CUSTOMER_NAME,
+            CUST_KIND
+        ")
+        ->from("abc_cd_customer")
+        ->where("STATUS","Y")
+        ->where("CUST_KIND","CUSTOMER")
+        ->where("CUST_CLASS","CUSTOMER");
+
+        if($keyword!="")
+        {
+            $this->db
+
+                ->group_start()
+
+                ->like(
+                    "CUST",
+                    $keyword
+                )
+
+                ->or_like(
+                    "FULL_NAME",
+                    $keyword
+                )
+
+                ->group_end();
+        }
+
+        return
+
+            $this->db
+
+            ->order_by(
+                "FULL_NAME",
+                "ASC"
+            )
+
+            ->get()
+
+            ->result_array();
+    }
+
     public function get_plant_select2()
     {
         return $this->db
@@ -517,91 +662,164 @@ class Receive_model extends CI_Model {
         return in_array((string)$plant, array_map('strval', $plants));
     }
 
-    /* ---------------------------------------------------------
-       AUTO NUMBER GENERATORS
-    --------------------------------------------------------- */
-
-    public function generate_po_no()
+    public function insertReceiveHeader($data)
     {
-        $today = date('Ymd');
-        $prefix = $today . 'PO';
+        $ok = $this->db->insert(
+            'abc_mst_receive',
+            $data
+        );
 
-        $this->db->like('PO', $prefix, 'after');
-        $this->db->order_by('PO', 'DESC');
-        $this->db->limit(1);
-        $row = $this->db->get('abc_mst_po')->row();
+        if(!$ok){
 
-        $seq = $row ? ((int)substr($row->PO, -4) + 1) : 1;
-        return $prefix . str_pad($seq, 4, '0', STR_PAD_LEFT);
-    }
+            throw new Exception(
+                'Gagal menyimpan Header Receive.'
+            );
 
-    public function generate_receive_no($plant)
-    {
-        $today = date('Ymd');
-        $prefix = $today . 'RC';
-
-        $this->db->like('RECEIVE', $prefix, 'after');
-        $this->db->where('PLANT', $plant); // 🔑 filter PLANT
-        $this->db->order_by('RECEIVE', 'DESC');
-        $this->db->limit(1);
-        $row = $this->db->get('abc_mst_receive')->row();
-
-        $seq = $row ? ((int)substr($row->RECEIVE, -4) + 1) : 1;
-        return $prefix . str_pad($seq, 4, '0', STR_PAD_LEFT);
-    }
-
-    public function generate_auto_nota($plant)
-    {
-        return $this->generate_receive_no($plant);
-    }
-
-    public function generate_slip_no()
-    {
-        $today = date('Ymd');
-        $prefix = $today . 'AP';
-
-        $this->db->like('SLIP_NO', $prefix, 'after');
-        $this->db->order_by('SLIP_NO', 'DESC');
-        $this->db->limit(1);
-        $row = $this->db->get('abc_mst_receive')->row();
-
-        $seq = $row ? ((int)substr($row->SLIP_NO, -4) + 1) : 1;
-        return $prefix . str_pad($seq, 4, '0', STR_PAD_LEFT);
-    }
-
-    public function upload_file($field, $plant, $receive, $date)
-    {
-        if (empty($_FILES[$field]['name'])) return null;
-
-        $path = './uploads/' . $plant . '/';
-        if (!is_dir($path)) mkdir($path, 0755, true);
-
-        $ext  = pathinfo($_FILES[$field]['name'], PATHINFO_EXTENSION);
-        $name = $plant . '_' . $receive . '_' . date('Ymd', strtotime($date)) . '.' . $ext;
-
-        $config = [
-            'upload_path'   => $path,
-            'allowed_types' => 'jpg|jpeg|png|pdf|xlsx|docx',
-            'max_size'      => 10240,
-            'file_name'     => $name,
-            'overwrite'     => true
-        ];
-
-        $this->load->library('upload', $config);
-
-        if ($this->upload->do_upload($field)) {
-            return [
-                'filename' => $name,
-                'path'     => 'uploads/' . $plant . '/' . $name
-            ];
         }
 
-        return null;
+        return true;
     }
 
-    /* ---------------------------------------------------------
-       PO OPERATIONS
-    --------------------------------------------------------- */
+    public function insertReceiveDetail($rows)
+    {
+        if(empty($rows)){
+            return true;
+        }
+
+        $ok = $this->db->insert_batch(
+            'abc_mst_receive_detail',
+            $rows
+        );
+
+        if($ok === false){
+
+            throw new Exception(
+                'Gagal menyimpan Detail Receive.'
+            );
+
+        }
+
+        return true;
+    }
+
+    public function insertSaving($rows)
+    {
+        if(empty($rows)){
+            return true;
+        }
+
+        $ok = $this->db->insert_batch(
+            'abc_mst_saving',
+            $rows
+        );
+
+        if($ok === false){
+
+            throw new Exception(
+                'Gagal menyimpan Tabungan.'
+            );
+
+        }
+
+        return true;
+    }
+
+    public function insertSales($rows)
+    {
+        if(empty($rows)){
+            return true;
+        }
+
+        $ok = $this->db->insert_batch(
+            'abc_mst_sales',
+            $rows
+        );
+
+        if($ok === false){
+
+            throw new Exception(
+                'Gagal menyimpan Sales.'
+            );
+
+        }
+
+        return true;
+    }
+
+    public function insertCompanyStock($row)
+    {
+        if(empty($row)){
+            return true;
+        }
+
+        if(
+            $row['QTY'] <= 0 &&
+            $row['BW'] <= 0
+        ){
+            return true;
+        }
+
+        $ok = $this->db->insert(
+            'abc_mst_stock_company',
+            $row
+        );
+
+        if(!$ok){
+
+            throw new Exception(
+                'Gagal menyimpan Company Stock.'
+            );
+
+        }
+
+        return true;
+    }
+
+    public function updatePO($row)
+    {
+        $ok = $this->db
+
+            ->where(
+                'PLANT',
+                $row['PLANT']
+            )
+
+            ->where(
+                'PO',
+                $row['PO']
+            )
+
+            ->update(
+
+                'abc_mst_po',
+
+                [
+
+                    'STATUS'=>$row['STATUS'],
+
+                    'UPDATED_BY'=>
+
+                        $this->session
+                            ->userdata('username'),
+
+                    'UPDATED_AT'=>
+
+                        date('Y-m-d H:i:s')
+
+                ]
+
+            );
+
+        if(!$ok){
+
+            throw new Exception(
+                'Gagal mengupdate PO.'
+            );
+
+        }
+
+        return true;
+    }
 
     public function insert_po($data)
     {
