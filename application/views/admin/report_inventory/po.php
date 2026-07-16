@@ -110,17 +110,17 @@ $roleId    = $this->session->userdata('role_id');
             </div>
 
             <div class="col-md-3">
-                <label class="form-label fw-semibold">PO Number</label>
+                <label class="form-label fw-semibold">Nomor PO</label>
                 <input
                     type="text"
                     id="filter_po"
                     class="form-control"
-                    placeholder="Search PO..."
+                    placeholder="Cari Nomor PO..."
                 >
             </div>
 
             <div class="col-md-2">
-                <label class="form-label fw-semibold">Date From</label>
+                <label class="form-label fw-semibold">Tanggal Mulai</label>
                 <input
                     type="date"
                     id="filter_date_from"
@@ -129,7 +129,7 @@ $roleId    = $this->session->userdata('role_id');
             </div>
 
             <div class="col-md-2">
-                <label class="form-label fw-semibold">Date To</label>
+                <label class="form-label fw-semibold">Tanggal Selesai</label>
                 <input
                     type="date"
                     id="filter_date_to"
@@ -174,7 +174,7 @@ $roleId    = $this->session->userdata('role_id');
         <div class="text-center">
             <div class="spinner-border text-primary"></div>
             <div class="fw-semibold mt-3">Loading report...</div>
-            <small class="text-muted">Please wait a moment</small>
+            <small class="text-muted">Mohon tunggu sebentar</small>
         </div>
     </div>
 
@@ -191,141 +191,141 @@ $roleId    = $this->session->userdata('role_id');
 
 <style>
 
-.po-report-wrap{
-    padding:4px;
-}
+    .po-report-wrap{
+        padding:4px;
+    }
 
-.report-filter-card{
-    background:#fff;
-    border:1px solid #edf2f7;
-    border-radius:18px;
-    padding:24px;
-    box-shadow:0 8px 25px rgba(15,23,42,.05);
-    margin-bottom:24px;
-}
+    .report-filter-card{
+        background:#fff;
+        border:1px solid #edf2f7;
+        border-radius:18px;
+        padding:24px;
+        box-shadow:0 8px 25px rgba(15,23,42,.05);
+        margin-bottom:24px;
+    }
 
-.report-loading{
-    min-height:280px;
-    background:#fff;
-    border-radius:18px;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    border:1px solid #edf2f7;
-}
+    .report-loading{
+        min-height:280px;
+        background:#fff;
+        border-radius:18px;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        border:1px solid #edf2f7;
+    }
 
-#poReportWrapper.loading{
-    opacity:.35;
-    pointer-events:none;
-    transition:.25s;
-}
-.po-card{
-    border:1px solid #e9ecef;
-    border-radius:18px;
-    overflow:hidden;
-    margin-bottom:22px;
-    box-shadow:0 8px 30px rgba(0,0,0,.05);
-}
+    #poReportWrapper.loading{
+        opacity:.35;
+        pointer-events:none;
+        transition:.25s;
+    }
+    .po-card{
+        border:1px solid #e9ecef;
+        border-radius:18px;
+        overflow:hidden;
+        margin-bottom:22px;
+        box-shadow:0 8px 30px rgba(0,0,0,.05);
+    }
 
-.po-head{
-    background:linear-gradient(135deg,#0F4C81,#1d6fb1);
-    color:#fff;
-    padding:18px 22px;
-}
+    .po-head{
+        background:linear-gradient(135deg,#0F4C81,#1d6fb1);
+        color:#fff;
+        padding:18px 22px;
+    }
 
-.po-title{
-    font-size:18px;
-    font-weight:700;
-}
+    .po-title{
+        font-size:18px;
+        font-weight:700;
+    }
 
-.po-body{
-    padding:10px;
-    background:#fff;
-}
+    .po-body{
+        padding:10px;
+        background:#fff;
+    }
 
-.status-badge{
-    padding:5px 12px;
-    border-radius:30px;
-    font-size:12px;
-    font-weight:700;
-}
+    .status-badge{
+        padding:5px 12px;
+        border-radius:30px;
+        font-size:12px;
+        font-weight:700;
+    }
 
-.status-open{
-    background:#fff3cd;
-    color:#9a6700;
-}
+    .status-open{
+        background:#fff3cd;
+        color:#9a6700;
+    }
 
-.status-received{
-    background:#d1e7dd;
-    color:#0f5132;
-}
+    .status-received{
+        background:#d1e7dd;
+        color:#0f5132;
+    }
 
-.table-detail th{
-    background:#f8f9fa;
-    font-size:13px;
-    text-transform:uppercase;
-}
+    .table-detail th{
+        background:#f8f9fa;
+        font-size:13px;
+        text-transform:uppercase;
+    }
 
-.table-detail td{
-    vertical-align:middle;
-}
+    .table-detail td{
+        vertical-align:middle;
+    }
 
-.subtotal-row{
-    background:#f8fafc;
-    font-weight:700;
-}
+    .subtotal-row{
+        background:#f8fafc;
+        font-weight:700;
+    }
 
-.po-meta-grid{
-    margin-top:14px;
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:8px 28px;
-    font-size:13px;
-}
+    .po-meta-grid{
+        margin-top:14px;
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:8px 28px;
+        font-size:13px;
+    }
 
-.meta-label{
-    display:inline-block;
-    width:85px;
-    font-weight:700;
-    color:rgba(255,255,255,.85);
-    letter-spacing:.4px;
-}
+    .meta-label{
+        display:inline-block;
+        width:85px;
+        font-weight:700;
+        color:rgba(255,255,255,.85);
+        letter-spacing:.4px;
+    }
 
-.meta-value{
-    font-weight:500;
-    color:#fff;
-}
-.summary-card{
-    background:#fff;
-    border-radius:18px;
-    padding:20px;
-    border:1px solid #edf2f7;
-    box-shadow:0 8px 24px rgba(15,23,42,.05);
-    height:100%;
-    transition:.2s;
-}
+    .meta-value{
+        font-weight:500;
+        color:#fff;
+    }
+    .summary-card{
+        background:#fff;
+        border-radius:18px;
+        padding:20px;
+        border:1px solid #edf2f7;
+        box-shadow:0 8px 24px rgba(15,23,42,.05);
+        height:100%;
+        transition:.2s;
+    }
 
-.summary-card:hover{
-    transform:translateY(-2px);
-}
+    .summary-card:hover{
+        transform:translateY(-2px);
+    }
 
-.summary-label{
-    font-size:12px;
-    font-weight:700;
-    color:#64748b;
-    letter-spacing:.5px;
-    margin-bottom:10px;
-}
+    .summary-label{
+        font-size:12px;
+        font-weight:700;
+        color:#64748b;
+        letter-spacing:.5px;
+        margin-bottom:10px;
+    }
 
-.summary-value{
-    font-size:18px;
-    font-weight:800;
-    color:#0f172a;
-}
+    .summary-value{
+        font-size:18px;
+        font-weight:800;
+        color:#0f172a;
+    }
 
-.summary-money .summary-value{
-    color:#0F4C81;
-}
+    .summary-money .summary-value{
+        color:#0F4C81;
+    }
 </style>
 
 <script>
@@ -382,7 +382,7 @@ const POReport = {
 
         $('#filter_supplier').select2({
             width:'100%',
-            placeholder:'Choose Supplier',
+            placeholder:'Pilih Supplier',
             allowClear:true
         });
     },
@@ -517,7 +517,7 @@ const POReport = {
         if(!rows || !rows.length){
             wrap.html(`
                 <div class="text-center py-5 text-muted">
-                    No data found
+                    Data tidak ditemukan
                 </div>
             `);
             return;
@@ -603,41 +603,41 @@ const POReport = {
                             </div>
 
                             <div>
-                                <span class="meta-label">PO DATE</span>
+                                <span class="meta-label">TANGGAL PO</span>
                                 <span class="meta-value">: ${this.dateIndoLong(po.PO_DATE)}</span>
                             </div>
 
                             <div>
-                                <span class="meta-label">PO TYPE</span>
+                                <span class="meta-label">JENIS PO</span>
                                 <span class="meta-value">: ${po.PO_NAME || '-'}</span>
                             </div>
                             <div>
-                                <span class="meta-label">REMARK</span>
+                                <span class="meta-label">KETERANGAN</span>
                                 <span class="meta-value">: ${po.REMARK || '-'}</span>
                             </div>
                             <div>
-                                <span class="meta-label">DRIVER / NO.</span>
+                                <span class="meta-label">SUPIR / PLAT NOMOR.</span>
                                 <span class="meta-value">
                                     : ${po.DRIVER || '-'} / ${po.NO_TRUCK || '-'}
                                 </span>
                             </div>
 
                             <div>
-                                <span class="meta-label">QTY</span>
+                                <span class="meta-label">JUMLAH</span>
                                 <span class="meta-value">
                                     : ${this.decimal(po.HEADER_QTY)}
                                 </span>
                             </div>
 
                             <div>
-                                <span class="meta-label">WEIGHT</span>
+                                <span class="meta-label">BERAT</span>
                                 <span class="meta-value">
                                     : ${this.decimal(po.HEADER_BERAT)}
                                 </span>
                             </div>
 
                             <div>
-                                <span class="meta-label">PRICE</span>
+                                <span class="meta-label">HARGA</span>
                                 <span class="meta-value">
                                     : Rp ${this.money(po.HEADER_HARGA)}
                                 </span>
@@ -658,9 +658,9 @@ const POReport = {
                                 <tr>
                                     <th>Customer</th>
                                     <th>Material</th>
-                                    <th class="text-end">Qty</th>
-                                    <th class="text-end">Weight</th>
-                                    <th class="text-end">Price</th>
+                                    <th class="text-end">Jumlah</th>
+                                    <th class="text-end">Berat</th>
+                                    <th class="text-end">Harga</th>
                                     <th class="text-end">Total</th>
                                 </tr>
                             </thead>
@@ -704,7 +704,7 @@ const POReport = {
         .fail(()=>{
             $('#poReportWrapper').html(`
                 <div class="alert alert-danger mb-0">
-                    Failed load report data
+                    Gagal memuat data
                 </div>
             `);
         })

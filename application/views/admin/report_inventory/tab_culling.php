@@ -19,7 +19,7 @@
                     class="form-control">
 
                     <option value="">
-                        Choose Plant
+                        Pilih Plant
                     </option>
 
                     <?php foreach ($plants as $p): ?>
@@ -51,7 +51,7 @@
                     class="form-control">
 
                     <option value="">
-                        Choose Class Out
+                        Pilih Class Out
                     </option>
 
                     <?php foreach ($class_out as $c): ?>
@@ -71,14 +71,14 @@
             <div class="col-md-3">
 
                 <label class="form-label fw-semibold">
-                    Search
+                    Pencarian
                 </label>
 
                 <input
                     type="text"
                     id="cl_filter_search"
                     class="form-control"
-                    placeholder="Search remark...">
+                    placeholder="Cari berdasarkan keterangan...">
 
             </div>
 
@@ -87,7 +87,7 @@
             <div class="col-md-2">
 
                 <label class="form-label fw-semibold">
-                    Date From
+                    Tanggal Mulai
                 </label>
 
                 <input
@@ -102,7 +102,7 @@
             <div class="col-md-2">
 
                 <label class="form-label fw-semibold">
-                    Date To
+                    Tanggal Selesai
                 </label>
 
                 <input
@@ -214,187 +214,187 @@
 <style>
 
     .culling-card{
-    background:#fff;
-    border-radius:20px;
-    overflow:hidden;
-    margin-bottom:24px;
-    box-shadow:0 10px 30px rgba(15,23,42,.06);
-    border:1px solid #edf2f7;
-}
+        background:#fff;
+        border-radius:20px;
+        overflow:hidden;
+        margin-bottom:24px;
+        box-shadow:0 10px 30px rgba(15,23,42,.06);
+        border:1px solid #edf2f7;
+    }
 
-.culling-head{
-    background:
-        linear-gradient(
-            135deg,
-            #0f4c81,
-            #2563eb
-        );
+    .culling-head{
+        background:
+            linear-gradient(
+                135deg,
+                #0f4c81,
+                #2563eb
+            );
 
-    color:#fff;
-    padding:22px 24px;
-}
+        color:#fff;
+        padding:22px 24px;
+    }
 
-.culling-title{
-    font-size:22px;
-    font-weight:700;
-}
+    .culling-title{
+        font-size:22px;
+        font-weight:700;
+    }
 
-.culling-body{
-    padding:24px;
-}
+    .culling-body{
+        padding:24px;
+    }
 
-.summary-box{
-    display:flex;
-    justify-content:space-around;
-    text-align:center;
-}
+    .summary-box{
+        display:flex;
+        justify-content:space-around;
+        text-align:center;
+    }
 
-.summary-value{
-    font-size:28px;
-    font-weight:700;
-    color:#0f4c81;
-}
+    .summary-value{
+        font-size:28px;
+        font-weight:700;
+        color:#0f4c81;
+    }
 
-.summary-label{
-    color:#64748b;
-}
-.receive-report-wrap{
-    padding:4px;
-}
+    .summary-label{
+        color:#64748b;
+    }
+    .receive-report-wrap{
+        padding:4px;
+    }
 
-.report-filter-card{
-    background:#fff;
-    border:1px solid #edf2f7;
-    border-radius:18px;
-    padding:24px;
-    box-shadow:0 8px 25px rgba(15,23,42,.05);
-    margin-bottom:24px;
-}
+    .report-filter-card{
+        background:#fff;
+        border:1px solid #edf2f7;
+        border-radius:18px;
+        padding:24px;
+        box-shadow:0 8px 25px rgba(15,23,42,.05);
+        margin-bottom:24px;
+    }
 
-.report-loading{
-    min-height:280px;
-    background:#fff;
-    border-radius:18px;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    border:1px solid #edf2f7;
-}
+    .report-loading{
+        min-height:280px;
+        background:#fff;
+        border-radius:18px;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        border:1px solid #edf2f7;
+    }
 
-.receive-card{
-    background:#fff;
-    border-radius:20px;
-    overflow:hidden;
-    margin-bottom:24px;
-    box-shadow:0 10px 30px rgba(15,23,42,.06);
-    border:1px solid #edf2f7;
-}
+    .receive-card{
+        background:#fff;
+        border-radius:20px;
+        overflow:hidden;
+        margin-bottom:24px;
+        box-shadow:0 10px 30px rgba(15,23,42,.06);
+        border:1px solid #edf2f7;
+    }
 
-.receive-head{
-    background:linear-gradient(135deg,#0f4c81,#2563eb);
-    color:#fff;
-    padding:22px 24px;
-}
-
-.receive-title{
-    font-size:22px;
-    font-weight:700;
-    letter-spacing:.5px;
-}
-
-.status-badge{
-    padding:7px 14px;
-    border-radius:50px;
-    font-size:12px;
-    font-weight:700;
-}
-
-.status-open{
-    background:#fff3cd;
-    color:#856404;
-}
-
-.status-received{
-    background:#d1fae5;
-    color:#065f46;
-}
-
-.meta-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px 40px;
-    margin-top:18px;
-    font-size:14px;
-}
-
-.meta-item{
-    display:flex;
-    gap:8px;
-}
-
-.meta-label{
-    min-width:110px;
-    opacity:.85;
-    font-weight:600;
-}
-
-.meta-value{
-    flex:1;
-    font-weight:500;
-}
-
-.receive-body{
-    padding:10px;
-}
-
-.attach-badge{
-    display:inline-block;
-    padding:4px 10px;
-    border-radius:50px;
-    font-size:12px;
-    font-weight:700;
-    background:#e0f2fe;
-    color:#075985;
-}
-
-.table-detail{
-    margin:0;
-    font-size:14px;
-}
-
-.table-detail thead th{
-    background:#f8fafc;
-    border-color:#e5e7eb;
-    font-size:12px;
-    text-transform:uppercase;
-    letter-spacing:.4px;
-}
-
-.table-detail td{
-    border-color:#edf2f7;
-    vertical-align:middle;
-}
-
-.subtotal-row{
-    background:#f8fafc;
-    font-weight:700;
-}
-
-@media(max-width:768px){
-    .meta-grid{
-        grid-template-columns:1fr;
-        gap:8px;
+    .receive-head{
+        background:linear-gradient(135deg,#0f4c81,#2563eb);
+        color:#fff;
+        padding:22px 24px;
     }
 
     .receive-title{
-        font-size:18px;
+        font-size:22px;
+        font-weight:700;
+        letter-spacing:.5px;
     }
 
-    .receive-head,
-    .receive-body{
-        padding:18px;
+    .status-badge{
+        padding:7px 14px;
+        border-radius:50px;
+        font-size:12px;
+        font-weight:700;
     }
-}
+
+    .status-open{
+        background:#fff3cd;
+        color:#856404;
+    }
+
+    .status-received{
+        background:#d1fae5;
+        color:#065f46;
+    }
+
+    .meta-grid{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:10px 40px;
+        margin-top:18px;
+        font-size:14px;
+    }
+
+    .meta-item{
+        display:flex;
+        gap:8px;
+    }
+
+    .meta-label{
+        min-width:110px;
+        opacity:.85;
+        font-weight:600;
+    }
+
+    .meta-value{
+        flex:1;
+        font-weight:500;
+    }
+
+    .receive-body{
+        padding:10px;
+    }
+
+    .attach-badge{
+        display:inline-block;
+        padding:4px 10px;
+        border-radius:50px;
+        font-size:12px;
+        font-weight:700;
+        background:#e0f2fe;
+        color:#075985;
+    }
+
+    .table-detail{
+        margin:0;
+        font-size:14px;
+    }
+
+    .table-detail thead th{
+        background:#f8fafc;
+        border-color:#e5e7eb;
+        font-size:12px;
+        text-transform:uppercase;
+        letter-spacing:.4px;
+    }
+
+    .table-detail td{
+        border-color:#edf2f7;
+        vertical-align:middle;
+    }
+
+    .subtotal-row{
+        background:#f8fafc;
+        font-weight:700;
+    }
+
+    @media(max-width:768px){
+        .meta-grid{
+            grid-template-columns:1fr;
+            gap:8px;
+        }
+
+        .receive-title{
+            font-size:18px;
+        }
+
+        .receive-head,
+        .receive-body{
+            padding:18px;
+        }
+    }
 </style>
 
 <script>
@@ -442,7 +442,7 @@ window.CullingReport = {
 
             theme: 'bootstrap-5',
             width: '100%',
-            placeholder: 'Choose Plant',
+            placeholder: 'Pilih Plant',
             allowClear: true
 
         });
@@ -451,7 +451,7 @@ window.CullingReport = {
 
             theme: 'bootstrap-5',
             width: '100%',
-            placeholder: 'Choose Class Out',
+            placeholder: 'Pilih Class Out',
             allowClear: true
 
         });
@@ -465,8 +465,15 @@ window.CullingReport = {
 
     setDefault()
     {
-        $('#cl_date_from').val('');
-        $('#cl_date_to').val('');
+        const now = new Date();
+
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth()+1).padStart(2,'0');
+        const dd = String(now.getDate()).padStart(2,'0');
+
+        $('#cl_date_from').val(`${yyyy}-${mm}-01`);
+        $('#cl_date_to').val(`${yyyy}-${mm}-${dd}`);
+        
     },
 
     /*
@@ -786,7 +793,7 @@ window.CullingReport = {
                                 <span
                                     class="meta-label">
 
-                                    DATE
+                                    TANGGAL
 
                                 </span>
 
@@ -828,7 +835,7 @@ window.CullingReport = {
                                 <span
                                     class="meta-label">
 
-                                    CREATED BY
+                                    DIBUAT OLEH
 
                                 </span>
 
@@ -852,7 +859,7 @@ window.CullingReport = {
                                 <span
                                     class="meta-label">
 
-                                    REMARK
+                                    KETERANGAN
 
                                 </span>
 

@@ -16,7 +16,7 @@
                         type="text"
                         id="search"
                         class="form-control"
-                        placeholder="Cari plant, class out, remark...">
+                        placeholder="Cari plant, class out, keterangan...">
                 </div>
 
                 <div class="col-md-2">
@@ -46,7 +46,7 @@
                     <button
                         id="btnResetFilter"
                         class="btn btn-light w-100">
-                        Reset
+                        Atur Ulang
                     </button>
                 </div>
 
@@ -82,7 +82,7 @@
                         </div>
 
                         <small class="text-muted">
-                            Please wait a moment
+                            Mohon tunggu sebentar
                         </small>
 
                     </div>
@@ -102,11 +102,11 @@
                                 <tr>
 
                                     <th style="text-align: center; vertical-align: middle">Plant</th>
-                                    <th style="text-align: center; vertical-align: middle">Date</th>
+                                    <th style="text-align: center; vertical-align: middle">Tanggal</th>
                                     <th style="text-align: center; vertical-align: middle">Class Out</th>
                                     <th style="text-align: center; vertical-align: middle">Jumlah</th>
                                     <th style="text-align: center; vertical-align: middle">Berat</th>
-                                    <th style="text-align: center; vertical-align: middle">Remark</th>
+                                    <th style="text-align: center; vertical-align: middle">Keterangan</th>
                                     <th style="text-align: center; vertical-align: middle">#</th>
 
                                 </tr>
@@ -332,9 +332,9 @@
 
                     <div class="receive-section">
 
-                        <div class="receive-section-title">
+                        <!-- <div class="receive-section-title">
                             HEADER CULLING
-                        </div>
+                        </div> -->
 
                         <div class="row g-3">
 
@@ -356,7 +356,7 @@
                             <div class="col-md-6">
 
                                 <label class="form-label">
-                                    Date *
+                                    Tanggal *
                                 </label>
 
                                 <input
@@ -424,7 +424,7 @@
                             <div class="col-md-12">
 
                                 <label class="form-label">
-                                    Remark
+                                    Keterangan
                                 </label>
 
                                 <textarea
@@ -456,7 +456,7 @@
                         type="submit"
                         class="btn btn-primary">
 
-                        Simpan Culling
+                        Simpan
 
                     </button>
 
@@ -489,7 +489,7 @@
                 <div class="modal-header">
 
                     <h5 class="modal-title">
-                        CULLING - EDIT
+                        CULLING - UBAH
                     </h5>
 
                     <button
@@ -504,9 +504,9 @@
 
                     <div class="receive-section">
 
-                        <div class="receive-section-title">
+                        <!-- <div class="receive-section-title">
                             HEADER CULLING
-                        </div>
+                        </div> -->
 
                         <div class="row g-3">
 
@@ -528,7 +528,7 @@
                             <div class="col-md-6">
 
                                 <label class="form-label">
-                                    Date *
+                                    Tanggal *
                                 </label>
 
                                 <input
@@ -594,7 +594,7 @@
                             <div class="col-md-12">
 
                                 <label class="form-label">
-                                    Remark
+                                    Keterangan
                                 </label>
 
                                 <textarea
@@ -627,7 +627,7 @@
                         type="submit"
                         class="btn btn-primary">
 
-                        Update Culling
+                        Simpan
 
                     </button>
 
@@ -1039,7 +1039,7 @@
                         class="btn btn-outline-warning btnEdit"
                         data-id="${r.idno}">
 
-                        Edit
+                        Ubah
 
                     </button>
 

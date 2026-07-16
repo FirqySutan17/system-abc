@@ -2,12 +2,12 @@
     <div class="card w-100">
         <div class="card-body">
 
-            <h5 class="card-title fw-semibold mb-4">ACCOUNT - BASE DATA</h5>
+            <h5 class="card-title fw-semibold mb-4">ACCOUNT - DATA</h5>
 
             <!-- SEARCH + ADD ROW -->
             <div class="row mb-3" style="margin-top: 20px">
                 <div class="col-md-8 col-sm-12">
-                    <input id="search" type="text" class="form-control" placeholder="Cari account / nama..." />
+                    <input id="search" type="text" class="form-control" placeholder="Cari akun / nama..." />
                 </div>
                 <div class="col-md-4 col-sm-12 text-end mt-2 mt-md-0">
                     <div class="btn-group ">
@@ -24,13 +24,13 @@
                 <table class="table table-striped table-hover text-nowrap mb-0 align-middle" id="mainTable" style="border-collapse: collapse; border-radius: 10px; overflow: hidden;">
                     <thead class="text-dark fs-3">
                         <tr>
-                            <th style="text-align: center; vertical-align: middle" class="border-bottom-0 cursor-pointer" data-order="ACCOUNT">Account <span class="sort-icon"></span></th>
-                            <th style="text-align: center; vertical-align: middle" class="border-bottom-0 cursor-pointer" data-order="ACCOUNT_NAME">Account Name <span class="sort-icon"></span></th>
-                            <th style="text-align: center; vertical-align: middle" class="border-bottom-0">Remark</th>
+                            <th style="text-align: center; vertical-align: middle" class="border-bottom-0 cursor-pointer" data-order="ACCOUNT">Nomor Akun <span class="sort-icon"></span></th>
+                            <th style="text-align: center; vertical-align: middle" class="border-bottom-0 cursor-pointer" data-order="ACCOUNT_NAME">Nama Akun <span class="sort-icon"></span></th>
+                            <th style="text-align: center; vertical-align: middle" class="border-bottom-0">Keterangan</th>
                             <th style="text-align: center; vertical-align: middle" class="border-bottom-0">Chk In</th>
                             <th style="text-align: center; vertical-align: middle" class="border-bottom-0">Chk DC</th>
                             <th style="text-align: center; vertical-align: middle" class="border-bottom-0">Chk Vendor</th>
-                            <th style="text-align: center; vertical-align: middle" class="border-bottom-0 cursor-pointer" data-order="ACCOUNT_TYPE">Type <span class="sort-icon"></span></th>
+                            <th style="text-align: center; vertical-align: middle" class="border-bottom-0 cursor-pointer" data-order="ACCOUNT_TYPE">Tipe <span class="sort-icon"></span></th>
                             <th style="text-align: center; vertical-align: middle" class="border-bottom-0"></th>
                         </tr>
                     </thead>
@@ -54,24 +54,24 @@
         <form id="formAdd">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">CD Account - Tambah</h5>
+                <h5 class="modal-title">ACCOUNT - Tambah</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">
                 <div class="row g-2">
                     <div class="col-md-4 mb-1">
-                        <label class="form-label">Account *</label>
+                        <label class="form-label">Nomor Akun *</label>
                         <input name="ACCOUNT" class="form-control" placeholder="Contoh: 10000001" required>
                     </div>
 
                     <div class="col-md-8 mb-1">
-                        <label class="form-label">Account Name *</label>
+                        <label class="form-label">Nama Akun *</label>
                         <input name="ACCOUNT_NAME" class="form-control" placeholder="Nama account" required>
                     </div>
 
                     <div class="col-md-12 mb-1">
-                        <label class="form-label">Remark</label>
+                        <label class="form-label">Keterangan</label>
                         <input name="REMARK" class="form-control" placeholder="">
                     </div>
                 </div>
@@ -109,15 +109,15 @@
                 <hr>
 
                 <div class="row mt-2">
-                    <div class="col-md-3"><label class="form-label">Level No</label><input name="LEVEL_NO" class="form-control"></div>
-                    <div class="col-md-3"><label class="form-label">BS Group 1</label><input name="BS_GROUP1" class="form-control"></div>
-                    <div class="col-md-3"><label class="form-label">BS Group 2</label><input name="BS_GROUP2" class="form-control"></div>
-                    <div class="col-md-3"><label class="form-label">Account Type</label><input name="ACCOUNT_TYPE" class="form-control"></div>
+                    <div class="col-md-3"><label class="form-label">Nomor Level</label><input name="LEVEL_NO" class="form-control"></div>
+                    <div class="col-md-3"><label class="form-label">BS Grup 1</label><input name="BS_GROUP1" class="form-control"></div>
+                    <div class="col-md-3"><label class="form-label">BS Grup 2</label><input name="BS_GROUP2" class="form-control"></div>
+                    <div class="col-md-3"><label class="form-label">Tipe Akun</label><input name="ACCOUNT_TYPE" class="form-control"></div>
                 </div>
 
                 <div class="row mt-2">
-                    <div class="col-md-6"><label class="form-label">MOC Group 1</label><input name="MOC_GROUP1" class="form-control"></div>
-                    <div class="col-md-6"><label class="form-label">MOC Group 2</label><input name="MOC_GROUP2" class="form-control"></div>
+                    <div class="col-md-6"><label class="form-label">MOC Grup 1</label><input name="MOC_GROUP1" class="form-control"></div>
+                    <div class="col-md-6"><label class="form-label">MOC Grup 2</label><input name="MOC_GROUP2" class="form-control"></div>
                 </div>
             </div>
 
@@ -136,24 +136,24 @@
         <form id="formEdit">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">CD Account - Edit</h5>
+                <h5 class="modal-title">ACCOUNT - Edit</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" ></button>
             </div>
             <div class="modal-body">
                 <input type="hidden" name="orig_account" />
                 <div class="row g-2">
                     <div class="col-md-4 mb-1">
-                        <label class="form-label">Account *</label>
+                        <label class="form-label">Nomor Akun *</label>
                         <input name="ACCOUNT" class="form-control" required readonly>
                     </div>
 
                     <div class="col-md-8 mb-1">
-                        <label class="form-label">Account Name *</label>
+                        <label class="form-label">Nama Akun *</label>
                         <input name="ACCOUNT_NAME" class="form-control" required>
                     </div>
 
                     <div class="col-md-12 mb-1">
-                        <label class="form-label">Remark</label>
+                        <label class="form-label">Keterangan</label>
                         <input name="REMARK" class="form-control">
                     </div>
                 </div>
@@ -177,20 +177,20 @@
                 <hr>
 
                 <div class="row mt-2">
-                    <div class="col-md-3"><label class="form-label">Level No</label><input name="LEVEL_NO" class="form-control"></div>
-                    <div class="col-md-3"><label class="form-label">BS Group 1</label><input name="BS_GROUP1" class="form-control"></div>
-                    <div class="col-md-3"><label class="form-label">BS Group 2</label><input name="BS_GROUP2" class="form-control"></div>
+                    <div class="col-md-3"><label class="form-label">Nomor Level</label><input name="LEVEL_NO" class="form-control"></div>
+                    <div class="col-md-3"><label class="form-label">BS Grup 1</label><input name="BS_GROUP1" class="form-control"></div>
+                    <div class="col-md-3"><label class="form-label">BS Grup 2</label><input name="BS_GROUP2" class="form-control"></div>
                     <div class="col-md-3"><label class="form-label">Account Type</label><input name="ACCOUNT_TYPE" class="form-control"></div>
                 </div>
 
                 <div class="row mt-2">
-                    <div class="col-md-6"><label class="form-label">MOC Group 1</label><input name="MOC_GROUP1" class="form-control"></div>
-                    <div class="col-md-6"><label class="form-label">MOC Group 2</label><input name="MOC_GROUP2" class="form-control"></div>
+                    <div class="col-md-6"><label class="form-label">MOC Grup 1</label><input name="MOC_GROUP1" class="form-control"></div>
+                    <div class="col-md-6"><label class="form-label">MOC Grup 2</label><input name="MOC_GROUP2" class="form-control"></div>
                 </div>
             </div>
             <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-            <button type="submit" class="btn btn-primary">Update</button>
+            <button type="submit" class="btn btn-primary">Simpan</button>
             </div>
         </div>
         </form>
@@ -339,8 +339,8 @@
                 html += '<td style="text-align:center">'+escapeHtml(r.CHECK_VENDOR || '')+'</td>';
                 html += '<td style="text-align: center; vertical-align: middle;">'+escapeHtml(r.ACCOUNT_TYPE || '')+'</td>';
                 html += '<td style="text-align:center">';
-                html += '<button class="btn btn-sm btn-warning me-1" onclick="showEdit(\''+r.ACCOUNT+'\')">Edit</button>';
-                html += '<button class="btn btn-sm btn-danger" onclick="doDelete(\''+r.ACCOUNT+'\')">Delete</button>';
+                html += '<button class="btn btn-sm btn-warning me-1" onclick="showEdit(\''+r.ACCOUNT+'\')">Ubah</button>';
+                html += '<button class="btn btn-sm btn-danger" onclick="doDelete(\''+r.ACCOUNT+'\')">Hapus</button>';
                 html += '</td>';
                 html += '</tr>';
             });

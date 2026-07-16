@@ -8,7 +8,7 @@
             <div class="col-md-2">
                 <label class="form-label fw-semibold">Plant</label>
                 <select id="rc_filter_plant" class="form-control">
-                    <option value="">Choose Plant</option>
+                    <option value="">Pilih Plant</option>
                     <?php foreach ($plants as $p): ?>
                         <?php if ($p->CODE != '*'): ?>
                             <option value="<?= $p->CODE ?>">
@@ -22,7 +22,7 @@
             <div class="col-md-3">
                 <label class="form-label fw-semibold">Supplier</label>
                 <select id="rc_filter_supplier" class="form-control">
-                    <option value="">Choose Supplier</option>
+                    <option value="">Pilih Supplier</option>
                     <?php foreach ($suppliers as $s): ?>
                         <option value="<?= $s->CUST ?>">
                             <?= $s->CUST ?> - <?= $s->FULL_NAME ?>
@@ -37,17 +37,17 @@
                     type="text"
                     id="rc_filter_receive"
                     class="form-control"
-                    placeholder="Search Receive / PO..."
+                    placeholder="Cari Nomor Receive / PO..."
                 >
             </div>
 
             <div class="col-md-2">
-                <label class="form-label fw-semibold">Date From</label>
+                <label class="form-label fw-semibold">Tanggal Mulai</label>
                 <input type="date" id="rc_date_from" class="form-control">
             </div>
 
             <div class="col-md-2">
-                <label class="form-label fw-semibold">Date To</label>
+                <label class="form-label fw-semibold">Tanggal Selesai</label>
                 <input type="date" id="rc_date_to" class="form-control">
             </div>
 
@@ -89,7 +89,7 @@
         <div class="text-center">
             <div class="spinner-border text-primary"></div>
             <div class="fw-semibold mt-3">Loading report...</div>
-            <small class="text-muted">Please wait a moment</small>
+            <small class="text-muted">Mohon tunggu sebentar</small>
         </div>
     </div>
 
@@ -105,143 +105,143 @@
 </div>
 
 <style>
-.receive-report-wrap{
-    padding:4px;
-}
+    .receive-report-wrap{
+        padding:4px;
+    }
 
-.report-filter-card{
-    background:#fff;
-    border:1px solid #edf2f7;
-    border-radius:18px;
-    padding:24px;
-    box-shadow:0 8px 25px rgba(15,23,42,.05);
-    margin-bottom:24px;
-}
+    .report-filter-card{
+        background:#fff;
+        border:1px solid #edf2f7;
+        border-radius:18px;
+        padding:24px;
+        box-shadow:0 8px 25px rgba(15,23,42,.05);
+        margin-bottom:24px;
+    }
 
-.report-loading{
-    min-height:280px;
-    background:#fff;
-    border-radius:18px;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    border:1px solid #edf2f7;
-}
+    .report-loading{
+        min-height:280px;
+        background:#fff;
+        border-radius:18px;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        border:1px solid #edf2f7;
+    }
 
-.receive-card{
-    background:#fff;
-    border-radius:20px;
-    overflow:hidden;
-    margin-bottom:24px;
-    box-shadow:0 10px 30px rgba(15,23,42,.06);
-    border:1px solid #edf2f7;
-}
+    .receive-card{
+        background:#fff;
+        border-radius:20px;
+        overflow:hidden;
+        margin-bottom:24px;
+        box-shadow:0 10px 30px rgba(15,23,42,.06);
+        border:1px solid #edf2f7;
+    }
 
-.receive-head{
-    background:linear-gradient(135deg,#0f4c81,#2563eb);
-    color:#fff;
-    padding:22px 24px;
-}
-
-.receive-title{
-    font-size:22px;
-    font-weight:700;
-    letter-spacing:.5px;
-}
-
-.status-badge{
-    padding:7px 14px;
-    border-radius:50px;
-    font-size:12px;
-    font-weight:700;
-}
-
-.status-open{
-    background:#fff3cd;
-    color:#856404;
-}
-
-.status-received{
-    background:#d1fae5;
-    color:#065f46;
-}
-
-.meta-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:10px 40px;
-    margin-top:18px;
-    font-size:14px;
-}
-
-.meta-item{
-    display:flex;
-    gap:8px;
-}
-
-.meta-label{
-    min-width:110px;
-    opacity:.85;
-    font-weight:600;
-}
-
-.meta-value{
-    flex:1;
-    font-weight:500;
-}
-
-.receive-body{
-    padding:10px;
-}
-
-.attach-badge{
-    display:inline-block;
-    padding:4px 10px;
-    border-radius:50px;
-    font-size:12px;
-    font-weight:700;
-    background:#e0f2fe;
-    color:#075985;
-}
-
-.table-detail{
-    margin:0;
-    font-size:14px;
-}
-
-.table-detail thead th{
-    background:#f8fafc;
-    border-color:#e5e7eb;
-    font-size:12px;
-    text-transform:uppercase;
-    letter-spacing:.4px;
-}
-
-.table-detail td{
-    border-color:#edf2f7;
-    vertical-align:middle;
-}
-
-.subtotal-row{
-    background:#f8fafc;
-    font-weight:700;
-}
-
-@media(max-width:768px){
-    .meta-grid{
-        grid-template-columns:1fr;
-        gap:8px;
+    .receive-head{
+        background:linear-gradient(135deg,#0f4c81,#2563eb);
+        color:#fff;
+        padding:22px 24px;
     }
 
     .receive-title{
-        font-size:18px;
+        font-size:22px;
+        font-weight:700;
+        letter-spacing:.5px;
     }
 
-    .receive-head,
-    .receive-body{
-        padding:18px;
+    .status-badge{
+        padding:7px 14px;
+        border-radius:50px;
+        font-size:12px;
+        font-weight:700;
     }
-}
+
+    .status-open{
+        background:#fff3cd;
+        color:#856404;
+    }
+
+    .status-received{
+        background:#d1fae5;
+        color:#065f46;
+    }
+
+    .meta-grid{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:10px 40px;
+        margin-top:18px;
+        font-size:14px;
+    }
+
+    .meta-item{
+        display:flex;
+        gap:8px;
+    }
+
+    .meta-label{
+        min-width:110px;
+        opacity:.85;
+        font-weight:600;
+    }
+
+    .meta-value{
+        flex:1;
+        font-weight:500;
+    }
+
+    .receive-body{
+        padding:10px;
+    }
+
+    .attach-badge{
+        display:inline-block;
+        padding:4px 10px;
+        border-radius:50px;
+        font-size:12px;
+        font-weight:700;
+        background:#e0f2fe;
+        color:#075985;
+    }
+
+    .table-detail{
+        margin:0;
+        font-size:14px;
+    }
+
+    .table-detail thead th{
+        background:#f8fafc;
+        border-color:#e5e7eb;
+        font-size:12px;
+        text-transform:uppercase;
+        letter-spacing:.4px;
+    }
+
+    .table-detail td{
+        border-color:#edf2f7;
+        vertical-align:middle;
+    }
+
+    .subtotal-row{
+        background:#f8fafc;
+        font-weight:700;
+    }
+
+    @media(max-width:768px){
+        .meta-grid{
+            grid-template-columns:1fr;
+            gap:8px;
+        }
+
+        .receive-title{
+            font-size:18px;
+        }
+
+        .receive-head,
+        .receive-body{
+            padding:18px;
+        }
+    }
 </style>
 
 <script>
@@ -267,12 +267,12 @@ window.ReceiveReport = {
     initSelect2(){
         $('#rc_filter_plant').select2({
             width:'100%',
-            placeholder:'Choose Plant'
+            placeholder:'Pilih Plant'
         });
 
         $('#rc_filter_supplier').select2({
             width:'100%',
-            placeholder:'Choose Supplier',
+            placeholder:'Pilih Supplier',
             allowClear:true
         });
     },
@@ -412,7 +412,7 @@ window.ReceiveReport = {
 
             wrap.html(`
                 <div class="text-center py-5 text-muted bg-white rounded-4 border">
-                    No data found
+                    Data tidak ditemukan
                 </div>
             `);
 
@@ -706,14 +706,14 @@ window.ReceiveReport = {
                             </div>
 
                             <div class="meta-item">
-                                <span class="meta-label">PO</span>
+                                <span class="meta-label">Nomor PO</span>
                                 <span class="meta-value">
                                     : ${poText}
                                 </span>
                             </div>
 
                             <div class="meta-item">
-                                <span class="meta-label">RECEIVE DATE</span>
+                                <span class="meta-label">Tanggal Receive</span>
                                 <span class="meta-value">
                                     : ${this.dateIndoLong(rc.RECEIVE_DATE)}
                                 </span>
@@ -734,14 +734,14 @@ window.ReceiveReport = {
                             </div>
 
                             <div class="meta-item">
-                                <span class="meta-label">PAYMENT</span>
+                                <span class="meta-label">PEMBAYARAN</span>
                                 <span class="meta-value">
                                     : ${paymentText}
                                 </span>
                             </div>
 
                             <div class="meta-item">
-                                <span class="meta-label">PAY TYPE</span>
+                                <span class="meta-label">JENIS PEMBAYARAN</span>
                                 <span class="meta-value">
                                     : ${rc.JENIS_PAY || '-'}
                                 </span>
@@ -755,7 +755,7 @@ window.ReceiveReport = {
                             </div>
 
                             <div class="meta-item">
-                                <span class="meta-label">ATTACHMENT</span>
+                                <span class="meta-label">LAMPIRAN</span>
                                 <span class="meta-value">
                                     : ${attachment}
                                 </span>
@@ -765,7 +765,7 @@ window.ReceiveReport = {
                                 class="meta-item"
                                 style="grid-column:1 / -1"
                             >
-                                <span class="meta-label">REMARK</span>
+                                <span class="meta-label">KETERANGAN</span>
 
                                 <span class="meta-value">
                                     : ${rc.REMARK || '-'}
@@ -791,23 +791,23 @@ window.ReceiveReport = {
                                         <th>MATERIAL</th>
 
                                         <th class="text-end">
-                                            QTY
+                                            JUMLAH
                                         </th>
 
                                         <th class="text-end">
-                                            WEIGHT
+                                            BERAT
                                         </th>
 
                                         <th class="text-end">
-                                            SHRINK QTY
+                                            KUANTITAS (SUSUT)
                                         </th>
 
                                         <th class="text-end">
-                                            SHRINK WEIGHT
+                                            BERAT (SUSUT)
                                         </th>
 
                                         <th class="text-end">
-                                            PRICE
+                                            HARGA
                                         </th>
 
                                         <th class="text-end">
@@ -815,7 +815,7 @@ window.ReceiveReport = {
                                         </th>
 
                                         <th>
-                                            REMARK
+                                            KETERANGAN
                                         </th>
 
                                         <th>

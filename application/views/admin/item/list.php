@@ -7,7 +7,7 @@
 </style>
     <div class="card w-100">
         <div class="card-body">
-            <h5 class="card-title fw-semibold mb-4">CD ITEM - BASE DATA</h5>
+            <h5 class="card-title fw-semibold mb-4">ITEM - DATA</h5>
 
             <div class="row mb-3" style="margin-top:20px">
                 <div class="col-md-8 col-sm-12">
@@ -30,18 +30,18 @@
                         <tr>
                             <th rowspan="2" class="border-bottom-0 cursor-pointer" data-order="item" style="text-align: center; vertical-align: middle;">Item <span class="sort-icon"></span></th>
                             <th rowspan="2" class="border-bottom-0 cursor-pointer" data-order="full_name" style="text-align: center; vertical-align: middle">Nama <span class="sort-icon"></span></th>
-                            <th rowspan="2" class="border-bottom-0" style="text-align: center; vertical-align: middle">Goods</th>
-                            <th rowspan="2" class="border-bottom-0" style="text-align: center; vertical-align: middle">Sex</th>
-                            <th rowspan="2" class="border-bottom-0" style="text-align: center; vertical-align: middle">Price Class</th>
+                            <th rowspan="2" class="border-bottom-0" style="text-align: center; vertical-align: middle">Barang</th>
+                            <th rowspan="2" class="border-bottom-0" style="text-align: center; vertical-align: middle">Jenis Kelamin</th>
+                            <th rowspan="2" class="border-bottom-0" style="text-align: center; vertical-align: middle">Jenis Harga</th>
                             <th colspan="2" class="border-bottom-0" style="text-align: center; vertical-align: middle">Packing</th>
-                            <th colspan="3" class="border-bottom-0" style="text-align: center; vertical-align: middle">Price</th>
+                            <th colspan="3" class="border-bottom-0" style="text-align: center; vertical-align: middle">Harga</th>
                             <th colspan="2" class="border-bottom-0" style="text-align: center; vertical-align: middle">COA</th>
-                            <th rowspan="2" class="border-bottom-0" style="text-align: center; vertical-align: middle">Memo (for Invoice)</th>
+                            <th rowspan="2" class="border-bottom-0" style="text-align: center; vertical-align: middle">Keterangan (untuk Invoice)</th>
                             <th rowspan="2" class="border-bottom-0" style="text-align: center; vertical-align: middle"></th>
                         </tr>
                         <tr>
-                            <th class="border-bottom-0" style="text-align: center; vertical-align: middle">Unit</th>
-                            <th class="border-bottom-0" style="text-align: center; vertical-align: middle">Qty</th>
+                            <th class="border-bottom-0" style="text-align: center; vertical-align: middle">Satuan</th>
+                            <th class="border-bottom-0" style="text-align: center; vertical-align: middle">Jumlah</th>
                             <th class="border-bottom-0" style="text-align: center; vertical-align: middle">Barang</th>
                             <th class="border-bottom-0" style="text-align: center; vertical-align: middle">Ongkir</th>
                             <th class="border-bottom-0" style="text-align: center; vertical-align: middle">Vaksin</th>
@@ -68,18 +68,18 @@
         <form id="formAddItem">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">CD Item - Tambah</h5>
+                <h5 class="modal-title">ITEM - Tambah</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="row g-2">
                     <div class="col-md-6 mb-1">
                         <label class="form-label">Item *</label>
-                        <input name="item" class="form-control" placeholder="Input Item.." required>
+                        <input name="item" class="form-control" placeholder="Masukkan Kode Item.." required>
                     </div>
                     <div class="col-md-6 mb-1">
-                        <label class="form-label">Full Name *</label>
-                        <input name="full_name" class="form-control" placeholder="Input Full Name.." required>
+                        <label class="form-label">Nama *</label>
+                        <input name="full_name" class="form-control" placeholder="Masukkan Nama Item.." required>
                     </div>
                     <div class="col-md-2 mb-1">
                         <label class="form-label">Goods *</label>
@@ -87,34 +87,34 @@
                         <input type="hidden" id="hiddengoodsAdd" name="goods">
                     </div>
                     <div class="col-md-2 mb-1">
-                        <label class="form-label">Sex *</label>
+                        <label class="form-label">Jenis Kelamin *</label>
                         <select id="sexAdd" class="form-control" required></select>
                         <input type="hidden" id="hiddensexAdd" name="sex">
                     </div>
                     <div class="col-md-2 mb-1">
-                        <label class="form-label">Price Class</label>
+                        <label class="form-label">Jenis Harga</label>
                         <select id="priceClassAdd" class="form-control"></select>
                         <input type="hidden" id="hiddenpriceClassAdd" name="price_class">
                     </div>
                     <div class="col-md-3 mb-1">
-                        <label class="form-label">Packing Unit</label>
+                        <label class="form-label">Satuan (Packing)</label>
                         <select id="packingUnitAdd" class="form-control"></select>
                         <input type="hidden" id="hiddenpackingUnitAdd" name="packing_unit">
                     </div>
                     <div class="col-md-3 mb-1">
-                        <label class="form-label">Packing Qty</label>
+                        <label class="form-label">Jumlah (Packing)</label>
                         <input name="packing_qty" class="form-control" placeholder="Cth : 0">
                     </div>
                     <div class="col-md-2 mb-1">
-                        <label class="form-label">Price Goods</label>
+                        <label class="form-label">Barang (Harga)</label>
                         <input name="price_goods" class="form-control" placeholder="Cth : 0">
                     </div>
                     <div class="col-md-2 mb-1">
-                        <label class="form-label">Price Delivery</label>
+                        <label class="form-label">Ongkir (Harga)</label>
                         <input name="price_delivery" class="form-control" placeholder="Cth : 0">
                     </div>
                     <div class="col-md-2 mb-1">
-                        <label class="form-label">Price Vaccine</label>
+                        <label class="form-label">Vaksin (Harga)</label>
                         <input name="price_vaccine" class="form-control" placeholder="Cth : 0">
                     </div>
                     <div class="col-md-3 mb-1">
@@ -126,8 +126,8 @@
                         <input name="acc_cr" class="form-control" placeholder="Cth : 0">
                     </div>
                     <div class="col-md-12 mb-1">
-                        <label class="form-label">Remark</label>
-                        <input name="remark" class="form-control"  placeholder="Input disini..">
+                        <label class="form-label">Keterangan (untuk Invoice)</label>
+                        <input name="remark" class="form-control"  placeholder="Masukkan keterangan disini..">
                     </div>
                 </div>
             </div>
@@ -145,52 +145,52 @@
   <div class="modal-dialog modal-xl">
     <form id="formEdit">
       <div class="modal-content">
-        <div class="modal-header"><h5 class="modal-title">CD Item - Edit</h5><button type="button" class="btn-close" data-bs-dismiss="modal" ></button></div>
+        <div class="modal-header"><h5 class="modal-title">Item - Ubah</h5><button type="button" class="btn-close" data-bs-dismiss="modal" ></button></div>
         <div class="modal-body">
           <input type="hidden" name="orig_item" />
             <div class="row g-2">
               <div class="col-md-6 mb-1">
                   <label class="form-label">Item *</label>
-                  <input name="item" class="form-control" placeholder="Input Item.." required>
+                  <input name="item" class="form-control" placeholder="Masukkan Kode Item.." required>
               </div>
               <div class="col-md-6 mb-1">
-                  <label class="form-label">Full Name *</label>
-                  <input name="full_name" class="form-control" placeholder="Input Full Name.." required>
+                  <label class="form-label">Nama *</label>
+                  <input name="full_name" class="form-control" placeholder="Masukkan Nama Item.." required>
               </div>
               <div class="col-md-2 mb-1">
-                  <label class="form-label">Goods *</label>
+                  <label class="form-label">Barang *</label>
                   <select id="goodsEdit" class="form-control" required></select>
                   <input type="hidden" id="hiddengoodsEdit" name="goods">
               </div>
               <div class="col-md-2 mb-1">
-                  <label class="form-label">Sex *</label>
+                  <label class="form-label">Jenis Kelamin *</label>
                   <select id="sexEdit" class="form-control" required></select>
                   <input type="hidden" id="hiddensexEdit" name="sex">
               </div>
               <div class="col-md-2 mb-1">
-                  <label class="form-label">Price Class</label>
+                  <label class="form-label">Jenis Harga</label>
                   <select id="priceClassEdit" class="form-control"></select>
                   <input type="hidden" id="hiddenpriceClassEdit" name="price_class">
               </div>
               <div class="col-md-3 mb-1">
-                  <label class="form-label">Packing Unit</label>
+                  <label class="form-label">Satuan (Packing)</label>
                   <select id="packingUnitEdit" class="form-control"></select>
                   <input type="hidden" id="hiddenpackingUnitEdit" name="packing_unit">
               </div>
               <div class="col-md-3 mb-1">
-                  <label class="form-label">Packing Qty</label>
+                  <label class="form-label">Jumlah (Packing)</label>
                   <input name="packing_qty" class="form-control" placeholder="Cth : 0">
               </div>
               <div class="col-md-2 mb-1">
-                  <label class="form-label">Price Goods</label>
+                  <label class="form-label">Barang (Harga)</label>
                   <input name="price_goods" class="form-control" placeholder="Cth : 0">
               </div>
               <div class="col-md-2 mb-1">
-                  <label class="form-label">Price Delivery</label>
+                  <label class="form-label">Ongkir (Harga)</label>
                   <input name="price_delivery" class="form-control" placeholder="Cth : 0">
               </div>
               <div class="col-md-2 mb-1">
-                  <label class="form-label">Price Vaccine</label>
+                  <label class="form-label">Vaksin (Harga)</label>
                   <input name="price_vaccine" class="form-control" placeholder="Cth : 0">
               </div>
               <div class="col-md-3 mb-1">
@@ -202,12 +202,12 @@
                   <input name="acc_cr" class="form-control" placeholder="Cth : 0">
               </div>
               <div class="col-md-12 mb-1">
-                  <label class="form-label">Remark</label>
-                  <input name="remark" class="form-control"  placeholder="Input disini..">
+                  <label class="form-label">Keterangan (untuk Invoice)</label>
+                  <input name="remark" class="form-control"  placeholder="Masukkan keterangan disini..">
               </div>
             </div>
         </div>
-        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button><button type="submit" class="btn btn-primary">Update</button></div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button><button type="submit" class="btn btn-primary">Simpan</button></div>
       </div>
     </form>
   </div>
@@ -232,7 +232,7 @@ $(function(){
         if (!$('#goodsAdd').hasClass('select2-hidden-accessible')) {
             $('#goodsAdd').select2({
                 tags: true,
-                placeholder: '- PILIH GOODS -',
+                placeholder: '- PILIH BARANG -',
                 width: '100%',
                 dropdownParent: $('#modalAddItem'),
                 ajax: {
@@ -252,7 +252,7 @@ $(function(){
         if (!$('#sexAdd').hasClass('select2-hidden-accessible')) {
             $('#sexAdd').select2({
                 tags: true,
-                placeholder: '- PILIH SEX -',
+                placeholder: '- PILIH JENIS KELAMIN -',
                 width: '100%',
                 dropdownParent: $('#modalAddItem'),
                 ajax: {
@@ -272,7 +272,7 @@ $(function(){
         if (!$('#priceClassAdd').hasClass('select2-hidden-accessible')) {
             $('#priceClassAdd').select2({
                 tags: true,
-                placeholder: '- PILIH PRICE CLASS -',
+                placeholder: '- PILIH JENIS HARGA -',
                 width: '100%',
                 dropdownParent: $('#modalAddItem'),
                 ajax: {
@@ -292,7 +292,7 @@ $(function(){
         if (!$('#packingUnitAdd').hasClass('select2-hidden-accessible')) {
             $('#packingUnitAdd').select2({
                 tags: true,
-                placeholder: '- PILIH PACKING UNIT -',
+                placeholder: '- PILIH SATUAN PACKING -',
                 width: '100%',
                 dropdownParent: $('#modalAddItem'),
                 ajax: {
@@ -352,7 +352,7 @@ $(function(){
         if (!$('#goodsEdit').hasClass('select2-hidden-accessible')) {
             $('#goodsEdit').select2({
                 tags: true,
-                placeholder: '- PILIH GOODS -',
+                placeholder: '- PILIH BARANG -',
                 width: '100%',
                 dropdownParent: $('#itemEdit'),
                 ajax: {
@@ -372,7 +372,7 @@ $(function(){
         if (!$('#sexEdit').hasClass('select2-hidden-accessible')) {
             $('#sexEdit').select2({
                 tags: true,
-                placeholder: '- PILIH SEX -',
+                placeholder: '- PILIH JENIS KELAMIN -',
                 width: '100%',
                 dropdownParent: $('#itemEdit'),
                 ajax: {
@@ -392,7 +392,7 @@ $(function(){
         if (!$('#priceClassEdit').hasClass('select2-hidden-accessible')) {
             $('#priceClassEdit').select2({
                 tags: true,
-                placeholder: '- PILIH PRICE CLASS -',
+                placeholder: '- PILIH JENIS HARGA -',
                 width: '100%',
                 dropdownParent: $('#itemEdit'),
                 ajax: {
@@ -412,7 +412,7 @@ $(function(){
         if (!$('#packingUnitEdit').hasClass('select2-hidden-accessible')) {
             $('#packingUnitEdit').select2({
                 tags: true,
-                placeholder: '- PILIH PACKING UNIT -',
+                placeholder: '- PILIH SATUAN PACKING -',
                 width: '100%',
                 dropdownParent: $('#itemEdit'),
                 ajax: {
@@ -469,7 +469,7 @@ function loadPage(page){
 function renderTable(rows){
     var html = '';
     if (!rows || rows.length === 0) {
-        html = '<tr><td colspan="13" style="text-align: center">Tidak ada data</td></tr>';
+        html = '<tr><td colspan="14" style="text-align: center">Tidak ada data</td></tr>';
     } else {
         rows.forEach(function(r){
             html += '<tr>';
@@ -487,8 +487,8 @@ function renderTable(rows){
             html += '<td style="text-align: center; vertical-align: middle">'+escapeHtml(r.ACC_CR||'')+'</td>';
             html += '<td style="text-align: center; vertical-align: middle">'+escapeHtml(r.REMARK||'')+'</td>';
             html += '<td style="text-align: center; vertical-align: middle">';
-            html += '<button class="btn btn-sm btn-warning me-1" onclick="showEdit(\''+r.ITEM+'\')">Edit</button>';
-            html += '<button class="btn btn-sm btn-danger" onclick="doDelete(\''+r.ITEM+'\')">Delete</button>';
+            html += '<button class="btn btn-sm btn-warning me-1" onclick="showEdit(\''+r.ITEM+'\')">Ubah</button>';
+            html += '<button class="btn btn-sm btn-danger" onclick="doDelete(\''+r.ITEM+'\')">Hapus</button>';
             html += '</td>';
             html += '</tr>';
         });

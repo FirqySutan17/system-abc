@@ -68,7 +68,7 @@
     <div class="card w-100">
         <div class="card-body">
 
-            <h5 class="card-title fw-semibold mb-4">GENERAL CODE - MASTER</h5>
+            <h5 class="card-title fw-semibold mb-4">GENERAL CODE - DATA</h5>
 
             <!-- SEARCH + ADD ROW -->
             <div class="row mb-3" style="margin-top: 20px">
@@ -92,8 +92,8 @@
                     <table class="table table-bordered table-hover">
                         <thead>
                             <tr>
-                                <th>Head</th>
-                                <th>Name</th>
+                                <th>Kepala</th>
+                                <th>Nama</th>
                             </tr>
                         </thead>
                         <tbody id="headcode-body">
@@ -108,8 +108,8 @@
                         <table class="table table-bordered table-hover text-nowrap mb-0 align-middle" id="mainTable">
                             <thead>
                                 <tr>
-                                    <th data-order="code">Code</th>
-                                    <th data-order="code_name">Code Name</th>
+                                    <th data-order="code">Kode</th>
+                                    <th data-order="code_name">Nama</th>
                                     <th>Deskripsi</th>
                                     <th>Status</th>
                                     <th></th>
@@ -137,20 +137,20 @@
         <form id="formAdd">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">CD Code - Tambah</h5>
+                <h5 class="modal-title">General Code - Tambah</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">
                 <div class="row g-2">
                     <div class="col-md-6 mb-1">
-                        <label class="form-label">General Code *</label>
+                        <label class="form-label">Kode Kepala  *</label>
                         <select id="headAddSelect" class="form-control" required></select>
                         <input type="hidden" id="hiddenHeadAdd" name="head_code">
                     </div>
 
                     <div class="col-md-6 mb-1">
-                        <label class="form-label">Code *</label>
+                        <label class="form-label">Kode *</label>
                         <select id="codeAddSelect" class="form-control" required></select>
                         <input type="hidden" id="hiddenCodeAdd" name="code">
                     </div>
@@ -193,7 +193,7 @@
         <form id="formEdit">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">CD Code - Edit</h5>
+                <h5 class="modal-title">General Code - Ubah</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" ></button>
             </div>
             <div class="modal-body">
@@ -201,13 +201,13 @@
                 <input type="hidden" name="orig_code" />
                 <div class="row g-2">
                     <div class="col-md-6 mb-1">
-                        <label class="form-label">General Code *</label>
+                        <label class="form-label">Kode Kepala *</label>
                         <select name="head_code" id="headEditSelect" class="form-control" disabled></select>
                         <input type="hidden" id="hiddenHeadEdit" name="head_code">
                     </div>
 
                     <div class="col-md-6 mb-1">
-                        <label class="form-label">Code *</label>
+                        <label class="form-label">Kode *</label>
                         <select name="code" id="codeEditSelect" class="form-control"></select>
                         <input type="hidden" id="hiddenCodeEdit" name="code">
                     </div>
@@ -235,7 +235,7 @@
             </div>
             <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-            <button type="submit" class="btn btn-primary">Update</button>
+            <button type="submit" class="btn btn-primary">Simpan</button>
             </div>
         </div>
         </form>
@@ -248,7 +248,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-            <h5 class="modal-title">Detail CD Code</h5>
+            <h5 class="modal-title">Detail General Code</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" ></button>
             </div>
             <div class="modal-body" id="detailBody">
@@ -351,7 +351,7 @@
         // INIT ADD SELECT2
         $('#headAddSelect').select2({
             tags: true,
-            placeholder: 'Pilih atau Input GENERAL CODE',
+            placeholder: 'Pilih atau Cari GENERAL CODE',
             width: '100%',
             dropdownParent: $('#modalAdd'),
             ajax: {
@@ -397,13 +397,13 @@
         // INIT EDIT SELECT2
         $('#headEditSelect').select2({
             tags: true,
-            placeholder: 'Pilih HEAD CODE',
+            placeholder: 'Pilih KODE KEPALA',
             width: '100%'
         });
 
         $('#codeEditSelect').select2({
             tags: true,
-            placeholder: 'Pilih atau input CODE',
+            placeholder: 'Pilih atau Masukkan KODE',
             width: '100%',
             dropdownParent: $('#modalEdit'),
         });
@@ -434,7 +434,7 @@
             };
 
             if(!data.head_code || !data.code || !data.code_name){
-                showToast('error', 'head_code, code dan code_name wajib diisi');
+                showToast('error', 'kepala kode, kode dan nama wajib diisi');
                 return;
             }
 
@@ -534,7 +534,7 @@
         $('#codeAddSelect').empty().trigger('change');
         $('#codeAddSelect').select2({
             tags: true,
-            placeholder: 'Pilih atau input CODE',
+            placeholder: 'Pilih atau Masukkan KODE',
             dropdownParent: $('#modalAdd'),
             ajax: {
                 url: '<?= base_url("code/get_code_by_head") ?>?head=' + headCode,
@@ -558,8 +558,8 @@
                 html += '<td>'+escapeHtml(r.DESC1 || '')+'</td>';
                 html += '<td style="text-align: center; vertical-align: middle">'+escapeHtml(r.USE_YN || '')+'</td>';
                 html += '<td style="text-align: center">';
-                html += '<button class="btn btn-sm btn-warning me-1" onclick="showEdit(\''+r.HEAD_CODE+'\',\''+r.CODE+'\')">Edit</button>';
-                html += '<button class="btn btn-sm btn-danger" onclick="doDelete(\''+r.HEAD_CODE+'\',\''+r.CODE+'\')">Delete</button>';
+                html += '<button class="btn btn-sm btn-warning me-1" onclick="showEdit(\''+r.HEAD_CODE+'\',\''+r.CODE+'\')">Ubah</button>';
+                html += '<button class="btn btn-sm btn-danger" onclick="doDelete(\''+r.HEAD_CODE+'\',\''+r.CODE+'\')">Hapus</button>';
                 html += '</td>';
                 html += '</tr>';
             });
@@ -641,7 +641,7 @@
     function loadCodeEdit(headCode){
         $('#codeEditSelect').select2({
             tags:true,
-            placeholder:'Pilih atau input CODE',
+            placeholder:'Pilih atau Masukkan KODE',
             dropdownParent: $('#modalEdit'),
             ajax:{
                 url:'<?= base_url("code/get_code_by_head") ?>?head=' + headCode,

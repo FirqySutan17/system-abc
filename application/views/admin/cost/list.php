@@ -2,12 +2,12 @@
         <div class="card w-100">
             <div class="card-body">
 
-                <h5 class="card-title fw-semibold mb-4">COST - BASE DATA</h5>
+                <h5 class="card-title fw-semibold mb-4">COST - DATA</h5>
 
                 <!-- SEARCH + ADD ROW -->
                 <div class="row mb-3" style="margin-top: 20px">
                     <div class="col-md-8 col-sm-12">
-                        <input id="search" type="text" class="form-control" placeholder="Cari cost..." />
+                        <input id="search" type="text" class="form-control" placeholder="Cari Kode Biaya..." />
                     </div>
                     <div class="col-md-4 col-sm-12 text-end mt-2 mt-md-0">
                         <div class="btn-group ">
@@ -25,10 +25,10 @@
                     <table class="table table-striped table-hover text-nowrap mb-0 align-middle" id="mainTable" style="border-collapse: collapse; border-radius: 10px; overflow: hidden;">
                         <thead class="text-dark fs-3">
                             <tr>
-                                <th  style="text-align: center; vertical-align: middle" class="border-bottom-0 cursor-pointer" data-order="cost">Cost <span class="sort-icon"></span></th>
+                                <th  style="text-align: center; vertical-align: middle" class="border-bottom-0 cursor-pointer" data-order="cost">Kode <span class="sort-icon"></span></th>
                                 <th  style="text-align: center; vertical-align: middle" class="border-bottom-0 cursor-pointer" data-order="cost_name">Nama <span class="sort-icon"></span></th>
-                                <th  style="text-align: center; vertical-align: middle" class="border-bottom-0 cursor-pointer" data-order="account_code">Account <span class="sort-icon"></span></th>
-                                <th  style="text-align: center; vertical-align: middle" class="border-bottom-0 cursor-pointer" data-order="class">Class <span class="sort-icon"></span></th>
+                                <th  style="text-align: center; vertical-align: middle" class="border-bottom-0 cursor-pointer" data-order="account_code">Nomor Akun <span class="sort-icon"></span></th>
+                                <th  style="text-align: center; vertical-align: middle" class="border-bottom-0 cursor-pointer" data-order="class">Kelas <span class="sort-icon"></span></th>
                                 <th  style="text-align: center; vertical-align: middle" class="border-bottom-0" data-order="remark">Deskripsi</th>
                                 <th  style="text-align: center; vertical-align: middle" class="border-bottom-0"></th>
                             </tr>
@@ -53,14 +53,14 @@
             <form id="fcostAdd">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Cost - Tambah</h5>
+                    <h5 class="modal-title">COST - Tambah</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
                 <div class="modal-body">
                     <div class="row g-2">
                         <div class="col-md-6 mb-1">
-                            <label class="form-label">Cost *</label>
+                            <label class="form-label">Kode *</label>
                             <input name="COST" class="form-control" placeholder="Input disini.." required>
                         </div>
 
@@ -70,13 +70,13 @@
                         </div>
 
                         <div class="col-md-6 mb-1">
-                            <label class="form-label">Account *</label>
+                            <label class="form-label">Nomor Akun *</label>
                             <select id="accountAddSelect" class="form-control" required></select>
                             <input type="hidden" id="hiddenAccountAdd" name="ACCOUNT_CODE">
                         </div>
 
                         <div class="col-md-6 mb-1">
-                            <label class="form-label">Class *</label>
+                            <label class="form-label">Kelas *</label>
                             <select id="classAddSelect" class="form-control" name="CLASS" required>
                                 <option value="MF">MF</option>
                                 <option value="AD">AD</option>
@@ -108,7 +108,7 @@
             <form id="fcostEdit">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Cost - Edit</h5>
+                    <h5 class="modal-title">COST - Ubah</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
@@ -118,7 +118,7 @@
 
                     <div class="row g-2">
                         <div class="col-md-6 mb-1">
-                            <label class="form-label">Cost *</label>
+                            <label class="form-label">Kode *</label>
                             <input name="COST" class="form-control" required>
                         </div>
 
@@ -128,13 +128,13 @@
                         </div>
 
                         <div class="col-md-6 mb-1">
-                            <label class="form-label">Account *</label>
+                            <label class="form-label">Nomor Akun *</label>
                             <select id="accountEditSelect" class="form-control" required></select>
                             <input type="hidden" id="hiddenAccountEdit" name="ACCOUNT_CODE">
                         </div>
 
                         <div class="col-md-6 mb-1">
-                            <label class="form-label">Class *</label>
+                            <label class="form-label">Kelas *</label>
                             <select id="classEditSelect" class="form-control" name="CLASS" required>
                                 <option value="MF">MF</option>
                                 <option value="AD">AD</option>
@@ -154,7 +154,7 @@
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-primary">Update</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
                 </div>
 
             </div>
@@ -189,7 +189,7 @@
 
             // INIT ADD SELECT2
             $('#accountAddSelect').select2({
-                placeholder: 'Pilih ACCOUNT',
+                placeholder: 'Pilih NOMOR AKUN',
                 width: '100%',
                 dropdownParent: $('#costAdd'),
                 ajax: {
@@ -206,7 +206,7 @@
             });
 
             $('#classAddSelect').select2({
-                placeholder: 'Pilih CLASS',
+                placeholder: 'Pilih KELAS',
                 width: '100%',
                 dropdownParent: $('#costAdd'),
                 minimumResultsForSearch: Infinity
@@ -264,7 +264,7 @@
 
             $('#accountEditSelect').select2({
                 dropdownParent: $('#costEdit'),
-                placeholder: "Pilih account...",
+                placeholder: "Pilih nomor akun...",
                 width: '100%',
                 allowClear: true,
                 ajax: {
@@ -351,8 +351,8 @@
                     html += '<td style="text-align: center; vertical-align: middle">'+escapeHtml(r.CLASS)+'</td>';
                     html += '<td style="text-align: center; vertical-align: middle">'+escapeHtml(r.REMARK || '')+'</td>';
                     html += '<td style="text-align: center">';
-                    html += '<button class="btn btn-sm btn-warning me-1" onclick="showEdit(\''+r.COST+'\')">Edit</button>';
-                    html += '<button class="btn btn-sm btn-danger" onclick="doDelete(\''+r.COST+'\')">Delete</button>';
+                    html += '<button class="btn btn-sm btn-warning me-1" onclick="showEdit(\''+r.COST+'\')">Ubah</button>';
+                    html += '<button class="btn btn-sm btn-danger" onclick="doDelete(\''+r.COST+'\')">Simpan</button>';
                     html += '</td>';
                     html += '</tr>';
                 });
