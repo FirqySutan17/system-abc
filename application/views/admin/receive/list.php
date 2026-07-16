@@ -2022,7 +2022,7 @@
 
                         <p class="section-description">
 
-                            Ringkasan pembayaran customer setelah dikurangi discount dan ditambah tabungan.
+                            Ringkasan pembayaran customer. Total pembayaran terdiri dari nilai penjualan (Sales) dan nominal tabungan (Saving).
 
                         </p>
 
@@ -2124,7 +2124,7 @@
 
                     </button>
 
-                    <button type="submit"
+                    <button type="submit" id="btnSaveReceive"
                         class="btn btn-primary">
 
                         Simpan Receive
@@ -2751,38 +2751,6 @@
 |--------------------------------------------------------------------------
 */
 
-function liveDecimal(input){
-
-    let value = input.value;
-
-    value = value.replace(/\./g,'');
-
-    value = value.replace(",", ".");
-
-    let number = parseFloat(value);
-
-    if(isNaN(number)){
-        number = 0;
-    }
-
-    input.value = formatDecimal(number);
-
-}
-
-function liveMoney(input){
-
-    let value = input.value;
-
-    value = value.replace(/[^\d]/g,'');
-
-    if(value==""){
-        value=0;
-    }
-
-    input.value = formatMoney(value);
-
-}
-
 function parseDecimal(value)
 {
     if(value === null || value === undefined){
@@ -3054,8 +3022,8 @@ function renderSavingTable(){
     });
 }
 
-function renderSavingTotal(){
-
+function renderSavingTotal()
+{
     let total = 0;
 
     $.each(receiveState.savingRows,function(i,row){
@@ -3065,8 +3033,68 @@ function renderSavingTotal(){
     });
 
     $("#savingGrandTotal").text(
-        formatMoney(total)
+
+        "Rp " + formatMoney(total)
+
     );
+}
+
+function renderAllocationProgress()
+{
+    let summary =
+        calculateAllocation();
+
+    let percent = 0;
+
+    if(receiveState.actual.receiveBw > 0){
+
+        percent =
+            (summary.bwUsed /
+            receiveState.actual.receiveBw)
+            *100;
+
+    }
+
+    let bar =
+        $("#allocationProgress");
+
+    let displayPercent =
+    Math.min(percent,100);
+
+    bar.css(
+        "width",
+        displayPercent+"%"
+    );
+
+    bar.text(
+        percent.toFixed(1)+"%"
+    );
+
+    bar.removeClass(
+
+        "bg-success",
+
+        "bg-warning",
+
+        "bg-danger"
+
+    );
+
+    if(percent < 80){
+
+        bar.addClass("bg-success");
+
+    }
+    else if(percent <= 100){
+
+        bar.addClass("bg-warning");
+
+    }
+    else{
+
+        bar.addClass("bg-danger");
+
+    }
 
 }
 
@@ -3425,11 +3453,11 @@ function fillPO(po)
     );
 
     $("#masterHargaAdd").text(
-        formatMoney(po.HARGA)
+        "Rp " + formatMoney(po.HARGA)
     );
 
     $("#masterTotalAdd").text(
-        formatMoney(po.TOTAL)
+        "Rp " + formatMoney(po.TOTAL)
     );
 
     $("#masterTruckAdd").text(
@@ -3445,8 +3473,6 @@ function fillPO(po)
     | RESET DETAIL
     |--------------------------------------------------------------------------
     */
-
-    resetCustomerSummary();
 
     receiveState.customerRows = [];
     receiveState.savingRows = [];
@@ -3538,13 +3564,18 @@ function updateCustomerRow(index)
 {
     let row = receiveState.customerRows[index];
 
-    row.total =
+    row.total = Math.max(
         (row.bw * row.harga)
-        - row.discount;
+        - row.discount,
+        0
+    );
 
-    if(row.total < 0){
-        row.total = 0;
-    }
+    row.avgBw =
+    row.qty>0
+    ?
+    row.bw/row.qty
+    :
+    0;
 }
 
 function getCustomer(index)
@@ -3570,13 +3601,6 @@ function renderCustomerTable()
     $.each(
         receiveState.customerRows,
         function(i,row){
-            let avg = 0;
-
-            if(row.qty>0){
-
-                avg = row.bw / row.qty;
-
-            }
 
             tbody.append(`
 
@@ -3732,29 +3756,6 @@ function renderCustomerSummary()
 
 }
 
-function resetCustomerSummary(){
-
-    $("#summaryQtyActual").text(
-        formatDecimal(receiveState.actual.receiveQty)
-    );
-
-    $("#summaryQtyUsed").text("0.00");
-
-    $("#summaryQtyRemaining").text(
-        formatDecimal(receiveState.actual.receiveQty)
-    );
-
-    $("#summaryBwActual").text(
-        formatDecimal(receiveState.actual.receiveBw)
-    );
-
-    $("#summaryBwUsed").text("0.00");
-
-    $("#summaryBwRemaining").text(
-        formatDecimal(receiveState.actual.receiveBw)
-    );
-}
-
 function resetReceiveForm()
 {
     /*
@@ -3783,18 +3784,6 @@ function resetReceiveForm()
 
     clearPO();
 
-    /*
-    |--------------------------------------------------------------------------
-    | STATE
-    |--------------------------------------------------------------------------
-    */
-
-    receiveState.po = null;
-
-    receiveState.customerRows = [];
-
-    receiveState.savingRows = [];
-
     receiveState.actual = {
         qty : 0,
         bw : 0,
@@ -3813,6 +3802,7 @@ function clearPO()
 {
 
     $("#poAdd").val("");
+    $("#poText").val("");
 
     $("#supplierAddText").val("");
 
@@ -3844,13 +3834,11 @@ function clearPO()
 
     $("#masterDriverAdd").text("-");
 
-    resetCustomerSummary();
-
-    refreshCustomer();
-
     receiveState.po = null;
     receiveState.customerRows = [];
     receiveState.savingRows = [];
+
+    refreshCustomer();
 }
 
 function bindCustomerEvent()
@@ -3956,14 +3944,16 @@ function bindCustomerEvent()
         ".saving-input",
         function(){
 
-            const index = $(this).data("index");
+            let index =
+                $(this).data("index");
 
-            receiveState.savingRows[index].saving =
+            receiveState
+                .savingRows[index]
+                .saving=
+
                 parseMoney($(this).val());
 
-            renderSavingTable();
-
-            renderPaymentSummary();
+            refreshCalculation();
 
         }
     );
@@ -4021,34 +4011,43 @@ function calculateAllocation()
 
 }
 
+function calculateCustomerTotal(row){
+
+    return Math.max(
+
+        row.bw * row.harga - row.discount,
+
+        0
+
+    );
+
+}
+
 function calculatePaymentSummary(){
 
-    let result=[];
+    let result = [];
 
-    $.each(receiveState.customerRows,function(i,customer){
+    $.each(receiveState.customerRows, function(i, customer){
 
-        let saving=
-            receiveState.savingRows[i];
+        let saving = receiveState.savingRows[i];
 
-        let sales=customer.total;
+        let sales = customer.total;
 
-        let savingNominal=
-            saving
+        let savingNominal = saving
             ? saving.saving
             : 0;
 
         result.push({
 
-            customer:customer.customer,
+            customer: customer.customer,
 
-            customer_name:customer.customer_name,
+            customer_name: customer.customer_name,
 
-            sales:sales,
+            sales: sales,
 
-            saving:savingNominal,
+            saving: savingNominal,
 
-            grandTotal:
-                sales-savingNominal
+            grandTotal: sales + savingNominal
 
         });
 
@@ -4091,20 +4090,14 @@ function calculateGrandTotal(summary){
 function refreshCustomer(){
     renderCustomerTable();
     renderSavingTable();
-    renderCustomerSummary();
-    renderPaymentSummary();
+    refreshCalculation();
 }
 
 function refreshCalculation(){
-
     renderCustomerSummary();
-
-    renderPaymentSummary();
-
     renderSavingTotal();
-
+    renderPaymentSummary();
     renderAllocationProgress();
-
 }
 
 let receiveInitialized = false;
@@ -4130,9 +4123,9 @@ function initReceive()
 |--------------------------------------------------------------------------
 */
 
-function bindEvents()
-{
+function bindEvents(){
     bindCustomerEvent();
+    bindSubmitEvent();
 }
 
 /*
@@ -4144,14 +4137,6 @@ function bindEvents()
 function initPlant()
 {
     loadPlant();
-
-    $("#plantAdd").on("change", function(){
-
-        $("#hiddenPlantAdd").val(
-            $(this).val()
-        );
-
-    });
 }
 
 function loadPlant(){
@@ -4234,15 +4219,347 @@ function loadPlant(){
 | VALIDATION
 |--------------------------------------------------------------------------
 */
+function validateReceive(){
 
+    if(!receiveState.po){
 
+        Swal.fire({
+
+            icon:"warning",
+
+            title:"Purchase Order belum dipilih."
+
+        });
+
+        return false;
+
+    }
+
+    if(receiveState.customerRows.length===0){
+
+        Swal.fire({
+
+            icon:"warning",
+
+            title:"Customer belum dipilih."
+
+        });
+
+        return false;
+
+    }
+
+    let allocation =
+        calculateAllocation();
+
+    if(allocation.qtyRemaining<0){
+
+        Swal.fire({
+
+            icon:"warning",
+
+            title:"Qty Allocation melebihi Qty Receive."
+
+        });
+
+        return false;
+
+    }
+
+    if(allocation.bwRemaining<0){
+
+        Swal.fire({
+
+            icon:"warning",
+
+            title:"BW Allocation melebihi BW Receive."
+
+        });
+
+        return false;
+
+    }
+
+    if($("#paymentAdd").val()==""){
+
+        Swal.fire({
+
+            icon:"warning",
+
+            title:"Pilih Payment."
+
+        });
+
+        return false;
+
+    }
+
+    if($("#jenisPayAdd").val()==""){
+
+        Swal.fire({
+
+            icon:"warning",
+
+            title:"Pilih Payment Type."
+
+        });
+
+        return false;
+
+    }
+
+    let valid=true;
+
+    $.each(receiveState.customerRows,function(i,row){
+
+        if(row.qty<=0){
+
+            Swal.fire({
+
+                icon:"warning",
+
+                title:
+                "Qty customer tidak boleh 0."
+
+            });
+
+            valid=false;
+
+            return false;
+
+        }
+
+        if(row.bw<=0){
+
+            Swal.fire({
+
+                icon:"warning",
+
+                title:
+                "BW customer tidak boleh 0."
+
+            });
+
+            valid=false;
+
+            return false;
+
+        }
+
+    });
+
+    return valid;
+
+}
 
 /*
 |--------------------------------------------------------------------------
 | SUBMIT
 |--------------------------------------------------------------------------
 */
+function bindSubmitEvent()
+{
+    $("#freceiveAdd").on("submit", function(e){
 
+        e.preventDefault();
+
+        if(!validateReceive()){
+
+            return;
+
+        }
+
+        saveReceive();
+
+    });
+}
+
+function buildPayload()
+{
+    return {
+
+        header : {
+
+            PLANT : $("#plantAdd").val(),
+
+            PO : receiveState.po.PO,
+
+            RECEIVE_DATE : $("#RECEIVE_DATE").val(),
+
+            PEMBAYARAN : $("#paymentAdd").val(),
+
+            JENIS_PAY : $("#jenisPayAdd").val(),
+
+            NOTA : $("input[name='NOTA']").val(),
+
+            NO_REF : $("input[name='NO_REF']").val(),
+
+            REMARK : $("textarea[name='REMARK']").val()
+
+        },
+
+        customers : receiveState.customerRows.map(function(row){
+
+            return {
+
+                CUSTOMER : row.customer,
+
+                QTY : row.qty,
+
+                BW : row.bw,
+
+                HARGA : row.harga,
+
+                DISCOUNT : row.discount,
+
+                REMARK : row.remark
+
+            };
+
+        }),
+
+        savings : receiveState.savingRows.map(function(row){
+
+            return {
+
+                CUSTOMER : row.customer,
+
+                SAVING_AMOUNT : row.saving,
+
+                REMARK : row.remark
+
+            };
+
+        }),
+
+    };
+}
+
+function saveReceive()
+{
+    let payload = buildPayload();
+
+    let formData = new FormData();
+
+    formData.append(
+        "data",
+        JSON.stringify(payload)
+    );
+
+    let file =
+        $("#ATTACHMENT_ADD")[0].files[0];
+
+    if(file){
+
+        formData.append(
+            "ATTACHMENT",
+            file
+        );
+
+    }
+
+    $.ajax({
+
+        url : base_url + "receive/create",
+
+        type : "POST",
+
+        data : formData,
+
+        processData : false,
+
+        contentType : false,
+
+        dataType : "json",
+
+        beforeSend : function(){
+
+            $("#btnSaveReceive")
+                .prop(
+                    "disabled",
+                    true
+                );
+
+        },
+
+        success : function(res){
+
+            if(res.status){
+
+                Swal.fire({
+
+                    icon :
+
+                        "success",
+
+                    title :
+
+                        res.message
+
+                }).then(function(){
+
+                    bootstrap.Modal
+                        .getInstance(
+                            document.getElementById(
+                                "receiveAdd"
+                            )
+                        )
+                        .hide();
+
+                    resetReceiveForm();
+
+                    loadData();
+
+                });
+
+            }
+            else{
+
+                Swal.fire({
+
+                    icon :
+
+                        "warning",
+
+                    title :
+
+                        res.message
+
+                });
+
+            }
+
+        },
+
+        complete : function(){
+
+            $("#btnSaveReceive")
+                .prop(
+                    "disabled",
+                    false
+                );
+
+        },
+
+        error : function(){
+
+            Swal.fire({
+
+                icon :
+
+                    "error",
+
+                title :
+
+                    "Terjadi kesalahan server."
+
+            });
+
+        }
+
+    });
+
+}
 
 
 /*
@@ -4254,25 +4571,4 @@ function loadPlant(){
 
 
 
-/*
-|--------------------------------------------------------------------------
-| RECEIVE NUMBER
-|--------------------------------------------------------------------------
-*/
-
-function loadReceiveNumber()
-{
-
-}
-
-/*
-|--------------------------------------------------------------------------
-| SLIP NUMBER
-|--------------------------------------------------------------------------
-*/
-
-function loadSlipNumber()
-{
-
-}
 </script>

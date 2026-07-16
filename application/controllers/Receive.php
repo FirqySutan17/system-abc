@@ -315,43 +315,6 @@ class Receive extends MY_Controller {
         }
     }
 
-    public function get_po_actual($plant, $po)
-    {
-        return $this->db
-
-            ->select("
-                p.*,
-
-                s.FULL_NAME AS SUPPLIER_NAME,
-
-                m.MATERIAL_NAME
-            ")
-
-            ->from("abc_mst_po p")
-
-            ->join(
-                "abc_cd_customer s",
-                "s.CUST = p.SUPPLIER",
-                "left"
-            )
-
-            ->join(
-                "abc_cd_material m",
-                "m.MATERIAL = p.MATERIAL",
-                "left"
-            )
-
-            ->where("p.PLANT", $plant)
-
-            ->where("p.PO", $po)
-
-            ->where("p.DELETED IS NULL", null, false)
-
-            ->get()
-
-            ->row_array();
-    }
-
     public function get_customer_master()
     {
         return $this->db
@@ -387,24 +350,55 @@ class Receive extends MY_Controller {
 
             /*
             |--------------------------------------------------------------------------
+            | PAYLOAD
+            |--------------------------------------------------------------------------
+            */
+
+            $payload = $this->getPayload();
+
+            $this->validatePayloadStructure(
+                $payload
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | DATA
+            |--------------------------------------------------------------------------
+            */
+
+            $header = $payload['header'];
+
+            $customers = $payload['customers'];
+
+            $savings = $payload['savings'];
+
+            /*
+            |--------------------------------------------------------------------------
             | VALIDATION
             |--------------------------------------------------------------------------
             */
 
-            $header = $this->validateHeader();
+            $header = $this->validateHeader(
+                $header
+            );
 
             $po = $this->getPOActual(
                 $header['PLANT'],
                 $header['PO']
             );
 
-            $customer = $this->validateCustomer();
+            $customers = $this->validateCustomer(
+                $customers
+            );
 
-            $saving = $this->validateSaving();
+            $savings = $this->validateSaving(
+                $savings,
+                $customers
+            );
 
             $actual = $this->validateQtyAgainstPO(
                 $po,
-                $customer
+                $customers
             );
 
             /*
@@ -414,6 +408,17 @@ class Receive extends MY_Controller {
             */
 
             $attachment = $this->uploadAttachment();
+
+            /*
+            |--------------------------------------------------------------------------
+            | BUILD SUMMARY
+            |--------------------------------------------------------------------------
+            */
+
+            $summary = $this->buildAllocationSummary(
+                $customers,
+                $savings
+            );
 
             /*
             |--------------------------------------------------------------------------
@@ -429,24 +434,23 @@ class Receive extends MY_Controller {
 
             $receiveDetail = $this->prepareReceiveDetail(
                 $receiveHeader,
-                $customer,
+                $customers,
                 $actual
             );
 
             $receiveSaving = $this->prepareSaving(
                 $receiveHeader,
-                $saving
+                $summary
             );
 
             $receiveSales = $this->prepareSales(
                 $receiveHeader,
-                $receiveDetail,
-                $receiveSaving
+                $summary
             );
 
             $companyStock = $this->prepareCompanyStock(
                 $receiveHeader,
-                $receiveDetail
+                $actual
             );
 
             $poUpdate = $this->preparePOUpdate(
@@ -462,35 +466,21 @@ class Receive extends MY_Controller {
             |--------------------------------------------------------------------------
             */
 
-            $this->Receive_model
-                ->insertReceiveHeader(
-                    $receiveHeader
-                );
+            $this->saveReceiveTransaction(
 
-            $this->Receive_model
-                ->insertReceiveDetail(
-                    $receiveDetail
-                );
+                $receiveHeader,
 
-            $this->Receive_model
-                ->insertSaving(
-                    $receiveSaving
-                );
+                $receiveDetail,
 
-            $this->Receive_model
-                ->insertSales(
-                    $receiveSales
-                );
+                $receiveSaving,
 
-            $this->Receive_model
-                ->insertCompanyStock(
-                    $companyStock
-                );
+                $receiveSales,
 
-            $this->Receive_model
-                ->updatePO(
-                    $poUpdate
-                );
+                $companyStock,
+
+                $poUpdate
+
+            );
 
             if($this->db->trans_status() === FALSE){
 
@@ -2185,109 +2175,151 @@ class Receive extends MY_Controller {
             );
     }
 
-    private function validateHeader()
+    private function getPayload()
     {
-        $header = [
+        $json = $this->input->post('data');
 
-            'PLANT' => trim(
-                $this->input->post(
-                    'PLANT',
-                    true
-                )
-            ),
+        if(empty($json))
+        {
+            throw new Exception(
+                'Payload tidak ditemukan.'
+            );
+        }
 
-            'PO' => trim(
-                $this->input->post(
-                    'PO',
-                    true
-                )
-            ),
+        $payload = json_decode(
+            $json,
+            true
+        );
 
-            'RECEIVE_DATE' => trim(
-                $this->input->post(
-                    'RECEIVE_DATE',
-                    true
-                )
-            ),
+        if(
+            json_last_error() !== JSON_ERROR_NONE
+        ){
+            throw new Exception(
+                'Format payload tidak valid.'
+            );
+        }
 
-            'SUPPLIER' => trim(
-                $this->input->post(
-                    'SUPPLIER',
-                    true
-                )
-            ),
+        return $payload;
+    }
 
-            'PEMBAYARAN' => trim(
-                $this->input->post(
-                    'PEMBAYARAN',
-                    true
-                )
-            ),
+    private function validatePayloadStructure(
+        array $payload
+    )
+    {
+        if(
+            !isset($payload['header'])
+        ){
+            throw new Exception(
+                'Header tidak ditemukan.'
+            );
+        }
 
-            'JENIS_PAY' => trim(
-                $this->input->post(
-                    'JENIS_PAY',
-                    true
-                )
-            ),
+        if(
+            !isset($payload['customers'])
+        ){
+            throw new Exception(
+                'Customer Allocation tidak ditemukan.'
+            );
+        }
 
-            'NOTA' => trim(
-                $this->input->post(
-                    'NOTA',
-                    true
-                )
-            ),
+        if(
+            !isset($payload['savings'])
+        ){
+            throw new Exception(
+                'Saving tidak ditemukan.'
+            );
+        }
 
-            'NO_REF' => trim(
-                $this->input->post(
-                    'NO_REF',
-                    true
-                )
-            ),
+        return true;
+    }
 
-            'REMARK' => trim(
-                $this->input->post(
-                    'REMARK',
-                    true
-                )
-            )
+    private function validateHeader(array $header)
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | REQUIRED FIELD
+        |--------------------------------------------------------------------------
+        */
+
+        $required = [
+
+            'PLANT'         => 'Plant',
+
+            'PO'            => 'Purchase Order',
+
+            'RECEIVE_DATE'  => 'Receive Date',
+
+            'PEMBAYARAN'    => 'Pembayaran',
+
+            'JENIS_PAY'     => 'Jenis Pembayaran'
 
         ];
 
-        if(empty($header['PLANT']))
+        foreach($required as $key => $label)
         {
+            if(
+                !isset($header[$key]) ||
+                trim($header[$key]) === ''
+            ){
+                throw new Exception(
+                    $label . ' wajib diisi.'
+                );
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | FORMAT DATE
+        |--------------------------------------------------------------------------
+        */
+
+        $date =
+            DateTime::createFromFormat(
+                'Y-m-d',
+                $header['RECEIVE_DATE']
+            );
+
+        if(
+            !$date ||
+            $date->format('Y-m-d') != $header['RECEIVE_DATE']
+        ){
             throw new Exception(
-                'Plant wajib dipilih.'
+                'Format Receive Date tidak valid.'
             );
         }
 
-        if(empty($header['PO']))
-        {
-            throw new Exception(
-                'PO wajib dipilih.'
-            );
-        }
+        /*
+        |--------------------------------------------------------------------------
+        | NORMALIZE
+        |--------------------------------------------------------------------------
+        */
 
-        if(empty($header['RECEIVE_DATE']))
-        {
-            throw new Exception(
-                'Tanggal Receive wajib diisi.'
-            );
-        }
+        $header['PLANT'] =
+            trim($header['PLANT']);
 
-        if(empty($header['PEMBAYARAN']))
-        {
-            throw new Exception(
-                'Pembayaran wajib dipilih.'
-            );
-        }
+        $header['PO'] =
+            trim($header['PO']);
 
-        if(empty($header['JENIS_PAY']))
-        {
-            throw new Exception(
-                'Jenis pembayaran wajib dipilih.'
-            );
-        }
+        $header['PEMBAYARAN'] =
+            trim($header['PEMBAYARAN']);
+
+        $header['JENIS_PAY'] =
+            trim($header['JENIS_PAY']);
+
+        $header['NOTA'] =
+            isset($header['NOTA'])
+                ? trim($header['NOTA'])
+                : '';
+
+        $header['NO_REF'] =
+            isset($header['NO_REF'])
+                ? trim($header['NO_REF'])
+                : '';
+
+        $header['REMARK'] =
+            isset($header['REMARK'])
+                ? trim($header['REMARK'])
+                : '';
 
         return $header;
     }
@@ -2308,140 +2340,396 @@ class Receive extends MY_Controller {
         return (object)$row;
     }
 
-    private function validateCustomer()
+    private function validateCustomer(array $rows)
     {
-        $rows = json_decode(
-            $this->input->post('CUSTOMER'),
-            true
-        );
-
-        if(empty($rows))
-        {
+        if (empty($rows)) {
             throw new Exception(
-                'Customer Detail wajib diisi.'
+                'Customer Allocation minimal harus memiliki 1 customer.'
             );
         }
 
-        $duplicate = [];
+        $customers = [];
 
-        foreach($rows as $i => $r)
-        {
+        foreach ($rows as $i => $row) {
+
             $rowNo = $i + 1;
 
-            $qty = (float)$r['QTY'];
+            /*
+            |--------------------------------------------------------------------------
+            | NORMALIZE
+            |--------------------------------------------------------------------------
+            */
 
-            $bw = (float)$r['BW'];
+            $customer = trim($row['CUSTOMER'] ?? '');
 
-            $harga = (float)$r['HARGA'];
+            $qty = (float)($row['QTY'] ?? 0);
 
-            $discount = (float)$r['DISCOUNT'];
+            $bw = (float)($row['BW'] ?? 0);
+
+            $harga = (float)($row['HARGA'] ?? 0);
+
+            $discount = (float)($row['DISCOUNT'] ?? 0);
+
+            $remark = trim($row['REMARK'] ?? '');
+
+            /*
+            |--------------------------------------------------------------------------
+            | CUSTOMER
+            |--------------------------------------------------------------------------
+            */
+
+            if ($customer === '') {
+
+                throw new Exception(
+                    "Customer pada baris {$rowNo} wajib dipilih."
+                );
+
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | DUPLICATE CUSTOMER
+            |--------------------------------------------------------------------------
+            */
+
+            if (isset($customers[$customer])) {
+
+                throw new Exception(
+                    "Customer {$customer} tidak boleh dipilih lebih dari satu kali."
+                );
+
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | QTY
+            |--------------------------------------------------------------------------
+            */
 
             if ($qty <= 0) {
-                throw new Exception("Qty baris {$rowNo} harus lebih dari 0.");
+
+                throw new Exception(
+                    "Qty pada customer {$customer} harus lebih dari 0."
+                );
+
             }
+
+            /*
+            |--------------------------------------------------------------------------
+            | BW
+            |--------------------------------------------------------------------------
+            */
 
             if ($bw <= 0) {
-                throw new Exception("Berat baris {$rowNo} harus lebih dari 0.");
+
+                throw new Exception(
+                    "Berat pada customer {$customer} harus lebih dari 0."
+                );
+
             }
+
+            /*
+            |--------------------------------------------------------------------------
+            | HARGA
+            |--------------------------------------------------------------------------
+            */
 
             if ($harga <= 0) {
-                throw new Exception("Harga baris {$rowNo} harus lebih dari 0.");
+
+                throw new Exception(
+                    "Harga pada customer {$customer} harus lebih dari 0."
+                );
+
             }
+
+            /*
+            |--------------------------------------------------------------------------
+            | DISCOUNT
+            |--------------------------------------------------------------------------
+            */
 
             if ($discount < 0) {
-                throw new Exception("Discount baris {$rowNo} tidak boleh negatif.");
-            }
 
-            $cust = trim(
-                $r['CUSTOMER']
-            );
-
-            if(empty($cust))
-            {
                 throw new Exception(
-                    "Customer baris {$rowNo} wajib dipilih."
+                    "Discount pada customer {$customer} tidak boleh negatif."
                 );
+
             }
 
-            if(in_array(
-                $cust,
-                $duplicate
-            ))
-            {
-                throw new Exception(
-                    "Customer {$cust} duplicate."
-                );
-            }
+            /*
+            |--------------------------------------------------------------------------
+            | SAVE NORMALIZED DATA
+            |--------------------------------------------------------------------------
+            */
 
-            $duplicate[] = $cust;
+            $customers[$customer] = [
+
+                'CUSTOMER' => $customer,
+
+                'QTY' => round($qty, 2),
+
+                'BW' => round($bw, 2),
+
+                'HARGA' => round($harga, 2),
+
+                'DISCOUNT' => round($discount, 2),
+
+                'REMARK' => $remark
+
+            ];
+
         }
 
-        return $rows;
+        /*
+        |--------------------------------------------------------------------------
+        | RETURN NORMALIZED ARRAY
+        |--------------------------------------------------------------------------
+        */
+
+        return array_values($customers);
+    }
+
+    private function validateSaving(
+        array $rows,
+        array $customers
+    )
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER MAP
+        |--------------------------------------------------------------------------
+        */
+
+        $customerMap = [];
+
+        foreach ($customers as $customer) {
+
+            $customerMap[
+                $customer['CUSTOMER']
+            ] = true;
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | NORMALIZE
+        |--------------------------------------------------------------------------
+        */
+
+        $savingRows = [];
+
+        foreach ($rows as $i => $row) {
+
+            $customer = trim(
+                $row['CUSTOMER'] ?? ''
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | INTERNAL FARM
+            |--------------------------------------------------------------------------
+            */
+
+            if ($customer === 'CS000001') {
+
+                continue;
+
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | CUSTOMER EXIST
+            |--------------------------------------------------------------------------
+            */
+
+            if (
+                !isset(
+                    $customerMap[$customer]
+                )
+            ) {
+
+                throw new Exception(
+
+                    "Saving customer {$customer} tidak ditemukan pada Customer Allocation."
+
+                );
+
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | SAVING
+            |--------------------------------------------------------------------------
+            */
+
+            $saving = (float)(
+                $row['SAVING_AMOUNT'] ?? 0
+            );
+
+            if ($saving < 0) {
+
+                throw new Exception(
+
+                    "Saving customer {$customer} tidak boleh negatif."
+
+                );
+
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | REMARK
+            |--------------------------------------------------------------------------
+            */
+
+            $remark = trim(
+                $row['REMARK'] ?? ''
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | SAVE
+            |--------------------------------------------------------------------------
+            */
+
+            $savingRows[] = [
+
+                'CUSTOMER' => $customer,
+
+                'SAVING_AMOUNT' => round(
+                    $saving,
+                    2
+                ),
+
+                'REMARK' => $remark
+
+            ];
+
+        }
+
+        return $savingRows;
     }
 
     private function validateQtyAgainstPO(
         $po,
-        $customer
+        array $customers
     )
     {
-        $qty = 0;
+        /*
+        |--------------------------------------------------------------------------
+        | RECEIVE QTY / BW
+        |--------------------------------------------------------------------------
+        */
 
-        $bw = 0;
+        $receiveQty = (float) $po->TOTAL_TERIMA_QTY;
 
-        foreach($customer as $row)
-        {
-            $qty += (float)$row['QTY'];
+        $receiveBw = (float) $po->TOTAL_TERIMA_BW;
 
-            $bw += (float)$row['BW'];
+        /*
+        |--------------------------------------------------------------------------
+        | ALLOCATION
+        |--------------------------------------------------------------------------
+        */
+
+        $allocQty = 0;
+
+        $allocBw = 0;
+
+        foreach ($customers as $customer) {
+
+            $allocQty += (float) $customer['QTY'];
+
+            $allocBw += (float) $customer['BW'];
+
         }
 
         /*
         |--------------------------------------------------------------------------
-        | QTY
+        | VALIDATION
         |--------------------------------------------------------------------------
         */
 
-        if(
-            round($qty,2) >
-            round((float)$po->TOTAL_TERIMA_QTY,2)
-        ){
+        if ($allocQty > $receiveQty) {
+
             throw new Exception(
-
-                "Total Qty Customer melebihi Qty Actual PO."
-
+                'Total Qty Allocation melebihi Qty Receive.'
             );
+
+        }
+
+        if ($allocBw > $receiveBw) {
+
+            throw new Exception(
+                'Total BW Allocation melebihi BW Receive.'
+            );
+
         }
 
         /*
         |--------------------------------------------------------------------------
-        | BW
+        | REMAINING
         |--------------------------------------------------------------------------
         */
 
-        if(
-            round($bw,2) >
-            round((float)$po->TOTAL_TERIMA_BW,2)
-        ){
-            throw new Exception(
+        $remainQty = round(
+            $receiveQty - $allocQty,
+            2
+        );
 
-                "Total Berat Customer melebihi Berat Actual PO."
+        $remainBw = round(
+            $receiveBw - $allocBw,
+            2
+        );
 
-            );
+        /*
+        |--------------------------------------------------------------------------
+        | NORMALIZE
+        |--------------------------------------------------------------------------
+        */
+
+        if ($remainQty < 0) {
+
+            $remainQty = 0;
+
         }
+
+        if ($remainBw < 0) {
+
+            $remainBw = 0;
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | RETURN
+        |--------------------------------------------------------------------------
+        */
 
         return [
 
-            'TOTAL_QTY'=>$qty,
+            'RECEIVE_QTY' => round(
+                $receiveQty,
+                2
+            ),
 
-            'TOTAL_BW'=>$bw,
+            'RECEIVE_BW' => round(
+                $receiveBw,
+                2
+            ),
 
-            'SISA_QTY'=>
+            'ALLOC_QTY' => round(
+                $allocQty,
+                2
+            ),
 
-                $po->TOTAL_TERIMA_QTY - $qty,
+            'ALLOC_BW' => round(
+                $allocBw,
+                2
+            ),
 
-            'SISA_BW'=>
+            'REMAIN_QTY' => $remainQty,
 
-                $po->TOTAL_TERIMA_BW - $bw
+            'REMAIN_BW' => $remainBw
 
         ];
     }
@@ -2462,7 +2750,7 @@ class Receive extends MY_Controller {
 
             'allowed_types' =>
 
-                'jpg|jpeg|png|pdf',
+                'jpg|jpeg|png|pdf|xls|xlsx|doc|docx',
 
             'encrypt_name' => true,
 
@@ -2566,7 +2854,7 @@ class Receive extends MY_Controller {
 
             'NO_REF' => $header['NO_REF'],
 
-            'ATTACHMENT' => $attachment,
+            'ATTACH_FILE_NAME'=>$attachment,
 
             /*
             |--------------------------------------------------------------------------
@@ -2576,7 +2864,7 @@ class Receive extends MY_Controller {
 
             'REMARK' => $header['REMARK'],
 
-            'STATUS' => 0,
+            'STATUS_RECEIVE' => 0,
 
             'CREATED_BY' => $username,
 
@@ -2695,7 +2983,7 @@ class Receive extends MY_Controller {
                 |--------------------------------------------------------------------------
                 */
 
-                'REMARK' =>
+                'KETERANGAN' =>
 
                     trim(
                         $row['REMARK']
@@ -2724,12 +3012,12 @@ class Receive extends MY_Controller {
         */
 
         $remainingQty = round(
-            (float)$actual['SISA_QTY'],
+            (float)$actual['REMAIN_QTY'],
             2
         );
 
         $remainingBw = round(
-            (float)$actual['SISA_BW'],
+            (float)$actual['REMAIN_BW'],
             2
         );
 
@@ -2797,149 +3085,252 @@ class Receive extends MY_Controller {
     }
 
     private function prepareSaving(
-        $receiveHeader,
-        $saving
+        array $receiveHeader,
+        array $summary
     )
     {
         $username = $this->session
             ->userdata('username');
 
-        $rows = [];
+        $saving = [];
 
-        foreach($saving as $row){
+        foreach ($summary as $row) {
 
-            $amount = (float)$row['AMOUNT'];
+            /*
+            |--------------------------------------------------------------------------
+            | INTERNAL FARM
+            |--------------------------------------------------------------------------
+            */
 
-            if($amount <= 0){
+            if ($row['CUSTOMER'] == 'CS000001') {
                 continue;
             }
 
-            $rows[] = [
+            /*
+            |--------------------------------------------------------------------------
+            | NO SAVING
+            |--------------------------------------------------------------------------
+            */
 
-                'RECEIVE' => $receiveHeader['RECEIVE'],
+            if ($row['SAVING_AMOUNT'] <= 0) {
+                continue;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | SAVE
+            |--------------------------------------------------------------------------
+            */
+
+            $saving[] = [
+
+                'SV_NO' => $this->Receive_model->generateSavingNo(),
 
                 'PLANT' => $receiveHeader['PLANT'],
 
-                'CUSTOMER' => trim(
-                    $row['CUSTOMER']
-                ),
+                'SV_DATE' => $receiveHeader['RECEIVE_DATE'],
 
-                'AMOUNT' => $amount,
+                'CUSTOMER' => $row['CUSTOMER'],
 
-                'REMARK' => trim(
-                    $row['REMARK']
-                ),
+                /*
+                |--------------------------------------------------------------------------
+                | RELATED DOCUMENT
+                |--------------------------------------------------------------------------
+                */
 
-                'CREATED_BY' => $username,
+                'RELATED' => $receiveHeader['RECEIVE'],
 
-                'CREATED_AT' => date('Y-m-d H:i:s')
+                /*
+                |--------------------------------------------------------------------------
+                | AMOUNT
+                |--------------------------------------------------------------------------
+                */
+
+                'AMOUNT' => $row['SAVING_AMOUNT'],
+
+                'REMARK' => $row['REMARK'],
+
+                /*
+                |--------------------------------------------------------------------------
+                | AUDIT
+                |--------------------------------------------------------------------------
+                */
+
+                'CREATED_AT' => date('Y-m-d H:i:s'),
+
+                'CREATED_BY' => $username
 
             ];
 
         }
 
-        return $rows;
+        return $saving;
+    }
+
+    private function buildAllocationSummary(
+        array $customers,
+        array $savings
+    )
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | SAVING MAP
+        |--------------------------------------------------------------------------
+        */
+
+        $savingMap = [];
+
+        foreach ($savings as $saving) {
+
+            $savingMap[
+                $saving['CUSTOMER']
+            ] = (float) $saving['SAVING_AMOUNT'];
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | SUMMARY
+        |--------------------------------------------------------------------------
+        */
+
+        $summary = [];
+
+        foreach ($customers as $customer) {
+
+            $customerCode = $customer['CUSTOMER'];
+
+            $qty = (float) $customer['QTY'];
+
+            $bw = (float) $customer['BW'];
+
+            $price = (float) $customer['HARGA'];
+
+            $discount = (float) $customer['DISCOUNT'];
+
+            $salesAmount =
+                ($bw * $price) - $discount;
+
+            if ($salesAmount < 0) {
+
+                $salesAmount = 0;
+
+            }
+
+            $savingAmount =
+                $savingMap[$customerCode] ?? 0;
+
+            $summary[$customerCode] = [
+
+                'CUSTOMER' => $customerCode,
+
+                'QTY' => $qty,
+
+                'BW' => $bw,
+
+                'PRICE' => $price,
+
+                'DISCOUNT' => $discount,
+
+                'SALES_AMOUNT' => round(
+                    $salesAmount,
+                    2
+                ),
+
+                'SAVING_AMOUNT' => round(
+                    $savingAmount,
+                    2
+                ),
+
+                'TOTAL_BAYAR' => round(
+                    $salesAmount + $savingAmount,
+                    2
+                ),
+
+                'REMARK' => $customer['REMARK']
+
+            ];
+
+        }
+
+        return $summary;
     }
 
     private function prepareSales(
-        $receiveHeader,
-        $receiveDetail,
-        $receiveSaving
+        array $receiveHeader,
+        array $summary
     )
     {
         $username = $this->session
             ->userdata('username');
 
-        /*
-        |--------------------------------------------------------------------------
-        | SALES MAP
-        |--------------------------------------------------------------------------
-        */
+        $sales = [];
 
-        $salesMap = [];
+        foreach ($summary as $row) {
 
-        foreach($receiveDetail as $row){
+            /*
+            |--------------------------------------------------------------------------
+            | INTERNAL FARM TIDAK MENJADI SALES
+            |--------------------------------------------------------------------------
+            */
 
-            if($row['CUSTOMER'] == 'CS000001'){
+            if ($row['CUSTOMER'] == 'CS000001') {
                 continue;
             }
 
-            if(!isset($salesMap[$row['CUSTOMER']])){
+            $sales[] = [
 
-                $salesMap[$row['CUSTOMER']] = [
+                /*
+                |--------------------------------------------------------------------------
+                | KEY
+                |--------------------------------------------------------------------------
+                */
 
-                    'SALES_AMOUNT' => 0,
+                'SALES' => $this->Receive_model->generate_sales_no(),
 
-                    'SAVING_AMOUNT' => 0
-
-                ];
-
-            }
-
-            $salesMap[$row['CUSTOMER']]['SALES_AMOUNT']
-                += (float)$row['TOTAL'];
-
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | SAVING
-        |--------------------------------------------------------------------------
-        */
-
-        foreach($receiveSaving as $row){
-
-            if($row['CUSTOMER'] == 'CS000001'){
-                continue;
-            }
-
-            if(!isset($salesMap[$row['CUSTOMER']])){
-
-                $salesMap[$row['CUSTOMER']] = [
-
-                    'SALES_AMOUNT' => 0,
-
-                    'SAVING_AMOUNT' => 0
-
-                ];
-
-            }
-
-            $salesMap[$row['CUSTOMER']]['SAVING_AMOUNT']
-                += (float)$row['AMOUNT'];
-
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | BUILD
-        |--------------------------------------------------------------------------
-        */
-
-        $rows = [];
-
-        foreach($salesMap as $customer => $item){
-
-            $rows[] = [
+                /*
+                |--------------------------------------------------------------------------
+                | RECEIVE
+                |--------------------------------------------------------------------------
+                */
 
                 'RECEIVE' => $receiveHeader['RECEIVE'],
 
                 'PLANT' => $receiveHeader['PLANT'],
 
-                'CUSTOMER' => $customer,
+                /*
+                |--------------------------------------------------------------------------
+                | CUSTOMER
+                |--------------------------------------------------------------------------
+                */
 
-                'SALES_AMOUNT' => $item['SALES_AMOUNT'],
+                'CUSTOMER' => $row['CUSTOMER'],
 
-                'SAVING_AMOUNT' => $item['SAVING_AMOUNT'],
-                'PEMBAYARAN' => $receiveHeader['PEMBAYARAN'],
+                /*
+                |--------------------------------------------------------------------------
+                | TRANSACTION
+                |--------------------------------------------------------------------------
+                */
 
-                'JENIS_PAY' => $receiveHeader['JENIS_PAY'],
+                'QTY' => $row['QTY'],
 
-                'TOTAL_BAYAR' =>
+                'BW' => $row['BW'],
 
-                    $item['SALES_AMOUNT']
-                    +
-                    $item['SAVING_AMOUNT'],
+                'PRICE' => $row['PRICE'],
+
+                'DISCOUNT' => $row['DISCOUNT'],
+
+                'SALES_AMOUNT' => $row['SALES_AMOUNT'],
+
+                'SAVING_AMOUNT' => $row['SAVING_AMOUNT'],
+
+                'TOTAL_BAYAR' => $row['TOTAL_BAYAR'],
+
+                /*
+                |--------------------------------------------------------------------------
+                | OTHER
+                |--------------------------------------------------------------------------
+                */
 
                 'STATUS' => 0,
 
@@ -2951,96 +3342,204 @@ class Receive extends MY_Controller {
 
         }
 
-        return $rows;
+        return $sales;
     }
 
     private function prepareCompanyStock(
-        $receiveHeader,
-        $receiveDetail
+        array $receiveHeader,
+        array $actual
     )
     {
-        foreach($receiveDetail as $row){
+        /*
+        |--------------------------------------------------------------------------
+        | NO REMAINING
+        |--------------------------------------------------------------------------
+        */
 
-            if($row['CUSTOMER'] != 'CS000001'){
-                continue;
-            }
-
-            $avgBw = 0;
-
-            if((float)$row['JUMLAH'] > 0){
-
-                $avgBw = round(
-                    (float)$row['BERAT'] /
-                    (float)$row['JUMLAH'],
-                    2
-                );
-
-            }
-
-            return [
-
-                'PLANT'      => $receiveHeader['PLANT'],
-
-                'SOURCE'     => 'RECEIVE',
-
-                'REFERENCE'  => $receiveHeader['RECEIVE'],
-
-                'QTY'        => $row['JUMLAH'],
-
-                'BW'         => $row['BERAT'],
-
-                'AVG_BW'     => $avgBw,
-
-                'STATUS'     => 1,
-
-                'CREATED_BY' => $this->session
-                                    ->userdata('username'),
-
-                'CREATED_AT' => date('Y-m-d H:i:s')
-
-            ];
-
+        if (
+            $actual['REMAIN_QTY'] <= 0 &&
+            $actual['REMAIN_BW'] <= 0
+        ) {
+            return [];
         }
 
-        return null;
+        $username = $this->session
+            ->userdata('username');
+
+        return [
+            /*
+            |--------------------------------------------------------------------------
+            | KEY
+            |--------------------------------------------------------------------------
+            */
+
+            'STOCK_NO' => $this->generate_company_stock(),
+
+            /*
+            |--------------------------------------------------------------------------
+            | RECEIVE
+            |--------------------------------------------------------------------------
+            */
+
+            'RECEIVE' => $receiveHeader['RECEIVE'],
+
+            'PLANT' => $receiveHeader['PLANT'],
+
+            /*
+            |--------------------------------------------------------------------------
+            | COMPANY STOCK
+            |--------------------------------------------------------------------------
+            */
+
+            'CUSTOMER' => 'CS000001',
+
+            'QTY' => $actual['REMAIN_QTY'],
+
+            'BW' => $actual['REMAIN_BW'],
+
+            /*
+            |--------------------------------------------------------------------------
+            | AUDIT
+            |--------------------------------------------------------------------------
+            */
+
+            'CREATED_AT' => date(
+                'Y-m-d H:i:s'
+            ),
+
+            'CREATED_BY' => $username
+
+        ];
     }
 
     private function preparePOUpdate(
         $po,
-        $actual
+        array $actual
     )
     {
-        $status = 0;
-
         /*
         |--------------------------------------------------------------------------
-        | RECEIVED
+        | REMAINING
         |--------------------------------------------------------------------------
         */
 
-        if(
+        $remainQty = $actual['REMAIN_QTY'];
 
-            $actual['SISA_QTY'] <= 0
+        $remainBw = $actual['REMAIN_BW'];
 
-            &&
+        /*
+        |--------------------------------------------------------------------------
+        | STATUS
+        |--------------------------------------------------------------------------
+        */
 
-            $actual['SISA_BW'] <= 0
+        if (
+            $remainQty <= 0 &&
+            $remainBw <= 0
+        ) {
 
-        ){
+            $status = 'RECEIVED';
 
-            $status = 1;
+        } else {
+
+            $status = 'OPEN';
 
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | RETURN
+        |--------------------------------------------------------------------------
+        */
+
         return [
 
-            'PLANT'=>$po->PLANT,
+            'PO' => $po->PO,
 
-            'PO'=>$po->PO,
-
-            'STATUS'=>$status,
+            'STATUS' => $status
 
         ];
+    }
 
+    private function saveReceiveTransaction(
+        array $receiveHeader,
+        array $receiveDetail,
+        array $receiveSaving,
+        array $receiveSales,
+        array $companyStock,
+        array $poUpdate
+    )
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | RECEIVE
+        |--------------------------------------------------------------------------
+        */
+
+        $this->Receive_model
+            ->insertReceiveHeader(
+                $receiveHeader
+            );
+
+        $this->Receive_model
+            ->insertReceiveDetail(
+                $receiveDetail
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | SAVING
+        |--------------------------------------------------------------------------
+        */
+
+        if (!empty($receiveSaving)) {
+
+            $this->Receive_model
+                ->insertSaving(
+                    $receiveSaving
+                );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | SALES
+        |--------------------------------------------------------------------------
+        */
+
+        if (!empty($receiveSales)) {
+
+            $this->Receive_model
+                ->insertSales(
+                    $receiveSales
+                );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | COMPANY STOCK
+        |--------------------------------------------------------------------------
+        */
+
+        if (!empty($companyStock)) {
+
+            $this->Receive_model
+                ->insertCompanyStock(
+                    $companyStock
+                );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | UPDATE PO
+        |--------------------------------------------------------------------------
+        */
+
+        $this->Receive_model
+            ->updatePO(
+                $poUpdate
+            );
     }
 }

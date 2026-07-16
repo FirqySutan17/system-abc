@@ -594,6 +594,41 @@ class Receive_model extends CI_Model {
             ->result_array();
     }
 
+    public function get_po_actual($plant, $po)
+    {
+        return $this->db
+
+            ->select("
+                p.*,
+                s.FULL_NAME AS SUPPLIER_NAME,
+                m.MATERIAL_NAME
+            ")
+
+            ->from("abc_mst_po p")
+
+            ->join(
+                "abc_cd_customer s",
+                "s.CUST = p.SUPPLIER",
+                "left"
+            )
+
+            ->join(
+                "abc_cd_material m",
+                "m.MATERIAL = p.MATERIAL",
+                "left"
+            )
+
+            ->where("p.PLANT", $plant)
+
+            ->where("p.PO", $po)
+
+            ->where("p.DELETED IS NULL", null, false)
+
+            ->get()
+
+            ->row_array();
+    }
+
     public function lookupCustomer(
         $keyword=""
     )
@@ -1127,6 +1162,84 @@ class Receive_model extends CI_Model {
             ->row();
 
         return (int) ($row->SEQ_NO ?? 0);
+    }
+
+    public function generateSavingNo()
+    {
+        $prefix = 'SV' . date('Ymd');
+
+        $row = $this->db
+            ->select('MAX(SV_NO) AS last_no')
+            ->like('SV_NO', $prefix, 'after')
+            ->get('abc_mst_saving')
+            ->row();
+
+        $urut = 1;
+
+        if (!empty($row->last_no)) {
+
+            $urut = (int)substr($row->last_no, -4) + 1;
+
+        }
+
+        return $prefix . str_pad(
+            $urut,
+            4,
+            '0',
+            STR_PAD_LEFT
+        );
+    }
+
+    public function generate_sales_no()
+    {
+        $prefix = 'SLS' . date('Ymd');
+
+        $row = $this->db
+            ->select('MAX(SALES) AS last_no')
+            ->like('SALES', $prefix, 'after')
+            ->get('abc_mst_sales')
+            ->row();
+
+        $urut = 1;
+
+        if (!empty($row->last_no)) {
+
+            $urut = (int)substr($row->last_no, -4) + 1;
+
+        }
+
+        return $prefix . str_pad(
+            $urut,
+            4,
+            '0',
+            STR_PAD_LEFT
+        );
+    }
+
+    public function generate_company_stock()
+    {
+        $prefix = 'SLS' . date('Ymd');
+
+        $row = $this->db
+            ->select('MAX(ID) AS last_no')
+            ->like('ID', $prefix, 'after')
+            ->get('abc_stock_card')
+            ->row();
+
+        $urut = 1;
+
+        if (!empty($row->last_no)) {
+
+            $urut = (int)substr($row->last_no, -4) + 1;
+
+        }
+
+        return $prefix . str_pad(
+            $urut,
+            4,
+            '0',
+            STR_PAD_LEFT
+        );
     }
 
     public function delete_receive_detail_not_in_seq($plant, $receive, $seqs)
