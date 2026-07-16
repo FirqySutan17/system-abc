@@ -1924,7 +1924,7 @@
 
                             </span>
 
-                            <button
+                            <!-- <button
                                 type="button"
                                 id="btnAddSaving"
                                 class="btn btn-success btn-modern">
@@ -1933,7 +1933,7 @@
 
                                 Add Saving
 
-                            </button>
+                            </button> -->
 
                         </div>
 
@@ -3017,7 +3017,6 @@ function renderPOHeader(){
 }
 
 function renderCustomerHeader(){
-
     $("#lookupTable thead").html(`
         <tr>
             <th>Customer</th>
@@ -3025,6 +3024,107 @@ function renderCustomerHeader(){
             <th>Alamat</th>
         </tr>
     `);
+}
+
+function renderSavingTable(){
+    let tbody = $("#savingTableAdd tbody");
+    tbody.empty();
+    $.each(receiveState.savingRows,function(i,row){
+        tbody.append(`
+            <tr>
+                <td>
+                    ${row.customer_name}
+                </td>
+                <td>
+                    <input
+                        type="text"
+                        class="form-control rupiah-input saving-input"
+                        data-index="${i}"
+                        value="${formatMoney(row.saving)}">
+                </td>
+                <td>
+                    <input
+                        type="text"
+                        class="form-control saving-remark"
+                        data-index="${i}"
+                        value="${row.remark}">
+                </td>
+            </tr>
+        `);
+    });
+}
+
+function renderSavingTotal(){
+
+    let total = 0;
+
+    $.each(receiveState.savingRows,function(i,row){
+
+        total += row.saving;
+
+    });
+
+    $("#savingGrandTotal").text(
+        formatMoney(total)
+    );
+
+}
+
+function renderPaymentSummary(){
+
+    let summary=
+        calculatePaymentSummary();
+
+    let tbody=
+        $("#paymentSummaryTableAdd tbody");
+
+    tbody.empty();
+
+    $.each(summary,function(i,row){
+
+        tbody.append(`
+
+            <tr>
+
+                <td>${row.customer_name}</td>
+
+                <td class="text-end">
+
+                    ${formatMoney(row.sales)}
+
+                </td>
+
+                <td class="text-end">
+
+                    ${formatMoney(row.saving)}
+
+                </td>
+
+                <td class="text-end">
+
+                    ${formatMoney(row.grandTotal)}
+
+                </td>
+
+            </tr>
+
+        `);
+
+    });
+
+    let total = calculateGrandTotal(summary);
+
+    $("#grandSalesAdd").text(
+        formatMoney(total.sales)
+    );
+
+    $("#grandSavingAdd").text(
+        formatMoney(total.saving)
+    );
+
+    $("#grandPaymentAdd").text(
+        formatMoney(total.grand)
+    );
 
 }
 
@@ -3276,8 +3376,6 @@ function fillPO(po)
 
     };
 
-    $("#hiddenPoAdd").val(po.PO);
-
     $("#poText").val(po.PO);
 
     $("#poAdd").val(po.PO);
@@ -3355,10 +3453,6 @@ function fillPO(po)
 
     refreshCustomer();
 
-    $("#savingTableAdd tbody").empty();
-
-    $("#paymentSummaryTableAdd tbody").empty();
-
     /*
     |--------------------------------------------------------------------------
     | CLOSE LOOKUP
@@ -3418,6 +3512,18 @@ function addCustomer(customer)
 
     });
 
+    receiveState.savingRows.push({
+
+        customer : customer.CUSTOMER,
+
+        customer_name : customer.CUSTOMER_NAME,
+
+        saving : 0,
+
+        remark : ""
+
+    });
+
     refreshCustomer();
     $("#lookupKeyword").val("");
 
@@ -3446,13 +3552,9 @@ function getCustomer(index)
     return receiveState.customerRows[index];
 }
 
-function removeCustomer(index)
-{
-    receiveState.customerRows.splice(
-        index,
-        1
-    );
-
+function removeCustomer(index){
+    receiveState.customerRows.splice(index,1);
+    receiveState.savingRows.splice(index,1);
     refreshCustomer();
 }
 
@@ -3630,11 +3732,6 @@ function renderCustomerSummary()
 
 }
 
-function renderPaymentSummary()
-{
-
-}
-
 function resetCustomerSummary(){
 
     $("#summaryQtyActual").text(
@@ -3714,7 +3811,6 @@ function resetReceiveForm()
 
 function clearPO()
 {
-    $("#hiddenPoAdd").val("");
 
     $("#poAdd").val("");
 
@@ -3752,10 +3848,6 @@ function clearPO()
 
     refreshCustomer();
 
-    $("#savingTableAdd tbody").empty();
-
-    $("#paymentSummaryTableAdd tbody").empty();
-
     receiveState.po = null;
     receiveState.customerRows = [];
     receiveState.savingRows = [];
@@ -3790,10 +3882,7 @@ function bindCustomerEvent()
             parseDecimalID($(this).val());
 
         updateCustomerRow(index);
-
-        renderCustomerSummary();
-
-        renderPaymentSummary();
+        refreshCalculation();
 
     });
 
@@ -3808,10 +3897,7 @@ function bindCustomerEvent()
                 parseDecimalID($(this).val());
 
             updateCustomerRow(index);
-
-            renderCustomerSummary();
-
-            renderPaymentSummary();
+            refreshCalculation();
 
         }
     );
@@ -3827,10 +3913,7 @@ function bindCustomerEvent()
                 parseMoney($(this).val());
 
             updateCustomerRow(index);
-
-            renderPaymentSummary();
-
-            renderCustomerSummary();
+            refreshCalculation();
 
         }
     );
@@ -3840,16 +3923,13 @@ function bindCustomerEvent()
         ".discount-input",
         function(){
 
-            liveMoney(this);
-
             let index=$(this).data("index");
 
             receiveState.customerRows[index].discount =
                 parseMoney($(this).val());
 
             updateCustomerRow(index);
-
-            renderPaymentSummary();
+            refreshCalculation();
 
         }
     );
@@ -3866,6 +3946,36 @@ function bindCustomerEvent()
                 .customerRows[index]
                 .remark=
 
+                $(this).val();
+
+        }
+    );
+
+    $(document).on(
+        "input",
+        ".saving-input",
+        function(){
+
+            const index = $(this).data("index");
+
+            receiveState.savingRows[index].saving =
+                parseMoney($(this).val());
+
+            renderSavingTable();
+
+            renderPaymentSummary();
+
+        }
+    );
+
+    $(document).on(
+        "keyup",
+        ".saving-remark",
+        function(){
+
+            const index = $(this).data("index");
+
+            receiveState.savingRows[index].remark =
                 $(this).val();
 
         }
@@ -3911,13 +4021,90 @@ function calculateAllocation()
 
 }
 
-function refreshCustomer()
-{
+function calculatePaymentSummary(){
+
+    let result=[];
+
+    $.each(receiveState.customerRows,function(i,customer){
+
+        let saving=
+            receiveState.savingRows[i];
+
+        let sales=customer.total;
+
+        let savingNominal=
+            saving
+            ? saving.saving
+            : 0;
+
+        result.push({
+
+            customer:customer.customer,
+
+            customer_name:customer.customer_name,
+
+            sales:sales,
+
+            saving:savingNominal,
+
+            grandTotal:
+                sales-savingNominal
+
+        });
+
+    });
+
+    return result;
+
+}
+
+function calculateGrandTotal(summary){
+
+    let sales=0;
+
+    let saving=0;
+
+    let grand=0;
+
+    $.each(summary,function(i,row){
+
+        sales+=row.sales;
+
+        saving+=row.saving;
+
+        grand+=row.grandTotal;
+
+    });
+
+    return{
+
+        sales:sales,
+
+        saving:saving,
+
+        grand:grand
+
+    };
+
+}
+
+function refreshCustomer(){
     renderCustomerTable();
+    renderSavingTable();
+    renderCustomerSummary();
+    renderPaymentSummary();
+}
+
+function refreshCalculation(){
 
     renderCustomerSummary();
 
     renderPaymentSummary();
+
+    renderSavingTotal();
+
+    renderAllocationProgress();
+
 }
 
 let receiveInitialized = false;
@@ -3945,12 +4132,7 @@ function initReceive()
 
 function bindEvents()
 {
-
     bindCustomerEvent();
-
-    bindSavingEvent();
-
-    bindSubmitEvent();
 }
 
 /*
