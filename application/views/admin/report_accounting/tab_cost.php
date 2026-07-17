@@ -630,13 +630,32 @@ window.ReportCost = (function(){
 
         if (rows.length === 0) {
 
-            wrapper.html(`
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body text-center py-5 text-muted">
-                        Tidak ada data cost
-                    </div>
+            let tableEmpty = `
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle table-modern">
+                        <thead>
+                            <tr>
+                                <th class="text-center">Cost</th>
+                                <th class="text-center">Plant</th>
+                                <th class="text-center">Payment</th>
+                                <th class="text-center">Slip No</th>
+                                <th class="text-center">Cost Date</th>
+                                <th>Tipe Cost</th>
+                                <th class="text-end">Kuantitas</th>
+                                <th class="text-end">Harga</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="9" class="text-center text-muted">Data Tidak Ditemukan</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-            `);
+            `;
+
+            wrapper.html(tableEmpty);
 
             return;
         }

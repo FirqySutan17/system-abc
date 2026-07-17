@@ -788,12 +788,12 @@ class ReportAccounting extends CI_Controller
 
                 );
 
-        $rows = $report_data['cost_list'];
+        $rows = $report_data['cost_list'] ?? [];
             
 
-        $total = $report_data['total_count'];
+        $total = $report_data['total_count'] ?? 0;
 
-        $summary = $report_data['summary'];
+        $summary = $report_data['summary'] ?? [];
 
         /*
         |--------------------------------------------------------------------------
@@ -965,9 +965,9 @@ class ReportAccounting extends CI_Controller
         }
 
         $rows = array_values($rows);
-        $total = $reportData['total_count'];
+        $total = $reportData['total_count'] ?? 0;
 
-        $summary = $reportData['summary'];
+        $summary = $reportData['summary'] ?? [];
 
         $pages = $total > 0 ? ceil($total / $limit) : 1;
 

@@ -733,22 +733,34 @@
             |--------------------------------------------------------------------------
             */
 
-            if(rows.length === 0){
+            // Always show static table header and 'Data Tidak Ditemukan'
+            {
+                let tableEmpty = `
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle table-modern">
+                            <thead>
+                                <tr>
+                                    <th class="text-center">Plant</th>
+                                    <th class="text-center">Plant Name</th>
+                                    <th class="text-center">Customer</th>
+                                    <th class="text-center">Customer Name</th>
+                                    <th>Doc No</th>
+                                    <th>Type</th>
+                                    <th class="text-center">Date</th>
+                                    <th class="text-end">Amount</th>
+                                    <th>Remark</th>
+                                    <th>Related</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="10" class="text-center text-muted">Data Tidak Ditemukan</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>`;
 
-                wrapper.html(`
-
-                    <div class="card border-0 shadow-lg">
-
-                        <div class="card-body text-center py-5 text-muted">
-
-                            Tidak ada data payment
-
-                        </div>
-
-                    </div>
-
-                `);
-
+                wrapper.html(tableEmpty);
                 return;
             }
 
