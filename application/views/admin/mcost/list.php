@@ -300,7 +300,7 @@
                                 <tr>
                                     <th style="text-align:center;width:25%">Tipe Cost</th>
                                     <th style="text-align:center;width:10%">Kuantitas</th>
-                                    <th style="text-align:center;width:15%">Jumlah</th>
+                                    <th style="text-align:center;width:15%">Biaya</th>
                                     <th style="text-align:center;width:20%">Lampiran</th>
                                     <th style="text-align:center;">Keterangan</th>
                                     <th style="text-align:center;width:40px;">#</th>
@@ -415,7 +415,7 @@
                                 <tr>
                                     <th style="text-align:center;width:25%">Tipe Cost</th>
                                     <th style="text-align:center;width:10%">Kuantitas</th>
-                                    <th style="text-align:center;width:15%">Jumlah</th>
+                                    <th style="text-align:center;width:15%">Biaya</th>
                                     <th style="text-align:center;width:20%">Lampiran</th>
                                     <th style="text-align:center;">Keterangan</th>
                                     <th style="text-align:center;width:40px;">#</th>

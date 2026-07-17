@@ -58,6 +58,20 @@
 
                 </li>
 
+                <!-- SAVING & LOAN -->
+                <li class="nav-item">
+
+                    <a
+                        class="nav-link"
+                        data-bs-toggle="tab"
+                        href="#tab-sl">
+
+                        Report SL
+
+                    </a>
+
+                </li>
+
             </ul>
 
             <!-- ====================================================== -->
@@ -109,6 +123,22 @@
                     <?php
                     $this->load->view(
                         'admin/report_accounting/tab_cashin'
+                    );
+                    ?>
+
+                </div>
+
+                <!-- ================================================== -->
+                <!-- SAVING & LOAN -->
+                <!-- ================================================== -->
+
+                <div
+                    class="tab-pane fade"
+                    id="tab-sl">
+
+                    <?php
+                    $this->load->view(
+                        'admin/report_accounting/tab_sl'
                     );
                     ?>
 
@@ -181,6 +211,16 @@ document.addEventListener(
             if(window.ReportCashIn){
 
                 ReportCashIn.init();
+
+            }
+
+        }
+
+        if(target === '#tab-sl'){
+
+            if(window.ReportSL){
+
+                ReportSL.init();
 
             }
 

@@ -142,6 +142,7 @@ $route['report-production/export_pdf_item_balance'] = 'ReportProduction/export_p
 
 // REPORT ACCOUNTING
 $route['report-accounting/load_cost'] = 'ReportAccounting/load_cost';
+$route['report-accounting/load_sl'] = 'ReportAccounting/load_sl';
 $route['report-accounting/export_excel_cost'] = 'ReportAccounting/export_excel_cost';
 $route['report-accounting/export_pdf_cost'] = 'ReportAccounting/export_pdf_cost';
 

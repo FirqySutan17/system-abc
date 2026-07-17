@@ -870,6 +870,73 @@ class ReportInventory_model extends CI_Model {
             ->result();
     }
 
+    public function get_culling_summary(
+        $filters = []
+    ){
+        $this->db
+            ->select("\n                COUNT(c.idno) AS TOTAL_CULLING,\n                SUM(c.JUMLAH) AS TOTAL_QTY,\n                SUM(c.BERAT) AS TOTAL_BERAT,\n                SUM(CASE WHEN class.CODE_NAME = 'DIPOTONG' THEN 1 ELSE 0 END) AS TOTAL_DIPOTONG,\n                SUM(CASE WHEN class.CODE_NAME = 'MATI' THEN 1 ELSE 0 END) AS TOTAL_MATI\n            ", false)
+            ->from('abc_mst_culling c')
+            ->join(
+                'abc_cd_code class',
+                "class.HEAD_CODE='CLASS OUT'\n                    AND class.CODE COLLATE utf8mb4_unicode_ci =\n                    c.class_out COLLATE utf8mb4_unicode_ci",
+                'left',
+                false
+            );
+
+        if (!empty($filters['plant'])) {
+
+            $this->db->where(
+                'c.plant',
+                $filters['plant']
+            );
+        }
+
+        if (!empty($filters['class_out'])) {
+
+            $this->db->where(
+                'c.class_out',
+                $filters['class_out']
+            );
+        }
+
+        if (!empty($filters['search'])) {
+
+            $this->db->group_start()
+
+                ->like(
+                    'c.remark',
+                    $filters['search']
+                )
+
+                ->or_like(
+                    'c.CREATED_BY',
+                    $filters['search']
+                )
+
+                ->group_end();
+        }
+
+        if (!empty($filters['date_from'])) {
+
+            $this->db->where(
+                'DATE(c.ymd) >=',
+                $filters['date_from']
+            );
+        }
+
+        if (!empty($filters['date_to'])) {
+
+            $this->db->where(
+                'DATE(c.ymd) <=',
+                $filters['date_to']
+            );
+        }
+
+        return $this->db
+            ->get()
+            ->row_array() ?: [];
+    }
+
     public function count_culling_report(
         $filters = []
     ){

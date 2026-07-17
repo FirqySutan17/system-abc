@@ -125,6 +125,9 @@ class ReportAccounting_model extends CI_Model
             null,
             false
         );
+        
+        
+
 
         /*
         |--------------------------------------------------------------------------
@@ -208,6 +211,164 @@ class ReportAccounting_model extends CI_Model
             $this->db->group_end();
 
         }
+    }
+
+    private function sl_build_filter(
+        $alias,
+        $filter,
+        $dateField
+    ) {
+        $sql = '';
+
+        if (!empty($filter['search'])) {
+            $search = $this->db->escape_like_str(
+                $filter['search']
+            );
+
+            $key = $alias === 'sv' ? 'SV_NO' : 'LOAN_NO';
+
+            $sql .= " AND (
+                {$alias}.{$key} LIKE '%{$search}%'
+                OR customer.FULL_NAME LIKE '%{$search}%'
+                OR {$alias}.RELATED LIKE '%{$search}%'
+                OR {$alias}.REMARK LIKE '%{$search}%'
+            )";
+        }
+
+        if (!empty($filter['plant'])) {
+            $sql .= ' AND ' . $alias . '.PLANT = ' .
+                $this->db->escape($filter['plant']);
+        }
+
+        if (!empty($filter['customer'])) {
+            $sql .= ' AND ' . $alias . '.CUSTOMER = ' .
+                $this->db->escape($filter['customer']);
+        }
+
+        if (!empty($filter['date_from'])) {
+            $sql .= ' AND DATE(' . $alias . '.' .
+                $dateField . ') >= ' .
+                $this->db->escape($filter['date_from']);
+        }
+
+        if (!empty($filter['date_to'])) {
+            $sql .= ' AND DATE(' . $alias . '.' .
+                $dateField . ') <= ' .
+                $this->db->escape($filter['date_to']);
+        }
+
+        return $sql;
+    }
+
+    public function get_sl_report(
+        $limit,
+        $start,
+        $filter = []
+    ) {
+        $savingFilter = $this->sl_build_filter(
+            'sv',
+            $filter,
+            'SV_DATE'
+        );
+
+        $loanFilter = $this->sl_build_filter(
+            'loan',
+            $filter,
+            'LOAN_DATE'
+        );
+
+        $savingSql = "
+            SELECT
+                sv.SV_NO AS DOC_NO,
+                'Saving' AS TYPE,
+                sv.PLANT,
+                plant.CODE_NAME AS PLANT_NAME,
+                sv.CUSTOMER,
+                customer.FULL_NAME AS CUSTOMER_NAME,
+                sv.RELATED,
+                sv.SV_DATE AS DOC_DATE,
+                sv.AMOUNT AS AMOUNT,
+                sv.REMARK AS REMARK
+            FROM abc_mst_saving sv
+            LEFT JOIN abc_cd_code plant
+                ON plant.CODE = sv.PLANT
+                AND plant.HEAD_CODE = 'PLANT'
+            LEFT JOIN abc_cd_customer customer
+                ON customer.CUST = sv.CUSTOMER
+            WHERE sv.DELETED IS NULL
+            " . $savingFilter;
+
+        $loanSql = "
+            SELECT
+                loan.LOAN_NO AS DOC_NO,
+                'Loan' AS TYPE,
+                loan.PLANT,
+                plant.CODE_NAME AS PLANT_NAME,
+                loan.CUSTOMER,
+                customer.FULL_NAME AS CUSTOMER_NAME,
+                loan.RELATED,
+                loan.LOAN_DATE AS DOC_DATE,
+                loan.AMOUNT AS AMOUNT,
+                loan.REMARK AS REMARK
+            FROM abc_mst_loan loan
+            LEFT JOIN abc_cd_code plant
+                ON plant.CODE = loan.PLANT
+                AND plant.HEAD_CODE = 'PLANT'
+            LEFT JOIN abc_cd_customer customer
+                ON customer.CUST = loan.CUSTOMER
+            WHERE loan.DELETED IS NULL
+            " . $loanFilter;
+
+        $unionSql = "(
+            {$savingSql}
+        )
+        UNION ALL
+        (
+            {$loanSql}
+        )
+        ORDER BY DOC_DATE DESC, TYPE ASC
+        LIMIT {$start}, {$limit} ";
+
+        $rows = $this->db
+            ->query($unionSql)
+            ->result_array();
+
+        $countSql = "
+            SELECT COUNT(*) AS cnt FROM (
+                {$savingSql}
+                UNION ALL
+                {$loanSql}
+            ) AS t
+        ";
+
+        $countResult = $this->db
+            ->query($countSql)
+            ->row_array();
+
+        $summarySql = "
+            SELECT
+                COALESCE(SUM(AMOUNT), 0) AS TOTAL_AMOUNT,
+                COALESCE(SUM(CASE WHEN TYPE = 'Saving' THEN AMOUNT ELSE 0 END), 0) AS TOTAL_SAVING_AMOUNT,
+                COALESCE(SUM(CASE WHEN TYPE = 'Loan' THEN AMOUNT ELSE 0 END), 0) AS TOTAL_LOAN_AMOUNT,
+                COUNT(*) AS TOTAL_DOC,
+                SUM(CASE WHEN TYPE = 'Saving' THEN 1 ELSE 0 END) AS TOTAL_SAVING_DOC,
+                SUM(CASE WHEN TYPE = 'Loan' THEN 1 ELSE 0 END) AS TOTAL_LOAN_DOC
+            FROM (
+                {$savingSql}
+                UNION ALL
+                {$loanSql}
+            ) AS t
+        ";
+
+        $summary = $this->db
+            ->query($summarySql)
+            ->row_array();
+
+        return [
+            'rows' => $rows,
+            'total_count' => (int) ($countResult['cnt'] ?? 0),
+            'summary' => $summary
+        ];
     }
 
     /*
@@ -1447,98 +1608,20 @@ class ReportAccounting_model extends CI_Model
             ->get()
             ->row_array();
     }
-
-    public function get_cost_report(
-        $limit,
-        $start,
+    
+    private function cost_query(
         $filter = []
     )
     {
-        /*
-        |--------------------------------------------------------------------------
-        | HEADER
-        |--------------------------------------------------------------------------
-        */
-
-        $this->db->select("
-
-            c.COST,
-
-            c.PLANT,
-
-            plant.CODE_NAME AS PLANT_NAME,
-
-            c.COST_DATE,
-
-            c.PEMBAYARAN,
-
-            c.SLIP_NO,
-
-            c.REMARK,
-
-            COUNT(d.ID) AS TOTAL_ITEM,
-
-            COALESCE(
-                SUM(d.TOTAL),
-                0
-            ) AS GRAND_TOTAL
-
-        ", false);
-
-        $this->db->from(
-            'abc_mst_cost c'
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | DETAIL
-        |--------------------------------------------------------------------------
-        */
+        $this->db->from('abc_mst_cost c');
 
         $this->db->join(
-
-            'abc_mst_cost_detail d',
-
-            '
-
-                d.COST = c.COST
-                AND d.PLANT = c.PLANT
-                AND d.DELETED IS NULL
-
-            ',
-
-            'left',
-            false
-
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | PLANT
-        |--------------------------------------------------------------------------
-        */
-
-        $this->db->join(
-
             'abc_cd_code plant',
-
             '
-
                 plant.CODE = c.PLANT
                 AND plant.HEAD_CODE = "PLANT"
-
-            ',
-
-            'left',
-            false
-
+            '
         );
-
-        /*
-        |--------------------------------------------------------------------------
-        | FILTER
-        |--------------------------------------------------------------------------
-        */
 
         $this->db->where(
             'c.DELETED IS NULL',
@@ -1548,19 +1631,16 @@ class ReportAccounting_model extends CI_Model
 
         if(!empty($filter['search'])){
 
-            $this->db->group_start();
-
-            $this->db->like(
-                'c.COST',
-                $filter['search']
-            );
-
-            $this->db->or_like(
-                'c.SLIP_NO',
-                $filter['search']
-            );
-
-            $this->db->group_end();
+            $this->db->group_start()
+                ->db->like(
+                    'c.COST',
+                    $filter['search']
+                )
+                ->or_like(
+                    'c.SLIP_NO',
+                    $filter['search']
+                )
+                ->group_end();
         }
 
         if(!empty($filter['plant'])){
@@ -1594,113 +1674,82 @@ class ReportAccounting_model extends CI_Model
                 $filter['date_to']
             );
         }
+    }
 
-        /*
-        |--------------------------------------------------------------------------
-        | GROUP
-        |--------------------------------------------------------------------------
-        */
+    private function cost_limit($filter, $limit, $start) {
+        $this->cost_query($filter);
+        return $this->db->limit($limit, $start)->get()->result_array();
+    }
 
-        $this->db->group_by(
-            'c.COST'
-        );
+    private function cost_count($filter) {
+        $this->cost_query($filter);
+        return $this->db->count_all_results();
+    }
 
-        /*
-        |--------------------------------------------------------------------------
-        | ORDER
-        |--------------------------------------------------------------------------
-        */
+    public function get_cost_report(
+        $limit,
+        $start,
+        $filter = []
+    )
+    {
 
-        $this->db->order_by(
-            'c.COST_DATE',
-            'DESC'
-        );
+        $header_data = $this->cost_limit($filter, $limit, $start);
 
-        /*
-        |--------------------------------------------------------------------------
-        | LIMIT
-        |--------------------------------------------------------------------------
-        */
 
-        $this->db->limit(
-            $limit,
-            $start
-        );
+        $costList = [];
+        $costFilter = array_map(function($row) use (&$costList){
+            $row['DETAIL'] = [];
+            $costList[] = $row;
+            return $row['COST'];
+        }, $header_data);
 
-        $rows =
-            $this->db
-                ->get()
-                ->result_array();
-
-        /*
-        |--------------------------------------------------------------------------
-        | DETAIL LOOP
-        |--------------------------------------------------------------------------
-        */
-
-        foreach($rows as &$row){
-
-            $details =
-                $this->db
-
-                    ->select("
-
-                        d.*,
-
-                        cost.COST_NAME AS COST_NAME
-
-                    ")
-
-                    ->from(
-                        'abc_mst_cost_detail d'
-                    )
-
-                    ->join(
-
-                        'abc_cd_cost cost',
-
-                        '
-
-                            cost.COST COLLATE utf8mb4_unicode_ci =
-                            d.TIPE_COST COLLATE utf8mb4_unicode_ci
-
-                        ',
-
-                        'left',
-                        false
-
-                    )
-
-                    ->where(
-                        'd.COST',
-                        $row['COST']
-                    )
-
-                    ->where(
-                        'd.PLANT',
-                        $row['PLANT']
-                    )
-
-                    ->where(
-                        'd.DELETED IS NULL',
-                        null,
-                        false
-                    )
-
-                    ->order_by(
-                        'd.ID',
-                        'ASC'
-                    )
-
-                    ->get()
-
-                    ->result_array();
-
-            $row['DETAILS'] =
-                $details;
+        if (empty($costFilter)) {
+            return [];
         }
 
-        return $rows;
+        
+        // build index for quick lookup of header rows by COST value
+        $costIndex = [];
+        foreach ($costList as $i => $hdr) {
+            if (isset($hdr['COST'])) {
+                $costIndex[$hdr['COST']] = $i;
+            }
+        }
+
+        // get detail data grouped by TIPE_COST and joined to cost master for name
+        $detail_data = $this->db
+            ->select('d.COST, d.TIPE_COST, cst.COST_NAME, SUM(d.QTY) AS TOTAL_QTY, SUM(d.JUMLAH) AS TOTAL_JUMLAH, SUM(d.TOTAL) AS TOTAL')
+            ->from('abc_mst_cost_detail d')
+            ->join('abc_cd_cost cst', 'd.TIPE_COST = cst.COST', 'left')
+            ->where_in('d.COST', $costFilter)
+            ->group_by(['d.COST','d.TIPE_COST'])
+            ->order_by('d.TIPE_COST','ASC')
+            ->get()
+            ->result_array();
+
+        // attach grouped detail rows back to their header
+
+        $totalCost = 0;
+        $totalItem = 0;
+        $totalCostDoc = count($costList);
+        foreach ($detail_data as $row) {
+            if (isset($costIndex[$row['COST']])) {
+                $costList[$costIndex[$row['COST']]]['DETAIL'][] = $row;
+                $totalItem += 1;
+                $totalCost += (float) $row['TOTAL'];
+            }
+        }
+
+        $return = [
+            'cost_list' => $costList,
+            'total_count' => $this->cost_count($filter),
+            'summary' => [
+                'total_cost' => $totalCost,
+                'total_item' => $totalItem,
+                'total_cost_doc' => $totalCostDoc
+            ]
+        ];
+        return $return;
     }
 
     public function count_cost_report(

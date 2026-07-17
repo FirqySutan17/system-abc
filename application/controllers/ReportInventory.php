@@ -3575,6 +3575,13 @@ class ReportInventory extends MY_Controller {
                     $filters
                 );
 
+        $summary =
+            $this
+                ->ReportInventory_model
+                ->get_culling_summary(
+                    $filters
+                );
+
         $pages =
             ceil(
                 $totalRows
@@ -3599,6 +3606,9 @@ class ReportInventory extends MY_Controller {
 
             'total' =>
                 (int)$totalRows,
+
+            'summary' =>
+                $summary,
 
             'pagination' =>
                 $pagination,

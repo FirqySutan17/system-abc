@@ -2,6 +2,71 @@
 
 <div class="culling-report-wrap">
 
+    <!-- SUMMARY -->
+    <div class="row mb-4" id="summaryWrapper">
+
+        <div class="col-md-2">
+            <div class="summary-card">
+                <div class="summary-label">
+                    TOTAL CULLING
+                </div>
+
+                <div class="summary-value" id="sumCulling">
+                    0
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="summary-card">
+                <div class="summary-label">
+                    DIPOTONG <br/> (JUMLAH CULLING)
+                </div>
+
+                <div class="summary-value" id="sumCullingDipotong">
+                    0
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="summary-card">
+                <div class="summary-label">
+                    MATI <br/> (JUMLAH CULLING)
+                </div>
+
+                <div class="summary-value" id="sumCullingMati">
+                    0
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="summary-card">
+                <div class="summary-label">
+                    TOTAL KUANTITAS
+                </div>
+
+                <div class="summary-value" id="sumKuantitas">
+                    0
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="summary-card">
+                <div class="summary-label">
+                    TOTAL BERAT
+                </div>
+
+                <div class="summary-value" id="sumBerat">
+                    0
+                </div>
+            </div>
+        </div>
+
+    </div>
+
     <div class="report-filter-card">
 
         <div class="row g-3 align-items-end">
@@ -192,6 +257,38 @@
     </div>
 
     <!-- CONTENT -->
+
+    <div id="tableWrapper">
+
+        <div class="table-responsive">
+
+            <table
+                class="table table-hover align-middle table-modern"
+                id="mainTable">
+
+                <thead>
+
+                    <tr>
+
+                        <th style="text-align: center; vertical-align: middle">Plant</th>
+                        <th style="text-align: center; vertical-align: middle">Tanggal</th>
+                        <th style="text-align: center; vertical-align: middle">Class Out</th>
+                        <th style="text-align: center; vertical-align: middle">Jumlah</th>
+                        <th style="text-align: center; vertical-align: middle">Berat</th>
+                        <th style="text-align: center; vertical-align: middle">Keterangan</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="table-body">
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
 
     <div id="cullingReportWrapper"></div>
 
@@ -399,628 +496,481 @@
 
 <script>
 
-window.CullingReport = {
+    window.CullingReport = {
 
-    loaded: false,
-    page: 1,
-    limit: 10,
-    searchTimer: null,
-
-    /*
-    |--------------------------------------------------------------------------
-    | INIT
-    |--------------------------------------------------------------------------
-    */
-
-    init()
-    {
-        if (this.loaded)
-            return;
-
-        this.loaded = true;
-
-        this.initSelect2();
-
-        this.bind();
-
-        this.bindExport();
-
-        this.setDefault();
-
-        this.load();
-    },
-
-    /*
-    |--------------------------------------------------------------------------
-    | SELECT2
-    |--------------------------------------------------------------------------
-    */
-
-    initSelect2()
-    {
-        $('#cl_filter_plant').select2({
-
-            theme: 'bootstrap-5',
-            width: '100%',
-            placeholder: 'Pilih Plant',
-            allowClear: true
-
-        });
-
-        $('#cl_filter_class_out').select2({
-
-            theme: 'bootstrap-5',
-            width: '100%',
-            placeholder: 'Pilih Class Out',
-            allowClear: true
-
-        });
-    },
-
-    /*
-    |--------------------------------------------------------------------------
-    | DEFAULT
-    |--------------------------------------------------------------------------
-    */
-
-    setDefault()
-    {
-        const now = new Date();
-
-        const yyyy = now.getFullYear();
-        const mm = String(now.getMonth()+1).padStart(2,'0');
-        const dd = String(now.getDate()).padStart(2,'0');
-
-        $('#cl_date_from').val(`${yyyy}-${mm}-01`);
-        $('#cl_date_to').val(`${yyyy}-${mm}-${dd}`);
-        
-    },
-
-    /*
-    |--------------------------------------------------------------------------
-    | QUERY
-    |--------------------------------------------------------------------------
-    */
-
-    query()
-    {
-        return {
-
-            page:
-                this.page,
-
-            limit:
-                this.limit,
-
-            plant:
-                $('#cl_filter_plant').val(),
-
-            class_out:
-                $('#cl_filter_class_out').val(),
-
-            search:
-                $('#cl_filter_search').val(),
-
-            date_from:
-                $('#cl_date_from').val(),
-
-            date_to:
-                $('#cl_date_to').val()
-        };
-    },
-
-    /*
-    |--------------------------------------------------------------------------
-    | BIND
-    |--------------------------------------------------------------------------
-    */
-
-    bind()
-    {
-        const self = this;
+        loaded: false,
+        page: 1,
+        limit: 10,
+        searchTimer: null,
 
         /*
         |--------------------------------------------------------------------------
-        | SEARCH
+        | INIT
         |--------------------------------------------------------------------------
         */
 
-        $('#cl_filter_search')
-            .off('keyup')
-            .on(
-                'keyup',
-                function ()
+        init()
         {
-            clearTimeout(
-                self.searchTimer
-            );
+            if (this.loaded)
+                return;
 
-            self.searchTimer =
-                setTimeout(() => {
+            this.loaded = true;
 
-                    self.page = 1;
+            this.initSelect2();
 
-                    self.load();
+            this.bind();
 
-                }, 500);
-        });
+            this.bindExport();
+
+            this.setDefault();
+
+            this.load();
+        },
 
         /*
         |--------------------------------------------------------------------------
-        | FILTER
+        | SELECT2
         |--------------------------------------------------------------------------
         */
 
-        $('#cl_filter_plant, #cl_filter_class_out')
-            .off('change')
-            .on(
-                'change',
-                function ()
+        initSelect2()
         {
-            self.page = 1;
+            $('#cl_filter_plant').select2({
 
-            self.load();
-        });
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: 'Pilih Plant',
+                allowClear: true
+
+            });
+
+            $('#cl_filter_class_out').select2({
+
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: 'Pilih Class Out',
+                allowClear: true
+
+            });
+        },
 
         /*
         |--------------------------------------------------------------------------
-        | DATE
+        | DEFAULT
         |--------------------------------------------------------------------------
         */
 
-        $('#cl_date_from, #cl_date_to')
-            .off('change')
-            .on(
-                'change',
-                function ()
+        setDefault()
         {
-            self.page = 1;
+            const now = new Date();
 
-            self.load();
-        });
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth()+1).padStart(2,'0');
+            const dd = String(now.getDate()).padStart(2,'0');
 
-    },
+            $('#cl_date_from').val(`${yyyy}-${mm}-01`);
+            $('#cl_date_to').val(`${yyyy}-${mm}-${dd}`);
+            
+        },
 
-    /*
-    |--------------------------------------------------------------------------
-    | EXPORT
-    |--------------------------------------------------------------------------
-    */
+        /*
+        |--------------------------------------------------------------------------
+        | QUERY
+        |--------------------------------------------------------------------------
+        */
 
-    bindExport()
-    {
-        $('#cl_exportExcel')
-            .off('click')
-            .on(
-                'click',
-                (e)=>
+        query()
         {
-            e.preventDefault();
+            return {
 
-            window.open(
+                page:
+                    this.page,
 
-                '<?= base_url("report-inventory/export_excel_culling"); ?>?'
-                + $.param(
-                    this.query()
-                ),
+                limit:
+                    this.limit,
 
-                '_blank'
-            );
-        });
+                plant:
+                    $('#cl_filter_plant').val(),
 
-        $('#cl_exportPDF')
-            .off('click')
-            .on(
-                'click',
-                (e)=>
+                class_out:
+                    $('#cl_filter_class_out').val(),
+
+                search:
+                    $('#cl_filter_search').val(),
+
+                date_from:
+                    $('#cl_date_from').val(),
+
+                date_to:
+                    $('#cl_date_to').val()
+            };
+        },
+
+        /*
+        |--------------------------------------------------------------------------
+        | BIND
+        |--------------------------------------------------------------------------
+        */
+
+        bind()
         {
-            e.preventDefault();
+            const self = this;
 
-            window.open(
+            /*
+            |--------------------------------------------------------------------------
+            | SEARCH
+            |--------------------------------------------------------------------------
+            */
 
-                '<?= base_url("report-inventory/export_pdf_culling"); ?>?'
-                + $.param(
-                    this.query()
-                ),
-
-                '_blank'
-            );
-        });
-    },
-
-    /*
-    |--------------------------------------------------------------------------
-    | LOADING
-    |--------------------------------------------------------------------------
-    */
-
-    showLoading()
-    {
-        $('#clLoading')
-            .removeClass('d-none');
-    },
-
-    hideLoading()
-    {
-        $('#clLoading')
-            .addClass('d-none');
-    },
-
-    /*
-    |--------------------------------------------------------------------------
-    | LOAD
-    |--------------------------------------------------------------------------
-    */
-
-    load(page = null)
-    {
-        if (page) {
-            this.page = page;
-        }
-
-        this.showLoading();
-
-        $.ajax({
-
-            url:
-                '<?= base_url("report-inventory/load_culling"); ?>',
-
-            type:
-                'GET',
-
-            data:
-                this.query(),
-
-            dataType:
-                'json',
-
-            success:
-                (resp)=>
+            $('#cl_filter_search')
+                .off('keyup')
+                .on(
+                    'keyup',
+                    function ()
             {
-                this.render(
-                    resp.rows || []
+                clearTimeout(
+                    self.searchTimer
                 );
 
-                $('#cl_pagination')
-                    .html(
-                        resp.pagination || ''
-                    );
+                self.searchTimer =
+                    setTimeout(() => {
 
-                $('#cl_pageInfo')
-                    .html(
+                        self.page = 1;
 
-                        `Total Data :
-                        ${resp.total || 0}`
+                        self.load();
 
-                    );
-            },
+                    }, 500);
+            });
 
-            complete:
-                ()=>
+            /*
+            |--------------------------------------------------------------------------
+            | FILTER
+            |--------------------------------------------------------------------------
+            */
+
+            $('#cl_filter_plant, #cl_filter_class_out')
+                .off('change')
+                .on(
+                    'change',
+                    function ()
             {
-                this.hideLoading();
+                self.page = 1;
+
+                self.load();
+            });
+
+            /*
+            |--------------------------------------------------------------------------
+            | DATE
+            |--------------------------------------------------------------------------
+            */
+
+            $('#cl_date_from, #cl_date_to')
+                .off('change')
+                .on(
+                    'change',
+                    function ()
+            {
+                self.page = 1;
+
+                self.load();
+            });
+
+        },
+
+        /*
+        |--------------------------------------------------------------------------
+        | EXPORT
+        |--------------------------------------------------------------------------
+        */
+
+        bindExport()
+        {
+            $('#cl_exportExcel')
+                .off('click')
+                .on(
+                    'click',
+                    (e)=>
+            {
+                e.preventDefault();
+
+                window.open(
+
+                    '<?= base_url("report-inventory/export_excel_culling"); ?>?'
+                    + $.param(
+                        this.query()
+                    ),
+
+                    '_blank'
+                );
+            });
+
+            $('#cl_exportPDF')
+                .off('click')
+                .on(
+                    'click',
+                    (e)=>
+            {
+                e.preventDefault();
+
+                window.open(
+
+                    '<?= base_url("report-inventory/export_pdf_culling"); ?>?'
+                    + $.param(
+                        this.query()
+                    ),
+
+                    '_blank'
+                );
+            });
+        },
+
+        /*
+        |--------------------------------------------------------------------------
+        | LOADING
+        |--------------------------------------------------------------------------
+        */
+
+        showLoading()
+        {
+            $('#clLoading')
+                .removeClass('d-none');
+        },
+
+        hideLoading()
+        {
+            $('#clLoading')
+                .addClass('d-none');
+        },
+
+        /*
+        |--------------------------------------------------------------------------
+        | LOAD
+        |--------------------------------------------------------------------------
+        */
+
+        load(page = null)
+        {
+            if (page) {
+                this.page = page;
             }
 
-        });
-    },
+            this.showLoading();
 
-    /*
-    |--------------------------------------------------------------------------
-    | RENDER
-    |--------------------------------------------------------------------------
-    */
+            $.ajax({
 
-    render(rows)
-    {
-        let wrap =
-            $('#cullingReportWrapper');
+                url:
+                    '<?= base_url("report-inventory/load_culling"); ?>',
 
-        wrap.empty();
+                type:
+                    'GET',
 
-        if (!rows.length)
+                data:
+                    this.query(),
+
+                dataType:
+                    'json',
+
+                success:
+                    (resp)=>
+                {
+                    this.renderSummary(
+                        resp.summary || {}
+                    );
+
+                    this.renderTable(
+                        resp.rows || []
+                    );
+
+                    $('#cl_pagination')
+                        .html(
+                            resp.pagination || ''
+                        );
+
+                    $('#cl_pageInfo')
+                        .html(
+
+                            `Total Data :
+                            ${resp.total || 0}`
+
+                        );
+                },
+
+                complete:
+                    ()=>
+                {
+                    this.hideLoading();
+                }
+
+            });
+        },
+
+        /*
+        |--------------------------------------------------------------------------
+        | RENDER TABLE
+        |--------------------------------------------------------------------------
+        */
+
+        renderTable(rows)
         {
-            wrap.html(
+            let html = '';
 
-                `
-                <div
-                    class="alert alert-light text-center">
+            if (!rows.length)
+            {
+                html += `
+                    <tr>
+                        <td colspan="6"
+                            class="text-center">
+                            Data tidak ditemukan
+                        </td>
+                    </tr>
+                `;
 
-                    Data tidak ditemukan
+                $('#table-body').html(html);
 
-                </div>
-                `
+                return;
+            }
 
+            rows.forEach((r)=>{
+
+                html += `
+                    <tr>
+                        <td class="text-center fw-semibold" style="vertical-align: middle;">
+                            ${r.PLANT_NAME ?? '-'}
+                        </td>
+                        <td class="text-center" style="vertical-align: middle;">
+                            ${this.dateIndoLong(r.ymd)}
+                        </td>
+                        <td class="text-center" style="vertical-align: middle;">
+                            ${r.CLASS_OUT_NAME ?? '-'}
+                        </td>
+                        <td class="text-end" style="vertical-align: middle;">
+                            ${this.decimal(r.jumlah)}
+                        </td>
+                        <td class="text-end" style="vertical-align: middle;">
+                            ${this.decimal(r.berat)}
+                        </td>
+                        <td class="text-center" style="vertical-align: middle;">
+                            ${r.remark ?? '-'}
+                        </td>
+                    </tr>
+                `;
+
+            });
+
+            $('#table-body').html(html);
+        },
+
+        renderSummary(summary)
+        {
+            $('#sumCulling').text(
+                summary.TOTAL_CULLING || 0
             );
 
-            return;
+            $('#sumCullingDipotong').text(
+                summary.TOTAL_DIPOTONG || 0
+            );
+
+            $('#sumCustomer').text(
+                summary.TOTAL_MATI || 0
+            );
+
+            $('#sumKuantitas').text(
+                this.decimal(summary.TOTAL_QTY || 0)
+            );
+
+            $('#sumBerat').text(
+                this.decimal(summary.TOTAL_BERAT || 0)
+            );
+        },
+
+        /*
+        |--------------------------------------------------------------------------
+        | DECIMAL
+        |--------------------------------------------------------------------------
+        */
+
+        decimal(val)
+        {
+            val =
+                parseFloat(
+                    val || 0
+                );
+
+            return val.toLocaleString(
+                'id-ID',
+                {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 6
+                }
+            );
+        },
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATE INDONESIA
+        |--------------------------------------------------------------------------
+        */
+
+        dateIndoLong(date)
+        {
+            if (!date)
+                return '-';
+
+            const bulan = [
+
+                'Januari',
+                'Februari',
+                'Maret',
+                'April',
+                'Mei',
+                'Juni',
+                'Juli',
+                'Agustus',
+                'September',
+                'Oktober',
+                'November',
+                'Desember'
+            ];
+
+            let d =
+                new Date(date);
+
+            if (isNaN(d))
+                return date;
+
+            return (
+
+                d.getDate() +
+                ' ' +
+                bulan[
+                    d.getMonth()
+                ] +
+                ' ' +
+                d.getFullYear()
+
+            );
         }
 
-        rows.forEach((r)=>{
-
-            wrap.append(`
-
-                <div class="culling-card">
-
-                    <div class="culling-head">
-
-                        <div
-                            class="d-flex
-                                   justify-content-between
-                                   align-items-center">
-
-                            <div
-                                class="culling-title">
-
-                                #${r.idno}
-
-                            </div>
-
-                            <span
-                                class="badge bg-light text-dark">
-
-                                CULLING
-
-                            </span>
-
-                        </div>
-
-                        <div
-                            class="meta-grid">
-
-                            <div
-                                class="meta-item">
-
-                                <span
-                                    class="meta-label">
-
-                                    PLANT
-
-                                </span>
-
-                                <span
-                                    class="meta-value">
-
-                                    :
-                                    ${r.PLANT_NAME ?? '-'}
-
-                                </span>
-
-                            </div>
-
-                            <div
-                                class="meta-item">
-
-                                <span
-                                    class="meta-label">
-
-                                    TANGGAL
-
-                                </span>
-
-                                <span
-                                    class="meta-value">
-
-                                    :
-                                    ${this.dateIndoLong(
-                                        r.ymd
-                                    )}
-
-                                </span>
-
-                            </div>
-
-                            <div
-                                class="meta-item">
-
-                                <span
-                                    class="meta-label">
-
-                                    CLASS OUT
-
-                                </span>
-
-                                <span
-                                    class="meta-value">
-
-                                    :
-                                    ${r.CLASS_OUT_NAME ?? '-'}
-
-                                </span>
-
-                            </div>
-
-                            <div
-                                class="meta-item">
-
-                                <span
-                                    class="meta-label">
-
-                                    DIBUAT OLEH
-
-                                </span>
-
-                                <span
-                                    class="meta-value">
-
-                                    :
-                                    ${r.CREATED_BY ?? '-'}
-
-                                </span>
-
-                            </div>
-
-                            <div
-                                class="meta-item"
-                                style="
-                                    grid-column:
-                                    1/-1;
-                                ">
-
-                                <span
-                                    class="meta-label">
-
-                                    KETERANGAN
-
-                                </span>
-
-                                <span
-                                    class="meta-value">
-
-                                    :
-                                    ${r.remark ?? '-'}
-
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <div class="culling-body">
-
-                        <div
-                            class="summary-box">
-
-                            <div>
-
-                                <div
-                                    class="summary-value">
-
-                                    ${this.decimal(
-                                        r.jumlah
-                                    )}
-
-                                </div>
-
-                                <div
-                                    class="summary-label">
-
-                                    Jumlah
-
-                                </div>
-
-                            </div>
-
-                            <div>
-
-                                <div
-                                    class="summary-value">
-
-                                    ${this.decimal(
-                                        r.berat
-                                    )}
-
-                                </div>
-
-                                <div
-                                    class="summary-label">
-
-                                    Berat
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            `);
-
-        });
-
-    },
+    };
 
     /*
     |--------------------------------------------------------------------------
-    | DECIMAL
+    | PAGINATION
     |--------------------------------------------------------------------------
     */
 
-    decimal(val)
+    function loadCullingPage(page)
     {
-        val =
-            parseFloat(
-                val || 0
+        if (
+            window.CullingReport
+        ) {
+
+            CullingReport.load(
+                page
             );
 
-        return val.toLocaleString(
-            'id-ID',
-            {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 6
-            }
-        );
-    },
-
-    /*
-    |--------------------------------------------------------------------------
-    | DATE INDONESIA
-    |--------------------------------------------------------------------------
-    */
-
-    dateIndoLong(date)
-    {
-        if (!date)
-            return '-';
-
-        const bulan = [
-
-            'Januari',
-            'Februari',
-            'Maret',
-            'April',
-            'Mei',
-            'Juni',
-            'Juli',
-            'Agustus',
-            'September',
-            'Oktober',
-            'November',
-            'Desember'
-        ];
-
-        let d =
-            new Date(date);
-
-        if (isNaN(d))
-            return date;
-
-        return (
-
-            d.getDate() +
-            ' ' +
-            bulan[
-                d.getMonth()
-            ] +
-            ' ' +
-            d.getFullYear()
-
-        );
+        }
     }
-
-};
-
-/*
-|--------------------------------------------------------------------------
-| PAGINATION
-|--------------------------------------------------------------------------
-*/
-
-function loadCullingPage(page)
-{
-    if (
-        window.CullingReport
-    ) {
-
-        CullingReport.load(
-            page
-        );
-
-    }
-}
 
 </script>

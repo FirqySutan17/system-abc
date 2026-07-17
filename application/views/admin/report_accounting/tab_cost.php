@@ -209,99 +209,99 @@
 
 <style>
 
-.report-card{
+    .report-card{
 
-    border-radius: 24px;
+        border-radius: 24px;
 
-    padding: 24px;
+        padding: 24px;
 
-    color: #fff;
+        color: #fff;
 
-    box-shadow:
-        0 10px 25px rgba(0,0,0,.08);
+        box-shadow:
+            0 10px 25px rgba(0,0,0,.08);
 
-}
+    }
 
-.report-card-title{
+    .report-card-title{
 
-    font-size: 14px;
+        font-size: 14px;
 
-    opacity: .9;
+        opacity: .9;
 
-    margin-bottom: 8px;
+        margin-bottom: 8px;
 
-}
+    }
 
-.report-card-value{
+    .report-card-value{
 
-    font-size: 38px;
+        font-size: 38px;
 
-    font-weight: 700;
+        font-weight: 700;
 
-    line-height: 1.1;
+        line-height: 1.1;
 
-}
+    }
 
-.cost-header{
+    .cost-header{
 
-    background:
-        linear-gradient(
-            135deg,
-            #ff6b35,
-            #ff8c42
-        );
+        background:
+            linear-gradient(
+                135deg,
+                #ff6b35,
+                #ff8c42
+            );
 
-    border-radius: 24px 24px 0 0;
+        border-radius: 24px 24px 0 0;
 
-    position: relative;
+        position: relative;
 
-    overflow: hidden;
+        overflow: hidden;
 
-    padding: 32px;
+        padding: 32px;
 
-}
+    }
 
-.cost-header::after{
+    .cost-header::after{
 
-    content: '';
+        content: '';
 
-    position: absolute;
+        position: absolute;
 
-    width: 280px;
+        width: 280px;
 
-    height: 280px;
+        height: 280px;
 
-    background: rgba(255,255,255,.08);
+        background: rgba(255,255,255,.08);
 
-    border-radius: 50%;
+        border-radius: 50%;
 
-    right: -100px;
+        right: -100px;
 
-    top: -80px;
+        top: -80px;
 
-}
+    }
 
-.cost-info-table tr{
-    border: none !important;
-}
+    .cost-info-table tr{
+        border: none !important;
+    }
 
-.cost-info-table tbody{
-    border: none !important;
-}
+    .cost-info-table tbody{
+        border: none !important;
+    }
 
-.cost-badge{
+    .cost-badge{
 
-    padding: 10px 16px;
+        padding: 10px 16px;
 
-    border-radius: 999px;
+        border-radius: 999px;
 
-    font-size: 12px;
+        font-size: 12px;
 
-    font-weight: 700;
+        font-weight: 700;
 
-    letter-spacing: .5px;
+        letter-spacing: .5px;
 
-}
+    }
 
 </style>
 
@@ -593,7 +593,15 @@ window.ReportCost = (function(){
 
             'Rp ' +
             formatRupiah(
-                summary.TOTAL_COST || 0
+                summary.total_cost || 0
+            )
+
+        );
+
+        $('#summaryTotalItemCost').html(
+
+            formatQty(
+                summary.total_item || 0
             )
 
         );
@@ -601,7 +609,7 @@ window.ReportCost = (function(){
         $('#summaryTotalCostDoc').html(
 
             formatRupiah(
-                summary.TOTAL_COST_DOC || 0
+                summary.total_cost_doc || 0
             )
 
         );
@@ -620,292 +628,101 @@ window.ReportCost = (function(){
 
         wrapper.html('');
 
-        /*
-        |--------------------------------------------------------------------------
-        | EMPTY
-        |--------------------------------------------------------------------------
-        */
-
-        if(rows.length === 0){
+        if (rows.length === 0) {
 
             wrapper.html(`
-
                 <div class="card border-0 shadow-sm">
-
                     <div class="card-body text-center py-5 text-muted">
-
                         Tidak ada data cost
-
                     </div>
-
                 </div>
-
             `);
 
             return;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | LOOP
-        |--------------------------------------------------------------------------
-        */
+        let totalDetailQty    = 0;
+        let totalDetailAmount = 0;
+        let totalGrandTotal   = 0;
 
-        rows.forEach(function(row){
+        let rowsHtml = rows.map(function(row) {
+            let details = row.DETAIL || [];
+            let rowCount = Math.max(details.length, 1);
+            let detailHtml = '';
 
-            let detailRows = '';
-
-            let subtotalQty    = 0;
-            let subtotalWeight = 0;
-            let subtotalTotal  = 0;
-
-            (row.DETAILS || [])
-                .forEach(function(d){
-
-                    subtotalQty +=
-                        Number(d.QTY || 0);
-
-                    subtotalWeight +=
-                        Number(d.BERAT || 0);
-
-                    subtotalTotal +=
-                        Number(d.TOTAL || 0);
-
-                    detailRows += `
-
+            if (details.length === 0) {
+                detailHtml += `
+                    <tr>
+                        <td class="text-center align-middle" rowspan="${rowCount}">${row.COST || '-'}</td>
+                        <td class="text-center align-middle" rowspan="${rowCount}">${row.PLANT_NAME || '-'}</td>
+                        <td class="text-center align-middle" rowspan="${rowCount}">${row.PEMBAYARAN || '-'}</td>
+                        <td class="text-center align-middle" rowspan="${rowCount}">${row.SLIP_NO || '-'}</td>
+                        <td class="text-center align-middle" rowspan="${rowCount}">${formatDate(row.COST_DATE)}</td>
+                        <td>-</td>
+                        <td class="text-end">0</td>
+                        <td class="text-end">Rp 0</td>
+                        <td class="text-end">Rp 0</td>
+                        <td>-</td>
+                    </tr>
+                `;
+            } else {
+                details.forEach(function(detail, index) {
+                    totalDetailQty += Number(detail.TOTAL_QTY || 0);
+                    totalDetailAmount += Number(detail.TOTAL || 0);
+                    console.log('DETAIL', detail);
+                    detailHtml += `
                         <tr>
-
-                            <!-- TIPE COST -->
-                            <td>
-
-                                <div class="fw-semibold text-dark">
-
-                                    ${d.COST_NAME || '-'}
-
-                                </div>
-
-                            </td>
-
-                            <td class="text-end">
-
-                                ${formatQty(d.QTY || 0)}
-
-                            </td>
-
-                            <!-- HARGA -->
-                            <td class="text-end">
-
-                                Rp ${formatRupiah(d.JUMLAH)}
-
-                            </td>
-
-                            <!-- TOTAL -->
-                            <td class="text-end fw-bold text-danger">
-
-                                Rp ${formatRupiah(d.TOTAL)}
-
-                            </td>
-
-                            <!-- REMARK -->
-                            <td>
-
-                                ${d.REMARK || '-'}
-
-                            </td>
-
+                            ${index === 0 ? `
+                                <td class="text-center align-middle" rowspan="${rowCount}">${row.COST || '-'}</td>
+                                <td class="text-center align-middle" rowspan="${rowCount}">${row.PLANT_NAME || '-'}</td>
+                                <td class="text-center align-middle" rowspan="${rowCount}">${row.PEMBAYARAN || '-'}</td>
+                                <td class="text-center align-middle" rowspan="${rowCount}">${row.SLIP_NO || '-'}</td>
+                                <td class="text-center align-middle" rowspan="${rowCount}">${formatDate(row.COST_DATE)}</td>
+                            ` : ''}
+                            <td>${detail.COST_NAME || '-'}</td>
+                            <td class="text-end">${formatQty(detail.TOTAL_QTY || 0)}</td>
+                            <td class="text-end">Rp ${formatRupiah(detail.TOTAL_JUMLAH || 0)}</td>
+                            <td class="text-end">Rp ${formatRupiah(detail.TOTAL || 0)}</td>
                         </tr>
-
                     `;
                 });
+            }
 
-            let card = `
+            totalGrandTotal += Number(row.GRAND_TOTAL || 0);
+            return detailHtml;
+        }).join('');
+        let table = `
+            <div class="table-responsive">
+                <table class="table table-hover align-middle table-modern">
+                    <thead>
+                        <tr>
+                            <th class="text-center">Cost</th>
+                            <th class="text-center">Plant</th>
+                            <th class="text-center">Payment</th>
+                            <th class="text-center">Slip No</th>
+                            <th class="text-center">Cost Date</th>
+                            <th>Tipe Cost</th>
+                            <th class="text-end">Kuantitas</th>
+                            <th class="text-end">Harga</th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-light fw-bold">
+                            <td colspan="6" class="text-end">Total Semua</td>
+                            <td class="text-end">${formatQty(totalDetailQty)}</td>
+                            <td></td>
+                            <td class="text-end">Rp ${formatRupiah(totalDetailAmount)}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        `;
 
-                <div class="card border-0 shadow-sm mb-4 overflow-hidden">
-
-                    <!-- HEADER -->
-                    <div class="cost-header p-4">
-
-                        <div class="d-flex justify-content-between">
-
-                            <h2 class="cashin-title">
-
-                                #${row.COST}
-
-                            </h2>
-
-                            <span class="badge cashin-badge">
-
-                                ${row.PEMBAYARAN || '-'}
-
-                            </span>
-
-                        </div>
-
-                        <div class="row">
-
-                            <!-- LEFT -->
-                            <div class="col-md-6">
-
-                                <table class="table table-borderless text-white mb-0 cashin-info-table">
-
-                                    <tr>
-                                        <td width="160">
-                                            <b>PLANT</b>
-                                        </td>
-                                        <td>
-                                            :
-                                            ${row.PLANT_NAME || '-'}
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <td>
-                                            <b>PAYMENT</b>
-                                        </td>
-                                        <td>
-                                            :
-                                            ${row.PEMBAYARAN || '-'}
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <td>
-                                            <b>SLIP NO</b>
-                                        </td>
-                                        <td>
-                                            :
-                                            ${row.SLIP_NO || '-'}
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <td>
-                                            <b>REMARK</b>
-                                        </td>
-                                        <td>
-                                            :
-                                            ${row.REMARK || '-'}
-                                        </td>
-                                    </tr>
-
-                                </table>
-
-                            </div>
-
-                            <!-- RIGHT -->
-                            <div class="col-md-6">
-
-                                <table class="table table-borderless text-white mb-0 cashin-info-table">
-
-                                    <tr>
-                                        <td width="160">
-                                            <b>COST DATE</b>
-                                        </td>
-                                        <td>
-                                            :
-                                            ${formatDate(row.COST_DATE)}
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <td>
-                                            <b>TOTAL ITEM</b>
-                                        </td>
-                                        <td>
-                                            :
-                                            ${row.TOTAL_ITEM || 0}
-                                        </td>
-                                    </tr>
-
-                                    <tr>
-                                        <td>
-                                            <b>GRAND TOTAL</b>
-                                        </td>
-                                        <td class="fw-bold">
-                                            :
-                                            Rp ${formatRupiah(row.GRAND_TOTAL)}
-                                        </td>
-                                    </tr>
-
-                                </table>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <!-- DETAIL -->
-                    <div class="table-responsive">
-
-                        <table class="table table-hover align-middle mb-0">
-
-                            <thead class="table-light">
-
-                                <tr>
-
-                                    <th width="35%">
-                                        Tipe Cost
-                                    </th>
-
-                                    <th class="text-end" width="5%">
-                                        QTY
-                                    </th>
-
-                                    <th class="text-end" width="15%">
-                                        Harga
-                                    </th>
-
-                                    <th class="text-end" width="15%">
-                                        Total
-                                    </th>
-
-                                    <th width="25%">
-                                        Remark
-                                    </th>
-
-                                </tr>
-
-                            </thead>
-
-                            <tbody>
-
-                                ${detailRows}
-
-                                <tr class="table-light fw-bold">
-
-                                    <td>
-
-                                        SUBTOTAL
-
-                                    </td>
-
-                                    <td></td>
-                                    <td></td>
-
-                                    <td class="text-end text-danger">
-
-                                        Rp ${formatRupiah(subtotalTotal)}
-
-                                    </td>
-
-                                    <td></td>
-
-                                </tr>
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-            `;
-
-            wrapper.append(card);
-
-        });
+        wrapper.html(table);
     }
 
     /*

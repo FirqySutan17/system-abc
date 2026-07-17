@@ -779,8 +779,7 @@ class ReportAccounting extends CI_Controller
         |--------------------------------------------------------------------------
         */
 
-        $rows =
-            $this->ReportAccounting_model
+        $report_data = $this->ReportAccounting_model
                 ->get_cost_report(
 
                     $limit,
@@ -789,17 +788,12 @@ class ReportAccounting extends CI_Controller
 
                 );
 
-        $total =
-            $this->ReportAccounting_model
-                ->count_cost_report(
-                    $filter
-                );
+        $rows = $report_data['cost_list'];
+            
 
-        $summary =
-            $this->ReportAccounting_model
-                ->summary_cost_report(
-                    $filter
-                );
+        $total = $report_data['total_count'];
+
+        $summary = $report_data['summary'];
 
         /*
         |--------------------------------------------------------------------------
@@ -923,6 +917,73 @@ class ReportAccounting extends CI_Controller
             ]
 
         );
+    }
+
+    public function load_sl()
+    {
+        $page = max(1, (int) $this->input->get('page'));
+
+        $limit = max(1, (int) $this->input->get('limit'));
+
+        $start = ($page - 1) * $limit;
+
+        $filter = [
+            'search' => trim($this->input->get('search', true)),
+            'plant' => trim($this->input->get('plant', true)),
+            'customer' => trim($this->input->get('customer', true)),
+            'date_from' => trim($this->input->get('date_from', true)),
+            'date_to' => trim($this->input->get('date_to', true))
+        ];
+
+        $reportData = $this->ReportAccounting_model
+            ->get_sl_report(
+                $limit,
+                $start,
+                $filter
+            );
+
+        $rows = [];
+        foreach($reportData['rows'] as $row){
+            $index = $row['PLANT'] . '|' . $row['CUSTOMER'];
+            if(!isset($rows[$index])){
+                $rows[$index] = [
+                    'PLANT' => $row['PLANT'],
+                    'PLANT_NAME' => $row['PLANT_NAME'],
+                    'CUSTOMER' => $row['CUSTOMER'],
+                    'CUSTOMER_NAME' => $row['CUSTOMER_NAME'],
+                    'DETAILS' => []
+                ];
+            }
+            $rows[$index]['DETAILS'][] = [
+                'DOC_NO' => $row['DOC_NO'],
+                'TYPE' => $row['TYPE'],
+                'DATE' => $row['DOC_DATE'],
+                'AMOUNT' => $row['AMOUNT'],
+                'REMARK' => $row['REMARK'],
+                'RELATED' => $row['RELATED']
+            ];
+        }
+
+        $rows = array_values($rows);
+        $total = $reportData['total_count'];
+
+        $summary = $reportData['summary'];
+
+        $pages = $total > 0 ? ceil($total / $limit) : 1;
+
+        echo json_encode([
+            'status' => true,
+            'rows' => $rows,
+            'summary' => $summary,
+            'page' => (int) $page,
+            'pages' => (int) $pages,
+            'total' => (int) $total,
+            'pagination' => $this->build_pagination(
+                $pages,
+                $page,
+                'ReportSL.loadData'
+            )
+        ]);
     }
 
     /* =========================================================
