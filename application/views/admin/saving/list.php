@@ -8,14 +8,14 @@
                 <div class="col-md-3">
 
                     <label class="form-label">
-                        Search
+                        Pencarian
                     </label>
 
                     <input
                         type="text"
                         id="search"
                         class="form-control"
-                        placeholder="Search SV No...">
+                        placeholder="Cari Nomor SV...">
 
                 </div>
 
@@ -48,7 +48,7 @@
                 <div class="col-md-2">
 
                     <label class="form-label">
-                        Date From
+                        Tanggal Mulai
                     </label>
 
                     <input
@@ -61,7 +61,7 @@
                 <div class="col-md-2">
 
                     <label class="form-label">
-                        Date To
+                        Tanggal Selesai
                     </label>
 
                     <input
@@ -86,7 +86,7 @@
 
                     <i class="ti ti-plus"></i>
 
-                    Add Saving
+                    Tambah Saving
 
                 </button>
 
@@ -118,7 +118,7 @@
 
                 <div class="mt-3">
 
-                    Loading...
+                    Sedang memuat...
 
                 </div>
 
@@ -140,9 +140,9 @@
 
                         <tr>
 
-                            <th>SV No</th>
+                            <th>Nomor SV</th>
 
-                            <th>Date</th>
+                            <th>Tanggal</th>
 
                             <th>Plant</th>
 
@@ -158,11 +158,11 @@
                             </th>
 
                             <th>
-                                Created By
+                                Dibuat Oleh
                             </th>
 
                             <th width="150">
-                                Action
+                                #
                             </th>
 
                         </tr>
@@ -484,7 +484,7 @@
                             class="
                                 receive-section-title">
 
-                            HEADER SAVING
+                            SAVING
 
                         </div>
 
@@ -511,7 +511,7 @@
                                 <label
                                     class="form-label">
 
-                                    Saving No
+                                    Nomor Saving
 
                                 </label>
 
@@ -520,7 +520,7 @@
                                     id="SV_NO_ADD"
                                     class="form-control"
                                     readonly
-                                    placeholder="Auto Generate"
+                                    placeholder="Otomatis terisi"
                                     style="background:#f1f5f9">
 
                             </div>
@@ -530,7 +530,7 @@
                                 <label
                                     class="form-label">
 
-                                    SV Date *
+                                    Tanggal Saving *
 
                                 </label>
 
@@ -582,7 +582,7 @@
                                 <label
                                     class="form-label">
 
-                                    Remark
+                                    Keterangan
 
                                 </label>
 
@@ -615,7 +615,7 @@
                             <div
                                 class="summary-label">
 
-                                SV Amount
+                                Jumlah Saving
 
                             </div>
 
@@ -639,7 +639,7 @@
                                     receive-section-title
                                     mb-0">
 
-                                SAVING HISTORY
+                                HISTORI SAVING
 
                             </div>
 
@@ -659,19 +659,19 @@
                                     <tr>
 
                                         <th>
-                                            Saving No
+                                            Nomor Saving
                                         </th>
 
                                         <th>
-                                            Saving Date
+                                            Tanggal Saving
                                         </th>
 
                                         <th>
-                                            Saving Amount
+                                            Jumlah Saving
                                         </th>
 
                                         <th>
-                                            Created By
+                                            Dibuat Oleh
                                         </th>
                                     </tr>
 
@@ -704,7 +704,7 @@
                         type="submit"
                         class="btn btn-primary">
 
-                        Simpan Saving
+                        Simpan
 
                     </button>
 
@@ -756,7 +756,7 @@
 
                     <h5 class="modal-title">
 
-                        SAVING - EDIT
+                        SAVING - UBAH
 
                     </h5>
 
@@ -780,7 +780,7 @@
                             class="
                                 receive-section-title">
 
-                            HEADER SAVING
+                            SAVING
 
                         </div>
 
@@ -813,7 +813,7 @@
                                 <label
                                     class="form-label">
 
-                                    Saving No
+                                    Nomor Saving
 
                                 </label>
 
@@ -833,7 +833,7 @@
                                 <label
                                     class="form-label">
 
-                                    Saving Date *
+                                    Tanggal Saving *
 
                                 </label>
 
@@ -870,7 +870,7 @@
                                 <label
                                     class="form-label">
 
-                                    Amount
+                                    Jumlah Saving
 
                                 </label>
 
@@ -890,7 +890,7 @@
                                 <label
                                     class="form-label">
 
-                                    Remark
+                                    Keterangan
 
                                 </label>
 
@@ -924,7 +924,7 @@
                             <div
                                 class="summary-label">
 
-                                SV Amount
+                                Jumlah Saving
 
                             </div>
 
@@ -948,7 +948,7 @@
                                     receive-section-title
                                     mb-0">
 
-                                SAVING HISTORY
+                                HISTORI SAVING
 
                             </div>
 
@@ -968,19 +968,19 @@
                                     <tr>
 
                                         <th>
-                                            Saving No
+                                            Nomor Saving
                                         </th>
 
                                         <th>
-                                            Saving Date
+                                            Tanggal Saving
                                         </th>
 
                                         <th>
-                                            Saving Amount
+                                            Jumlah Saving
                                         </th>
 
                                         <th>
-                                            Created By
+                                            Dibuat Oleh
                                         </th>
 
                                     </tr>
@@ -1014,7 +1014,7 @@
                         type="submit"
                         class="btn btn-primary">
 
-                        Update Saving
+                        Simpan
 
                     </button>
 

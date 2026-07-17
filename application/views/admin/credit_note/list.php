@@ -8,14 +8,14 @@
                 <div class="col-md-3">
 
                     <label class="form-label">
-                        Search
+                        Pencarian
                     </label>
 
                     <input
                         type="text"
                         id="search"
                         class="form-control"
-                        placeholder="Search CN No...">
+                        placeholder="Cari Nomor CN...">
 
                 </div>
 
@@ -48,7 +48,7 @@
                 <div class="col-md-2">
 
                     <label class="form-label">
-                        Date From
+                        Tanggal Mulai
                     </label>
 
                     <input
@@ -61,7 +61,7 @@
                 <div class="col-md-2">
 
                     <label class="form-label">
-                        Date To
+                        Tanggal Selesai
                     </label>
 
                     <input
@@ -86,7 +86,7 @@
 
                     <i class="ti ti-plus"></i>
 
-                    Add Credit Note
+                    Tambah Credit Note
 
                 </button>
 
@@ -118,7 +118,7 @@
 
                 <div class="mt-3">
 
-                    Loading...
+                    Sedang Memuat...
 
                 </div>
 
@@ -140,9 +140,9 @@
 
                         <tr>
 
-                            <th>CN No</th>
+                            <th>Nomor CN</th>
 
-                            <th>Date</th>
+                            <th>Tanggal</th>
 
                             <th>Plant</th>
 
@@ -156,11 +156,11 @@
                             </th>
 
                             <th>
-                                Created By
+                                Dibuat Oleh
                             </th>
 
                             <th width="150">
-                                Action
+                                #
                             </th>
 
                         </tr>
@@ -482,7 +482,7 @@
                             class="
                                 receive-section-title">
 
-                            HEADER CREDIT NOTE
+                            CREDIT NOTE
 
                         </div>
 
@@ -509,7 +509,7 @@
                                 <label
                                     class="form-label">
 
-                                    Credit Note No
+                                    Nomor Credit Note
 
                                 </label>
 
@@ -518,7 +518,7 @@
                                     id="CN_NO_ADD"
                                     class="form-control"
                                     readonly
-                                    placeholder="Auto Generate"
+                                    placeholder="Generated Otomatis"
                                     style="background:#f1f5f9">
 
                             </div>
@@ -528,7 +528,7 @@
                                 <label
                                     class="form-label">
 
-                                    CN Date *
+                                    Tanggal Credit Note *
 
                                 </label>
 
@@ -562,7 +562,7 @@
                                 <label
                                     class="form-label">
 
-                                    Remark
+                                    Keterangan
 
                                 </label>
 
@@ -595,7 +595,7 @@
                             <div
                                 class="summary-label">
 
-                                Sales Amount
+                                Jumlah Penjualan
 
                             </div>
 
@@ -614,7 +614,7 @@
                             <div
                                 class="summary-label">
 
-                                CN Amount
+                                Jumlah Credit Note
 
                             </div>
 
@@ -633,7 +633,7 @@
                             <div
                                 class="summary-label">
 
-                                Qty
+                                Kuantitas
 
                             </div>
 
@@ -652,7 +652,7 @@
                             <div
                                 class="summary-label">
 
-                                BW
+                                Berat
 
                             </div>
 
@@ -688,7 +688,7 @@
                                     btn-warning
                                     btn-sm">
 
-                                + Add Row
+                                + Tambah Baris
 
                             </button>
 
@@ -712,7 +712,7 @@
                                         </th>
 
                                         <th>
-                                            Sales Amount
+                                            Jumlah Penjualan
                                         </th>
 
                                         <th>
@@ -720,23 +720,23 @@
                                         </th>
 
                                         <th>
-                                            Qty
+                                            Kuantitas
                                         </th>
 
                                         <th>
-                                            BW
+                                            Berat
                                         </th>
 
                                         <th>
-                                            CN Amount
+                                            Jumlah Credit Note
                                         </th>
 
                                         <th>
-                                            Remark
+                                            Keterangan
                                         </th>
 
                                         <th>
-                                            Action
+                                            #
                                         </th>
 
                                     </tr>
@@ -770,7 +770,7 @@
                         type="submit"
                         class="btn btn-primary">
 
-                        Simpan Credit Note
+                        Simpan
 
                     </button>
 
@@ -829,7 +829,7 @@
 
                     <h5 class="modal-title">
 
-                        CREDIT NOTE - EDIT
+                        CREDIT NOTE - UBAH
 
                     </h5>
 
@@ -853,7 +853,7 @@
                             class="
                                 receive-section-title">
 
-                            HEADER CREDIT NOTE
+                            CREDIT NOTE
 
                         </div>
 
@@ -884,7 +884,7 @@
                                 <label
                                     class="form-label">
 
-                                    Credit Note No
+                                    Nomor Credit Note
 
                                 </label>
 
@@ -904,7 +904,7 @@
                                 <label
                                     class="form-label">
 
-                                    CN Date *
+                                    Tanggal Credit Note *
 
                                 </label>
 
@@ -941,7 +941,7 @@
                                 <label
                                     class="form-label">
 
-                                    Remark
+                                    Keterangan
 
                                 </label>
 
@@ -975,7 +975,7 @@
                             <div
                                 class="summary-label">
 
-                                Sales Amount
+                                Jumlah Penjualan
 
                             </div>
 
@@ -994,7 +994,7 @@
                             <div
                                 class="summary-label">
 
-                                CN Amount
+                                Jumlah Credit Note
 
                             </div>
 
@@ -1013,7 +1013,7 @@
                             <div
                                 class="summary-label">
 
-                                Qty
+                                Kuantitas
 
                             </div>
 
@@ -1032,7 +1032,7 @@
                             <div
                                 class="summary-label">
 
-                                BW
+                                Berat
 
                             </div>
 
@@ -1068,7 +1068,7 @@
                                     btn-warning
                                     btn-sm">
 
-                                + Add Row
+                                + Tambah Baris
 
                             </button>
 
@@ -1092,7 +1092,7 @@
                                         </th>
 
                                         <th>
-                                            Sales Amount
+                                            Jumlah Penjualan
                                         </th>
 
                                         <th>
@@ -1100,23 +1100,23 @@
                                         </th>
 
                                         <th>
-                                            Qty
+                                            Kuantitas
                                         </th>
 
                                         <th>
-                                            BW
+                                            Berat
                                         </th>
 
                                         <th>
-                                            CN Amount
+                                            Jumlah Credit Note
                                         </th>
 
                                         <th>
-                                            Remark
+                                            Keterangan
                                         </th>
 
                                         <th>
-                                            Action
+                                            #
                                         </th>
 
                                     </tr>
@@ -1150,7 +1150,7 @@
                         type="submit"
                         class="btn btn-primary">
 
-                        Update Credit Note
+                        Simpan
 
                     </button>
 

@@ -71,7 +71,7 @@
                             class="btn btn-light w-100"
                             id="btnResetFilter">
 
-                            Reset
+                            Atur Ulang
 
                         </button>
 
@@ -101,8 +101,8 @@
                 <div id="tableLoading" class="table-loading d-none">
                     <div class="loading-card">
                         <div class="spinner-border text-primary"></div>
-                        <div class="mt-3 fw-semibold">Loading data...</div>
-                        <small class="text-muted">Please wait a moment</small>
+                        <div class="mt-3 fw-semibold">Memuat data...</div>
+                        <small class="text-muted">Mohon tunggu sebentar</small>
                     </div>
                 </div>
 
@@ -122,11 +122,11 @@
                                         </th>
 
                                         <th class="text-center">
-                                            Date
+                                            Tanggal
                                         </th>
 
                                         <th class="text-center">
-                                            Payment
+                                            Tipe Pembayaran
                                         </th>
 
                                         <th class="text-center">
@@ -142,7 +142,7 @@
                                         </th>
 
                                         <th class="text-center">
-                                            Remark
+                                            Keterangan
                                         </th>
 
                                         <th class="text-center">
@@ -250,8 +250,8 @@
                             <input type="hidden" name="PLANT" id="PLANT_ADD">
                         </div>
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label">No. Transaksi</label>
-                            <input class="form-control" placeholder="Auto Generate" readonly style="background:#efefef">
+                            <label class="form-label">Nomor Cost</label>
+                            <input class="form-control" placeholder="GGenerate Otomatis" readonly style="background:#efefef">
                         </div>
 
                         <div class="col-md-6 flex-inline">
@@ -260,7 +260,7 @@
                         </div>
 
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label d-block">Pembayaran *</label>
+                            <label class="form-label d-block">Tipe Pembayaran *</label>
                             <div style="padding: 6px 10px; width: 100%">
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" 
@@ -276,12 +276,12 @@
                         </div>
 
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label">Slip No</label>
+                            <label class="form-label">Nomor Slip</label>
                             <input class="form-control" placeholder="Auto Generate" readonly style="background:#efefef">
                         </div>
 
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label">Remark</label>
+                            <label class="form-label">Keterangan</label>
                             <input name="REMARK" class="form-control" placeholder="Keterangan...">
                         </div>
 
@@ -299,10 +299,10 @@
                             <thead>
                                 <tr>
                                     <th style="text-align:center;width:25%">Tipe Cost</th>
-                                    <th style="text-align:center;width:10%">Qty</th>
+                                    <th style="text-align:center;width:10%">Kuantitas</th>
                                     <th style="text-align:center;width:15%">Jumlah</th>
-                                    <th style="text-align:center;width:20%">Attachment</th>
-                                    <th style="text-align:center;">Remark</th>
+                                    <th style="text-align:center;width:20%">Lampiran</th>
+                                    <th style="text-align:center;">Keterangan</th>
                                     <th style="text-align:center;width:40px;">#</th>
                                 </tr>
                             </thead>
@@ -343,7 +343,7 @@
             <div class="modal-content">
 
                 <div class="modal-header">
-                    <h5 class="modal-title">COST - EDIT</h5>
+                    <h5 class="modal-title">COST - UBAH</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
@@ -364,7 +364,7 @@
                         </div>
 
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label">No. Cost</label>
+                            <label class="form-label">Nomor Cost</label>
                             <input name="COST" id="COST_EDIT" class="form-control" readonly style="background:#efefef">
                         </div>
                         
@@ -375,7 +375,7 @@
                         </div>
 
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label d-block">Pembayaran *</label>
+                            <label class="form-label d-block">Tipe Pembayaran *</label>
                             <div style="padding:6px 10px; width: 100%">
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input edit-pay" type="radio" 
@@ -391,12 +391,12 @@
                         </div>
 
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label">Slip No</label>
+                            <label class="form-label">Nomor Slip</label>
                             <input name="SLIP_NO" id="SLIP_NO_EDIT" class="form-control" readonly style="background:#efefef">
                         </div>
 
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label">Remark</label>
+                            <label class="form-label">Keterangan</label>
                             <input name="REMARK" id="REMARK_EDIT" class="form-control">
                         </div>
 
@@ -414,10 +414,10 @@
                             <thead>
                                 <tr>
                                     <th style="text-align:center;width:25%">Tipe Cost</th>
-                                    <th style="text-align:center;width:10%">Qty</th>
+                                    <th style="text-align:center;width:10%">Kuantitas</th>
                                     <th style="text-align:center;width:15%">Jumlah</th>
-                                    <th style="text-align:center;width:20%">Attachment</th>
-                                    <th style="text-align:center;">Remark</th>
+                                    <th style="text-align:center;width:20%">Lampiran</th>
+                                    <th style="text-align:center;">Keterangan</th>
                                     <th style="text-align:center;width:40px;">#</th>
                                 </tr>
                             </thead>
@@ -460,7 +460,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="costDetailBody">
-                Loading...
+                Sedang memuat...
             </div>
         </div>
     </div>
@@ -820,7 +820,7 @@
                                     data-cost="${row.COST}"
                                     data-plant="${row.PLANT}">
 
-                                    Edit
+                                    Ubah
 
                                 </button>
 

@@ -74,7 +74,7 @@
                         class="btn btn-light w-100"
                         id="btnResetFilter">
 
-                        Reset
+                        Atur Ulang
 
                     </button>
 
@@ -110,11 +110,11 @@
                         <div class="spinner-border text-primary"></div>
 
                         <div class="mt-3 fw-semibold">
-                            Loading data...
+                            Memuat data...
                         </div>
 
                         <small class="text-muted">
-                            Please wait a moment
+                            Mohon tunggu, ini mungkin memerlukan waktu beberapa detik
                         </small>
 
                     </div>
@@ -139,11 +139,11 @@
                                     </th>
 
                                     <th class="text-center">
-                                        Payment
+                                        Nomor Pembayaran
                                     </th>
 
                                     <th class="text-center">
-                                        Date
+                                        Tanggal
                                     </th>
 
                                     <th class="text-center">
@@ -151,7 +151,7 @@
                                     </th>
 
                                     <th class="text-center">
-                                        Payment
+                                        Tipe Pembayaran
                                     </th>
 
                                     <th class="text-center">
@@ -167,7 +167,7 @@
                                     </th>
 
                                     <th class="text-center">
-                                        Remark
+                                        Keterangan
                                     </th>
 
                                     <th class="text-center">
@@ -204,7 +204,7 @@
 </div>
 
 <style>
-.table-modern td,
+    .table-modern td,
     .table-modern th{
         white-space: nowrap;
         vertical-align: middle;
@@ -288,7 +288,7 @@
                         </div>
 
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label">No. Payment</label>
+                            <label class="form-label">No. Pembayaran</label>
                             <input class="form-control" readonly placeholder="Auto Generate" style="background:#efefef">
                         </div>
 
@@ -298,7 +298,7 @@
                         </div>
 
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label">Pembayaran *</label>
+                            <label class="form-label">Tipe Pembayaran *</label>
                             <div style="width:100%">
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="PEMBAYARAN" value="CASH">
@@ -323,7 +323,7 @@
                         </div>
 
                         <div class="col-md-12 flex-inline">
-                            <label style="width: 14.5%" class="form-label">Remark</label>
+                            <label style="width: 14.5%" class="form-label">Keterangan</label>
                             <input name="REMARK" class="form-control" placeholder="Keterangan..">
                         </div>
                     </div>
@@ -395,7 +395,7 @@
                 <div class="modal-header">
 
                     <h5 class="modal-title">
-                        PAYMENT - EDIT
+                        PAYMENT - UBAH
                     </h5>
 
                     <button
@@ -438,7 +438,7 @@
                         <div class="col-md-6 flex-inline">
 
                             <label class="form-label">
-                                No. Payment
+                                No. Pembayaran
                             </label>
 
                             <input
@@ -468,7 +468,7 @@
                         <div class="col-md-6 flex-inline">
 
                             <label class="form-label">
-                                Pembayaran *
+                                Tipe Pembayaran *
                             </label>
 
                             <div style="width:100%">
@@ -547,7 +547,7 @@
                                 style="width:14.5%"
                                 class="form-label">
 
-                                Remark
+                                Keterangan
 
                             </label>
 
@@ -620,7 +620,7 @@
                                     </th>
 
                                     <th>
-                                        Remark
+                                        Keterangan
                                     </th>
 
                                     <th style="width:5%">
@@ -685,7 +685,7 @@
                         class="btn btn-primary"
                         type="submit">
 
-                        Simpan Perubahan
+                        Simpan
 
                     </button>
 
@@ -771,7 +771,7 @@
                                 </th>
 
                                 <th class="text-center">
-                                    Qty
+                                    Kuantitas
                                 </th>
 
                                 <th class="text-center">
@@ -987,7 +987,7 @@
                             <td colspan="10"
                                 class="text-center text-muted py-4">
 
-                                Tidak ada data
+                                Data tidak ditemukan
 
                             </td>
 
@@ -1140,7 +1140,7 @@
                                         data-payment="${row.PAYMENT}"
                                         data-plant="${row.PLANT}">
 
-                                        Edit
+                                        Ubah
 
                                     </button>
 

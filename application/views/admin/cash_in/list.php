@@ -76,7 +76,7 @@
                             class="btn btn-light w-100"
                             id="btnResetFilter">
 
-                            Reset
+                            Atur Ulang
 
                         </button>
 
@@ -114,11 +114,11 @@
                         <div class="spinner-border text-primary"></div>
 
                         <div class="mt-3 fw-semibold">
-                            Loading data...
+                            Memuat data...
                         </div>
 
                         <small class="text-muted">
-                            Please wait a moment
+                            Mohon tunggu, proses ini mungkin memerlukan waktu beberapa detik
                         </small>
 
                     </div>
@@ -147,7 +147,7 @@
                                     </th>
 
                                     <th class="text-center" data-sort="CASHIN_DATE">
-                                        Date
+                                        Tanggal
                                     </th>
 
                                     <th class="text-center">
@@ -155,11 +155,11 @@
                                     </th>
 
                                     <th class="text-center" data-sort="PEMBAYARAN">
-                                        Payment
+                                        Tipe Pembayaran
                                     </th>
 
                                     <th class="text-center">
-                                        Invoice
+                                        Nomor Invoice
                                     </th>
 
                                     <th class="text-center" data-sort="TOTAL">
@@ -171,7 +171,7 @@
                                     </th>
 
                                     <th class="text-center">
-                                        Remark
+                                        Keterangan
                                     </th>
 
                                     <th class="text-center">
@@ -561,7 +561,7 @@
                         <div class="col-md-6 flex-inline">
 
                             <label class="form-label">
-                                Pembayaran *
+                                Tipe Pembayaran *
                             </label>
 
                             <div style="width:100%">
@@ -656,7 +656,7 @@
                                 style="width:14.5%"
                                 class="form-label">
 
-                                Remark
+                                Keterangan
                             </label>
 
                             <input
@@ -754,7 +754,7 @@
                             <div class="summary-card summary-green">
 
                                 <div class="summary-label">
-                                    ALLOCATED
+                                    BAYAR
                                 </div>
 
                                 <div
@@ -775,7 +775,7 @@
                             <div class="summary-card summary-orange">
 
                                 <div class="summary-label">
-                                    REMAINING
+                                    SISA
                                 </div>
 
                                 <div
@@ -861,7 +861,7 @@
                                     </th>
 
                                     <th style="width:20%">
-                                        Remark
+                                        Keterangan
                                     </th>
 
                                     <th style="width:5%" class="text-center">
@@ -921,7 +921,7 @@
         <form id="fCashInEdit">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Cash In - EDIT</h5>
+                    <h5 class="modal-title">Cash In - UBAH</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
@@ -952,7 +952,7 @@
                         </div>
 
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label d-block">Pembayaran</label>
+                            <label class="form-label d-block">Tipe Pembayaran</label>
                             <div style="padding:5px 0; width:100%">
                                 <div class="form-check form-check-inline">
                                     <input class="form-check-input" type="radio" name="PEMBAYARAN" value="CASH">
@@ -986,12 +986,12 @@
                         </div>
 
                         <div class="col-md-6 flex-inline">
-                            <label class="form-label">Attachment</label>
+                            <label class="form-label">Lampiran</label>
                             <div style="width:100%">
                                 
                                 <input type="file" name="ATTACHMENT" class="form-control mt-1" accept=".jpg,.jpeg,.png,.pdf">
                                 <a id="attachmentPreviewLink" href="#" target="_blank" style="display:none">
-                                    Lihat Attachment Saat Ini
+                                    Lihat Lampiran Saat Ini
                                 </a>
                             </div>
                         </div>
@@ -1028,7 +1028,7 @@
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="submit" class="btn btn-primary">Update</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
                 </div>
             </div>
         </form>
@@ -2846,7 +2846,7 @@
                                         disabled
                                         title="Cash in lama tidak bisa dihapus">
 
-                                        Locked
+                                        Terkunci
 
                                     </button>
 

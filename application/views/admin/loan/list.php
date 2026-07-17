@@ -8,14 +8,14 @@
                 <div class="col-md-3">
 
                     <label class="form-label">
-                        Search
+                        Pencarian
                     </label>
 
                     <input
                         type="text"
                         id="search"
                         class="form-control"
-                        placeholder="Search LOAN No...">
+                        placeholder="Cari Nomor Loan...">
 
                 </div>
 
@@ -48,7 +48,7 @@
                 <div class="col-md-2">
 
                     <label class="form-label">
-                        Date From
+                        Tanggal Mulai
                     </label>
 
                     <input
@@ -61,7 +61,7 @@
                 <div class="col-md-2">
 
                     <label class="form-label">
-                        Date To
+                        Tanggal Selesai
                     </label>
 
                     <input
@@ -86,7 +86,7 @@
 
                     <i class="ti ti-plus"></i>
 
-                    Add Loan
+                    Tambah Loan
 
                 </button>
 
@@ -118,7 +118,7 @@
 
                 <div class="mt-3">
 
-                    Loading...
+                    Sedang memuat...
 
                 </div>
 
@@ -140,9 +140,9 @@
 
                         <tr>
 
-                            <th>Loan No</th>
+                            <th>Nomor Loan</th>
 
-                            <th>Date</th>
+                            <th>Tanggal</th>
 
                             <th>Plant</th>
 
@@ -158,11 +158,11 @@
                             </th>
 
                             <th>
-                                Created By
+                                Dibuat Oleh
                             </th>
 
                             <th width="150">
-                                Action
+                                #
                             </th>
 
                         </tr>
@@ -484,7 +484,7 @@
                             class="
                                 receive-section-title">
 
-                            HEADER LOAN
+                            LOAN
 
                         </div>
 
@@ -511,7 +511,7 @@
                                 <label
                                     class="form-label">
 
-                                    Loan No
+                                    Nomor Loan
 
                                 </label>
 
@@ -530,7 +530,7 @@
                                 <label
                                     class="form-label">
 
-                                    Loan Date *
+                                    Tanggal Loan *
 
                                 </label>
 
@@ -582,7 +582,7 @@
                                 <label
                                     class="form-label">
 
-                                    Remark
+                                    Keterangan
 
                                 </label>
 
@@ -615,7 +615,7 @@
                             <div
                                 class="summary-label">
 
-                                LOAN Amount
+                                Jumlah LOAN
 
                             </div>
 
@@ -639,7 +639,7 @@
                                     receive-section-title
                                     mb-0">
 
-                                LOAN HISTORY
+                                HISTORI LOAN
 
                             </div>
 
@@ -659,19 +659,19 @@
                                     <tr>
 
                                         <th>
-                                            Loan No
+                                            Nomor Loan
                                         </th>
 
                                         <th>
-                                            Loan Date
+                                            Tanggal Loan
                                         </th>
 
                                         <th>
-                                            Loan Amount
+                                            Jumlah LOAN
                                         </th>
 
                                         <th>
-                                            Created By
+                                            Dibuat Oleh
                                         </th>
                                     </tr>
 
@@ -704,7 +704,7 @@
                         type="submit"
                         class="btn btn-primary">
 
-                        Simpan Loan
+                        Simpan
 
                     </button>
 
@@ -756,7 +756,7 @@
 
                     <h5 class="modal-title">
 
-                        LOAN - EDIT
+                        LOAN - UBAH
 
                     </h5>
 
@@ -780,7 +780,7 @@
                             class="
                                 receive-section-title">
 
-                            HEADER LOAN
+                            LOAN
 
                         </div>
 
@@ -813,7 +813,7 @@
                                 <label
                                     class="form-label">
 
-                                    LOAN No
+                                    Nomor LOAN
 
                                 </label>
 
@@ -833,7 +833,7 @@
                                 <label
                                     class="form-label">
 
-                                    LOAN Date *
+                                    Tanggal LOAN *
 
                                 </label>
 
@@ -870,7 +870,7 @@
                                 <label
                                     class="form-label">
 
-                                    Amount
+                                    Jumlah
 
                                 </label>
 
@@ -879,7 +879,7 @@
                                     id="AMOUNT_EDIT"
                                     class="form-control"
                                     name="AMOUNT"
-                                    placeholder="Amount">
+                                    placeholder="Jumlah">
 
                             </div>
 
@@ -890,7 +890,7 @@
                                 <label
                                     class="form-label">
 
-                                    Remark
+                                    Keterangan
 
                                 </label>
 
@@ -924,7 +924,7 @@
                             <div
                                 class="summary-label">
 
-                                LOAN Amount
+                                Jumlah LOAN
 
                             </div>
 
@@ -948,7 +948,7 @@
                                     receive-section-title
                                     mb-0">
 
-                                LOAN HISTORY
+                                HISTORI LOAN
 
                             </div>
 
@@ -968,19 +968,19 @@
                                     <tr>
 
                                         <th>
-                                            Loan No
+                                            Nomor LOAN
                                         </th>
 
                                         <th>
-                                            Loan Date
+                                            Tanggal LOAN
                                         </th>
 
                                         <th>
-                                            Loan Amount
+                                            Jumlah LOAN
                                         </th>
 
                                         <th>
-                                            Created By
+                                            Dibuat Oleh
                                         </th>
 
                                     </tr>
@@ -1014,7 +1014,7 @@
                         type="submit"
                         class="btn btn-primary">
 
-                        Update Loan
+                        Simpan
 
                     </button>
 
