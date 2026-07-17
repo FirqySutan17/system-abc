@@ -697,163 +697,241 @@ class Receive_model extends CI_Model {
         return in_array((string)$plant, array_map('strval', $plants));
     }
 
-    public function insertReceiveHeader($data)
+    // public function insertReceiveHeader($data)
+    // {
+    //     $ok = $this->db->insert(
+    //         'abc_mst_receive',
+    //         $data
+    //     );
+
+    //     if(!$ok){
+
+    //         throw new Exception(
+    //             'Gagal menyimpan Header Receive.'
+    //         );
+
+    //     }
+
+    //     return true;
+    // }
+
+    public function insertReceiveHeader(array $data)
     {
-        $ok = $this->db->insert(
+        return $this->db->insert(
             'abc_mst_receive',
             $data
         );
-
-        if(!$ok){
-
-            throw new Exception(
-                'Gagal menyimpan Header Receive.'
-            );
-
-        }
-
-        return true;
     }
 
-    public function insertReceiveDetail($rows)
+    // public function insertReceiveDetail($rows)
+    // {
+    //     if(empty($rows)){
+    //         return true;
+    //     }
+
+    //     $ok = $this->db->insert_batch(
+    //         'abc_mst_receive_detail',
+    //         $rows
+    //     );
+
+    //     if($ok === false){
+
+    //         throw new Exception(
+    //             'Gagal menyimpan Detail Receive.'
+    //         );
+
+    //     }
+
+    //     return true;
+    // }
+
+    public function insertReceiveDetail(array $rows)
     {
-        if(empty($rows)){
+        if (empty($rows)) {
             return true;
         }
 
-        $ok = $this->db->insert_batch(
+        return $this->db->insert_batch(
             'abc_mst_receive_detail',
             $rows
         );
-
-        if($ok === false){
-
-            throw new Exception(
-                'Gagal menyimpan Detail Receive.'
-            );
-
-        }
-
-        return true;
     }
 
-    public function insertSaving($rows)
+    public function insertSalesHeader(array $data)
     {
-        if(empty($rows)){
+        return $this->db->insert(
+            'abc_mst_sales',
+            $data
+        );
+    }
+
+    public function insertSalesDetail(array $rows)
+    {
+        if (empty($rows)) {
             return true;
         }
 
-        $ok = $this->db->insert_batch(
+        return $this->db->insert_batch(
+            'abc_mst_sales_detail',
+            $rows
+        );
+    }
+
+    // public function insertSaving($rows)
+    // {
+    //     if(empty($rows)){
+    //         return true;
+    //     }
+
+    //     $ok = $this->db->insert_batch(
+    //         'abc_mst_saving',
+    //         $rows
+    //     );
+
+    //     if($ok === false){
+
+    //         throw new Exception(
+    //             'Gagal menyimpan Tabungan.'
+    //         );
+
+    //     }
+
+    //     return true;
+    // }
+
+    public function insertSaving(array $rows)
+    {
+        if (empty($rows)) {
+            return true;
+        }
+
+        return $this->db->insert_batch(
             'abc_mst_saving',
             $rows
         );
-
-        if($ok === false){
-
-            throw new Exception(
-                'Gagal menyimpan Tabungan.'
-            );
-
-        }
-
-        return true;
     }
 
-    public function insertSales($rows)
+    // public function insertSales($rows)
+    // {
+    //     if(empty($rows)){
+    //         return true;
+    //     }
+
+    //     $ok = $this->db->insert_batch(
+    //         'abc_mst_sales',
+    //         $rows
+    //     );
+
+    //     if($ok === false){
+
+    //         throw new Exception(
+    //             'Gagal menyimpan Sales.'
+    //         );
+
+    //     }
+
+    //     return true;
+    // }
+
+    // public function insertCompanyStock($row)
+    // {
+    //     if(empty($row)){
+    //         return true;
+    //     }
+
+    //     if(
+    //         $row['QTY'] <= 0 &&
+    //         $row['BW'] <= 0
+    //     ){
+    //         return true;
+    //     }
+
+    //     $ok = $this->db->insert(
+    //         'abc_mst_stock_company',
+    //         $row
+    //     );
+
+    //     if(!$ok){
+
+    //         throw new Exception(
+    //             'Gagal menyimpan Company Stock.'
+    //         );
+
+    //     }
+
+    //     return true;
+    // }
+
+    public function insertCompanyStock(array $rows)
     {
-        if(empty($rows)){
+        if (empty($rows)) {
             return true;
         }
 
-        $ok = $this->db->insert_batch(
-            'abc_mst_sales',
+        return $this->db->insert_batch(
+            'abc_mst_company_stock',
             $rows
         );
-
-        if($ok === false){
-
-            throw new Exception(
-                'Gagal menyimpan Sales.'
-            );
-
-        }
-
-        return true;
     }
 
-    public function insertCompanyStock($row)
+    // public function updatePO($row)
+    // {
+    //     $ok = $this->db
+
+    //         ->where(
+    //             'PLANT',
+    //             $row['PLANT']
+    //         )
+
+    //         ->where(
+    //             'PO',
+    //             $row['PO']
+    //         )
+
+    //         ->update(
+
+    //             'abc_mst_po',
+
+    //             [
+
+    //                 'STATUS'=>$row['STATUS'],
+
+    //                 'UPDATED_BY'=>
+
+    //                     $this->session
+    //                         ->userdata('username'),
+
+    //                 'UPDATED_AT'=>
+
+    //                     date('Y-m-d H:i:s')
+
+    //             ]
+
+    //         );
+
+    //     if(!$ok){
+
+    //         throw new Exception(
+    //             'Gagal mengupdate PO.'
+    //         );
+
+    //     }
+
+    //     return true;
+    // }
+
+    public function updatePO(array $data)
     {
-        if(empty($row)){
-            return true;
-        }
-
-        if(
-            $row['QTY'] <= 0 &&
-            $row['BW'] <= 0
-        ){
-            return true;
-        }
-
-        $ok = $this->db->insert(
-            'abc_mst_stock_company',
-            $row
-        );
-
-        if(!$ok){
-
-            throw new Exception(
-                'Gagal menyimpan Company Stock.'
-            );
-
-        }
-
-        return true;
-    }
-
-    public function updatePO($row)
-    {
-        $ok = $this->db
-
-            ->where(
-                'PLANT',
-                $row['PLANT']
-            )
-
-            ->where(
-                'PO',
-                $row['PO']
-            )
-
+        return $this->db
+            ->where('PO', $data['PO'])
             ->update(
-
                 'abc_mst_po',
-
                 [
-
-                    'STATUS'=>$row['STATUS'],
-
-                    'UPDATED_BY'=>
-
-                        $this->session
-                            ->userdata('username'),
-
-                    'UPDATED_AT'=>
-
-                        date('Y-m-d H:i:s')
-
+                    'STATUS'     => $data['STATUS'],
+                    'UPDATED_AT' => $data['UPDATED_AT'],
+                    'UPDATED_BY' => $data['UPDATED_BY']
                 ]
-
             );
-
-        if(!$ok){
-
-            throw new Exception(
-                'Gagal mengupdate PO.'
-            );
-
-        }
-
-        return true;
     }
 
     public function insert_po($data)

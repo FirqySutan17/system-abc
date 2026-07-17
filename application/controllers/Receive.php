@@ -342,186 +342,205 @@ class Receive extends MY_Controller {
             ->result_array();
     }
 
+    private function validatePayload(array $payload)
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | HEADER
+        |--------------------------------------------------------------------------
+        */
+
+        $header = $this->validateHeader(
+            $payload['header'] ?? []
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | PO
+        |--------------------------------------------------------------------------
+        */
+
+        $po = $this->getPOActual(
+
+            $header['PLANT'],
+
+            $header['PO']
+
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER
+        |--------------------------------------------------------------------------
+        */
+
+        $customers = $this->validateCustomer(
+
+            $payload['customers'] ?? []
+
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | SAVING
+        |--------------------------------------------------------------------------
+        */
+
+        $savings = $this->validateSaving(
+
+            $payload['savings'] ?? [],
+
+            $customers
+
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | QTY
+        |--------------------------------------------------------------------------
+        */
+
+        $actual = $this->validateQtyAgainstPO(
+
+            $po,
+
+            $customers
+
+        );
+
+        return [
+
+            'header'    => $header,
+
+            'po'        => $po,
+
+            'customers' => $customers,
+
+            'savings'   => $savings,
+
+            'actual'    => $actual
+
+        ];
+    }
+
+    private function generateTransactionContext(
+        array $validated
+    )
+    {
+        return [
+
+            'receive'=>[
+
+                'receive_no'=>
+
+                    $this->Receive_model
+                        ->generateReceiveNo(),
+
+                'receive_date'=>
+
+                    $validated['header']['RECEIVE_DATE'],
+
+                'plant'=>$validated['po']->PLANT,
+
+                'po' => $validated['po']->PO,
+
+                'supplier'=>
+
+                    $validated['po']->SUPPLIER,
+
+                'material'=>
+
+                    $validated['po']->MATERIAL,
+
+                'username'=>
+
+                    $this->session
+                        ->userdata('username')
+
+            ],
+
+            'sales' => [
+                'generator' => function () {
+                    return $this->Receive_model->generateSalesNo();
+                }
+            ],
+
+            'saving'=>[]
+
+        ];
+    }
+
     public function create()
     {
-        header('Content-Type: application/json');
+        // 1. Validate Request
+        $validated = $this->validatePayload();
 
-        try{
+        // 2. Generate Context
+        $context = $this->generateTransactionContext($validated);
 
-            /*
-            |--------------------------------------------------------------------------
-            | PAYLOAD
-            |--------------------------------------------------------------------------
-            */
+        // 3. Upload Attachment
+        $attachment = $this->handleAttachment(
+            $validated['header']['ATTACH_FILE']
+        );
 
-            $payload = $this->getPayload();
+        // 4. Allocation
+        $allocation = $this->buildAllocation(
+            $validated,
+            $context
+        );
 
-            $this->validatePayloadStructure(
-                $payload
-            );
+        // 5. Receive
+        $receiveHeader = $this->buildReceiveHeader(
+            $validated,
+            $allocation,
+            $context,
+            $attachment
+        );
 
-            /*
-            |--------------------------------------------------------------------------
-            | DATA
-            |--------------------------------------------------------------------------
-            */
+        $receiveDetail = $this->buildReceiveDetail(
+            $allocation,
+            $receiveHeader,
+            $context
+        );
 
-            $header = $payload['header'];
+        // 6. Sales
+        $sales = $this->buildSales(
+            $allocation,
+            $receiveHeader,
+            $context
+        );
 
-            $customers = $payload['customers'];
+        // 7. Saving
+        $saving = $this->buildSaving(
+            $allocation,
+            $receiveHeader,
+            $context
+        );
 
-            $savings = $payload['savings'];
+        // 8. Company Stock
+        $companyStock = $this->buildCompanyStock(
+            $allocation,
+            $receiveHeader,
+            $context
+        );
 
-            /*
-            |--------------------------------------------------------------------------
-            | VALIDATION
-            |--------------------------------------------------------------------------
-            */
+        // 9. Update PO
+        $poUpdate = $this->buildPOUpdate(
+            $receiveHeader,
+            $context
+        );
 
-            $header = $this->validateHeader(
-                $header
-            );
+        // 10. Save Transaction
+        $result = $this->saveReceiveTransaction(
+            $receiveHeader,
+            $receiveDetail,
+            $sales,
+            $saving,
+            $companyStock,
+            $poUpdate
+        );
 
-            $po = $this->getPOActual(
-                $header['PLANT'],
-                $header['PO']
-            );
-
-            $customers = $this->validateCustomer(
-                $customers
-            );
-
-            $savings = $this->validateSaving(
-                $savings,
-                $customers
-            );
-
-            $actual = $this->validateQtyAgainstPO(
-                $po,
-                $customers
-            );
-
-            /*
-            |--------------------------------------------------------------------------
-            | FILE
-            |--------------------------------------------------------------------------
-            */
-
-            $attachment = $this->uploadAttachment();
-
-            /*
-            |--------------------------------------------------------------------------
-            | BUILD SUMMARY
-            |--------------------------------------------------------------------------
-            */
-
-            $summary = $this->buildAllocationSummary(
-                $customers,
-                $savings
-            );
-
-            /*
-            |--------------------------------------------------------------------------
-            | PREPARE
-            |--------------------------------------------------------------------------
-            */
-
-            $receiveHeader = $this->prepareReceiveHeader(
-                $header,
-                $po,
-                $attachment
-            );
-
-            $receiveDetail = $this->prepareReceiveDetail(
-                $receiveHeader,
-                $customers,
-                $actual
-            );
-
-            $receiveSaving = $this->prepareSaving(
-                $receiveHeader,
-                $summary
-            );
-
-            $receiveSales = $this->prepareSales(
-                $receiveHeader,
-                $summary
-            );
-
-            $companyStock = $this->prepareCompanyStock(
-                $receiveHeader,
-                $actual
-            );
-
-            $poUpdate = $this->preparePOUpdate(
-                $po,
-                $actual
-            );
-
-            $this->db->trans_begin();
-
-            /*
-            |--------------------------------------------------------------------------
-            | MODEL
-            |--------------------------------------------------------------------------
-            */
-
-            $this->saveReceiveTransaction(
-
-                $receiveHeader,
-
-                $receiveDetail,
-
-                $receiveSaving,
-
-                $receiveSales,
-
-                $companyStock,
-
-                $poUpdate
-
-            );
-
-            if($this->db->trans_status() === FALSE){
-
-                throw new Exception(
-                    'Transaction gagal.'
-                );
-
-            }
-
-            $this->db->trans_commit();
-
-            echo json_encode([
-
-                'status' => true,
-
-                'message' => 'Receive berhasil disimpan.'
-
-            ]);
-
-            return;
-
-        }
-        catch(Exception $e){
-
-            if($this->db->trans_status()){
-
-                $this->db->trans_rollback();
-
-            }
-
-            echo json_encode([
-
-                'status'=>false,
-
-                'message'=>$e->getMessage()
-
-            ]);
-
-            return;
-
-        }
+        return $this->respond($result);
     }
 
     public function edit()
@@ -2799,366 +2818,696 @@ class Receive extends MY_Controller {
             ->data('file_name');
     }
 
-    private function prepareReceiveHeader(
-        $header,
-        $po,
-        $attachment
+    private function buildAllocationRows(
+        array $validated
     )
     {
-        $username = $this->session
-            ->userdata('username');
+        $savingMap = [];
 
-        return [
+        foreach ($validated['savings'] as $saving){
 
-            /*
-            |--------------------------------------------------------------------------
-            | KEY
-            |--------------------------------------------------------------------------
-            */
-
-            'RECEIVE' => $this->generateReceiveNo(),
-
-            'SLIP_NO' => $this->generateSlipNo(),
-
-            /*
-            |--------------------------------------------------------------------------
-            | HEADER
-            |--------------------------------------------------------------------------
-            */
-
-            'PLANT' => $header['PLANT'],
-
-            'PO' => $header['PO'],
-
-            'SUPPLIER' => $po->SUPPLIER,
-
-            'RECEIVE_DATE' => $header['RECEIVE_DATE'],
-
-            /*
-            |--------------------------------------------------------------------------
-            | PAYMENT
-            |--------------------------------------------------------------------------
-            */
-
-            'PEMBAYARAN' => $header['PEMBAYARAN'],
-
-            'JENIS_PAY' => $header['JENIS_PAY'],
-
-            /*
-            |--------------------------------------------------------------------------
-            | DOCUMENT
-            |--------------------------------------------------------------------------
-            */
-
-            'NOTA' => $header['NOTA'],
-
-            'NO_REF' => $header['NO_REF'],
-
-            'ATTACH_FILE_NAME'=>$attachment,
-
-            /*
-            |--------------------------------------------------------------------------
-            | OTHER
-            |--------------------------------------------------------------------------
-            */
-
-            'REMARK' => $header['REMARK'],
-
-            'STATUS_RECEIVE' => 0,
-
-            'CREATED_BY' => $username,
-
-            'CREATED_AT' => date('Y-m-d H:i:s')
-
-        ];
-
-    }
-
-    private function prepareReceiveDetail(
-        $receiveHeader,
-        $customer,
-        $actual
-    )
-    {
-        $username = $this->session
-            ->userdata('username');
-
-        $rows = [];
-
-        $seq = 1;
-
-        foreach($customer as $row)
-        {
-            $qty = (float)$row['QTY'];
-
-            $bw = (float)$row['BW'];
-
-            $harga = (float)$row['HARGA'];
-
-            $discount = (float)$row['DISCOUNT'];
-
-            $subtotal = round(
-                $bw * $harga,
-                2
-            );
-
-            $total = round(
-                $subtotal - $discount,
-                2
-            );
-
-            if($total < 0){
-
-                $total = 0;
-
-            }
-
-            $rows[] = [
-
-                /*
-                |--------------------------------------------------------------------------
-                | KEY
-                |--------------------------------------------------------------------------
-                */
-
-                'RECEIVE' =>
-
-                    $receiveHeader['RECEIVE'],
-
-                'PLANT' =>
-
-                    $receiveHeader['PLANT'],
-
-                'SEQ_NO' =>
-
-                    $seq,
-
-                /*
-                |--------------------------------------------------------------------------
-                | CUSTOMER
-                |--------------------------------------------------------------------------
-                */
-
-                'CUSTOMER' =>
-
-                    trim(
-                        $row['CUSTOMER']
-                    ),
-
-                /*
-                |--------------------------------------------------------------------------
-                | QTY
-                |--------------------------------------------------------------------------
-                */
-
-                'JUMLAH' =>
-
-                    $qty,
-
-                'BERAT' =>
-
-                    $bw,
-
-                /*
-                |--------------------------------------------------------------------------
-                | PRICE
-                |--------------------------------------------------------------------------
-                */
-
-                'HARGA' =>
-
-                    $harga,
-
-                'DISCOUNT' =>
-
-                    $discount,
-
-                'TOTAL' =>
-
-                    $total,
-
-                /*
-                |--------------------------------------------------------------------------
-                | OTHER
-                |--------------------------------------------------------------------------
-                */
-
-                'KETERANGAN' =>
-
-                    trim(
-                        $row['REMARK']
-                    ),
-
-                'CREATED_BY' =>
-
-                    $username,
-
-                'CREATED_AT' =>
-
-                    date(
-                        'Y-m-d H:i:s'
-                    )
-
-            ];
-
-            $seq++;
+            $savingMap[
+                $saving['CUSTOMER']
+            ] = $saving;
 
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | COMPANY STOCK
-        |--------------------------------------------------------------------------
-        */
+        $rows = [];
 
-        $remainingQty = round(
-            (float)$actual['REMAIN_QTY'],
-            2
-        );
+        foreach($validated['customers'] as $customer){
 
-        $remainingBw = round(
-            (float)$actual['REMAIN_BW'],
-            2
-        );
+            $qty = (float)$customer['QTY'];
 
-        if(
-            $remainingQty > 0 ||
-            $remainingBw > 0
-        ){
+            $bw = (float)$customer['BW'];
+
+            $avgBw = 0;
+
+            if($qty > 0){
+
+                $avgBw = round(
+                    $bw / $qty,
+                    2
+                );
+
+            }
+
+            $salesAmount =
+
+                ($bw * $customer['HARGA'])
+
+                -
+
+                $customer['DISCOUNT'];
+
+            if($salesAmount < 0){
+
+                $salesAmount = 0;
+
+            }
+
+            $savingAmount =
+
+                isset(
+                    $savingMap[
+                        $customer['CUSTOMER']
+                    ]
+                )
+
+                ?
+
+                $savingMap[
+                    $customer['CUSTOMER']
+                ]['SAVING_AMOUNT']
+
+                :
+
+                0;
+
+            $grossAmount =
+                $bw
+                *
+                $customer['HARGA'];
+
+            $netAmount =
+                $grossAmount
+                -
+                $customer['DISCOUNT'];
 
             $rows[] = [
 
-                'RECEIVE' =>
+                'CUSTOMER'=>$customer['CUSTOMER'],
 
-                    $receiveHeader['RECEIVE'],
+                'TYPE'=>'SALES',
 
-                'PLANT' =>
+                'QTY'=>$qty,
 
-                    $receiveHeader['PLANT'],
+                'BW'=>$bw,
 
-                'SEQ_NO' =>
+                'AVG_BW'=>$avgBw,
 
-                    $seq,
+                'PRICE'=>
 
-                'CUSTOMER' =>
+                    (float)$customer['HARGA'],
 
-                    'CS000001',
+                'DISCOUNT'=>
 
-                'JUMLAH' =>
+                    (float)$customer['DISCOUNT'],
 
-                    $remainingQty,
+                'SALES_AMOUNT'=>
 
-                'BERAT' =>
+                    round(
+                        $netAmount,
+                        2
+                    ),
 
-                    $remainingBw,
+                'SAVING_AMOUNT'=>
 
-                'HARGA' =>
+                    round(
+                        $savingAmount,
+                        2
+                    ),
 
-                    0,
+                'GROSS_AMOUNT'=>$grossAmount,
 
-                'DISCOUNT' =>
+                'NET_AMOUNT'=>$netAmount,
 
-                    0,
+                'PAYMENT_AMOUNT'=>
 
-                'TOTAL' =>
+                    round(
+                        $salesAmount
+                        +
+                        $savingAmount,
+                        2
+                    ),
 
-                    0,
+                'REMARK'=>
 
-                'REMARK' =>
+                    $customer['REMARK'],
 
-                    'AUTO COMPANY STOCK',
-
-                'CREATED_BY' =>
-
-                    $username,
-
-                'CREATED_AT' =>
-
-                    date('Y-m-d H:i:s')
+                'IS_REMAINING'=>0
 
             ];
 
         }
 
         return $rows;
+    }
+
+    private function appendRemainingAllocation(
+        array $rows,
+        array $actual
+    )
+    {
+        if(
+
+            $actual['REMAIN_QTY'] <= 0
+
+            &&
+
+            $actual['REMAIN_BW'] <= 0
+
+        ){
+
+            return $rows;
+
+        }
+
+        $avg = 0;
+
+        if($actual['REMAIN_QTY'] > 0){
+
+            $avg = round(
+
+                $actual['REMAIN_BW']
+
+                /
+
+                $actual['REMAIN_QTY'],
+
+                2
+
+            );
+
+        }
+
+        $rows[] = [
+
+            'CUSTOMER'=>'CS000001',
+
+            'TYPE'=>'COMPANY_STOCK',
+
+            'QTY'=>$actual['REMAIN_QTY'],
+
+            'BW'=>$actual['REMAIN_BW'],
+
+            'AVG_BW'=>$avg,
+
+            'PRICE'=>0,
+
+            'DISCOUNT'=>0,
+
+            'SALES_AMOUNT'=>0,
+
+            'SAVING_AMOUNT'=>0,
+
+            'PAYMENT_AMOUNT'=>0,
+
+            'REMARK'=>'Remaining Receive',
+
+            'IS_REMAINING'=>1
+
+        ];
+
+        return $rows;
+    }
+
+    private function buildAllocationSummary(
+        array $rows,
+        array $actual
+    )
+    {
+        return [
+
+            'receive_qty'=>
+
+                $actual['RECEIVE_QTY'],
+
+            'receive_bw'=>
+
+                $actual['RECEIVE_BW'],
+
+            'allocated_qty'=>
+
+                $actual['ALLOC_QTY'],
+
+            'allocated_bw'=>
+
+                $actual['ALLOC_BW'],
+
+            'remaining_qty'=>
+
+                $actual['REMAIN_QTY'],
+
+            'remaining_bw'=>
+
+                $actual['REMAIN_BW'],
+
+            'total_customer'=>
+
+                count($rows)
+
+        ];
+    }
+
+    // private function buildAllocationSummary(
+    //     array $customers,
+    //     array $savings
+    // )
+    // {
+    //     /*
+    //     |--------------------------------------------------------------------------
+    //     | SAVING MAP
+    //     |--------------------------------------------------------------------------
+    //     */
+
+    //     $savingMap = [];
+
+    //     foreach ($savings as $saving) {
+
+    //         $savingMap[
+    //             $saving['CUSTOMER']
+    //         ] = (float) $saving['SAVING_AMOUNT'];
+
+    //     }
+
+    //     /*
+    //     |--------------------------------------------------------------------------
+    //     | SUMMARY
+    //     |--------------------------------------------------------------------------
+    //     */
+
+    //     $summary = [];
+
+    //     foreach ($customers as $customer) {
+
+    //         $customerCode = $customer['CUSTOMER'];
+
+    //         $qty = (float) $customer['QTY'];
+
+    //         $bw = (float) $customer['BW'];
+
+    //         $price = (float) $customer['HARGA'];
+
+    //         $discount = (float) $customer['DISCOUNT'];
+
+    //         $salesAmount =
+    //             ($bw * $price) - $discount;
+
+    //         if ($salesAmount < 0) {
+
+    //             $salesAmount = 0;
+
+    //         }
+
+    //         $savingAmount =
+    //             $savingMap[$customerCode] ?? 0;
+
+    //         $summary[$customerCode] = [
+
+    //             'CUSTOMER' => $customerCode,
+
+    //             'QTY' => $qty,
+
+    //             'BW' => $bw,
+
+    //             'PRICE' => $price,
+
+    //             'DISCOUNT' => $discount,
+
+    //             'SALES_AMOUNT' => round(
+    //                 $salesAmount,
+    //                 2
+    //             ),
+
+    //             'SAVING_AMOUNT' => round(
+    //                 $savingAmount,
+    //                 2
+    //             ),
+
+    //             'TOTAL_BAYAR' => round(
+    //                 $salesAmount + $savingAmount,
+    //                 2
+    //             ),
+
+    //             'REMARK' => $customer['REMARK']
+
+    //         ];
+
+    //     }
+
+    //     return $summary;
+    // }
+
+    private function buildAllocation(
+        array $validated
+    )
+    {
+        $rows =
+
+            $this->buildAllocationRows(
+                $validated
+            );
+
+        $rows =
+
+            $this->appendRemainingAllocation(
+
+                $rows,
+
+                $validated['actual']
+
+            );
+
+        return [
+
+            'summary'=>
+
+                $this->buildAllocationSummary(
+
+                    $rows,
+
+                    $validated['actual']
+
+                ),
+
+            'rows'=>$rows
+
+        ];
+    }
+
+    private function buildReceiveHeader(
+        array $validated,
+        array $allocation,
+        array $context,
+        array $attachment
+    )
+    {
+        return [
+
+            'RECEIVE' =>
+
+                $context['receive']['receive_no'],
+
+            'PLANT'=>
+
+                $validated['po']->PLANT,
+
+            'PO'=>
+
+                $validated['po']->PO,
+
+            'SUPPLIER'=>
+
+                $validated['po']->SUPPLIER,
+
+            'RECEIVE_DATE'=>
+
+                $validated['header']['RECEIVE_DATE'],
+
+            'NOTA'=>
+
+                $validated['header']['NOTA'],
+
+            'NO_REF'=>
+
+                $validated['header']['NO_REF'],
+
+            'PEMBAYARAN'=>
+
+                $validated['header']['PEMBAYARAN'],
+
+            'JENIS_PAY'=>
+
+                $validated['header']['JENIS_PAY'],
+
+            'TOTAL_QTY'=>
+
+                $allocation['summary']['receive_qty'],
+
+            'TOTAL_BW'=>
+
+                $allocation['summary']['receive_bw'],
+
+            'TOTAL_AVG_BW'=>
+
+                $allocation['summary']['receive_qty'] > 0
+
+                ?
+
+                round(
+
+                    $allocation['summary']['receive_bw']
+
+                    /
+
+                    $allocation['summary']['receive_qty'],
+
+                    2
+
+                )
+
+                :
+
+                0,
+
+            'TOTAL_CUSTOMER' => count(
+                    array_unique(
+                        array_column(
+                            $this->getSalesRows($allocation),
+                            'CUSTOMER'
+                        )
+                    )
+                ),
+
+            'ATTACH_FILE_NAME'=>
+
+                $attachment['ATTACH_FILE_NAME'],
+
+            'ATTACH_ORIGINAL_NAME'=>
+
+                $attachment['ATTACH_ORIGINAL_NAME'],
+
+            'REMARK'=>
+
+                $validated['header']['REMARK'],
+
+            'STATUS_RECEIVE'=>'POSTED',
+
+            'CREATED_AT'=>
+
+                date('Y-m-d H:i:s'),
+
+            'CREATED_BY'=>
+
+                $context['receive']['username']
+
+        ];
+    }
+
+    private function buildReceiveDetail(
+        array $allocation,
+        array $receiveHeader,
+        array $validated,
+        array $context
+    )
+    {
+        $details = [];
+
+        $seq = 1;
+
+        foreach($allocation['rows'] as $row){
+
+            $details[] = [
+
+                'RECEIVE'=>$receiveHeader['RECEIVE'],
+
+                'PLANT'=>$receiveHeader['PLANT'],
+
+                'SEQ_NO'=>$seq++,
+
+                'PO_SEQ'=>0,
+
+                'CUSTOMER'=>$row['CUSTOMER'],
+
+                'PO_TYPE'=>null,
+
+                'MATERIAL'=>$validated['po']->MATERIAL,
+
+                'JUMLAH'=>$row['QTY'],
+
+                'BERAT'=>$row['BW'],
+
+                'AVG_BW'=>$row['AVG_BW'],
+
+                'HARGA'=>$row['PRICE'],
+
+                'DISCOUNT'=>$row['DISCOUNT'],
+
+                'TOTAL'=>$row['SALES_AMOUNT'],
+
+                'METHOD'=>'RECEIVE',
+
+                'STATUS'=>'OPEN',
+
+                'SALES_CREATED'=>0,
+
+                'SALES_NO'=>null,
+
+                'REMARK'=>$row['REMARK'],
+
+                'CREATED_AT'=>date('Y-m-d H:i:s'),
+
+                'CREATED_BY'=>$context['receive']['username']
+
+            ];
+
+        }
+
+        return $details;
 
     }
 
-    private function prepareSaving(
+    private function buildSales(
+        array $allocation,
         array $receiveHeader,
-        array $summary
+        array $context
     )
     {
-        $username = $this->session
-            ->userdata('username');
+        $groups = $this->groupSalesAllocation(
+            $allocation
+        );
+
+        $sales = [];
+
+        foreach ($groups as $customer => $rows) {
+
+            $salesNo =
+                $this->Receive_model
+                    ->generateSalesNo();
+
+            $createdAt = date('Y-m-d H:i:s');
+
+            $amount = array_sum(
+                array_column(
+                    $rows,
+                    'SALES_AMOUNT'
+                )
+            );
+
+            $header = [
+
+                'SALES' => $salesNo,
+
+                'PLANT' => $receiveHeader['PLANT'],
+
+                'RECEIVE' => $receiveHeader['RECEIVE'],
+
+                'CUSTOMER' => $customer,
+
+                'SALES_DATE' => $receiveHeader['RECEIVE_DATE'],
+
+                'SLIP_NO' => $receiveHeader['SLIP_NO'],
+
+                'PEMBAYARAN' => $receiveHeader['PEMBAYARAN'],
+
+                'JENIS_PAY' => $receiveHeader['JENIS_PAY'],
+
+                'NOTA' => $receiveHeader['NOTA'],
+
+                'AMOUNT' => $amount,
+
+                'DP_AMOUNT' => 0,
+
+                'REMAIN' => $amount,
+
+                'STATUS' => 'UNPAID',
+
+                'REMARK' => 'AUTO FROM RECEIVE '.$receiveHeader['RECEIVE'],
+
+                'CREATED_BY' => $context['receive']['username'],
+
+                'CREATED_AT' => $createdAt
+
+            ];
+
+            $details = [];
+
+            $seq = 1;
+
+            foreach ($rows as $row) {
+
+                $details[] = [
+
+                    'SALES' => $salesNo,
+
+                    'PLANT' => $receiveHeader['PLANT'],
+
+                    'SEQ_NO' => $seq++,
+
+                    'MATERIAL' => $receiveHeader['MATERIAL'],
+
+                    'JUMLAH' => $row['QTY'],
+
+                    'BERAT' => $row['BW'],
+
+                    'AVG_BW' => $row['AVG_BW'],
+
+                    'HARGA' => $row['PRICE'],
+
+                    'DISCOUNT' => $row['DISCOUNT'],
+
+                    'TOTAL' => $row['SALES_AMOUNT'],
+
+                    'CREATED_BY' => $context['receive']['username'],
+
+                    'CREATED_AT' => $createdAt
+
+                ];
+
+            }
+
+            $sales[] = [
+                'header' => $header,
+                'details' => $details
+            ];
+
+        }
+        return $sales;
+    }
+
+    private function buildSaving(
+        array $allocation,
+        array $receiveHeader,
+        array $context
+    )
+    {
+        $groups = $this->groupSavingAllocation($allocation);
 
         $saving = [];
 
-        foreach ($summary as $row) {
+        foreach ($groups as $customer => $rows) {
 
-            /*
-            |--------------------------------------------------------------------------
-            | INTERNAL FARM
-            |--------------------------------------------------------------------------
-            */
+            $svNo = $this->Receive_model->generateSavingNo();
 
-            if ($row['CUSTOMER'] == 'CS000001') {
-                continue;
-            }
+            $createdAt = date('Y-m-d H:i:s');
 
-            /*
-            |--------------------------------------------------------------------------
-            | NO SAVING
-            |--------------------------------------------------------------------------
-            */
-
-            if ($row['SAVING_AMOUNT'] <= 0) {
-                continue;
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | SAVE
-            |--------------------------------------------------------------------------
-            */
+            $amount = array_sum(
+                array_column($rows, 'SAVING_AMOUNT')
+            );
 
             $saving[] = [
 
-                'SV_NO' => $this->Receive_model->generateSavingNo(),
+                'SV_NO' => $svNo,
 
                 'PLANT' => $receiveHeader['PLANT'],
 
                 'SV_DATE' => $receiveHeader['RECEIVE_DATE'],
 
-                'CUSTOMER' => $row['CUSTOMER'],
+                'CUSTOMER' => $customer,
 
-                /*
-                |--------------------------------------------------------------------------
-                | RELATED DOCUMENT
-                |--------------------------------------------------------------------------
-                */
+                'RELATED' => 'RECEIVE',
 
-                'RELATED' => $receiveHeader['RECEIVE'],
+                'RECEIVE' => $receiveHeader['RECEIVE'],
 
-                /*
-                |--------------------------------------------------------------------------
-                | AMOUNT
-                |--------------------------------------------------------------------------
-                */
+                'AMOUNT' => $amount,
 
-                'AMOUNT' => $row['SAVING_AMOUNT'],
+                'REMARK' => 'AUTO FROM RECEIVE '.$receiveHeader['RECEIVE'],
 
-                'REMARK' => $row['REMARK'],
+                'STATUS' => 'OPEN',
 
-                /*
-                |--------------------------------------------------------------------------
-                | AUDIT
-                |--------------------------------------------------------------------------
-                */
+                'CREATED_AT' => $createdAt,
 
-                'CREATED_AT' => date('Y-m-d H:i:s'),
-
-                'CREATED_BY' => $username
+                'CREATED_BY' => $context['receive']['username']
 
             ];
 
@@ -3167,296 +3516,57 @@ class Receive extends MY_Controller {
         return $saving;
     }
 
-    private function buildAllocationSummary(
-        array $customers,
-        array $savings
-    )
-    {
-        /*
-        |--------------------------------------------------------------------------
-        | SAVING MAP
-        |--------------------------------------------------------------------------
-        */
-
-        $savingMap = [];
-
-        foreach ($savings as $saving) {
-
-            $savingMap[
-                $saving['CUSTOMER']
-            ] = (float) $saving['SAVING_AMOUNT'];
-
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | SUMMARY
-        |--------------------------------------------------------------------------
-        */
-
-        $summary = [];
-
-        foreach ($customers as $customer) {
-
-            $customerCode = $customer['CUSTOMER'];
-
-            $qty = (float) $customer['QTY'];
-
-            $bw = (float) $customer['BW'];
-
-            $price = (float) $customer['HARGA'];
-
-            $discount = (float) $customer['DISCOUNT'];
-
-            $salesAmount =
-                ($bw * $price) - $discount;
-
-            if ($salesAmount < 0) {
-
-                $salesAmount = 0;
-
-            }
-
-            $savingAmount =
-                $savingMap[$customerCode] ?? 0;
-
-            $summary[$customerCode] = [
-
-                'CUSTOMER' => $customerCode,
-
-                'QTY' => $qty,
-
-                'BW' => $bw,
-
-                'PRICE' => $price,
-
-                'DISCOUNT' => $discount,
-
-                'SALES_AMOUNT' => round(
-                    $salesAmount,
-                    2
-                ),
-
-                'SAVING_AMOUNT' => round(
-                    $savingAmount,
-                    2
-                ),
-
-                'TOTAL_BAYAR' => round(
-                    $salesAmount + $savingAmount,
-                    2
-                ),
-
-                'REMARK' => $customer['REMARK']
-
-            ];
-
-        }
-
-        return $summary;
-    }
-
-    private function prepareSales(
+    private function buildCompanyStock(
+        array $allocation,
         array $receiveHeader,
-        array $summary
+        array $context
     )
     {
-        $username = $this->session
-            ->userdata('username');
+        $companyStock = [];
 
-        $sales = [];
+        $createdAt = date('Y-m-d H:i:s');
 
-        foreach ($summary as $row) {
+        foreach ($this->getCompanyStockRows($allocation) as $row) {
 
-            /*
-            |--------------------------------------------------------------------------
-            | INTERNAL FARM TIDAK MENJADI SALES
-            |--------------------------------------------------------------------------
-            */
-
-            if ($row['CUSTOMER'] == 'CS000001') {
-                continue;
-            }
-
-            $sales[] = [
-
-                /*
-                |--------------------------------------------------------------------------
-                | KEY
-                |--------------------------------------------------------------------------
-                */
-
-                'SALES' => $this->Receive_model->generate_sales_no(),
-
-                /*
-                |--------------------------------------------------------------------------
-                | RECEIVE
-                |--------------------------------------------------------------------------
-                */
-
-                'RECEIVE' => $receiveHeader['RECEIVE'],
+            $companyStock[] = [
 
                 'PLANT' => $receiveHeader['PLANT'],
 
-                /*
-                |--------------------------------------------------------------------------
-                | CUSTOMER
-                |--------------------------------------------------------------------------
-                */
-
-                'CUSTOMER' => $row['CUSTOMER'],
-
-                /*
-                |--------------------------------------------------------------------------
-                | TRANSACTION
-                |--------------------------------------------------------------------------
-                */
+                'MATERIAL' => $receiveHeader['MATERIAL'],
 
                 'QTY' => $row['QTY'],
 
                 'BW' => $row['BW'],
 
-                'PRICE' => $row['PRICE'],
+                'AVG_BW' => $row['AVG_BW'],
 
-                'DISCOUNT' => $row['DISCOUNT'],
+                'STATUS' => 'AVAILABLE',
 
-                'SALES_AMOUNT' => $row['SALES_AMOUNT'],
+                'CREATED_AT' => $createdAt,
 
-                'SAVING_AMOUNT' => $row['SAVING_AMOUNT'],
-
-                'TOTAL_BAYAR' => $row['TOTAL_BAYAR'],
-
-                /*
-                |--------------------------------------------------------------------------
-                | OTHER
-                |--------------------------------------------------------------------------
-                */
-
-                'STATUS' => 0,
-
-                'CREATED_BY' => $username,
-
-                'CREATED_AT' => date('Y-m-d H:i:s')
+                'CREATED_BY' => $context['receive']['username'],
 
             ];
 
         }
 
-        return $sales;
+        return $companyStock;
     }
 
-    private function prepareCompanyStock(
+    private function buildPOUpdate(
         array $receiveHeader,
-        array $actual
+        array $context
     )
     {
-        /*
-        |--------------------------------------------------------------------------
-        | NO REMAINING
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            $actual['REMAIN_QTY'] <= 0 &&
-            $actual['REMAIN_BW'] <= 0
-        ) {
-            return [];
-        }
-
-        $username = $this->session
-            ->userdata('username');
-
-        return [
-            /*
-            |--------------------------------------------------------------------------
-            | KEY
-            |--------------------------------------------------------------------------
-            */
-
-            'STOCK_NO' => $this->generate_company_stock(),
-
-            /*
-            |--------------------------------------------------------------------------
-            | RECEIVE
-            |--------------------------------------------------------------------------
-            */
-
-            'RECEIVE' => $receiveHeader['RECEIVE'],
-
-            'PLANT' => $receiveHeader['PLANT'],
-
-            /*
-            |--------------------------------------------------------------------------
-            | COMPANY STOCK
-            |--------------------------------------------------------------------------
-            */
-
-            'CUSTOMER' => 'CS000001',
-
-            'QTY' => $actual['REMAIN_QTY'],
-
-            'BW' => $actual['REMAIN_BW'],
-
-            /*
-            |--------------------------------------------------------------------------
-            | AUDIT
-            |--------------------------------------------------------------------------
-            */
-
-            'CREATED_AT' => date(
-                'Y-m-d H:i:s'
-            ),
-
-            'CREATED_BY' => $username
-
-        ];
-    }
-
-    private function preparePOUpdate(
-        $po,
-        array $actual
-    )
-    {
-        /*
-        |--------------------------------------------------------------------------
-        | REMAINING
-        |--------------------------------------------------------------------------
-        */
-
-        $remainQty = $actual['REMAIN_QTY'];
-
-        $remainBw = $actual['REMAIN_BW'];
-
-        /*
-        |--------------------------------------------------------------------------
-        | STATUS
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            $remainQty <= 0 &&
-            $remainBw <= 0
-        ) {
-
-            $status = 'RECEIVED';
-
-        } else {
-
-            $status = 'OPEN';
-
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | RETURN
-        |--------------------------------------------------------------------------
-        */
-
         return [
 
-            'PO' => $po->PO,
+            'PO' => $receiveHeader['PO'],
 
-            'STATUS' => $status
+            'STATUS' => 'RECEIVED',
+
+            'UPDATED_AT' => date('Y-m-d H:i:s'),
+
+            'UPDATED_BY' => $context['receive']['username']
 
         ];
     }
@@ -3464,82 +3574,219 @@ class Receive extends MY_Controller {
     private function saveReceiveTransaction(
         array $receiveHeader,
         array $receiveDetail,
-        array $receiveSaving,
-        array $receiveSales,
+        array $sales,
+        array $saving,
         array $companyStock,
         array $poUpdate
     )
     {
-        /*
-        |--------------------------------------------------------------------------
-        | RECEIVE
-        |--------------------------------------------------------------------------
-        */
+        $this->db->trans_begin();
 
-        $this->Receive_model
-            ->insertReceiveHeader(
-                $receiveHeader
-            );
+        try {
 
-        $this->Receive_model
-            ->insertReceiveDetail(
-                $receiveDetail
-            );
-
-        /*
-        |--------------------------------------------------------------------------
-        | SAVING
-        |--------------------------------------------------------------------------
-        */
-
-        if (!empty($receiveSaving)) {
+            /*
+            |--------------------------------------------------------------------------
+            | Receive Header
+            |--------------------------------------------------------------------------
+            */
 
             $this->Receive_model
-                ->insertSaving(
-                    $receiveSaving
+                ->insertReceiveHeader($receiveHeader);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Receive Detail
+            |--------------------------------------------------------------------------
+            */
+
+            $this->Receive_model
+                ->insertReceiveDetail($receiveDetail);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Sales
+            |--------------------------------------------------------------------------
+            */
+
+            foreach ($sales as $sale) {
+
+                $this->Receive_model
+                    ->insertSalesHeader(
+                        $sale['header']
+                    );
+
+                $this->Receive_model
+                    ->insertSalesDetail(
+                        $sale['details']
+                    );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Saving
+            |--------------------------------------------------------------------------
+            */
+
+            if (!empty($saving)) {
+
+                $this->Receive_model
+                    ->insertSaving($saving);
+
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Company Stock
+            |--------------------------------------------------------------------------
+            */
+
+            if (!empty($companyStock)) {
+
+                $this->Receive_model
+                    ->insertCompanyStock(
+                        $companyStock
+                    );
+
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | PO
+            |--------------------------------------------------------------------------
+            */
+
+            $this->Receive_model
+                ->updatePO($poUpdate);
+
+            if ($this->db->trans_status() === FALSE) {
+
+                throw new Exception(
+                    'Transaction failed.'
                 );
+
+            }
+
+            $this->db->trans_commit();
+
+        } catch (Exception $e) {
+
+            $this->db->trans_rollback();
+
+            throw $e;
+
+        }
+    }
+
+    private function buildTransactionEngine(
+        array $validated,
+        array $allocation,
+        array $context,
+        array $attachment
+    )
+    {
+        $receiveHeader =
+
+            $this->buildReceiveHeader(
+                $validated,
+                $allocation,
+                $context,
+                $attachment
+            );
+
+        $receiveDetail =
+
+            $this->buildReceiveDetail(
+                $allocation,
+                $receiveHeader,
+                $validated,
+                $context
+            );
+
+        return [
+
+            'receive_header'=>$receiveHeader,
+
+            'receive_detail'=>$receiveDetail,
+
+            'sales'=>[],
+
+            'saving'=>[],
+
+            'company_stock'=>[],
+
+            'stock_card'=>[],
+
+            'po'=>[]
+
+        ];
+
+    }
+
+    private function getSalesRows(
+        array $allocation
+    )
+    {
+        return array_values(
+
+            array_filter(
+
+                $allocation['rows'],
+
+                function($row){
+
+                    return
+
+                        $row['TYPE']
+
+                        ===
+
+                        'SALES';
+
+                }
+
+            )
+
+        );
+    }
+
+    private function getSavingRows(array $allocation)
+    {
+        return array_filter($allocation, function ($row) {
+            return $row['SAVING_AMOUNT'] > 0;
+        });
+    }
+
+    private function getCompanyStockRows(array $allocation)
+    {
+        return array_filter(
+            $allocation,
+            fn($row) => $row['TYPE'] === self::TYPE_COMPANY_STOCK
+        );
+    }
+
+    private function groupSalesAllocation(array $allocation)
+    {
+        $groups = [];
+
+        foreach ($this->getSalesRows($allocation) as $row) {
+
+            $groups[$row['CUSTOMER']][] = $row;
 
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | SALES
-        |--------------------------------------------------------------------------
-        */
+        return $groups;
+    }
 
-        if (!empty($receiveSales)) {
+    private function groupSavingAllocation(array $allocation)
+    {
+        $groups = [];
 
-            $this->Receive_model
-                ->insertSales(
-                    $receiveSales
-                );
+        foreach ($this->getSavingRows($allocation) as $row) {
+
+            $groups[$row['CUSTOMER']][] = $row;
 
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | COMPANY STOCK
-        |--------------------------------------------------------------------------
-        */
-
-        if (!empty($companyStock)) {
-
-            $this->Receive_model
-                ->insertCompanyStock(
-                    $companyStock
-                );
-
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | UPDATE PO
-        |--------------------------------------------------------------------------
-        */
-
-        $this->Receive_model
-            ->updatePO(
-                $poUpdate
-            );
+        return $groups;
     }
 }
