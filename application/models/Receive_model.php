@@ -747,10 +747,6 @@ class Receive_model extends CI_Model {
 
     public function insertReceiveDetail(array $rows)
     {
-        if (empty($rows)) {
-            return true;
-        }
-
         return $this->db->insert_batch(
             'abc_mst_receive_detail',
             $rows
@@ -767,10 +763,6 @@ class Receive_model extends CI_Model {
 
     public function insertSalesDetail(array $rows)
     {
-        if (empty($rows)) {
-            return true;
-        }
-
         return $this->db->insert_batch(
             'abc_mst_sales_detail',
             $rows
@@ -862,8 +854,99 @@ class Receive_model extends CI_Model {
     //     return true;
     // }
 
+    public function upsertCompanyStock(array $rows)
+    {
+        foreach ($rows as $row) {
+
+            $exists = $this->db
+                ->where('PLANT', $row['PLANT'])
+                ->where('MATERIAL', $row['MATERIAL'])
+                ->get('abc_mst_company_stock')
+                ->row();
+
+            if ($exists) {
+
+                $qty = $exists->QTY + $row['QTY'];
+                $bw  = $exists->BW + $row['BW'];
+
+                $avg = $qty > 0 ? round($bw / $qty, 2) : 0;
+
+                $this->db
+                    ->where('PLANT', $row['PLANT'])
+                    ->where('MATERIAL', $row['MATERIAL'])
+                    ->update('abc_mst_company_stock', [
+                        'QTY' => $qty,
+                        'BW' => $bw,
+                        'AVG_BW' => $avg,
+                        'UPDATED_AT' => date('Y-m-d H:i:s'),
+                        'UPDATED_BY' => $row['CREATED_BY']
+                    ]);
+
+            } else {
+
+                $this->db->insert('abc_mst_company_stock', $row);
+
+            }
+        }
+
+        return true;
+    }
+
+    public function updateCompanyStock(array $rows)
+    {
+        foreach ($rows as $row) {
+
+            $stock = $this->db
+                ->where('PLANT', $row['PLANT'])
+                ->where('MATERIAL', $row['MATERIAL'])
+                ->get('abc_mst_company_stock')
+                ->row();
+
+            if ($stock) {
+
+                $qty = $stock->QTY + $row['QTY'];
+                $bw  = $stock->BW + $row['BW'];
+
+                $avg = ($qty > 0)
+                    ? round($bw / $qty, 2)
+                    : 0;
+
+                $this->db
+                    ->where('PLANT', $row['PLANT'])
+                    ->where('MATERIAL', $row['MATERIAL'])
+                    ->update(
+                        'abc_mst_company_stock',
+                        [
+
+                            'QTY' => $qty,
+
+                            'BW' => $bw,
+
+                            'AVG_BW' => $avg,
+
+                            'UPDATED_AT' => date('Y-m-d H:i:s'),
+
+                            'UPDATED_BY' => $row['CREATED_BY']
+
+                        ]
+                    );
+
+            } else {
+
+                $this->db->insert(
+                    'abc_mst_company_stock',
+                    $row
+                );
+
+            }
+        }
+
+        return true;
+    }
+
     public function insertCompanyStock(array $rows)
     {
+        $row['DELETED'] = 'N';
         if (empty($rows)) {
             return true;
         }
@@ -874,51 +957,289 @@ class Receive_model extends CI_Model {
         );
     }
 
-    // public function updatePO($row)
-    // {
-    //     $ok = $this->db
+    public function insertCompanyStockCard(
+        array $rows,
+        array $receiveHeader
+    )
+    {
+        foreach ($rows as $row) {
 
-    //         ->where(
-    //             'PLANT',
-    //             $row['PLANT']
-    //         )
+            $stock = $this->db
+                ->where('PLANT', $row['PLANT'])
+                ->where('MATERIAL', $row['MATERIAL'])
+                ->get('abc_mst_company_stock')
+                ->row();
 
-    //         ->where(
-    //             'PO',
-    //             $row['PO']
-    //         )
+            $this->db->insert(
+                'abc_trx_company_stock_card',
+                [
 
-    //         ->update(
+                    'CARD_NO' => $this->generateCompanyStockCardNo(),
 
-    //             'abc_mst_po',
+                    'PLANT' => $row['PLANT'],
 
-    //             [
+                    'MATERIAL' => $row['MATERIAL'],
 
-    //                 'STATUS'=>$row['STATUS'],
+                    'TRANSACTION_DATE' => $receiveHeader['RECEIVE_DATE'],
 
-    //                 'UPDATED_BY'=>
+                    'REFERENCE_NO' => $receiveHeader['RECEIVE'],
 
-    //                     $this->session
-    //                         ->userdata('username'),
+                    'REFERENCE_TYPE' => 'RECEIVE',
 
-    //                 'UPDATED_AT'=>
+                    'QTY_IN' => $row['QTY'],
 
-    //                     date('Y-m-d H:i:s')
+                    'BW_IN' => $row['BW'],
 
-    //             ]
+                    'QTY_OUT' => 0,
 
-    //         );
+                    'BW_OUT' => 0,
 
-    //     if(!$ok){
+                    'BALANCE_QTY' => $stock->QTY,
 
-    //         throw new Exception(
-    //             'Gagal mengupdate PO.'
-    //         );
+                    'BALANCE_BW' => $stock->BW,
 
-    //     }
+                    'BALANCE_AVG_BW' => $stock->AVG_BW,
 
-    //     return true;
-    // }
+                    'AVG_BW' => $row['AVG_BW'],
+
+                    'REMARK' => 'Receive ' . $receiveHeader['RECEIVE'],
+
+                    'CREATED_AT' => date('Y-m-d H:i:s'),
+
+                    'CREATED_BY' => $row['CREATED_BY']
+
+                ]
+            );
+        }
+
+        return true;
+    }
+
+    public function deleteReceive($receive)
+    {
+        $this->db->trans_begin();
+
+        try {
+
+            $this->validateDelete($receive);
+
+            $context = $this->getDeleteContext($receive);
+            if (empty($context['detail'])) {
+                throw new Exception('Receive detail not found.');
+            }
+
+            $this->rollbackPO($context);
+
+            $this->deleteCompanyStockCard($receive);
+
+            $this->refreshCompanyStock($context);
+
+            $this->deleteSales($receive);
+
+            $this->deleteSaving($receive);
+
+            $this->deleteReceiveDetail($receive);
+
+            $this->deleteReceiveHeader($receive);
+
+            if (!$this->db->trans_status()) {
+                throw new Exception("Delete transaction failed.");
+            }
+
+            $this->db->trans_commit();
+
+            return [
+                'status' => true,
+                'message' => 'Receive deleted successfully.'
+            ];
+
+        } catch (Exception $e) {
+
+            $this->db->trans_rollback();
+
+            return [
+                'status' => false,
+                'message' => $e->getMessage()
+            ];
+
+        }
+    }
+
+    private function validateDelete($receive)
+    {
+        $header = $this->db
+            ->where('RECEIVE', $receive)
+            ->get('abc_mst_receive')
+            ->row_array();
+
+        if (!$header) {
+            throw new Exception('Receive not found.');
+        }
+
+        if ($header['STATUS'] === 'PAID') {
+            throw new Exception(
+                'Receive has been paid and cannot be deleted.'
+            );
+        }
+    }
+
+    private function rollbackPO($context)
+    {
+        $this->db
+            ->where('PO', $context['header']['PO'])
+            ->update('abc_mst_po', [
+
+                'STATUS' => 'OPEN',
+
+                'UPDATED_AT' => date('Y-m-d H:i:s'),
+
+                'UPDATED_BY' => $this->session->userdata('username')
+
+            ]);
+    }
+
+    private function deleteCompanyStockCard($receive)
+    {
+        $this->db
+            ->where('REFERENCE_TYPE', 'RECEIVE')
+            ->where('REFERENCE_NO', $receive)
+            ->delete('abc_trx_company_stock_card');
+    }
+
+    private function refreshCompanyStock($context)
+    {
+        $materials = [];
+
+        foreach ($context['detail'] as $row) {
+
+            $key = $row['PLANT'] . '_' . $row['MATERIAL'];
+
+            $materials[$key] = [
+                'PLANT' => $row['PLANT'],
+                'MATERIAL' => $row['MATERIAL']
+            ];
+        }
+
+        foreach ($materials as $item) {
+
+            $this->refreshSingleCompanyStock(
+                $item['PLANT'],
+                $item['MATERIAL']
+            );
+        }
+    }
+
+    private function refreshSingleCompanyStock($plant, $material)
+    {
+        $row = $this->db->query("
+            SELECT
+
+                COALESCE(SUM(QTY_IN),0) -
+                COALESCE(SUM(QTY_OUT),0) AS QTY,
+
+                COALESCE(SUM(BW_IN),0) -
+                COALESCE(SUM(BW_OUT),0) AS BW
+
+            FROM abc_trx_company_stock_card
+
+            WHERE PLANT = ?
+
+            AND MATERIAL = ?
+        ", [$plant, $material])->row_array();
+
+        $avg = 0;
+
+        if ($row['QTY'] > 0) {
+            $avg = $row['BW'] / $row['QTY'];
+        }
+
+        $this->db
+            ->where('PLANT', $plant)
+            ->where('MATERIAL', $material)
+            ->update('abc_mst_company_stock', [
+
+                'QTY' => $row['QTY'],
+                'BW' => $row['BW'],
+                'AVG_BW' => $avg
+
+            ]);
+    }
+
+    private function deleteSales($receive)
+    {
+        $sales = $this->db
+            ->select('SALES')
+            ->where('RECEIVE', $receive)
+            ->get('abc_mst_sales')
+            ->result_array();
+
+        foreach ($sales as $row) {
+
+            $this->db
+                ->where('SALES', $row['SALES'])
+                ->delete('abc_mst_sales_detail');
+        }
+
+        $this->db
+            ->where('RECEIVE', $receive)
+            ->delete('abc_mst_sales');
+    }
+
+    private function deleteSaving($receive)
+    {
+        $this->db
+            ->where('RECEIVE', $receive)
+            ->delete('abc_mst_saving');
+    }
+
+    private function deleteReceiveDetail($receive)
+    {
+        $this->db
+            ->where('RECEIVE', $receive)
+            ->delete('abc_mst_receive_detail');
+    }
+
+    private function deleteReceiveHeader($receive)
+    {
+        $this->db
+            ->where('RECEIVE', $receive)
+            ->delete('abc_mst_receive');
+    }
+
+    private function getDeleteContext($receive)
+    {
+
+        $header = $this->db
+
+            ->where('RECEIVE',$receive)
+
+            ->get('abc_mst_receive')
+
+            ->row_array();
+
+        if(empty($header)){
+
+            return [];
+
+        }
+
+        $detail = $this->db
+
+            ->where('RECEIVE',$receive)
+
+            ->get('abc_mst_receive_detail')
+
+            ->result_array();
+
+        return [
+
+            'header'=>$header,
+
+            'detail'=>$detail
+
+        ];
+
+    }
 
     public function updatePO(array $data)
     {
@@ -1210,25 +1531,7 @@ class Receive_model extends CI_Model {
         return $this->db->update('abc_mst_receive', $data);
     }
 
-    public function delete_receive_detail_by_receive($receive, $plant = null)
-    {
-        $this->db->where('RECEIVE', $receive);
-        if ($plant !== null) $this->db->where('PLANT', $plant);
-        return $this->db->delete('abc_mst_receive_detail');
-    }
 
-    public function delete_receive_header_by_receive($receive)
-    {
-        return $this->db->where('RECEIVE', $receive)
-                        ->delete('abc_mst_receive');
-    }
-
-    public function delete_receive_header_by_receive_and_plant($receive, $plant)
-    {
-        return $this->db->where('RECEIVE', $receive)
-                        ->where('PLANT', $plant)
-                        ->delete('abc_mst_receive');
-    }
 
     public function get_max_seq_no($plant, $receive)
     {
@@ -1242,94 +1545,102 @@ class Receive_model extends CI_Model {
         return (int) ($row->SEQ_NO ?? 0);
     }
 
+    private function generateRunningNumber(
+        string $table,
+        string $column,
+        string $prefix
+    )
+    {
+        $row = $this->db
+            ->select("MAX($column) AS last_no", false)
+            ->like($column, $prefix, 'after')
+            ->get($table)
+            ->row();
+
+        $seq = 1;
+
+        if (!empty($row->last_no)) {
+
+            $seq = (int) substr($row->last_no, -4) + 1;
+
+        }
+
+        return $prefix .
+            str_pad(
+                $seq,
+                4,
+                '0',
+                STR_PAD_LEFT
+            );
+    }
+
+    public function generateReceiveNo()
+    {
+        return $this->generateRunningNumber(
+            'abc_mst_receive',
+            'RECEIVE',
+            'RC' . date('Ymd')
+        );
+    }
+
+    public function generateSlipNo()
+    {
+        return $this->generateRunningNumber(
+            'abc_mst_receive',
+            'SLIP_NO',
+            'SL' . date('Ymd')
+        );
+    }
+
+    public function generateSalesNo()
+    {
+        return $this->generateRunningNumber(
+            'abc_mst_sales',
+            'SALES',
+            'SLS' . date('Ymd')
+        );
+    }
+
     public function generateSavingNo()
     {
-        $prefix = 'SV' . date('Ymd');
-
-        $row = $this->db
-            ->select('MAX(SV_NO) AS last_no')
-            ->like('SV_NO', $prefix, 'after')
-            ->get('abc_mst_saving')
-            ->row();
-
-        $urut = 1;
-
-        if (!empty($row->last_no)) {
-
-            $urut = (int)substr($row->last_no, -4) + 1;
-
-        }
-
-        return $prefix . str_pad(
-            $urut,
-            4,
-            '0',
-            STR_PAD_LEFT
+        return $this->generateRunningNumber(
+            'abc_mst_saving',
+            'SV_NO',
+            'SV' . date('Ymd')
         );
     }
 
-    public function generate_sales_no()
+    public function generateCompanyStockNo()
     {
-        $prefix = 'SLS' . date('Ymd');
-
-        $row = $this->db
-            ->select('MAX(SALES) AS last_no')
-            ->like('SALES', $prefix, 'after')
-            ->get('abc_mst_sales')
-            ->row();
-
-        $urut = 1;
-
-        if (!empty($row->last_no)) {
-
-            $urut = (int)substr($row->last_no, -4) + 1;
-
-        }
-
-        return $prefix . str_pad(
-            $urut,
-            4,
-            '0',
-            STR_PAD_LEFT
+        return $this->generateRunningNumber(
+            'abc_stock_card',
+            'ID',
+            'CS' . date('Ymd')
         );
     }
 
-    public function generate_company_stock()
+    public function generateCompanyStockCardNo()
     {
-        $prefix = 'SLS' . date('Ymd');
+        $prefix = 'CSC' . date('Ymd');
 
-        $row = $this->db
-            ->select('MAX(ID) AS last_no')
-            ->like('ID', $prefix, 'after')
-            ->get('abc_stock_card')
-            ->row();
+        $this->db->select('CARD_NO');
+        $this->db->from('abc_trx_company_stock_card');
+        $this->db->like('CARD_NO', $prefix, 'after');
+        $this->db->order_by('CARD_NO', 'DESC');
+        $this->db->limit(1);
 
-        $urut = 1;
+        $row = $this->db->get()->row();
 
-        if (!empty($row->last_no)) {
-
-            $urut = (int)substr($row->last_no, -4) + 1;
-
+        if ($row) {
+            $last = (int) substr($row->CARD_NO, -4);
+            $running = $last + 1;
+        } else {
+            $running = 1;
         }
 
-        return $prefix . str_pad(
-            $urut,
-            4,
-            '0',
-            STR_PAD_LEFT
-        );
+        return $prefix . str_pad($running, 4, '0', STR_PAD_LEFT);
     }
 
-    public function delete_receive_detail_not_in_seq($plant, $receive, $seqs)
-    {
-        if (empty($seqs)) return;
-
-        return $this->db
-            ->where('PLANT', $plant)
-            ->where('RECEIVE', $receive)
-            ->where_not_in('SEQ_NO', $seqs)
-            ->delete('abc_mst_receive_detail');
-    }
 
     /* ---------------------------------------------------------
        SELECT2 HELPERS

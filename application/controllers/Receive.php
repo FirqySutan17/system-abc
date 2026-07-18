@@ -436,6 +436,8 @@ class Receive extends MY_Controller {
                     $this->Receive_model
                         ->generateReceiveNo(),
 
+                'slip_no' => $this->Receive_model->generateSlipNo(),
+
                 'receive_date'=>
 
                     $validated['header']['RECEIVE_DATE'],
@@ -470,26 +472,144 @@ class Receive extends MY_Controller {
         ];
     }
 
+    // public function create()
+    // {
+    //     // 1. Validate Request
+    //     $validated = $this->validatePayload();
+
+    //     // 2. Generate Context
+    //     $context = $this->generateTransactionContext($validated);
+
+    //     // 3. Upload Attachment
+    //     $attachment = $this->handleAttachment(
+    //         $validated['header']['ATTACH_FILE']
+    //     );
+
+    //     // 4. Allocation
+    //     $allocation = $this->buildAllocation(
+    //         $validated,
+    //         $context
+    //     );
+
+    //     // 5. Receive
+    //     $receiveHeader = $this->buildReceiveHeader(
+    //         $validated,
+    //         $allocation,
+    //         $context,
+    //         $attachment
+    //     );
+
+    //     $receiveDetail = $this->buildReceiveDetail(
+    //         $allocation,
+    //         $receiveHeader,
+    //         $context
+    //     );
+
+    //     // 6. Sales
+    //     $sales = $this->buildSales(
+    //         $allocation,
+    //         $receiveHeader,
+    //         $context
+    //     );
+
+    //     // 7. Saving
+    //     $saving = $this->buildSaving(
+    //         $allocation,
+    //         $receiveHeader,
+    //         $context
+    //     );
+
+    //     // 8. Company Stock
+    //     $companyStock = $this->buildCompanyStock(
+    //         $allocation,
+    //         $receiveHeader,
+    //         $context
+    //     );
+
+    //     // 9. Update PO
+    //     $poUpdate = $this->buildPOUpdate(
+    //         $receiveHeader,
+    //         $context
+    //     );
+
+    //     // 10. Save Transaction
+    //     $result = $this->saveReceiveTransaction(
+    //         $receiveHeader,
+    //         $receiveDetail,
+    //         $sales,
+    //         $saving,
+    //         $companyStock,
+    //         $poUpdate
+    //     );
+
+    //     return $this->respond($result);
+    // }
+
     public function create()
     {
-        // 1. Validate Request
-        $validated = $this->validatePayload();
+        /*
+        |--------------------------------------------------------------------------
+        | Phase 1 - Validation & Context
+        |--------------------------------------------------------------------------
+        */
 
-        // 2. Generate Context
-        $context = $this->generateTransactionContext($validated);
+        $json = json_decode(
+            $this->input->post('data'),
+            true
+        );
 
-        // 3. Upload Attachment
+        if (!$json) {
+            throw new Exception('Payload tidak valid.');
+        }
+
+        $payload = [
+
+            'header'    => $json['header'] ?? [],
+
+            'customers' => $json['customers'] ?? [],
+
+            'savings'   => $json['savings'] ?? []
+
+        ];
+
+        // Sisipkan file upload ke header agar handleAttachment()
+        // tetap bisa dipakai.
+        $payload['header']['ATTACH_FILE'] =
+            $_FILES['ATTACHMENT'] ?? null;
+
+        // echo '<pre>';
+        // print_r($payload);
+        // die;
+
+        $validated = $this->validatePayload(
+            $payload
+        );
+
+        $context = $this->generateTransactionContext(
+            $validated
+        );
+
         $attachment = $this->handleAttachment(
             $validated['header']['ATTACH_FILE']
         );
 
-        // 4. Allocation
+        /*
+        |--------------------------------------------------------------------------
+        | Phase 2 - Allocation
+        |--------------------------------------------------------------------------
+        */
+
         $allocation = $this->buildAllocation(
             $validated,
             $context
         );
 
-        // 5. Receive
+        /*
+        |--------------------------------------------------------------------------
+        | Phase 3 - Build Transaction
+        |--------------------------------------------------------------------------
+        */
+
         $receiveHeader = $this->buildReceiveHeader(
             $validated,
             $allocation,
@@ -497,50 +617,86 @@ class Receive extends MY_Controller {
             $attachment
         );
 
+        $salesResult = $this->buildSales(
+            $allocation,
+            $receiveHeader,
+            $context
+        );
+
+        $sales = $salesResult['transactions'];
+
+        $salesMap = $salesResult['map'];
+
         $receiveDetail = $this->buildReceiveDetail(
             $allocation,
             $receiveHeader,
-            $context
+            $validated,
+            $context,
+            $salesMap
         );
 
-        // 6. Sales
-        $sales = $this->buildSales(
-            $allocation,
-            $receiveHeader,
-            $context
-        );
-
-        // 7. Saving
         $saving = $this->buildSaving(
             $allocation,
             $receiveHeader,
             $context
         );
 
-        // 8. Company Stock
         $companyStock = $this->buildCompanyStock(
             $allocation,
             $receiveHeader,
             $context
         );
 
-        // 9. Update PO
         $poUpdate = $this->buildPOUpdate(
             $receiveHeader,
             $context
         );
 
-        // 10. Save Transaction
+        /*
+        |--------------------------------------------------------------------------
+        | Phase 4 - Persist Transaction
+        |--------------------------------------------------------------------------
+        */
+
+        $transaction = [
+
+            'receiveHeader' => $receiveHeader,
+
+            'receiveDetail' => $receiveDetail,
+
+            'sales' => $sales,
+
+            'saving' => $saving,
+
+            'companyStock' => $companyStock,
+
+            'poUpdate' => $poUpdate
+
+        ];
+
         $result = $this->saveReceiveTransaction(
-            $receiveHeader,
-            $receiveDetail,
-            $sales,
-            $saving,
-            $companyStock,
-            $poUpdate
+            $transaction
         );
 
-        return $this->respond($result);
+        /*
+        |--------------------------------------------------------------------------
+        | Response
+        |--------------------------------------------------------------------------
+        */
+
+        if (!$result) {
+            echo json_encode([
+                'status'  => false,
+                'message' => 'Gagal menyimpan receive.'
+            ]);
+
+            return;
+        }
+
+        echo json_encode([
+            'status'  => true,
+            'message' => 'Receive berhasil disimpan.'
+        ]);
     }
 
     public function edit()
@@ -1409,270 +1565,296 @@ class Receive extends MY_Controller {
         }
     }
 
-    public function remove()
+    public function delete()
     {
-        header('Content-Type: application/json');
 
-        $receive = trim(
-            $this->input->post('receive', true)
-        );
+        $receive = $this->input->post('RECEIVE',true);
 
-        $plant = trim(
-            $this->input->post('plant', true)
-        );
-
-        if(
-            empty($receive) ||
-            empty($plant)
-        ){
+        if(empty($receive)){
 
             echo json_encode([
 
-                'status' => false,
+                'status'=>false,
 
-                'message' =>
-                    'Receive / Plant wajib diisi'
+                'message'=>'Receive tidak ditemukan.'
 
             ]);
 
             return;
+
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | HEADER
-        |--------------------------------------------------------------------------
-        */
+        $result = $this->Receive_model
+            ->deleteReceive($receive);
 
-        $header = $this->Receive_model
-            ->get_receive_header(
-                $plant,
-                $receive
-            );
+        echo json_encode($result);
 
-        if(!$header){
-
-            echo json_encode([
-
-                'status' => false,
-
-                'message' =>
-                    'Receive tidak ditemukan'
-
-            ]);
-
-            return;
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | START TRANSACTION
-        |--------------------------------------------------------------------------
-        */
-
-        $this->db->trans_begin();
-
-        try{
-
-            /*
-            |--------------------------------------------------------------------------
-            | GET SALES LIST
-            |--------------------------------------------------------------------------
-            */
-
-            $salesList = $this->db
-                ->select('SALES_NO')
-
-                ->from('abc_mst_receive_detail')
-
-                ->where('RECEIVE', $receive)
-
-                ->where('PLANT', $plant)
-
-                ->where('SALES_NO IS NOT NULL', null, false)
-
-                ->group_by('SALES_NO')
-
-                ->get()
-
-                ->result_array();
-
-            /*
-            |--------------------------------------------------------------------------
-            | DELETE SALES
-            |--------------------------------------------------------------------------
-            */
-
-            if(!empty($salesList)){
-
-                foreach($salesList as $s){
-
-                    $salesNo =
-                        $s['SALES_NO'];
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | DELETE SALES DETAIL
-                    |--------------------------------------------------------------------------
-                    */
-
-                    $this->db
-                        ->where('SALES', $salesNo)
-
-                        ->where('PLANT', $plant)
-
-                        ->delete(
-                            'abc_mst_sales_detail'
-                        );
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | DELETE SALES HEADER
-                    |--------------------------------------------------------------------------
-                    */
-
-                    $this->db
-                        ->where('SALES', $salesNo)
-
-                        ->where('PLANT', $plant)
-
-                        ->delete(
-                            'abc_mst_sales'
-                        );
-
-                }
-
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | RESET STATUS PO
-            |--------------------------------------------------------------------------
-            */
-
-            if(!empty($header['PO'])){
-
-                $this->db
-                    ->where('PO', $header['PO'])
-
-                    ->where('PLANT', $plant)
-
-                    ->update(
-                        'abc_mst_po',
-                        [
-
-                            'STATUS' => 'OPEN',
-
-                            'UPDATED_AT' =>
-                                date('Y-m-d H:i:s')
-
-                        ]
-                    );
-
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | DELETE ATTACHMENT
-            |--------------------------------------------------------------------------
-            */
-
-            if(
-                !empty($header['ATTACH_FILE_NAME'])
-            ){
-
-                $path =
-                    FCPATH .
-                    'uploads/receive/' .
-                    $header['ATTACH_FILE_NAME'];
-
-                if(file_exists($path)){
-
-                    @unlink($path);
-
-                }
-
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | DELETE RECEIVE DETAIL
-            |--------------------------------------------------------------------------
-            */
-
-            $this->db
-                ->where('RECEIVE', $receive)
-
-                ->where('PLANT', $plant)
-
-                ->delete(
-                    'abc_mst_receive_detail'
-                );
-
-            /*
-            |--------------------------------------------------------------------------
-            | DELETE RECEIVE HEADER
-            |--------------------------------------------------------------------------
-            */
-
-            $this->db
-                ->where('RECEIVE', $receive)
-
-                ->where('PLANT', $plant)
-
-                ->delete(
-                    'abc_mst_receive'
-                );
-
-            /*
-            |--------------------------------------------------------------------------
-            | VALIDATE TRANSACTION
-            |--------------------------------------------------------------------------
-            */
-
-            if(
-                $this->db->trans_status()
-                === false
-            ){
-
-                throw new Exception(
-                    'Transaction failed'
-                );
-
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | COMMIT
-            |--------------------------------------------------------------------------
-            */
-
-            $this->db->trans_commit();
-
-            echo json_encode([
-
-                'status' => true,
-
-                'message' =>
-                    'Receive berhasil dihapus'
-
-            ]);
-
-        }catch(Exception $e){
-
-            $this->db->trans_rollback();
-
-            echo json_encode([
-
-                'status' => false,
-
-                'message' =>
-                    $e->getMessage()
-
-            ]);
-
-        }
     }
+
+    // public function remove()
+    // {
+    //     header('Content-Type: application/json');
+
+    //     $receive = trim(
+    //         $this->input->post('receive', true)
+    //     );
+
+    //     $plant = trim(
+    //         $this->input->post('plant', true)
+    //     );
+
+    //     if(
+    //         empty($receive) ||
+    //         empty($plant)
+    //     ){
+
+    //         echo json_encode([
+
+    //             'status' => false,
+
+    //             'message' =>
+    //                 'Receive / Plant wajib diisi'
+
+    //         ]);
+
+    //         return;
+    //     }
+
+    //     /*
+    //     |--------------------------------------------------------------------------
+    //     | HEADER
+    //     |--------------------------------------------------------------------------
+    //     */
+
+    //     $header = $this->Receive_model
+    //         ->get_receive_header(
+    //             $plant,
+    //             $receive
+    //         );
+
+    //     if(!$header){
+
+    //         echo json_encode([
+
+    //             'status' => false,
+
+    //             'message' =>
+    //                 'Receive tidak ditemukan'
+
+    //         ]);
+
+    //         return;
+    //     }
+
+    //     /*
+    //     |--------------------------------------------------------------------------
+    //     | START TRANSACTION
+    //     |--------------------------------------------------------------------------
+    //     */
+
+    //     $this->db->trans_begin();
+
+    //     try{
+
+    //         /*
+    //         |--------------------------------------------------------------------------
+    //         | GET SALES LIST
+    //         |--------------------------------------------------------------------------
+    //         */
+
+    //         $salesList = $this->db
+    //             ->select('SALES_NO')
+
+    //             ->from('abc_mst_receive_detail')
+
+    //             ->where('RECEIVE', $receive)
+
+    //             ->where('PLANT', $plant)
+
+    //             ->where('SALES_NO IS NOT NULL', null, false)
+
+    //             ->group_by('SALES_NO')
+
+    //             ->get()
+
+    //             ->result_array();
+
+    //         /*
+    //         |--------------------------------------------------------------------------
+    //         | DELETE SALES
+    //         |--------------------------------------------------------------------------
+    //         */
+
+    //         if(!empty($salesList)){
+
+    //             foreach($salesList as $s){
+
+    //                 $salesNo =
+    //                     $s['SALES_NO'];
+
+    //                 /*
+    //                 |--------------------------------------------------------------------------
+    //                 | DELETE SALES DETAIL
+    //                 |--------------------------------------------------------------------------
+    //                 */
+
+    //                 $this->db
+    //                     ->where('SALES', $salesNo)
+
+    //                     ->where('PLANT', $plant)
+
+    //                     ->delete(
+    //                         'abc_mst_sales_detail'
+    //                     );
+
+    //                 /*
+    //                 |--------------------------------------------------------------------------
+    //                 | DELETE SALES HEADER
+    //                 |--------------------------------------------------------------------------
+    //                 */
+
+    //                 $this->db
+    //                     ->where('SALES', $salesNo)
+
+    //                     ->where('PLANT', $plant)
+
+    //                     ->delete(
+    //                         'abc_mst_sales'
+    //                     );
+
+    //             }
+
+    //         }
+
+    //         /*
+    //         |--------------------------------------------------------------------------
+    //         | RESET STATUS PO
+    //         |--------------------------------------------------------------------------
+    //         */
+
+    //         if(!empty($header['PO'])){
+
+    //             $this->db
+    //                 ->where('PO', $header['PO'])
+
+    //                 ->where('PLANT', $plant)
+
+    //                 ->update(
+    //                     'abc_mst_po',
+    //                     [
+
+    //                         'STATUS' => 'OPEN',
+
+    //                         'UPDATED_AT' =>
+    //                             date('Y-m-d H:i:s')
+
+    //                     ]
+    //                 );
+
+    //         }
+
+    //         /*
+    //         |--------------------------------------------------------------------------
+    //         | DELETE ATTACHMENT
+    //         |--------------------------------------------------------------------------
+    //         */
+
+    //         if(
+    //             !empty($header['ATTACH_FILE_NAME'])
+    //         ){
+
+    //             $path =
+    //                 FCPATH .
+    //                 'uploads/receive/' .
+    //                 $header['ATTACH_FILE_NAME'];
+
+    //             if(file_exists($path)){
+
+    //                 @unlink($path);
+
+    //             }
+
+    //         }
+
+    //         /*
+    //         |--------------------------------------------------------------------------
+    //         | DELETE RECEIVE DETAIL
+    //         |--------------------------------------------------------------------------
+    //         */
+
+    //         $this->db
+    //             ->where('RECEIVE', $receive)
+
+    //             ->where('PLANT', $plant)
+
+    //             ->delete(
+    //                 'abc_mst_receive_detail'
+    //             );
+
+    //         /*
+    //         |--------------------------------------------------------------------------
+    //         | DELETE RECEIVE HEADER
+    //         |--------------------------------------------------------------------------
+    //         */
+
+    //         $this->db
+    //             ->where('RECEIVE', $receive)
+
+    //             ->where('PLANT', $plant)
+
+    //             ->delete(
+    //                 'abc_mst_receive'
+    //             );
+
+    //         /*
+    //         |--------------------------------------------------------------------------
+    //         | VALIDATE TRANSACTION
+    //         |--------------------------------------------------------------------------
+    //         */
+
+    //         if(
+    //             $this->db->trans_status()
+    //             === false
+    //         ){
+
+    //             throw new Exception(
+    //                 'Transaction failed'
+    //             );
+
+    //         }
+
+    //         /*
+    //         |--------------------------------------------------------------------------
+    //         | COMMIT
+    //         |--------------------------------------------------------------------------
+    //         */
+
+    //         $this->db->trans_commit();
+
+    //         echo json_encode([
+
+    //             'status' => true,
+
+    //             'message' =>
+    //                 'Receive berhasil dihapus'
+
+    //         ]);
+
+    //     }catch(Exception $e){
+
+    //         $this->db->trans_rollback();
+
+    //         echo json_encode([
+
+    //             'status' => false,
+
+    //             'message' =>
+    //                 $e->getMessage()
+
+    //         ]);
+
+    //     }
+    // }
 
     public function print_slip_pdf()
     {
@@ -2132,67 +2314,7 @@ class Receive extends MY_Controller {
         );
     }
 
-    private function generateReceiveNo()
-    {
-        $prefix = 'RC';
-
-        $dateCode = date('ym');
-
-        $q = $this->db
-            ->query("
-                SELECT MAX(RIGHT(RECEIVE,4)) seq
-                FROM abc_mst_receive
-                WHERE LEFT(RECEIVE,6)=?
-            ",[
-                $prefix.$dateCode
-            ])
-            ->row();
-
-        $seq = ($q && $q->seq)
-            ? ((int)$q->seq)+1
-            :1;
-
-        return
-            $prefix.
-            $dateCode.
-            str_pad(
-                $seq,
-                4,
-                '0',
-                STR_PAD_LEFT
-            );
-    }
-
-    private function generateSlipNo()
-    {
-        $prefix='SL';
-
-        $dateCode=date('ym');
-
-        $q=$this->db
-            ->query("
-                SELECT MAX(RIGHT(SLIP_NO,4)) seq
-                FROM abc_mst_receive
-                WHERE LEFT(SLIP_NO,6)=?
-            ",[
-                $prefix.$dateCode
-            ])
-            ->row();
-
-        $seq=($q && $q->seq)
-            ?((int)$q->seq)+1
-            :1;
-
-        return
-            $prefix.
-            $dateCode.
-            str_pad(
-                $seq,
-                4,
-                '0',
-                STR_PAD_LEFT
-            );
-    }
+    
 
     private function getPayload()
     {
@@ -3198,6 +3320,8 @@ class Receive extends MY_Controller {
 
                 $context['receive']['receive_no'],
 
+            'SLIP_NO' => $context['receive']['slip_no'],
+
             'PLANT'=>
 
                 $validated['po']->PLANT,
@@ -3214,6 +3338,8 @@ class Receive extends MY_Controller {
 
                 $validated['header']['RECEIVE_DATE'],
 
+            'MATERIAL' => $validated['po']->MATERIAL,
+
             'NOTA'=>
 
                 $validated['header']['NOTA'],
@@ -3226,9 +3352,7 @@ class Receive extends MY_Controller {
 
                 $validated['header']['PEMBAYARAN'],
 
-            'JENIS_PAY'=>
-
-                $validated['header']['JENIS_PAY'],
+            'JENIS_PAY'=>'TEMPO',
 
             'TOTAL_QTY'=>
 
@@ -3269,13 +3393,11 @@ class Receive extends MY_Controller {
                     )
                 ),
 
-            'ATTACH_FILE_NAME'=>
+            'ATTACH_FILE_NAME' =>
+                $attachment['ATTACH_FILE_NAME'] ?? null,
 
-                $attachment['ATTACH_FILE_NAME'],
-
-            'ATTACH_ORIGINAL_NAME'=>
-
-                $attachment['ATTACH_ORIGINAL_NAME'],
+            'ATTACH_ORIGINAL_NAME' =>
+                $attachment['ATTACH_ORIGINAL_NAME'] ?? null,
 
             'REMARK'=>
 
@@ -3298,7 +3420,8 @@ class Receive extends MY_Controller {
         array $allocation,
         array $receiveHeader,
         array $validated,
-        array $context
+        array $context,
+        array $salesMap
     )
     {
         $details = [];
@@ -3308,6 +3431,8 @@ class Receive extends MY_Controller {
         foreach($allocation['rows'] as $row){
 
             $details[] = [
+
+                'PO'=>$receiveHeader['PO'],
 
                 'RECEIVE'=>$receiveHeader['RECEIVE'],
 
@@ -3339,9 +3464,21 @@ class Receive extends MY_Controller {
 
                 'STATUS'=>'OPEN',
 
-                'SALES_CREATED'=>0,
+                'IS_EXTRA'=>0,
 
-                'SALES_NO'=>null,
+                'SALES_CREATED'=>
+                    isset($salesMap[$row['CUSTOMER']]) ? 1 : 0,
+
+                'SALES_NO'=>
+                    $salesMap[$row['CUSTOMER']] ?? null,
+
+                'IS_REMAINING'=>
+
+                    $row['IS_REMAINING'],
+
+                'SUSUT_JUMLAH'=>0,
+
+                'SUSUT_BERAT'=>0,
 
                 'REMARK'=>$row['REMARK'],
 
@@ -3367,13 +3504,25 @@ class Receive extends MY_Controller {
             $allocation
         );
 
+        $firstSalesNo = $this->Receive_model->generateSalesNo();
+
+        $prefix = substr($firstSalesNo, 0, -4);
+        $running = (int) substr($firstSalesNo, -4);
+
         $sales = [];
+        $salesMap = [];
 
         foreach ($groups as $customer => $rows) {
 
-            $salesNo =
-                $this->Receive_model
-                    ->generateSalesNo();
+            $salesNo = $prefix .
+                str_pad(
+                    $running++,
+                    4,
+                    '0',
+                    STR_PAD_LEFT
+                );
+
+            $salesMap[$customer] = $salesNo;
 
             $createdAt = date('Y-m-d H:i:s');
 
@@ -3434,7 +3583,11 @@ class Receive extends MY_Controller {
 
                     'SEQ_NO' => $seq++,
 
+                    'CUSTOMER'=>$customer,
+
                     'MATERIAL' => $receiveHeader['MATERIAL'],
+
+                    'METHOD'=>'RECEIVE',
 
                     'JUMLAH' => $row['QTY'],
 
@@ -3462,7 +3615,10 @@ class Receive extends MY_Controller {
             ];
 
         }
-        return $sales;
+        return [
+            'transactions' => $sales,
+            'map' => $salesMap
+        ];
     }
 
     private function buildSaving(
@@ -3473,11 +3629,22 @@ class Receive extends MY_Controller {
     {
         $groups = $this->groupSavingAllocation($allocation);
 
+        $firstSavingNo = $this->Receive_model->generateSavingNo();
+
+        $prefix  = substr($firstSavingNo, 0, -4);
+        $running = (int) substr($firstSavingNo, -4);
+
         $saving = [];
 
         foreach ($groups as $customer => $rows) {
 
-            $svNo = $this->Receive_model->generateSavingNo();
+            $svNo = $prefix .
+                str_pad(
+                    $running++,
+                    4,
+                    '0',
+                    STR_PAD_LEFT
+                );
 
             $createdAt = date('Y-m-d H:i:s');
 
@@ -3571,110 +3738,126 @@ class Receive extends MY_Controller {
         ];
     }
 
-    private function saveReceiveTransaction(
-        array $receiveHeader,
-        array $receiveDetail,
-        array $sales,
-        array $saving,
-        array $companyStock,
-        array $poUpdate
-    )
+    private function saveReceiveTransaction(array $transaction)
     {
         $this->db->trans_begin();
 
-        try {
+        $receiveHeader = $transaction['receiveHeader'];
 
-            /*
-            |--------------------------------------------------------------------------
-            | Receive Header
-            |--------------------------------------------------------------------------
-            */
+        $receiveDetail = $transaction['receiveDetail'];
 
-            $this->Receive_model
-                ->insertReceiveHeader($receiveHeader);
+        $sales = $transaction['sales'];
 
-            /*
-            |--------------------------------------------------------------------------
-            | Receive Detail
-            |--------------------------------------------------------------------------
-            */
+        $saving = $transaction['saving'];
 
-            $this->Receive_model
-                ->insertReceiveDetail($receiveDetail);
+        $companyStock = $transaction['companyStock'];
 
-            /*
-            |--------------------------------------------------------------------------
-            | Sales
-            |--------------------------------------------------------------------------
-            */
+        $poUpdate = $transaction['poUpdate'];
 
-            foreach ($sales as $sale) {
+        /*
+        |--------------------------------------------------------------------------
+        | Receive
+        |--------------------------------------------------------------------------
+        */
+        $this->Receive_model->insertReceiveHeader(
+            $receiveHeader
+        );
 
-                $this->Receive_model
-                    ->insertSalesHeader(
-                        $sale['header']
-                    );
+        if (!empty($receiveDetail)) {
 
-                $this->Receive_model
-                    ->insertSalesDetail(
-                        $sale['details']
-                    );
-            }
+            $this->Receive_model->insertReceiveDetail(
+                $receiveDetail
+            );
 
-            /*
-            |--------------------------------------------------------------------------
-            | Saving
-            |--------------------------------------------------------------------------
-            */
+        }
 
-            if (!empty($saving)) {
+        /*
+        |--------------------------------------------------------------------------
+        | Sales
+        |--------------------------------------------------------------------------
+        */
 
-                $this->Receive_model
-                    ->insertSaving($saving);
+        foreach ($sales as $salesTransaction) {
 
-            }
+            $this->Receive_model->insertSalesHeader(
+                $salesTransaction['header']
+            );
 
-            /*
-            |--------------------------------------------------------------------------
-            | Company Stock
-            |--------------------------------------------------------------------------
-            */
+            if (!empty($salesTransaction['details'])) {
 
-            if (!empty($companyStock)) {
-
-                $this->Receive_model
-                    ->insertCompanyStock(
-                        $companyStock
-                    );
-
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | PO
-            |--------------------------------------------------------------------------
-            */
-
-            $this->Receive_model
-                ->updatePO($poUpdate);
-
-            if ($this->db->trans_status() === FALSE) {
-
-                throw new Exception(
-                    'Transaction failed.'
+                $this->Receive_model->insertSalesDetail(
+                    $salesTransaction['details']
                 );
 
             }
 
-            $this->db->trans_commit();
+        }
 
-        } catch (Exception $e) {
+        /*
+        |--------------------------------------------------------------------------
+        | Saving
+        |--------------------------------------------------------------------------
+        */
+
+        if (!empty($saving)) {
+
+            $this->Receive_model->insertSaving(
+                $saving
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Company Stock
+        |--------------------------------------------------------------------------
+        */
+
+        if (!empty($companyStock)) {
+
+            $this->Receive_model->updateCompanyStock(
+                $companyStock
+            );
+
+            $this->Receive_model->insertCompanyStockCard(
+                $companyStock,
+                $receiveHeader
+            );
+
+        }
+
+        if (!empty($transaction['companyStockCard'])) {
+
+            $this->Receive_model->insertCompanyStockCard(
+                $transaction['companyStockCard']
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Update PO
+        |--------------------------------------------------------------------------
+        */
+
+        $this->Receive_model->updatePO(
+            $poUpdate
+        );
+
+        if ($this->db->trans_status() === FALSE) {
+
+            $error = $this->db->error();
 
             $this->db->trans_rollback();
 
-            throw $e;
-
+            throw new Exception(
+                $error['message']
+            );
         }
+
+        $this->db->trans_commit();
+
+        return true;
     }
 
     private function buildTransactionEngine(
@@ -3751,16 +3934,20 @@ class Receive extends MY_Controller {
 
     private function getSavingRows(array $allocation)
     {
-        return array_filter($allocation, function ($row) {
-            return $row['SAVING_AMOUNT'] > 0;
+        $rows = $allocation['rows'] ?? [];
+
+        return array_filter($rows, function ($row) {
+            return ($row['SAVING_AMOUNT'] ?? 0) > 0;
         });
     }
 
     private function getCompanyStockRows(array $allocation)
     {
+        $rows = $allocation['rows'] ?? [];
+
         return array_filter(
-            $allocation,
-            fn($row) => $row['TYPE'] === self::TYPE_COMPANY_STOCK
+            $rows,
+            fn($row) => ($row['TYPE'] ?? '') === 'COMPANY_STOCK'
         );
     }
 
@@ -3788,5 +3975,66 @@ class Receive extends MY_Controller {
         }
 
         return $groups;
+    }
+
+    private function handleAttachment($file = null)
+    {
+        if (
+            empty($file) ||
+            empty($file['name'])
+        ) {
+            return null;
+        }
+
+        $config = [
+
+            'upload_path'   => FCPATH . 'uploads/receive/',
+
+            'allowed_types' => 'jpg|jpeg|png|pdf',
+
+            'encrypt_name'  => true,
+
+            'remove_spaces' => true,
+
+            'max_size'      => 5120
+
+        ];
+
+        if (!is_dir($config['upload_path'])) {
+
+            mkdir(
+                $config['upload_path'],
+                0777,
+                true
+            );
+
+        }
+
+        $this->load->library(
+            'upload',
+            $config
+        );
+
+        $_FILES['ATTACHMENT'] = $file;
+
+        if (
+            !$this->upload->do_upload('ATTACHMENT')
+        ) {
+
+            throw new Exception(
+                $this->upload->display_errors('', '')
+            );
+
+        }
+
+        $upload = $this->upload->data();
+
+        return [
+            'ATTACH_FILE_NAME' => $upload['file_name'],
+            'ATTACH_ORIGINAL_NAME' => $upload['orig_name'],
+            'FILE_PATH' => 'uploads/receive/' . $upload['file_name'],
+            'FILE_TYPE' => $upload['file_ext'],
+            'FILE_SIZE' => $upload['file_size']
+        ];
     }
 }

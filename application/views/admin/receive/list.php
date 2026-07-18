@@ -127,45 +127,17 @@
                             <thead>
                                 <tr>
 
-                                    <th class="text-center">
-                                        Plant
-                                    </th>
-
-                                    <th class="text-center">
-                                        Receive
-                                    </th>
-
-                                    <th class="text-center">
-                                        PO
-                                    </th>
-
-                                    <th class="text-center">
-                                        Date
-                                    </th>
-
-                                    <th class="text-center">
-                                        Supplier
-                                    </th>
-
-                                    <th class="text-center">
-                                        Material
-                                    </th>
-
-                                    <th class="text-center">
-                                        Qty / Weight
-                                    </th>
-
-                                    <th class="text-center">
-                                        Sales
-                                    </th>
-
-                                    <th class="text-center">
-                                        Status
-                                    </th>
-
-                                    <th class="text-center">
-                                        #
-                                    </th>
+                                    <th>Receive</th>
+                                    <th>Date</th>
+                                    <th>Supplier</th>
+                                    <th>Material</th>
+                                    <th class="text-end">Qty</th>
+                                    <th class="text-end">BW</th>
+                                    <th class="text-end">Avg BW</th>
+                                    <th class="text-center">Customer</th>
+                                    <th class="text-center">Sales</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-center">Action</th>
 
                                 </tr>
                             </thead>
@@ -1393,7 +1365,7 @@
 
                                     <option value="">-- SELECT --</option>
                                     <option value="LUNAS">LUNAS</option>
-                                    <option value="TEMPO">TEMPO</option>
+                                    <option value="TEMPO" selected>TEMPO</option>
 
                                 </select>
 
@@ -2739,868 +2711,260 @@
 
 <script>
     const base_url = "<?= base_url(); ?>";
-/**************************************************************************
- *
- * RECEIVE CREATE
- *
- **************************************************************************/
+    const listState = {
 
-/*
-|--------------------------------------------------------------------------
-| UTILITY
-|--------------------------------------------------------------------------
-*/
+        page: 1,
 
-function parseDecimal(value)
-{
-    if(value === null || value === undefined){
-        return 0;
-    }
+        limit: 10,
 
-    value = value.toString();
+        keyword: "",
 
-    value = value
-        .replace(/\./g,'')
-        .replace(',','.');
+        status: "",
 
-    let number = parseFloat(value);
+        dateFrom: $("#dateFrom").val(),
 
-    return isNaN(number)
-        ? 0
-        : number;
-}
+        dateTo: $("#dateTo").val(),
 
-function formatDecimal(value)
-{
-    value = parseFloat(value);
+        total: 0
 
-    if(isNaN(value)){
-        value = 0;
-    }
+    };
 
-    return value.toLocaleString(
-        'id-ID',
-        {
-            minimumFractionDigits:2,
-            maximumFractionDigits:2
+    function parseDecimal(value)
+    {
+        if(value === null || value === undefined){
+            return 0;
         }
-    );
-}
 
-function parseMoney(value)
-{
-    if(value === null || value === undefined){
-        return 0;
+        value = value.toString();
+
+        value = value
+            .replace(/\./g,'')
+            .replace(',','.');
+
+        let number = parseFloat(value);
+
+        return isNaN(number)
+            ? 0
+            : number;
     }
 
-    value = value.toString();
+    function formatDecimal(value)
+    {
+        value = parseFloat(value);
 
-    value = value.replace(/[^\d]/g,'');
+        if(isNaN(value)){
+            value = 0;
+        }
 
-    return parseFloat(value) || 0;
-}
-
-function formatMoney(value)
-{
-    value = parseFloat(value);
-
-    if(isNaN(value)){
-        value = 0;
+        return value.toLocaleString(
+            'id-ID',
+            {
+                minimumFractionDigits:2,
+                maximumFractionDigits:2
+            }
+        );
     }
 
-    return value.toLocaleString('id-ID');
-}
+    function parseMoney(value)
+    {
+        if(value === null || value === undefined){
+            return 0;
+        }
 
-function formatDecimalID(value, decimals = 2) {
-    if (value === null || value === '' || isNaN(value)) return '';
+        value = value.toString();
 
-    return parseFloat(value)
-        .toLocaleString('id-ID', {
-            minimumFractionDigits: decimals,
-            maximumFractionDigits: decimals
-        });
-}
+        value = value.replace(/[^\d]/g,'');
 
-function parseDecimalID(value) {
+        return parseFloat(value) || 0;
+    }
+
+    function formatMoney(value)
+    {
+        value = parseFloat(value);
+
+        if(isNaN(value)){
+            value = 0;
+        }
+
+        return value.toLocaleString('id-ID');
+    }
+
+    function formatDecimalID(value, decimals = 2) {
+        if (value === null || value === '' || isNaN(value)) return '';
+
+        return parseFloat(value)
+            .toLocaleString('id-ID', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            });
+    }
+
+    function parseDecimalID(value) {
         if (!value) return 0;
         return parseFloat(
             value.replace(/\./g, '').replace(',', '.')
         ) || 0;
     }
 
-$(document).on('input', '.decimal-input', function () {
+    $(document).ready(function () {
 
-    let value = $(this).val();
-
-    value = value.replace(/[^0-9,]/g, '');
-
-    let parts = value.split(',');
-
-    let integer = parts[0];
-
-    let decimal = parts.length > 1
-        ? parts[1].substring(0, 2)
-        : '';
-
-    integer = integer.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-
-    if(parts.length > 1){
-
-        value = integer + ',' + decimal;
-
-    }else{
-
-        value = integer;
-
-    }
-
-    $(this).val(value);
-
-});
-
-$(document).on('blur', '.decimal-input', function () {
-    let val = parseDecimalID(this.value);
-    this.value = formatDecimalID(val);
-});
-
-$(document).on('input', '.rupiah-input', function(){
-
-    let value = $(this).val().replace(/\D/g,'');
-
-    if(value === ''){
-        $(this).val('');
-        return;
-    }
-
-    $(this).val(
-        parseInt(value,10).toLocaleString('id-ID')
-    );
-
-});
-
-/*
-|--------------------------------------------------------------------------
-| STATE
-|--------------------------------------------------------------------------
-*/
-
-const receiveState = {
-
-    po : null,
-
-    customerMaster : [],
-
-    customerRows : [],
-
-    savingRows : [],
-
-    actual : {
-
-        qty : 0,
-
-        bw : 0,
-
-        avgBw : 0,
-
-        matiQty : 0,
-
-        matiBw : 0,
-
-        susutBw : 0,
-
-        receiveQty : 0,
-
-        receiveBw : 0,
-
-        harga : 0,
-
-        total : 0
-
-    }
-
-};
-
-/*
-|--------------------------------------------------------------------------
-| INIT
-|--------------------------------------------------------------------------
-*/
-
-function openLookup(type){
-
-    lookupType = type;
-
-    $("#lookupKeyword").val("");
-
-    switch(type){
-
-        case "PO":
-
-            $("#lookupTitle").text("Purchase Order");
-
-            renderPOHeader();
-
-            loadLookupPO();
-
-            break;
-
-        case "CUSTOMER":
-
-            $("#lookupTitle").text("Customer");
-
-            renderCustomerHeader();
-
-            loadLookupCustomer();
-
-            break;
-
-    }
-
-    bootstrap.Modal
-    .getOrCreateInstance(
-        document.getElementById("lookupModal")
-    )
-    .show();
-
-}
-
-$("#btnLookupPO").click(function(){
-
-    openLookup("PO");
-
-});
-
-function renderPOHeader(){
-
-    $("#lookupTable thead").html(`
-        <tr>
-            <th>PO</th>
-            <th>Supplier</th>
-            <th>Material</th>
-            <th class="text-end">Qty</th>
-            <th class="text-end">BW</th>
-        </tr>
-    `);
-
-}
-
-function renderCustomerHeader(){
-    $("#lookupTable thead").html(`
-        <tr>
-            <th>Customer</th>
-            <th>Nama</th>
-            <th>Alamat</th>
-        </tr>
-    `);
-}
-
-function renderSavingTable(){
-    let tbody = $("#savingTableAdd tbody");
-    tbody.empty();
-    $.each(receiveState.savingRows,function(i,row){
-        tbody.append(`
-            <tr>
-                <td>
-                    ${row.customer_name}
-                </td>
-                <td>
-                    <input
-                        type="text"
-                        class="form-control rupiah-input saving-input"
-                        data-index="${i}"
-                        value="${formatMoney(row.saving)}">
-                </td>
-                <td>
-                    <input
-                        type="text"
-                        class="form-control saving-remark"
-                        data-index="${i}"
-                        value="${row.remark}">
-                </td>
-            </tr>
-        `);
-    });
-}
-
-function renderSavingTotal()
-{
-    let total = 0;
-
-    $.each(receiveState.savingRows,function(i,row){
-
-        total += row.saving;
+        initList();
 
     });
 
-    $("#savingGrandTotal").text(
+    function initList()
+    {
+        bindListEvent();
 
-        "Rp " + formatMoney(total)
-
-    );
-}
-
-function renderAllocationProgress()
-{
-    let summary =
-        calculateAllocation();
-
-    let percent = 0;
-
-    if(receiveState.actual.receiveBw > 0){
-
-        percent =
-            (summary.bwUsed /
-            receiveState.actual.receiveBw)
-            *100;
-
+        loadData();
     }
 
-    let bar =
-        $("#allocationProgress");
+    function bindListEvent()
+    {
+        $("#search").on("keyup", function () {
 
-    let displayPercent =
-    Math.min(percent,100);
+            listState.keyword = $(this).val();
 
-    bar.css(
-        "width",
-        displayPercent+"%"
-    );
+            listState.page = 1;
 
-    bar.text(
-        percent.toFixed(1)+"%"
-    );
-
-    bar.removeClass(
-
-        "bg-success",
-
-        "bg-warning",
-
-        "bg-danger"
-
-    );
-
-    if(percent < 80){
-
-        bar.addClass("bg-success");
-
-    }
-    else if(percent <= 100){
-
-        bar.addClass("bg-warning");
-
-    }
-    else{
-
-        bar.addClass("bg-danger");
-
-    }
-
-}
-
-function renderPaymentSummary(){
-
-    let summary=
-        calculatePaymentSummary();
-
-    let tbody=
-        $("#paymentSummaryTableAdd tbody");
-
-    tbody.empty();
-
-    $.each(summary,function(i,row){
-
-        tbody.append(`
-
-            <tr>
-
-                <td>${row.customer_name}</td>
-
-                <td class="text-end">
-
-                    ${formatMoney(row.sales)}
-
-                </td>
-
-                <td class="text-end">
-
-                    ${formatMoney(row.saving)}
-
-                </td>
-
-                <td class="text-end">
-
-                    ${formatMoney(row.grandTotal)}
-
-                </td>
-
-            </tr>
-
-        `);
-
-    });
-
-    let total = calculateGrandTotal(summary);
-
-    $("#grandSalesAdd").text(
-        formatMoney(total.sales)
-    );
-
-    $("#grandSavingAdd").text(
-        formatMoney(total.saving)
-    );
-
-    $("#grandPaymentAdd").text(
-        formatMoney(total.grand)
-    );
-
-}
-
-let lookupTimer;
-
-$("#lookupKeyword").keyup(function(){
-
-    clearTimeout(lookupTimer);
-
-    const keyword=$(this).val();
-
-    lookupTimer=setTimeout(function(){
-
-        switch(lookupType){
-
-            case "PO":
-
-                loadLookupPO(keyword);
-
-                break;
-
-            case "CUSTOMER":
-
-                loadLookupCustomer(keyword);
-
-                break;
-
-        }
-
-    },300);
-
-});
-
-function showLookupLoading(){
-
-    $("#lookupLoading").removeClass("d-none");
-    $("#lookupEmpty").addClass("d-none");
-    $("#lookupTable").hide();
-
-}
-
-function hideLookupLoading(hasData){
-
-    $("#lookupLoading").addClass("d-none");
-
-    if(hasData){
-
-        $("#lookupEmpty").addClass("d-none");
-        $("#lookupTable").show();
-
-    }else{
-
-        $("#lookupEmpty").removeClass("d-none");
-        $("#lookupTable").hide();
-
-    }
-
-}
-
-let lookupType = "";
-let lookupData = [];
-
-function loadLookupPO(keyword = ""){
-
-    $.ajax({
-
-        url : base_url+"receive/lookup_po",
-
-        type : "GET",
-
-        dataType : "json",
-
-        data : {
-
-            plant : $("#plantAdd").val(),
-
-            keyword : keyword
-
-        },
-
-        beforeSend:function(){
-
-            showLookupLoading();
-
-        },
-
-        success:function(res){
-
-            lookupData = res;
-
-            renderLookupPO();
-
-        },
-
-        complete:function(){
-
-            hideLookupLoading(lookupData.length > 0);
-
-        }
-
-            });
-        }
-
-function loadLookupCustomer(keyword=""){
-
-    $.ajax({
-
-        url:base_url+"receive/lookup_customer",
-
-        type:"GET",
-
-        dataType:"json",
-
-        data:{
-            keyword:keyword
-        },
-
-        beforeSend:function(){
-
-            showLookupLoading();
-
-        },
-
-        success:function(res){
-
-            lookupData = res;
-
-            renderLookupCustomer();
-
-        },
-
-        complete:function(){
-
-            hideLookupLoading(lookupData.length > 0);
-
-        }
-
-    });
-
-}
-
-function renderLookupPO(){
-
-    let tbody=$("#lookupTable tbody");
-
-    tbody.empty();
-
-    $.each(lookupData,function(i,row){
-
-        let tr=$(`
-            <tr class="lookup-row">
-                <td>${row.PO}</td>
-                <td>${row.SUPPLIER_NAME}</td>
-                <td>${row.MATERIAL_NAME}</td>
-                <td class="text-end">${formatDecimal(row.TOTAL_TERIMA_QTY)}</td>
-                <td class="text-end">${formatDecimal(row.TOTAL_TERIMA_BW)}</td>
-            </tr>
-        `);
-
-        tr.data("row",row);
-
-        tbody.append(tr);
-
-    });
-
-}
-
-function renderLookupCustomer(){
-
-    let tbody=$("#lookupTable tbody");
-
-    tbody.empty();
-
-    $.each(lookupData,function(i,row){
-
-        let tr=$(`
-            <tr class="lookup-row">
-                <td>${row.CUSTOMER}</td>
-                <td>${row.CUSTOMER_NAME}</td>
-                <td>${row.ADDRESS ?? "-"}</td>
-            </tr>
-        `);
-
-        tr.data("row",row);
-
-        tbody.append(tr);
-
-    });
-
-}
-
-$(document).on("click",".lookup-row",function(){
-
-    const row=$(this).data("row");
-
-    switch(lookupType){
-
-        case "PO":
-
-            fillPO(row);
-
-            break;
-
-        case "CUSTOMER":
-
-            addCustomer(row);
-
-            break;
-
-    }
-
-    bootstrap.Modal
-        .getOrCreateInstance(
-            document.getElementById("lookupModal")
-        )
-        .hide();
-
-});
-
-function fillPO(po)
-{
-    /*
-    |--------------------------------------------------------------------------
-    | RECEIVE INFORMATION
-    |--------------------------------------------------------------------------
-    */
-    receiveState.po = po;
-    receiveState.actual = {
-
-        qty : Number(po.JUMLAH),
-
-        bw : Number(po.BERAT),
-
-        avgBw : Number(po.AVG_BW),
-
-        matiQty : Number(po.MATI_QTY),
-
-        matiBw : Number(po.MATI_BW),
-
-        susutBw : Number(po.SUSUT_BW),
-
-        receiveQty : Number(po.TOTAL_TERIMA_QTY),
-
-        receiveBw : Number(po.TOTAL_TERIMA_BW),
-
-        harga : Number(po.HARGA),
-
-        total : Number(po.TOTAL)
-
-    };
-
-    $("#poText").val(po.PO);
-
-    $("#poAdd").val(po.PO);
-
-    $("#supplierAddText").val(po.SUPPLIER_NAME);
-
-    $("#hiddensupplierAdd").val(po.SUPPLIER);
-
-    $("#poMaterialAdd").val(po.MATERIAL_NAME);
-
-    /*
-    |--------------------------------------------------------------------------
-    | PO INFORMATION
-    |--------------------------------------------------------------------------
-    */
-
-    $("#masterQtyAdd").text(
-        formatDecimal(po.JUMLAH)
-    );
-
-    $("#masterBwAdd").text(
-        formatDecimal(po.BERAT)
-    );
-
-    $("#masterAvgBwAdd").text(
-        formatDecimal(po.AVG_BW)
-    );
-
-    $("#masterMatiQtyAdd").text(
-        formatDecimal(po.MATI_QTY)
-    );
-
-    $("#masterMatiBwAdd").text(
-        formatDecimal(po.MATI_BW)
-    );
-
-    $("#masterSusutBwAdd").text(
-        formatDecimal(po.SUSUT_BW)
-    );
-
-    $("#masterTerimaQtyAdd").text(
-        formatDecimal(po.TOTAL_TERIMA_QTY)
-    );
-
-    $("#masterTerimaBwAdd").text(
-        formatDecimal(po.TOTAL_TERIMA_BW)
-    );
-
-    $("#masterHargaAdd").text(
-        "Rp " + formatMoney(po.HARGA)
-    );
-
-    $("#masterTotalAdd").text(
-        "Rp " + formatMoney(po.TOTAL)
-    );
-
-    $("#masterTruckAdd").text(
-        po.NO_TRUCK
-    );
-
-    $("#masterDriverAdd").text(
-        po.DRIVER
-    );
-
-    /*
-    |--------------------------------------------------------------------------
-    | RESET DETAIL
-    |--------------------------------------------------------------------------
-    */
-
-    receiveState.customerRows = [];
-    receiveState.savingRows = [];
-
-    refreshCustomer();
-
-    /*
-    |--------------------------------------------------------------------------
-    | CLOSE LOOKUP
-    |--------------------------------------------------------------------------
-    */
-
-    bootstrap.Modal
-        .getOrCreateInstance(
-            document.getElementById("lookupModal")
-        )
-        .hide();
-}
-
-function addCustomer(customer)
-{
-    console.log("ADD CUSTOMER", customer);
-    let exists =
-        receiveState.customerRows.some(function(item){
-
-            return item.customer === customer.CUSTOMER;
+            loadData();
 
         });
 
-    if(exists){
+        $("#filterStatus").on("change", function () {
 
-        Swal.fire({
+            listState.status = $(this).val();
 
-            icon:"warning",
+            listState.page = 1;
 
-            title:"Customer sudah dipilih."
+            loadData();
 
         });
 
-        return;
+        $("#dateFrom,#dateTo").on("change", function () {
+
+            listState.dateFrom = $("#dateFrom").val();
+
+            listState.dateTo = $("#dateTo").val();
+
+            listState.page = 1;
+
+            loadData();
+
+        });
+
+        $("#btnResetFilter").on("click", function () {
+
+            $("#search").val("");
+
+            $("#filterStatus").val("");
+
+            $("#dateFrom").val("");
+
+            $("#dateTo").val("");
+
+            listState.page = 1;
+
+            listState.keyword = "";
+
+            listState.status = "";
+
+            listState.dateFrom = "";
+
+            listState.dateTo = "";
+
+            loadData();
+
+        });
 
     }
 
-    receiveState.customerRows.push({
+    function showLoading()
+    {
+        $("#tableLoading").removeClass("d-none");
 
-        customer : customer.CUSTOMER,
+        $("#tableWrapper").addClass("loading-hide");
+    }
 
-        customer_name : customer.CUSTOMER_NAME,
+    function hideLoading()
+    {
+        $("#tableLoading").addClass("d-none");
 
-        qty : 0,
+        $("#tableWrapper").removeClass("loading-hide");
+    }
 
-        bw : 0,
+    function loadData()
+    {
+        showLoading();
 
-        harga : receiveState.actual.harga,
+        $.ajax({
 
-        discount : 0,
+            url: base_url + "receive/load_data",
 
-        remark : "",
+            type: "GET",
 
-        avgBw : 0,
+            dataType: "json",
 
-        total : 0
+            data: {
 
-    });
+                page: listState.page,
 
-    receiveState.savingRows.push({
+                limit: listState.limit,
 
-        customer : customer.CUSTOMER,
+                keyword: listState.keyword,
 
-        customer_name : customer.CUSTOMER_NAME,
+                status: listState.status,
 
-        saving : 0,
+                date_from: listState.dateFrom,
 
-        remark : ""
+                date_to: listState.dateTo
 
-    });
+            },
 
-    refreshCustomer();
-    $("#lookupKeyword").val("");
+            success: function (res) {
 
-    bootstrap.Modal
-    .getOrCreateInstance(
-        document.getElementById("lookupModal")
-    )
-    .hide();
-}
+                renderTable(res.rows);
 
-function updateCustomerRow(index)
-{
-    let row = receiveState.customerRows[index];
+                renderInfo(res);
 
-    row.total = Math.max(
-        (row.bw * row.harga)
-        - row.discount,
-        0
-    );
+                renderPagination(res);
 
-    row.avgBw =
-    row.qty>0
-    ?
-    row.bw/row.qty
-    :
-    0;
-}
+            },
 
-function getCustomer(index)
-{
-    return receiveState.customerRows[index];
-}
+            complete: function () {
 
-function removeCustomer(index){
-    receiveState.customerRows.splice(index,1);
-    receiveState.savingRows.splice(index,1);
-    refreshCustomer();
-}
+                hideLoading();
 
-function renderCustomerTable()
-{
-    let tbody =
-        $("#customerTableAdd tbody");
+            }
 
-    tbody.empty();
+        });
 
-    
+    }
 
-    $.each(
-        receiveState.customerRows,
-        function(i,row){
+    function renderTable(rows)
+    {
+        let tbody = $("#table-body");
+
+        tbody.empty();
+
+        if(rows.length === 0){
+
+            tbody.append(`
+                <tr>
+
+                    <td colspan="10" class="text-center py-5">
+
+                        Tidak ada data
+
+                    </td>
+
+                </tr>
+            `);
+
+            return;
+        }
+
+        $.each(rows,function(i,row){
 
             tbody.append(`
 
@@ -3608,74 +2972,67 @@ function renderCustomerTable()
 
                     <td>
 
-                        <strong>
-
-                            ${row.customer_name}
-
-                        </strong>
-
-                    </td>
-
-                    <td>
-                        <input
-                            type="text"
-                            class="form-control decimal-input qty-input"
-                            data-index="${i}"
-                            value="${formatDecimalID(row.qty)}">
-                    </td>
-
-                    <td>
-                        <input
-                            type="text"
-                            class="form-control decimal-input bw-input"
-                            data-index="${i}"
-                            value="${formatDecimalID(row.bw)}">
-                    </td>
-
-                    <td>
-                        <input
-                            type="text"
-                            class="form-control rupiah-input harga-input"
-                            data-index="${i}"
-                            value="${formatMoney(row.harga)}">
-                    </td>
-
-                    <td>
-                        <input
-                            type="text"
-                            class="form-control rupiah-input discount-input"
-                            data-index="${i}"
-                            value="${formatMoney(row.discount)}">
-                    </td>
-
-                    <td>
-
-                        <input
-                            type="text"
-                            class="form-control remark-input"
-                            data-index="${i}"
-                            value="${row.remark}">
+                        <strong>#${row.RECEIVE}</strong>
 
                     </td>
 
                     <td>
 
-                        <input
-                            class="form-control"
-                            readonly
-                            value="${formatMoney(row.total)}">
+                        ${formatDate(row.RECEIVE_DATE)}
 
                     </td>
 
                     <td>
 
-                        <button
-                            class="btn btn-danger btn-sm deleteCustomer"
-                            data-index="${i}">
+                        ${row.SUPPLIER_NAME}
 
-                            <i class="ti ti-trash"></i>
+                    </td>
 
-                        </button>
+                    <td>
+
+                        ${row.MATERIAL_NAME}
+
+                    </td>
+
+                    <td class="text-end">
+
+                        ${formatDecimal(row.TOTAL_QTY)}
+
+                    </td>
+
+                    <td class="text-end">
+
+                        ${formatDecimal(row.TOTAL_BW)}
+
+                    </td>
+
+                    <td class="text-end">
+
+                        ${formatDecimal(row.AVG_BW)}
+
+                    </td>
+
+                    <td class="text-center">
+
+                        ${row.TOTAL_CUSTOMER}
+
+                    </td>
+
+                    <td class="text-center">
+
+                        ${row.TOTAL_SALES}
+
+                    </td>
+
+                    <td class="text-center">
+
+                        ${renderStatus(row.STATUS_RECEIVE)}
+
+                    </td>
+
+                    <td class="text-center">
+
+                        ${renderAction(row)}
 
                     </td>
 
@@ -3683,890 +3040,1979 @@ function renderCustomerTable()
 
             `);
 
-        }
-
-    );
-
-}
-
-function renderCustomerSummary()
-{
-    let summary =
-        calculateAllocation();
-
-    $("#summaryQtyActual")
-
-        .text(
-
-            formatDecimal(
-                receiveState.actual.receiveQty
-            )
-
-        );
-
-    $("#summaryQtyUsed")
-
-        .text(
-
-            formatDecimal(
-                summary.qtyUsed
-            )
-
-        );
-
-    $("#summaryQtyRemaining")
-
-        .text(
-
-            formatDecimal(
-                summary.qtyRemaining
-            )
-
-        );
-
-    $("#summaryBwActual")
-
-        .text(
-
-            formatDecimal(
-                receiveState.actual.receiveBw
-            )
-
-        );
-
-    $("#summaryBwUsed")
-
-        .text(
-
-            formatDecimal(
-                summary.bwUsed
-            )
-
-        );
-
-    $("#summaryBwRemaining")
-
-        .text(
-
-            formatDecimal(
-                summary.bwRemaining
-            )
-
-        );
-
-}
-
-function resetReceiveForm()
-{
-    /*
-    |--------------------------------------------------------------------------
-    | FORM
-    |--------------------------------------------------------------------------
-    */
-
-    $("#freceiveAdd")[0].reset();
-
-    /*
-    |--------------------------------------------------------------------------
-    | DEFAULT PLANT
-    |--------------------------------------------------------------------------
-    */
-
-    $("#plantAdd")
-        .val("0001")
-        .trigger("change");
-
-    /*
-    |--------------------------------------------------------------------------
-    | CLEAR PO
-    |--------------------------------------------------------------------------
-    */
-
-    clearPO();
-
-    receiveState.actual = {
-        qty : 0,
-        bw : 0,
-        avgBw : 0,
-        matiQty : 0,
-        matiBw : 0,
-        susutBw : 0,
-        receiveQty : 0,
-        receiveBw : 0,
-        harga : 0,
-        total : 0
-    };
-}
-
-function clearPO()
-{
-
-    $("#poAdd").val("");
-    $("#poText").val("");
-
-    $("#supplierAddText").val("");
-
-    $("#hiddensupplierAdd").val("");
-
-    $("#poMaterialAdd").val("");
-
-    $("#masterQtyAdd").text("-");
-
-    $("#masterBwAdd").text("-");
-
-    $("#masterAvgBwAdd").text("-");
-
-    $("#masterMatiQtyAdd").text("0");
-
-    $("#masterMatiBwAdd").text("0");
-
-    $("#masterSusutBwAdd").text("0");
-
-    $("#masterTerimaQtyAdd").text("0");
-
-    $("#masterTerimaBwAdd").text("0");
-
-    $("#masterHargaAdd").text("Rp 0");
-
-    $("#masterTotalAdd").text("Rp 0");
-
-    $("#masterTruckAdd").text("-");
-
-    $("#masterDriverAdd").text("-");
-
-    receiveState.po = null;
-    receiveState.customerRows = [];
-    receiveState.savingRows = [];
-
-    refreshCustomer();
-}
-
-function bindCustomerEvent()
-{
-    $("#btnAddCustomer").on("click",function(){
-
-        openLookup("CUSTOMER");
-
-    });
-
-    $(document).on(
-        "click",
-        ".deleteCustomer",
-        function(){
-
-            let index =
-                $(this).data("index");
-
-            removeCustomer(index);
-
-        }
-    );
-
-    $(document).on("input",".qty-input",function(){
-
-        let index=$(this).data("index");
-
-        receiveState.customerRows[index].qty=
-            parseDecimalID($(this).val());
-
-        updateCustomerRow(index);
-        refreshCalculation();
-
-    });
-
-    $(document).on(
-        "input",
-        ".bw-input",
-        function(){
-
-            let index=$(this).data("index");
-
-            receiveState.customerRows[index].bw =
-                parseDecimalID($(this).val());
-
-            updateCustomerRow(index);
-            refreshCalculation();
-
-        }
-    );
-
-    $(document).on(
-        "input",
-        ".harga-input",
-        function(){
-
-            let index=$(this).data("index");
-
-            receiveState.customerRows[index].harga =
-                parseMoney($(this).val());
-
-            updateCustomerRow(index);
-            refreshCalculation();
-
-        }
-    );
-
-    $(document).on(
-        "input",
-        ".discount-input",
-        function(){
-
-            let index=$(this).data("index");
-
-            receiveState.customerRows[index].discount =
-                parseMoney($(this).val());
-
-            updateCustomerRow(index);
-            refreshCalculation();
-
-        }
-    );
-
-    $(document).on(
-        "input",
-        ".remark-input",
-        function(){
-
-            let index=
-                $(this).data("index");
-
-            receiveState
-                .customerRows[index]
-                .remark=
-
-                $(this).val();
-
-        }
-    );
-
-    $(document).on(
-        "input",
-        ".saving-input",
-        function(){
-
-            let index =
-                $(this).data("index");
-
-            receiveState
-                .savingRows[index]
-                .saving=
-
-                parseMoney($(this).val());
-
-            refreshCalculation();
-
-        }
-    );
-
-    $(document).on(
-        "keyup",
-        ".saving-remark",
-        function(){
-
-            const index = $(this).data("index");
-
-            receiveState.savingRows[index].remark =
-                $(this).val();
-
-        }
-    );
-}
-
-function calculateAllocation()
-{
-    let qty=0;
-
-    let bw=0;
-
-    $.each(
-        receiveState.customerRows,
-        function(i,row){
-
-            qty+=row.qty;
-
-            bw+=row.bw;
-
-        }
-    );
-
-    return{
-
-        qtyUsed:qty,
-
-        bwUsed:bw,
-
-        qtyRemaining:
-
-            receiveState.actual.receiveQty
-            -
-            qty,
-
-        bwRemaining:
-
-            receiveState.actual.receiveBw
-            -
-            bw
-
-    };
-
-}
-
-function calculateCustomerTotal(row){
-
-    return Math.max(
-
-        row.bw * row.harga - row.discount,
-
-        0
-
-    );
-
-}
-
-function calculatePaymentSummary(){
-
-    let result = [];
-
-    $.each(receiveState.customerRows, function(i, customer){
-
-        let saving = receiveState.savingRows[i];
-
-        let sales = customer.total;
-
-        let savingNominal = saving
-            ? saving.saving
-            : 0;
-
-        result.push({
-
-            customer: customer.customer,
-
-            customer_name: customer.customer_name,
-
-            sales: sales,
-
-            saving: savingNominal,
-
-            grandTotal: sales + savingNominal
-
         });
-
-    });
-
-    return result;
-
-}
-
-function calculateGrandTotal(summary){
-
-    let sales=0;
-
-    let saving=0;
-
-    let grand=0;
-
-    $.each(summary,function(i,row){
-
-        sales+=row.sales;
-
-        saving+=row.saving;
-
-        grand+=row.grandTotal;
-
-    });
-
-    return{
-
-        sales:sales,
-
-        saving:saving,
-
-        grand:grand
-
-    };
-
-}
-
-function refreshCustomer(){
-    renderCustomerTable();
-    renderSavingTable();
-    refreshCalculation();
-}
-
-function refreshCalculation(){
-    renderCustomerSummary();
-    renderSavingTotal();
-    renderPaymentSummary();
-    renderAllocationProgress();
-}
-
-let receiveInitialized = false;
-
-$("#receiveAdd").on("shown.bs.modal", function(){
-    if(!receiveInitialized){
-        receiveInitialized = true;
-        initReceive();
-    }
-    resetReceiveForm();
-});
-
-function initReceive()
-{
-    initPlant();
-
-    bindEvents();
-}
-
-/*
-|--------------------------------------------------------------------------
-| EVENT
-|--------------------------------------------------------------------------
-*/
-
-function bindEvents(){
-    bindCustomerEvent();
-    bindSubmitEvent();
-}
-
-/*
-|--------------------------------------------------------------------------
-| PLANT
-|--------------------------------------------------------------------------
-*/
-
-function initPlant()
-{
-    loadPlant();
-}
-
-function loadPlant(){
-
-    $.get(
-        base_url + "receive/get_plant",
-        function(res){
-
-            let html = "";
-
-            $.each(res,function(i,row){
-
-                let selected = "";
-
-                if(row.id==="0001"){
-                    selected="selected";
-                }
-
-                html += `
-                    <option
-                        value="${row.id}"
-                        ${selected}>
-
-                        ${row.id} - ${row.text}
-
-                    </option>
-                `;
-
-            });
-
-            let select = $("#plantAdd");
-
-            select.html(html);
-
-            select.val("0001");
-
-            select.trigger("change");
-
-        },
-        "json"
-    );
-
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| PO
-|--------------------------------------------------------------------------
-*/
-
-
-
-/*
-|--------------------------------------------------------------------------
-| CUSTOMER
-|--------------------------------------------------------------------------
-*/
-
-
-
-/*
-|--------------------------------------------------------------------------
-| SAVING
-|--------------------------------------------------------------------------
-*/
-
-
-
-/*
-|--------------------------------------------------------------------------
-| PAYMENT SUMMARY
-|--------------------------------------------------------------------------
-*/
-
-
-
-/*
-|--------------------------------------------------------------------------
-| VALIDATION
-|--------------------------------------------------------------------------
-*/
-function validateReceive(){
-
-    if(!receiveState.po){
-
-        Swal.fire({
-
-            icon:"warning",
-
-            title:"Purchase Order belum dipilih."
-
-        });
-
-        return false;
 
     }
 
-    if(receiveState.customerRows.length===0){
+    function renderStatus(status)
+    {
 
-        Swal.fire({
+        switch(status){
 
-            icon:"warning",
+            case "POSTED":
 
-            title:"Customer belum dipilih."
+                return `<span class="badge bg-success">POSTED</span>`;
 
-        });
+            case "OPEN":
 
-        return false;
+                return `<span class="badge bg-warning">OPEN</span>`;
 
-    }
+            case "CANCEL":
 
-    let allocation =
-        calculateAllocation();
+                return `<span class="badge bg-danger">CANCEL</span>`;
 
-    if(allocation.qtyRemaining<0){
+            default:
 
-        Swal.fire({
-
-            icon:"warning",
-
-            title:"Qty Allocation melebihi Qty Receive."
-
-        });
-
-        return false;
-
-    }
-
-    if(allocation.bwRemaining<0){
-
-        Swal.fire({
-
-            icon:"warning",
-
-            title:"BW Allocation melebihi BW Receive."
-
-        });
-
-        return false;
-
-    }
-
-    if($("#paymentAdd").val()==""){
-
-        Swal.fire({
-
-            icon:"warning",
-
-            title:"Pilih Payment."
-
-        });
-
-        return false;
-
-    }
-
-    if($("#jenisPayAdd").val()==""){
-
-        Swal.fire({
-
-            icon:"warning",
-
-            title:"Pilih Payment Type."
-
-        });
-
-        return false;
-
-    }
-
-    let valid=true;
-
-    $.each(receiveState.customerRows,function(i,row){
-
-        if(row.qty<=0){
-
-            Swal.fire({
-
-                icon:"warning",
-
-                title:
-                "Qty customer tidak boleh 0."
-
-            });
-
-            valid=false;
-
-            return false;
+                return `<span class="badge bg-secondary">${status}</span>`;
 
         }
 
-        if(row.bw<=0){
+    }
 
-            Swal.fire({
+    function renderAction(row)
+    {
+        let html = '';
 
-                icon:"warning",
+        // View
+        // html += `
+        //     // <button
+        //     //     class="btn btn-info btn-sm btnView"
+        //     //     type="button"
+        //     //     data-id="${row.RECEIVE}"
+        //     //     title="View">
 
-                title:
-                "BW customer tidak boleh 0."
+        //     //     <i class="ti ti-eye"></i>
 
-            });
+        //     // </button>
+        // `;
 
-            valid=false;
+        // Delete / Locked
+        if (row.STATUS_RECEIVE === 'PAID') {
 
-            return false;
+            html += `
+                <button
+                    class="btn btn-secondary btn-sm"
+                    type="button"
+                    disabled
+                    title="Receive has been paid">
 
+                    <i class="ti ti-lock"></i>
+
+                </button>
+            `;
+
+        } else {
+
+            html += `
+                <button
+                    class="btn btn-danger btn-sm btnDelete"
+                    type="button"
+                    data-id="${row.RECEIVE}"
+                    title="Delete">
+
+                    <i class="ti ti-trash"></i>
+
+                </button>
+            `;
         }
 
-    });
+        return html;
+    }
 
-    return valid;
+    function renderInfo(res)
+    {
 
-}
+        if(res.total == 0){
 
-/*
-|--------------------------------------------------------------------------
-| SUBMIT
-|--------------------------------------------------------------------------
-*/
-function bindSubmitEvent()
-{
-    $("#freceiveAdd").on("submit", function(e){
-
-        e.preventDefault();
-
-        if(!validateReceive()){
+            $("#info").html("");
 
             return;
 
         }
 
-        saveReceive();
+        const start =
+            ((res.page-1)*listState.limit)+1;
 
-    });
-}
+        const end =
+            Math.min(
+                res.page*listState.limit,
+                res.total
+            );
 
-function buildPayload()
-{
-    return {
+        $("#info").html(
 
-        header : {
+            `Showing ${start} - ${end} of ${res.total} data`
 
-            PLANT : $("#plantAdd").val(),
-
-            PO : receiveState.po.PO,
-
-            RECEIVE_DATE : $("#RECEIVE_DATE").val(),
-
-            PEMBAYARAN : $("#paymentAdd").val(),
-
-            JENIS_PAY : $("#jenisPayAdd").val(),
-
-            NOTA : $("input[name='NOTA']").val(),
-
-            NO_REF : $("input[name='NO_REF']").val(),
-
-            REMARK : $("textarea[name='REMARK']").val()
-
-        },
-
-        customers : receiveState.customerRows.map(function(row){
-
-            return {
-
-                CUSTOMER : row.customer,
-
-                QTY : row.qty,
-
-                BW : row.bw,
-
-                HARGA : row.harga,
-
-                DISCOUNT : row.discount,
-
-                REMARK : row.remark
-
-            };
-
-        }),
-
-        savings : receiveState.savingRows.map(function(row){
-
-            return {
-
-                CUSTOMER : row.customer,
-
-                SAVING_AMOUNT : row.saving,
-
-                REMARK : row.remark
-
-            };
-
-        }),
-
-    };
-}
-
-function saveReceive()
-{
-    let payload = buildPayload();
-
-    let formData = new FormData();
-
-    formData.append(
-        "data",
-        JSON.stringify(payload)
-    );
-
-    let file =
-        $("#ATTACHMENT_ADD")[0].files[0];
-
-    if(file){
-
-        formData.append(
-            "ATTACHMENT",
-            file
         );
 
     }
 
-    $.ajax({
+    function renderPagination(res)
+    {
 
-        url : base_url + "receive/create",
+        $("#pagination").html(
 
-        type : "POST",
+            res.pagination
 
-        data : formData,
+        );
 
-        processData : false,
+    }
 
-        contentType : false,
+    function loadPage(page)
+    {
 
-        dataType : "json",
+        listState.page = page;
 
-        beforeSend : function(){
+        loadData();
 
-            $("#btnSaveReceive")
-                .prop(
-                    "disabled",
-                    true
-                );
+    }
 
-        },
+    function formatDate(date)
+    {
+        if (!date) return "-";
 
-        success : function(res){
+        return new Date(date).toLocaleDateString("id-ID", {
 
-            if(res.status){
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
 
-                Swal.fire({
+        });
+    }
 
-                    icon :
+    $(document).on("click",".btnDelete",function(){
 
-                        "success",
+        const receive = $(this).data("id");
 
-                    title :
+        Swal.fire({
 
-                        res.message
+            icon:"warning",
 
-                }).then(function(){
+            title:"Delete Receive?",
 
-                    bootstrap.Modal
-                        .getInstance(
-                            document.getElementById(
-                                "receiveAdd"
-                            )
-                        )
-                        .hide();
+            text:"Seluruh transaksi Receive akan dihapus.",
 
-                    resetReceiveForm();
+            showCancelButton:true,
 
-                    loadData();
+            confirmButtonText:"Delete",
 
-                });
+            cancelButtonText:"Cancel",
 
-            }
-            else{
+            confirmButtonColor:"#d33"
 
-                Swal.fire({
+        }).then(function(result){
 
-                    icon :
+            if(result.isConfirmed){
 
-                        "warning",
-
-                    title :
-
-                        res.message
-
-                });
+                deleteReceive(receive);
 
             }
 
-        },
-
-        complete : function(){
-
-            $("#btnSaveReceive")
-                .prop(
-                    "disabled",
-                    false
-                );
-
-        },
-
-        error : function(){
-
-            Swal.fire({
-
-                icon :
-
-                    "error",
-
-                title :
-
-                    "Terjadi kesalahan server."
-
-            });
-
-        }
+        });
 
     });
 
-}
+    function deleteReceive(receive)
+    {
+
+        $.ajax({
+
+            url:base_url+"receive/delete",
+
+            type:"POST",
+
+            dataType:"json",
+
+            data:{
+                RECEIVE:receive
+            },
+
+            success:function(res){
+
+                if(res.status){
+
+                    Swal.fire({
+
+                        icon:"success",
+
+                        title:res.message
+
+                    });
+
+                    loadData();
+
+                }
+                else{
+
+                    Swal.fire({
+
+                        icon:"warning",
+
+                        title:res.message
+
+                    });
+
+                }
+
+            },
+
+            error:function(){
+
+                Swal.fire({
+
+                    icon:"error",
+
+                    title:"Internal Server Error"
+
+                });
+
+            }
+
+        });
+
+    }
+</script>
+
+<script>
+    $(document).on('input', '.decimal-input', function () {
+
+        let value = $(this).val();
+
+        value = value.replace(/[^0-9,]/g, '');
+
+        let parts = value.split(',');
+
+        let integer = parts[0];
+
+        let decimal = parts.length > 1
+            ? parts[1].substring(0, 2)
+            : '';
+
+        integer = integer.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+        if(parts.length > 1){
+
+            value = integer + ',' + decimal;
+
+        }else{
+
+            value = integer;
+
+        }
+
+        $(this).val(value);
+
+    });
+
+    $(document).on('blur', '.decimal-input', function () {
+        let val = parseDecimalID(this.value);
+        this.value = formatDecimalID(val);
+    });
+
+    $(document).on('input', '.rupiah-input', function(){
+
+        let value = $(this).val().replace(/\D/g,'');
+
+        if(value === ''){
+            $(this).val('');
+            return;
+        }
+
+        $(this).val(
+            parseInt(value,10).toLocaleString('id-ID')
+        );
+
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | STATE
+    |--------------------------------------------------------------------------
+    */
+
+    const receiveState = {
+
+        po : null,
+
+        customerMaster : [],
+
+        customerRows : [],
+
+        savingRows : [],
+
+        actual : {
+
+            qty : 0,
+
+            bw : 0,
+
+            avgBw : 0,
+
+            matiQty : 0,
+
+            matiBw : 0,
+
+            susutBw : 0,
+
+            receiveQty : 0,
+
+            receiveBw : 0,
+
+            harga : 0,
+
+            total : 0
+
+        }
+
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | INIT
+    |--------------------------------------------------------------------------
+    */
+
+    function openLookup(type){
+
+        lookupType = type;
+
+        $("#lookupKeyword").val("");
+
+        switch(type){
+
+            case "PO":
+
+                $("#lookupTitle").text("Purchase Order");
+
+                renderPOHeader();
+
+                loadLookupPO();
+
+                break;
+
+            case "CUSTOMER":
+
+                $("#lookupTitle").text("Customer");
+
+                renderCustomerHeader();
+
+                loadLookupCustomer();
+
+                break;
+
+        }
+
+        bootstrap.Modal
+        .getOrCreateInstance(
+            document.getElementById("lookupModal")
+        )
+        .show();
+
+    }
+
+    $("#btnLookupPO").click(function(){
+
+        openLookup("PO");
+
+    });
+
+    function renderPOHeader(){
+
+        $("#lookupTable thead").html(`
+            <tr>
+                <th>PO</th>
+                <th>Supplier</th>
+                <th>Material</th>
+                <th class="text-end">Qty</th>
+                <th class="text-end">BW</th>
+            </tr>
+        `);
+
+    }
+
+    function renderCustomerHeader(){
+        $("#lookupTable thead").html(`
+            <tr>
+                <th>Customer</th>
+                <th>Nama</th>
+                <th>Alamat</th>
+            </tr>
+        `);
+    }
+
+    function renderSavingTable(){
+        let tbody = $("#savingTableAdd tbody");
+        tbody.empty();
+        $.each(receiveState.savingRows,function(i,row){
+            tbody.append(`
+                <tr>
+                    <td>
+                        ${row.customer_name}
+                    </td>
+                    <td>
+                        <input
+                            type="text"
+                            class="form-control rupiah-input saving-input"
+                            data-index="${i}"
+                            value="${formatMoney(row.saving)}">
+                    </td>
+                    <td>
+                        <input
+                            type="text"
+                            class="form-control saving-remark"
+                            data-index="${i}"
+                            value="${row.remark}">
+                    </td>
+                </tr>
+            `);
+        });
+    }
+
+    function renderSavingTotal()
+    {
+        let total = 0;
+
+        $.each(receiveState.savingRows,function(i,row){
+
+            total += row.saving;
+
+        });
+
+        $("#savingGrandTotal").text(
+
+            "Rp " + formatMoney(total)
+
+        );
+    }
+
+    function renderAllocationProgress()
+    {
+        let summary =
+            calculateAllocation();
+
+        let percent = 0;
+
+        if(receiveState.actual.receiveBw > 0){
+
+            percent =
+                (summary.bwUsed /
+                receiveState.actual.receiveBw)
+                *100;
+
+        }
+
+        let bar =
+            $("#allocationProgress");
+
+        let displayPercent =
+        Math.min(percent,100);
+
+        bar.css(
+            "width",
+            displayPercent+"%"
+        );
+
+        bar.text(
+            percent.toFixed(1)+"%"
+        );
+
+        bar.removeClass(
+
+            "bg-success",
+
+            "bg-warning",
+
+            "bg-danger"
+
+        );
+
+        if(percent < 80){
+
+            bar.addClass("bg-success");
+
+        }
+        else if(percent <= 100){
+
+            bar.addClass("bg-warning");
+
+        }
+        else{
+
+            bar.addClass("bg-danger");
+
+        }
+
+    }
+
+    function renderPaymentSummary(){
+
+        let summary=
+            calculatePaymentSummary();
+
+        let tbody=
+            $("#paymentSummaryTableAdd tbody");
+
+        tbody.empty();
+
+        $.each(summary,function(i,row){
+
+            tbody.append(`
+
+                <tr>
+
+                    <td>${row.customer_name}</td>
+
+                    <td class="text-end">
+
+                        ${formatMoney(row.sales)}
+
+                    </td>
+
+                    <td class="text-end">
+
+                        ${formatMoney(row.saving)}
+
+                    </td>
+
+                    <td class="text-end">
+
+                        ${formatMoney(row.grandTotal)}
+
+                    </td>
+
+                </tr>
+
+            `);
+
+        });
+
+        let total = calculateGrandTotal(summary);
+
+        $("#grandSalesAdd").text(
+            formatMoney(total.sales)
+        );
+
+        $("#grandSavingAdd").text(
+            formatMoney(total.saving)
+        );
+
+        $("#grandPaymentAdd").text(
+            formatMoney(total.grand)
+        );
+
+    }
+
+    let lookupTimer;
+
+    $("#lookupKeyword").keyup(function(){
+
+        clearTimeout(lookupTimer);
+
+        const keyword=$(this).val();
+
+        lookupTimer=setTimeout(function(){
+
+            switch(lookupType){
+
+                case "PO":
+
+                    loadLookupPO(keyword);
+
+                    break;
+
+                case "CUSTOMER":
+
+                    loadLookupCustomer(keyword);
+
+                    break;
+
+            }
+
+        },300);
+
+    });
+
+    function showLookupLoading(){
+
+        $("#lookupLoading").removeClass("d-none");
+        $("#lookupEmpty").addClass("d-none");
+        $("#lookupTable").hide();
+
+    }
+
+    function hideLookupLoading(hasData){
+
+        $("#lookupLoading").addClass("d-none");
+
+        if(hasData){
+
+            $("#lookupEmpty").addClass("d-none");
+            $("#lookupTable").show();
+
+        }else{
+
+            $("#lookupEmpty").removeClass("d-none");
+            $("#lookupTable").hide();
+
+        }
+
+    }
+
+    let lookupType = "";
+    let lookupData = [];
+
+    function loadLookupPO(keyword = ""){
+
+        $.ajax({
+
+            url : base_url+"receive/lookup_po",
+
+            type : "GET",
+
+            dataType : "json",
+
+            data : {
+
+                plant : $("#plantAdd").val(),
+
+                keyword : keyword
+
+            },
+
+            beforeSend:function(){
+
+                showLookupLoading();
+
+            },
+
+            success:function(res){
+
+                lookupData = res;
+
+                renderLookupPO();
+
+            },
+
+            complete:function(){
+
+                hideLookupLoading(lookupData.length > 0);
+
+            }
+
+                });
+            }
+
+    function loadLookupCustomer(keyword=""){
+
+        $.ajax({
+
+            url:base_url+"receive/lookup_customer",
+
+            type:"GET",
+
+            dataType:"json",
+
+            data:{
+                keyword:keyword
+            },
+
+            beforeSend:function(){
+
+                showLookupLoading();
+
+            },
+
+            success:function(res){
+
+                lookupData = res;
+
+                renderLookupCustomer();
+
+            },
+
+            complete:function(){
+
+                hideLookupLoading(lookupData.length > 0);
+
+            }
+
+        });
+
+    }
+
+    function renderLookupPO(){
+
+        let tbody=$("#lookupTable tbody");
+
+        tbody.empty();
+
+        $.each(lookupData,function(i,row){
+
+            let tr=$(`
+                <tr class="lookup-row">
+                    <td>${row.PO}</td>
+                    <td>${row.SUPPLIER_NAME}</td>
+                    <td>${row.MATERIAL_NAME}</td>
+                    <td class="text-end">${formatDecimal(row.TOTAL_TERIMA_QTY)}</td>
+                    <td class="text-end">${formatDecimal(row.TOTAL_TERIMA_BW)}</td>
+                </tr>
+            `);
+
+            tr.data("row",row);
+
+            tbody.append(tr);
+
+        });
+
+    }
+
+    function renderLookupCustomer(){
+
+        let tbody=$("#lookupTable tbody");
+
+        tbody.empty();
+
+        $.each(lookupData,function(i,row){
+
+            let tr=$(`
+                <tr class="lookup-row">
+                    <td>${row.CUSTOMER}</td>
+                    <td>${row.CUSTOMER_NAME}</td>
+                    <td>${row.ADDRESS ?? "-"}</td>
+                </tr>
+            `);
+
+            tr.data("row",row);
+
+            tbody.append(tr);
+
+        });
+
+    }
+
+    $(document).on("click",".lookup-row",function(){
+
+        const row=$(this).data("row");
+
+        switch(lookupType){
+
+            case "PO":
+
+                fillPO(row);
+
+                break;
+
+            case "CUSTOMER":
+
+                addCustomer(row);
+
+                break;
+
+        }
+
+        bootstrap.Modal
+            .getOrCreateInstance(
+                document.getElementById("lookupModal")
+            )
+            .hide();
+
+    });
+
+    function fillPO(po)
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | RECEIVE INFORMATION
+        |--------------------------------------------------------------------------
+        */
+        receiveState.po = po;
+        receiveState.actual = {
+
+            qty : Number(po.JUMLAH),
+
+            bw : Number(po.BERAT),
+
+            avgBw : Number(po.AVG_BW),
+
+            matiQty : Number(po.MATI_QTY),
+
+            matiBw : Number(po.MATI_BW),
+
+            susutBw : Number(po.SUSUT_BW),
+
+            receiveQty : Number(po.TOTAL_TERIMA_QTY),
+
+            receiveBw : Number(po.TOTAL_TERIMA_BW),
+
+            harga : Number(po.HARGA),
+
+            total : Number(po.TOTAL)
+
+        };
+
+        $("#poText").val(po.PO);
+
+        $("#poAdd").val(po.PO);
+
+        $("#supplierAddText").val(po.SUPPLIER_NAME);
+
+        $("#hiddensupplierAdd").val(po.SUPPLIER);
+
+        $("#poMaterialAdd").val(po.MATERIAL_NAME);
+
+        /*
+        |--------------------------------------------------------------------------
+        | PO INFORMATION
+        |--------------------------------------------------------------------------
+        */
+
+        $("#masterQtyAdd").text(
+            formatDecimal(po.JUMLAH)
+        );
+
+        $("#masterBwAdd").text(
+            formatDecimal(po.BERAT)
+        );
+
+        $("#masterAvgBwAdd").text(
+            formatDecimal(po.AVG_BW)
+        );
+
+        $("#masterMatiQtyAdd").text(
+            formatDecimal(po.MATI_QTY)
+        );
+
+        $("#masterMatiBwAdd").text(
+            formatDecimal(po.MATI_BW)
+        );
+
+        $("#masterSusutBwAdd").text(
+            formatDecimal(po.SUSUT_BW)
+        );
+
+        $("#masterTerimaQtyAdd").text(
+            formatDecimal(po.TOTAL_TERIMA_QTY)
+        );
+
+        $("#masterTerimaBwAdd").text(
+            formatDecimal(po.TOTAL_TERIMA_BW)
+        );
+
+        $("#masterHargaAdd").text(
+            "Rp " + formatMoney(po.HARGA)
+        );
+
+        $("#masterTotalAdd").text(
+            "Rp " + formatMoney(po.TOTAL)
+        );
+
+        $("#masterTruckAdd").text(
+            po.NO_TRUCK
+        );
+
+        $("#masterDriverAdd").text(
+            po.DRIVER
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | RESET DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        receiveState.customerRows = [];
+        receiveState.savingRows = [];
+
+        refreshCustomer();
+
+        /*
+        |--------------------------------------------------------------------------
+        | CLOSE LOOKUP
+        |--------------------------------------------------------------------------
+        */
+
+        bootstrap.Modal
+            .getOrCreateInstance(
+                document.getElementById("lookupModal")
+            )
+            .hide();
+    }
+
+    function addCustomer(customer)
+    {
+        console.log("ADD CUSTOMER", customer);
+        let exists =
+            receiveState.customerRows.some(function(item){
+
+                return item.customer === customer.CUSTOMER;
+
+            });
+
+        if(exists){
+
+            Swal.fire({
+
+                icon:"warning",
+
+                title:"Customer sudah dipilih."
+
+            });
+
+            return;
+
+        }
+
+        receiveState.customerRows.push({
+
+            customer : customer.CUSTOMER,
+
+            customer_name : customer.CUSTOMER_NAME,
+
+            qty : 0,
+
+            bw : 0,
+
+            harga : receiveState.actual.harga,
+
+            discount : 0,
+
+            remark : "",
+
+            avgBw : 0,
+
+            total : 0
+
+        });
+
+        receiveState.savingRows.push({
+
+            customer : customer.CUSTOMER,
+
+            customer_name : customer.CUSTOMER_NAME,
+
+            saving : 0,
+
+            remark : ""
+
+        });
+
+        refreshCustomer();
+        $("#lookupKeyword").val("");
+
+        bootstrap.Modal
+        .getOrCreateInstance(
+            document.getElementById("lookupModal")
+        )
+        .hide();
+    }
+
+    function updateCustomerRow(index)
+    {
+        let row = receiveState.customerRows[index];
+
+        row.total = Math.max(
+            (row.bw * row.harga)
+            - row.discount,
+            0
+        );
+
+        row.avgBw =
+        row.qty>0
+        ?
+        row.bw/row.qty
+        :
+        0;
+    }
+
+    function getCustomer(index)
+    {
+        return receiveState.customerRows[index];
+    }
+
+    function removeCustomer(index){
+        receiveState.customerRows.splice(index,1);
+        receiveState.savingRows.splice(index,1);
+        refreshCustomer();
+    }
+
+    function renderCustomerTable()
+    {
+        let tbody =
+            $("#customerTableAdd tbody");
+
+        tbody.empty();
+
+        
+
+        $.each(
+            receiveState.customerRows,
+            function(i,row){
+
+                tbody.append(`
+
+                    <tr>
+
+                        <td>
+
+                            <strong>
+
+                                ${row.customer_name}
+
+                            </strong>
+
+                        </td>
+
+                        <td>
+                            <input
+                                type="text"
+                                class="form-control decimal-input qty-input"
+                                data-index="${i}"
+                                value="${formatDecimalID(row.qty)}">
+                        </td>
+
+                        <td>
+                            <input
+                                type="text"
+                                class="form-control decimal-input bw-input"
+                                data-index="${i}"
+                                value="${formatDecimalID(row.bw)}">
+                        </td>
+
+                        <td>
+                            <input
+                                type="text"
+                                class="form-control rupiah-input harga-input"
+                                data-index="${i}"
+                                value="${formatMoney(row.harga)}">
+                        </td>
+
+                        <td>
+                            <input
+                                type="text"
+                                class="form-control rupiah-input discount-input"
+                                data-index="${i}"
+                                value="${formatMoney(row.discount)}">
+                        </td>
+
+                        <td>
+
+                            <input
+                                type="text"
+                                class="form-control remark-input"
+                                data-index="${i}"
+                                value="${row.remark}">
+
+                        </td>
+
+                        <td>
+
+                            <input
+                                class="form-control"
+                                readonly
+                                value="${formatMoney(row.total)}">
+
+                        </td>
+
+                        <td>
+
+                            <button
+                                class="btn btn-danger btn-sm deleteCustomer"
+                                data-index="${i}">
+
+                                <i class="ti ti-trash"></i>
+
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                `);
+
+            }
+
+        );
+
+    }
+
+    function renderCustomerSummary()
+    {
+        let summary =
+            calculateAllocation();
+
+        $("#summaryQtyActual")
+
+            .text(
+
+                formatDecimal(
+                    receiveState.actual.receiveQty
+                )
+
+            );
+
+        $("#summaryQtyUsed")
+
+            .text(
+
+                formatDecimal(
+                    summary.qtyUsed
+                )
+
+            );
+
+        $("#summaryQtyRemaining")
+
+            .text(
+
+                formatDecimal(
+                    summary.qtyRemaining
+                )
+
+            );
+
+        $("#summaryBwActual")
+
+            .text(
+
+                formatDecimal(
+                    receiveState.actual.receiveBw
+                )
+
+            );
+
+        $("#summaryBwUsed")
+
+            .text(
+
+                formatDecimal(
+                    summary.bwUsed
+                )
+
+            );
+
+        $("#summaryBwRemaining")
+
+            .text(
+
+                formatDecimal(
+                    summary.bwRemaining
+                )
+
+            );
+
+    }
+
+    function resetReceiveForm()
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | FORM
+        |--------------------------------------------------------------------------
+        */
+
+        $("#freceiveAdd")[0].reset();
+
+        /*
+        |--------------------------------------------------------------------------
+        | DEFAULT PLANT
+        |--------------------------------------------------------------------------
+        */
+
+        $("#plantAdd")
+            .val("0001")
+            .trigger("change");
+
+        /*
+        |--------------------------------------------------------------------------
+        | CLEAR PO
+        |--------------------------------------------------------------------------
+        */
+
+        clearPO();
+
+        receiveState.actual = {
+            qty : 0,
+            bw : 0,
+            avgBw : 0,
+            matiQty : 0,
+            matiBw : 0,
+            susutBw : 0,
+            receiveQty : 0,
+            receiveBw : 0,
+            harga : 0,
+            total : 0
+        };
+    }
+
+    function clearPO()
+    {
+
+        $("#poAdd").val("");
+        $("#poText").val("");
+
+        $("#supplierAddText").val("");
+
+        $("#hiddensupplierAdd").val("");
+
+        $("#poMaterialAdd").val("");
+
+        $("#masterQtyAdd").text("-");
+
+        $("#masterBwAdd").text("-");
+
+        $("#masterAvgBwAdd").text("-");
+
+        $("#masterMatiQtyAdd").text("0");
+
+        $("#masterMatiBwAdd").text("0");
+
+        $("#masterSusutBwAdd").text("0");
+
+        $("#masterTerimaQtyAdd").text("0");
+
+        $("#masterTerimaBwAdd").text("0");
+
+        $("#masterHargaAdd").text("Rp 0");
+
+        $("#masterTotalAdd").text("Rp 0");
+
+        $("#masterTruckAdd").text("-");
+
+        $("#masterDriverAdd").text("-");
+
+        receiveState.po = null;
+        receiveState.customerRows = [];
+        receiveState.savingRows = [];
+
+        refreshCustomer();
+    }
+
+    function bindCustomerEvent()
+    {
+        $("#btnAddCustomer").on("click",function(){
+
+            openLookup("CUSTOMER");
+
+        });
+
+        $(document).on(
+            "click",
+            ".deleteCustomer",
+            function(){
+
+                let index =
+                    $(this).data("index");
+
+                removeCustomer(index);
+
+            }
+        );
+
+        $(document).on("input",".qty-input",function(){
+
+            let index=$(this).data("index");
+
+            receiveState.customerRows[index].qty=
+                parseDecimalID($(this).val());
+
+            updateCustomerRow(index);
+            refreshCalculation();
+
+        });
+
+        $(document).on(
+            "input",
+            ".bw-input",
+            function(){
+
+                let index=$(this).data("index");
+
+                receiveState.customerRows[index].bw =
+                    parseDecimalID($(this).val());
+
+                updateCustomerRow(index);
+                refreshCalculation();
+
+            }
+        );
+
+        $(document).on(
+            "input",
+            ".harga-input",
+            function(){
+
+                let index=$(this).data("index");
+
+                receiveState.customerRows[index].harga =
+                    parseMoney($(this).val());
+
+                updateCustomerRow(index);
+                refreshCalculation();
+
+            }
+        );
+
+        $(document).on(
+            "input",
+            ".discount-input",
+            function(){
+
+                let index=$(this).data("index");
+
+                receiveState.customerRows[index].discount =
+                    parseMoney($(this).val());
+
+                updateCustomerRow(index);
+                refreshCalculation();
+
+            }
+        );
+
+        $(document).on(
+            "input",
+            ".remark-input",
+            function(){
+
+                let index=
+                    $(this).data("index");
+
+                receiveState
+                    .customerRows[index]
+                    .remark=
+
+                    $(this).val();
+
+            }
+        );
+
+        $(document).on(
+            "input",
+            ".saving-input",
+            function(){
+
+                let index =
+                    $(this).data("index");
+
+                receiveState
+                    .savingRows[index]
+                    .saving=
+
+                    parseMoney($(this).val());
+
+                refreshCalculation();
+
+            }
+        );
+
+        $(document).on(
+            "keyup",
+            ".saving-remark",
+            function(){
+
+                const index = $(this).data("index");
+
+                receiveState.savingRows[index].remark =
+                    $(this).val();
+
+            }
+        );
+    }
+
+    function calculateAllocation()
+    {
+        let qty=0;
+
+        let bw=0;
+
+        $.each(
+            receiveState.customerRows,
+            function(i,row){
+
+                qty+=row.qty;
+
+                bw+=row.bw;
+
+            }
+        );
+
+        return{
+
+            qtyUsed:qty,
+
+            bwUsed:bw,
+
+            qtyRemaining:
+
+                receiveState.actual.receiveQty
+                -
+                qty,
+
+            bwRemaining:
+
+                receiveState.actual.receiveBw
+                -
+                bw
+
+        };
+
+    }
+
+    function calculateCustomerTotal(row){
+
+        return Math.max(
+
+            row.bw * row.harga - row.discount,
+
+            0
+
+        );
+
+    }
+
+    function calculatePaymentSummary(){
+
+        let result = [];
+
+        $.each(receiveState.customerRows, function(i, customer){
+
+            let saving = receiveState.savingRows[i];
+
+            let sales = customer.total;
+
+            let savingNominal = saving
+                ? saving.saving
+                : 0;
+
+            result.push({
+
+                customer: customer.customer,
+
+                customer_name: customer.customer_name,
+
+                sales: sales,
+
+                saving: savingNominal,
+
+                grandTotal: sales + savingNominal
+
+            });
+
+        });
+
+        return result;
+
+    }
+
+    function calculateGrandTotal(summary){
+
+        let sales=0;
+
+        let saving=0;
+
+        let grand=0;
+
+        $.each(summary,function(i,row){
+
+            sales+=row.sales;
+
+            saving+=row.saving;
+
+            grand+=row.grandTotal;
+
+        });
+
+        return{
+
+            sales:sales,
+
+            saving:saving,
+
+            grand:grand
+
+        };
+
+    }
+
+    function refreshCustomer(){
+        renderCustomerTable();
+        renderSavingTable();
+        refreshCalculation();
+    }
+
+    function refreshCalculation(){
+        renderCustomerSummary();
+        renderSavingTotal();
+        renderPaymentSummary();
+        renderAllocationProgress();
+    }
+
+    let receiveInitialized = false;
+
+    $("#receiveAdd").on("shown.bs.modal", function(){
+        if(!receiveInitialized){
+            receiveInitialized = true;
+            initReceive();
+        }
+        resetReceiveForm();
+    });
+
+    function initReceive()
+    {
+        initPlant();
+
+        bindEvents();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | EVENT
+    |--------------------------------------------------------------------------
+    */
+
+    function bindEvents(){
+        bindCustomerEvent();
+        bindSubmitEvent();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | PLANT
+    |--------------------------------------------------------------------------
+    */
+
+    function initPlant()
+    {
+        loadPlant();
+    }
+
+    function loadPlant(){
+
+        $.get(
+            base_url + "receive/get_plant",
+            function(res){
+
+                let html = "";
+
+                $.each(res,function(i,row){
+
+                    let selected = "";
+
+                    if(row.id==="0001"){
+                        selected="selected";
+                    }
+
+                    html += `
+                        <option
+                            value="${row.id}"
+                            ${selected}>
+
+                            ${row.id} - ${row.text}
+
+                        </option>
+                    `;
+
+                });
+
+                let select = $("#plantAdd");
+
+                select.html(html);
+
+                select.val("0001");
+
+                select.trigger("change");
+
+            },
+            "json"
+        );
+
+    }
 
 
-/*
-|--------------------------------------------------------------------------
-| RESET
-|--------------------------------------------------------------------------
-*/
+    /*
+    |--------------------------------------------------------------------------
+    | PO
+    |--------------------------------------------------------------------------
+    */
+
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CUSTOMER
+    |--------------------------------------------------------------------------
+    */
+
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | SAVING
+    |--------------------------------------------------------------------------
+    */
+
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | PAYMENT SUMMARY
+    |--------------------------------------------------------------------------
+    */
+
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | VALIDATION
+    |--------------------------------------------------------------------------
+    */
+    function validateReceive(){
+
+        if(!receiveState.po){
+
+            Swal.fire({
+
+                icon:"warning",
+
+                title:"Purchase Order belum dipilih."
+
+            });
+
+            return false;
+
+        }
+
+        if(receiveState.customerRows.length===0){
+
+            Swal.fire({
+
+                icon:"warning",
+
+                title:"Customer belum dipilih."
+
+            });
+
+            return false;
+
+        }
+
+        let allocation =
+            calculateAllocation();
+
+        if(allocation.qtyRemaining<0){
+
+            Swal.fire({
+
+                icon:"warning",
+
+                title:"Qty Allocation melebihi Qty Receive."
+
+            });
+
+            return false;
+
+        }
+
+        if(allocation.bwRemaining<0){
+
+            Swal.fire({
+
+                icon:"warning",
+
+                title:"BW Allocation melebihi BW Receive."
+
+            });
+
+            return false;
+
+        }
+
+        if($("#paymentAdd").val()==""){
+
+            Swal.fire({
+
+                icon:"warning",
+
+                title:"Pilih Payment."
+
+            });
+
+            return false;
+
+        }
+
+        if($("#jenisPayAdd").val()==""){
+
+            Swal.fire({
+
+                icon:"warning",
+
+                title:"Pilih Payment Type."
+
+            });
+
+            return false;
+
+        }
+
+        let valid=true;
+
+        $.each(receiveState.customerRows,function(i,row){
+
+            if(row.qty<=0){
+
+                Swal.fire({
+
+                    icon:"warning",
+
+                    title:
+                    "Qty customer tidak boleh 0."
+
+                });
+
+                valid=false;
+
+                return false;
+
+            }
+
+            if(row.bw<=0){
+
+                Swal.fire({
+
+                    icon:"warning",
+
+                    title:
+                    "BW customer tidak boleh 0."
+
+                });
+
+                valid=false;
+
+                return false;
+
+            }
+
+        });
+
+        return valid;
+
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | SUBMIT
+    |--------------------------------------------------------------------------
+    */
+    function bindSubmitEvent()
+    {
+        $("#freceiveAdd").on("submit", function(e){
+
+            e.preventDefault();
+
+            if(!validateReceive()){
+
+                return;
+
+            }
+
+            saveReceive();
+
+        });
+    }
+
+    function buildPayload()
+    {
+        return {
+
+            header : {
+
+                PLANT : $("#plantAdd").val(),
+
+                PO : receiveState.po.PO,
+
+                RECEIVE_DATE : $("#RECEIVE_DATE").val(),
+
+                PEMBAYARAN : $("#paymentAdd").val(),
+
+                JENIS_PAY : $("#jenisPayAdd").val(),
+
+                NOTA : $("input[name='NOTA']").val(),
+
+                NO_REF : $("input[name='NO_REF']").val(),
+
+                REMARK : $("textarea[name='REMARK']").val()
+
+            },
+
+            customers : receiveState.customerRows.map(function(row){
+
+                return {
+
+                    CUSTOMER : row.customer,
+
+                    QTY : row.qty,
+
+                    BW : row.bw,
+
+                    HARGA : row.harga,
+
+                    DISCOUNT : row.discount,
+
+                    REMARK : row.remark
+
+                };
+
+            }),
+
+            savings : receiveState.savingRows.map(function(row){
+
+                return {
+
+                    CUSTOMER : row.customer,
+
+                    SAVING_AMOUNT : row.saving,
+
+                    REMARK : row.remark
+
+                };
+
+            }),
+
+        };
+    }
+
+    function saveReceive()
+    {
+        let payload = buildPayload();
+
+        let formData = new FormData();
+
+        formData.append(
+            "data",
+            JSON.stringify(payload)
+        );
+
+        let file =
+            $("#ATTACHMENT_ADD")[0].files[0];
+
+        if(file){
+
+            formData.append(
+                "ATTACHMENT",
+                file
+            );
+
+        }
+
+        $.ajax({
+
+            url : base_url + "receive/create",
+
+            type : "POST",
+
+            data : formData,
+
+            processData : false,
+
+            contentType : false,
+
+            dataType : "json",
+
+            beforeSend : function(){
+
+                $("#btnSaveReceive")
+                    .prop(
+                        "disabled",
+                        true
+                    );
+
+            },
+
+            success : function(res){
+
+                if(res.status){
+
+                    Swal.fire({
+
+                        icon :
+
+                            "success",
+
+                        title :
+
+                            res.message
+
+                    }).then(function(){
+
+                        bootstrap.Modal
+                            .getInstance(
+                                document.getElementById(
+                                    "receiveAdd"
+                                )
+                            )
+                            .hide();
+
+                        resetReceiveForm();
+
+                        loadData();
+
+                    });
+
+                }
+                else{
+
+                    Swal.fire({
+
+                        icon :
+
+                            "warning",
+
+                        title :
+
+                            res.message
+
+                    });
+
+                }
+
+            },
+
+            complete : function(){
+
+                $("#btnSaveReceive")
+                    .prop(
+                        "disabled",
+                        false
+                    );
+
+            },
+
+            error : function(){
+
+                Swal.fire({
+
+                    icon :
+
+                        "error",
+
+                    title :
+
+                        "Terjadi kesalahan server."
+
+                });
+
+            }
+
+        });
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | RESET
+    |--------------------------------------------------------------------------
+    */
 
 
 

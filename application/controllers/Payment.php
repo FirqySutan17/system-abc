@@ -611,15 +611,21 @@ class Payment extends MY_Controller {
 
             $this->db
                 ->where('PLANT', $plant)
-
                 ->where('PO', $row['PO_NO'])
-
-                ->where('MATERIAL', $row['MATERIAL'])
-
                 ->update(
                     'abc_mst_po',
                     [
                         'STATUS' => 'PAID'
+                    ]
+                );
+
+            $this->db
+                ->where('PLANT', $plant)
+                ->where('PO', $row['PO_NO'])
+                ->update(
+                    'abc_mst_receive',
+                    [
+                        'STATUS_RECEIVE' => 'PAID'
                     ]
                 );
 
@@ -845,15 +851,21 @@ class Payment extends MY_Controller {
 
             $this->db
                 ->where('PLANT', $plant)
-
-                ->where('PO', $old['PO_NO'])
-
-                ->where('MATERIAL', $old['MATERIAL'])
-
+                ->where('PO', $row['PO_NO'])
                 ->update(
                     'abc_mst_po',
                     [
                         'STATUS' => 'OPEN'
+                    ]
+                );
+
+            $this->db
+                ->where('PLANT', $plant)
+                ->where('PO', $row['PO_NO'])
+                ->update(
+                    'abc_mst_receive',
+                    [
+                        'STATUS_RECEIVE' => 'OPEN'
                     ]
                 );
         }
@@ -982,15 +994,21 @@ class Payment extends MY_Controller {
 
             $this->db
                 ->where('PLANT', $plant)
-
                 ->where('PO', $row['PO_NO'])
-
-                ->where('MATERIAL', $row['MATERIAL'])
-
                 ->update(
                     'abc_mst_po',
                     [
                         'STATUS' => 'PAID'
+                    ]
+                );
+
+            $this->db
+                ->where('PLANT', $plant)
+                ->where('PO', $row['PO_NO'])
+                ->update(
+                    'abc_mst_receive',
+                    [
+                        'STATUS_RECEIVE' => 'PAID'
                     ]
                 );
 
@@ -1150,6 +1168,16 @@ class Payment extends MY_Controller {
                     'abc_mst_po',
                     [
                         'STATUS' => 'RECEIVED'
+                    ]
+                );
+
+            $this->db
+                ->where('PLANT', $plant)
+                ->where('PO', $row['PO_NO'])
+                ->update(
+                    'abc_mst_receive',
+                    [
+                        'STATUS_RECEIVE' => 'POSTED'
                     ]
                 );
 
