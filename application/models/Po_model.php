@@ -40,25 +40,7 @@ class Po_model extends CI_Model {
             COALESCE(
                 SUM(rd.BERAT),
                 0
-            ) AS TOTAL_RECEIVE_BERAT,
-
-            CASE
-
-                WHEN COALESCE(
-                    SUM(rd.BERAT),
-                    0
-                ) >= po.BERAT
-                THEN 'RECEIVED'
-
-                WHEN COALESCE(
-                    SUM(rd.BERAT),
-                    0
-                ) > 0
-                THEN 'PARTIAL'
-
-                ELSE 'OPEN'
-
-            END AS STATUS_PO
+            ) AS TOTAL_RECEIVE_BERAT
         ", false);
 
         $this->db->from('abc_mst_po po');
@@ -198,19 +180,20 @@ class Po_model extends CI_Model {
         |--------------------------------------------------------------------------
         */
 
-        if($role_id !== 1){
+        if ($role_id != 1) {
 
             $plants = json_decode(
                 $plant,
                 true
             );
 
-            if(!is_array($plants)){
+            if (!is_array($plants)) {
 
                 $plants = explode(
                     ',',
                     $plant
                 );
+
             }
 
             $this->db->where_in(
@@ -230,7 +213,7 @@ class Po_model extends CI_Model {
         |--------------------------------------------------------------------------
         */
 
-        if($search !== ''){
+        if ($search !== '') {
 
             $this->db->group_start();
 
@@ -273,7 +256,7 @@ class Po_model extends CI_Model {
         |--------------------------------------------------------------------------
         */
 
-        if(!empty($dateFrom)){
+        if (!empty($dateFrom)) {
 
             $this->db->where(
                 'po.PO_DATE >=',
@@ -281,11 +264,25 @@ class Po_model extends CI_Model {
             );
         }
 
-        if(!empty($dateTo)){
+        if (!empty($dateTo)) {
 
             $this->db->where(
                 'po.PO_DATE <=',
                 $dateTo
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | STATUS
+        |--------------------------------------------------------------------------
+        */
+
+        if (!empty($status)) {
+
+            $this->db->where(
+                'po.STATUS',
+                $status
             );
         }
 
@@ -296,20 +293,6 @@ class Po_model extends CI_Model {
         */
 
         $this->db->group_by('po.PO');
-
-        /*
-        |--------------------------------------------------------------------------
-        | STATUS FILTER
-        |--------------------------------------------------------------------------
-        */
-
-        if(!empty($status)){
-
-            $this->db->having(
-                'STATUS_PO',
-                $status
-            );
-        }
 
         /*
         |--------------------------------------------------------------------------
@@ -348,27 +331,7 @@ class Po_model extends CI_Model {
         $dateTo = ''
     )
     {
-        $this->db->select("
-            po.PO,
-
-            CASE
-
-                WHEN COALESCE(
-                    SUM(rd.BERAT),
-                    0
-                ) >= po.BERAT
-                THEN 'RECEIVED'
-
-                WHEN COALESCE(
-                    SUM(rd.BERAT),
-                    0
-                ) > 0
-                THEN 'PARTIAL'
-
-                ELSE 'OPEN'
-
-            END AS STATUS_PO
-        ", false);
+        $this->db->select('po.PO');
 
         $this->db->from('abc_mst_po po');
 
@@ -476,11 +439,6 @@ class Po_model extends CI_Model {
                 'po.PLANT',
                 $plants
             );
-
-            $this->db->where(
-                'po.CREATED_BY',
-                $username
-            );
         }
 
         /*
@@ -553,26 +511,26 @@ class Po_model extends CI_Model {
 
         /*
         |--------------------------------------------------------------------------
-        | GROUP BY
-        |--------------------------------------------------------------------------
-        */
-
-        $this->db->group_by('po.PO');
-
-        /*
-        |--------------------------------------------------------------------------
-        | STATUS FILTER
+        | STATUS
         |--------------------------------------------------------------------------
         */
 
         if (!empty($status)) {
 
-            $this->db->having(
-                'STATUS_PO',
+            $this->db->where(
+                'po.STATUS',
                 $status
             );
 
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | GROUP BY
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->group_by('po.PO');
 
         return $this->db
             ->get()
@@ -699,9 +657,7 @@ class Po_model extends CI_Model {
 
     public function get_header_for_edit(
         $plant,
-        $po,
-        $username,
-        $role_id
+        $po
     )
     {
         $this->db->select("
@@ -754,15 +710,6 @@ class Po_model extends CI_Model {
         $this->db->where('po.PO', $po);
 
         $this->db->where('po.DELETED IS NULL', null, false);
-
-        // ================= NON ADMIN =================
-        if ((int)$role_id !== 1) {
-
-            $this->db->where(
-                'po.CREATED_BY',
-                $username
-            );
-        }
 
         return $this->db->get()->row_array();
     }
@@ -847,22 +794,9 @@ class Po_model extends CI_Model {
     public function update_header_safe(
         $plant,
         $po,
-        $data,
-        $username,
-        $role_id
+        $data
     )
     {
-        if (
-            !$this->user_can_access_po(
-                $plant,
-                $po,
-                $username,
-                $role_id
-            )
-        ) {
-
-            return false;
-        }
 
         return $this->db
             ->where('PLANT', $plant)
@@ -932,12 +866,8 @@ class Po_model extends CI_Model {
             ->delete('abc_mst_po');
     }
 
-    public function delete_po_safe($plant, $po, $username, $role_id)
+    public function delete_po_safe($plant, $po)
     {
-        if (!$this->user_can_access_po($plant, $po, $username, $role_id)) {
-            return false;
-        }
-
         $header = $this->db
             ->where('PLANT', $plant)
             ->where('PO', $po)

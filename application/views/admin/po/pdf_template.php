@@ -237,7 +237,7 @@ $logo64 = file_exists($logo)
 
         <tr>
             <td class="label">
-                upplier
+                Supplier
             </td>
 
             <td>
@@ -311,40 +311,64 @@ $logo64 = file_exists($logo)
 
         <tr>
 
-            <td class="label">
-                Mati BW
-            </td>
+            <td class="label">Mati BW</td>
 
             <td class="value right">
                 <?= number_format($header->MATI_BW,2,',','.') ?>
             </td>
 
-            <td class="label">
-                Susut BW
-            </td>
+            <td class="label">Actual Hasil Timbang</td>
 
             <td class="value right">
-                <?= number_format($header->SUSUT_BW,2,',','.') ?>
+                <?= number_format($header->ACTUAL_HASIL_TIMBANG,2,',','.') ?>
             </td>
 
         </tr>
 
         <tr>
 
-            <td class="label">
-                Total Terima Qty
+            <td class="label">Susut BW</td>
+
+            <td class="value right">
+                <?= number_format($header->SUSUT_BW,2,',','.') ?>
             </td>
+
+            <td class="label">Claim Qty</td>
+
+            <td class="value right">
+                <?= number_format($header->CLAIM_QTY,2,',','.') ?>
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td class="label">Claim BW</td>
+
+            <td class="value right">
+                <?= number_format($header->CLAIM_BW,2,',','.') ?>
+            </td>
+
+            <td class="label">Total Terima Qty</td>
 
             <td class="value right">
                 <?= number_format($header->TOTAL_TERIMA_QTY,2,',','.') ?>
             </td>
 
-            <td class="label">
-                Total Terima BW
-            </td>
+        </tr>
+
+        <tr>
+
+            <td class="label">Total Terima BW</td>
 
             <td class="value right">
                 <?= number_format($header->TOTAL_TERIMA_BW,2,',','.') ?>
+            </td>
+
+            <td class="label">Total Bayar BW</td>
+
+            <td class="value right">
+                <?= number_format($header->TOTAL_BAYAR_BW,2,',','.') ?>
             </td>
 
         </tr>
@@ -457,7 +481,7 @@ $logo64 = file_exists($logo)
 
     <table class="info-table">
 
-        <tr>
+        <!-- <tr>
 
             <td class="label">
 
@@ -473,6 +497,20 @@ $logo64 = file_exists($logo)
 
                 </strong>
 
+            </td>
+
+        </tr> -->
+
+        <tr>
+
+            <td class="label">
+                Payment Status
+            </td>
+
+            <td colspan="3">
+                <strong>
+                    <?= $header->PAYMENT_STATUS ?>
+                </strong>
             </td>
 
         </tr>

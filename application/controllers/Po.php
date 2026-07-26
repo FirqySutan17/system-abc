@@ -380,12 +380,12 @@ class Po extends MY_Controller {
                 $this->input->post('MATI_QTY')
             );
 
-            $matiBw = $this->decimal(
-                $this->input->post('MATI_BW')
+            $actualHasilTimbang = $this->decimal(
+                $this->input->post('ACTUAL_HASIL_TIMBANG')
             );
 
-            $susutBw = $this->decimal(
-                $this->input->post('SUSUT_BW')
+            $claimQty = $this->decimal(
+                $this->input->post('CLAIM_QTY')
             );
 
             /*
@@ -398,12 +398,12 @@ class Po extends MY_Controller {
                 $jumlah,
                 $berat,
                 $matiQty,
-                $matiBw,
-                $susutBw
+                $actualHasilTimbang,
+                $claimQty
             );
 
             $total = round(
-                $actual['TOTAL_TERIMA_BW'] * $harga,
+                $actual['TOTAL_BAYAR_BW'] * $harga,
                 2
             );
 
@@ -474,8 +474,8 @@ class Po extends MY_Controller {
                 $jumlah,
                 $berat,
                 $matiQty,
-                $matiBw,
-                $susutBw
+                $actualHasilTimbang,
+                $claimQty
             );
 
             /*
@@ -688,15 +688,22 @@ class Po extends MY_Controller {
             |--------------------------------------------------------------------------
             */
 
-            'AVG_BW'            => $actual['AVG_BW'],
+            'AVG_BW'                => $actual['AVG_BW'],
 
-            'MATI_QTY'          => $matiQty,
-            'MATI_BW'           => $matiBw,
+            'MATI_QTY'              => $matiQty,
+            'MATI_BW'               => $actual['MATI_BW'],
 
-            'SUSUT_BW'          => $susutBw,
+            'ACTUAL_HASIL_TIMBANG'  => $actualHasilTimbang,
 
-            'TOTAL_TERIMA_QTY'  => $actual['TOTAL_TERIMA_QTY'],
-            'TOTAL_TERIMA_BW'   => $actual['TOTAL_TERIMA_BW'],
+            'SUSUT_BW'              => $actual['SUSUT_BW'],
+
+            'TOTAL_TERIMA_QTY'      => $actual['TOTAL_TERIMA_QTY'],
+            'TOTAL_TERIMA_BW'       => $actual['TOTAL_TERIMA_BW'],
+
+            'CLAIM_QTY'             => $claimQty,
+            'CLAIM_BW'              => $actual['CLAIM_BW'],
+
+            'TOTAL_BAYAR_BW'        => $actual['TOTAL_BAYAR_BW'],
 
             /*
             |--------------------------------------------------------------------------
@@ -835,10 +842,6 @@ class Po extends MY_Controller {
         $po       = $this->input->get('po', true);
         $plant    = $this->input->get('plant', true);
 
-        $username = $this->session->userdata('username');
-
-        $role_id  = (int)$this->session->userdata('role_id');
-
         if (!$po || !$plant) {
 
             echo json_encode([
@@ -852,9 +855,7 @@ class Po extends MY_Controller {
         // ================= HEADER =================
         $header = $this->Po_model->get_header_for_edit(
             $plant,
-            $po,
-            $username,
-            $role_id
+            $po
         );
 
         if (!$header) {
@@ -868,11 +869,11 @@ class Po extends MY_Controller {
         }
 
         // ================= LOCK RECEIVE =================
-        if ((int)$header['STATUS'] === 1) {
+        if ($header['STATUS'] !== 'OPEN') {
 
             echo json_encode([
                 'status'  => false,
-                'message' => 'PO sudah diproses receive dan tidak dapat diedit'
+                'message' => 'PO sudah diproses dan tidak dapat diedit'
             ]);
 
             return;
@@ -904,6 +905,9 @@ class Po extends MY_Controller {
     {
         header('Content-Type: application/json');
 
+        $username = $this->session
+            ->userdata('username');
+
         $this->db->trans_begin();
 
         try {
@@ -912,29 +916,10 @@ class Po extends MY_Controller {
             $po    = trim($this->input->post('orig_po', true));
             $plant = trim($this->input->post('PLANT', true));
 
-            $username = $this->session->userdata('username');
-            $role_id  = (int)$this->session->userdata('role_id');
-
             if (empty($po) || empty($plant)) {
 
                 throw new Exception(
                     'Key PO / PLANT tidak lengkap'
-                );
-
-            }
-
-            // ================= VALIDATE ACCESS =================
-            if (
-                !$this->Po_model->user_can_access_po(
-                    $plant,
-                    $po,
-                    $username,
-                    $role_id
-                )
-            ) {
-
-                throw new Exception(
-                    'Tidak punya hak update PO ini'
                 );
 
             }
@@ -953,10 +938,10 @@ class Po extends MY_Controller {
 
             }
 
-            if ((int)$current->STATUS === 1) {
+            if ($current->STATUS !== 'OPEN') {
 
                 throw new Exception(
-                    'PO sudah diproses receive'
+                    'PO sudah diproses'
                 );
 
             }
@@ -995,12 +980,12 @@ class Po extends MY_Controller {
                 $this->input->post('MATI_QTY')
             );
 
-            $matiBw = $this->decimal(
-                $this->input->post('MATI_BW')
+            $actualHasilTimbang = $this->decimal(
+                $this->input->post('ACTUAL_HASIL_TIMBANG')
             );
 
-            $susutBw = $this->decimal(
-                $this->input->post('SUSUT_BW')
+            $claimQty = $this->decimal(
+                $this->input->post('CLAIM_QTY')
             );
 
             /*
@@ -1013,12 +998,12 @@ class Po extends MY_Controller {
                 $jumlah,
                 $berat,
                 $matiQty,
-                $matiBw,
-                $susutBw
+                $actualHasilTimbang,
+                $claimQty
             );
 
             $total = round(
-                $actual['TOTAL_TERIMA_BW'] * $harga,
+                $actual['TOTAL_BAYAR_BW'] * $harga,
                 2
             );
 
@@ -1084,8 +1069,8 @@ class Po extends MY_Controller {
                 $jumlah,
                 $berat,
                 $matiQty,
-                $matiBw,
-                $susutBw
+                $actualHasilTimbang,
+                $claimQty
             );
 
             /*
@@ -1268,19 +1253,21 @@ class Po extends MY_Controller {
 
                 'MATI_QTY' => $matiQty,
 
-                'MATI_BW' => $matiBw,
+                'MATI_BW' => $actual['MATI_BW'],
 
-                'SUSUT_BW' => $susutBw,
+                'ACTUAL_HASIL_TIMBANG' => $actualHasilTimbang,
+
+                'SUSUT_BW' => $actual['SUSUT_BW'],
 
                 'TOTAL_TERIMA_QTY' => $actual['TOTAL_TERIMA_QTY'],
 
                 'TOTAL_TERIMA_BW' => $actual['TOTAL_TERIMA_BW'],
 
-                /*
-                |--------------------------------------------------------------------------
-                | PRICE
-                |--------------------------------------------------------------------------
-                */
+                'CLAIM_QTY' => $claimQty,
+
+                'CLAIM_BW' => $actual['CLAIM_BW'],
+
+                'TOTAL_BAYAR_BW' => $actual['TOTAL_BAYAR_BW'],
 
                 'HARGA' => $harga,
 
@@ -1307,9 +1294,7 @@ class Po extends MY_Controller {
             $this->Po_model->update_header_safe(
                 $plant,
                 $po,
-                $header,
-                $username,
-                $role_id
+                $header
             );
 
             /*
@@ -1432,8 +1417,6 @@ class Po extends MY_Controller {
     {
         $po       = $this->input->post('po', TRUE);
         $plant    = $this->input->post('plant', TRUE); // ← dari JS
-        $username = $this->session->userdata('username');
-        $role_id  = (int)$this->session->userdata('role_id');
 
         if (!$po || !$plant) {
             echo json_encode([
@@ -1445,9 +1428,7 @@ class Po extends MY_Controller {
 
         $deleted = $this->Po_model->delete_po_safe(
             $plant,
-            $po,
-            $username,
-            $role_id
+            $po
         );
 
         echo json_encode([
@@ -1476,6 +1457,7 @@ class Po extends MY_Controller {
         | HEADER
         |--------------------------------------------------------------------------
         */
+
         $header = $this->db->select("
                 p.PO,
 
@@ -1511,11 +1493,19 @@ class Po extends MY_Controller {
 
                 p.MATI_BW,
 
+                p.ACTUAL_HASIL_TIMBANG,
+
                 p.SUSUT_BW,
 
                 p.TOTAL_TERIMA_QTY,
 
                 p.TOTAL_TERIMA_BW,
+
+                p.CLAIM_QTY,
+
+                p.CLAIM_BW,
+
+                p.TOTAL_BAYAR_BW,
 
                 p.HARGA,
 
@@ -1523,23 +1513,9 @@ class Po extends MY_Controller {
 
                 p.REMARK,
 
-                CASE
+                p.STATUS,
 
-                    WHEN COALESCE(
-                        SUM(rd.BERAT),
-                        0
-                    ) >= p.BERAT
-                    THEN 'RECEIVED'
-
-                    WHEN COALESCE(
-                        SUM(rd.BERAT),
-                        0
-                    ) > 0
-                    THEN 'PARTIAL'
-
-                    ELSE 'OPEN'
-
-                END AS STATUS_PO
+                p.PAYMENT_STATUS
             ", false)
 
             ->from('abc_mst_po p')
@@ -1582,35 +1558,11 @@ class Po extends MY_Controller {
                 false
             )
 
-            ->join(
-                'abc_mst_receive r',
-                '
-                    r.PO = p.PO
-                    AND r.PLANT = p.PLANT
-                    AND r.DELETED IS NULL
-                ',
-                'left',
-                false
-            )
-
-            ->join(
-                'abc_mst_receive_detail rd',
-                '
-                    rd.RECEIVE = r.RECEIVE
-                    AND rd.PLANT = r.PLANT
-                    AND rd.DELETED IS NULL
-                ',
-                'left',
-                false
-            )
-
             ->where('p.PO', $po)
 
             ->where('p.PLANT', $plant)
 
             ->where('p.DELETED IS NULL', null, false)
-
-            ->group_by('p.PO')
 
             ->get()
 
@@ -1626,6 +1578,7 @@ class Po extends MY_Controller {
         | DETAIL
         |--------------------------------------------------------------------------
         */
+
         $detail = $this->db
             ->select("
                 d.SEQ_NO,
@@ -1645,7 +1598,6 @@ class Po extends MY_Controller {
 
             ->from('abc_mst_po_detail d')
 
-            // ================= CUSTOMER =================
             ->join(
                 'abc_cd_customer customer',
                 "customer.CUST COLLATE utf8mb4_unicode_ci =
@@ -1699,6 +1651,7 @@ class Po extends MY_Controller {
         | PREPARE DATA
         |--------------------------------------------------------------------------
         */
+
         $data = [
 
             'header'   => $header,
@@ -1706,6 +1659,7 @@ class Po extends MY_Controller {
             'detail'   => $detail,
 
             'subtotal' => $subtotal
+
         ];
 
         /*
@@ -1713,6 +1667,7 @@ class Po extends MY_Controller {
         | GENERATE HTML
         |--------------------------------------------------------------------------
         */
+
         $html = $this->load->view(
             'admin/po/pdf_template',
             $data,
@@ -1724,6 +1679,7 @@ class Po extends MY_Controller {
         | PDF
         |--------------------------------------------------------------------------
         */
+
         $this->load->library('pdf');
 
         $this->pdf->loadHtml($html);
@@ -1740,6 +1696,7 @@ class Po extends MY_Controller {
         | STREAM
         |--------------------------------------------------------------------------
         */
+
         $this->pdf->stream(
 
             'PO_' . $header->PO . '.pdf',
@@ -1795,10 +1752,16 @@ class Po extends MY_Controller {
         $jumlah,
         $berat,
         $matiQty,
-        $matiBw,
-        $susutBw
+        $actualHasilTimbang = 0,
+        $claimQty = 0
     )
     {
+        /*
+        |--------------------------------------------------------------------------
+        | MATI
+        |--------------------------------------------------------------------------
+        */
+
         if ($matiQty > $jumlah) {
 
             throw new Exception(
@@ -1807,59 +1770,121 @@ class Po extends MY_Controller {
 
         }
 
-        if ($matiBw > $berat) {
+        /*
+        |--------------------------------------------------------------------------
+        | ACTUAL TIMBANG
+        |--------------------------------------------------------------------------
+        */
+
+        $avgBw = ($jumlah > 0)
+            ? ($berat / $jumlah)
+            : 0;
+
+        $matiBw = $avgBw * $matiQty;
+
+        $maxTerimaBw = $berat - $matiBw;
+
+        if ($actualHasilTimbang > $maxTerimaBw) {
 
             throw new Exception(
-                'Mati BW tidak boleh melebihi Weight.'
+                'Actual Hasil Timbang tidak boleh melebihi berat setelah dikurangi Mati BW.'
             );
 
         }
 
-        if (($matiBw + $susutBw) > $berat) {
+        /*
+        |--------------------------------------------------------------------------
+        | CLAIM
+        |--------------------------------------------------------------------------
+        */
+
+        if ($claimQty > $matiQty) {
 
             throw new Exception(
-                'Mati BW + Susut BW tidak boleh melebihi Weight.'
+                'Claim Qty tidak boleh melebihi Mati Qty.'
             );
 
         }
+
     }
 
     private function calculateActual(
         $jumlah,
         $berat,
         $matiQty,
-        $matiBw,
-        $susutBw
+        $actualHasilTimbang = 0,
+        $claimQty = 0
     )
     {
+        // ================= AVG BW =================
         $avgBw = 0;
 
         if ($jumlah > 0) {
-
             $avgBw = $berat / $jumlah;
-
         }
 
+        // ================= MATI BW =================
+        $matiBw = $avgBw * $matiQty;
+
+        // ================= TOTAL TERIMA QTY =================
         $totalTerimaQty = $jumlah - $matiQty;
 
         if ($totalTerimaQty < 0) {
-
             $totalTerimaQty = 0;
-
         }
 
-        $totalTerimaBw = $berat - $matiBw - $susutBw;
+        // ================= TOTAL TERIMA BW & SUSUT =================
+        if ($actualHasilTimbang > 0) {
 
-        if ($totalTerimaBw < 0) {
+            $susutBw = ($berat - $matiBw) - $actualHasilTimbang;
 
-            $totalTerimaBw = 0;
+            if ($susutBw < 0) {
+                $susutBw = 0;
+            }
 
+            $totalTerimaBw = $actualHasilTimbang;
+
+        } else {
+
+            $susutBw = 0;
+
+            $totalTerimaBw = $berat - $matiBw;
+
+            if ($totalTerimaBw < 0) {
+                $totalTerimaBw = 0;
+            }
+        }
+
+        // ================= CLAIM =================
+        $claimBw = $avgBw * $claimQty;
+
+        if ($claimBw > $totalTerimaBw) {
+            $claimBw = $totalTerimaBw;
+        }
+
+        // ================= TOTAL BAYAR =================
+        $totalBayarBw = $totalTerimaBw - $claimBw;
+
+        if ($totalBayarBw < 0) {
+            $totalBayarBw = 0;
         }
 
         return [
-            'AVG_BW' => round($avgBw, 2),
-            'TOTAL_TERIMA_QTY' => round($totalTerimaQty, 2),
-            'TOTAL_TERIMA_BW' => round($totalTerimaBw, 2),
+
+            'AVG_BW'             => round($avgBw, 2),
+
+            'MATI_BW'            => round($matiBw, 2),
+
+            'SUSUT_BW'           => round($susutBw, 2),
+
+            'TOTAL_TERIMA_QTY'   => round($totalTerimaQty, 2),
+
+            'TOTAL_TERIMA_BW'    => round($totalTerimaBw, 2),
+
+            'CLAIM_BW'           => round($claimBw, 2),
+
+            'TOTAL_BAYAR_BW'     => round($totalBayarBw, 2),
+
         ];
     }
 

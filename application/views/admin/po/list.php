@@ -240,6 +240,7 @@
     }
 </style>
 
+<!-- MODAL CREATE PO -->
 <div class="modal fade" id="poAdd" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <form id="fpoAdd">
@@ -355,7 +356,7 @@
                                     name="MATERIAL">
                             </div>
 
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label class="po-label">Qty / Ekor *</label>
 
                                 <input
@@ -365,7 +366,7 @@
                                     placeholder="0,00">
                             </div>
 
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label class="po-label">Berat / BW *</label>
 
                                 <input
@@ -375,7 +376,7 @@
                                     placeholder="0,00">
                             </div>
 
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label class="po-label">Avg BW</label>
 
                                 <input
@@ -388,7 +389,17 @@
                                     placeholder="0,00">
                             </div>
 
-                            <div class="col-md-4">
+                            <div class="col-md-3">
+                                <label class="po-label">Harga *</label>
+
+                                <input
+                                    type="text"
+                                    id="masterHarga"
+                                    class="form-control po-input rupiah-input"
+                                    placeholder="0">
+                            </div>
+
+                            <div class="col-md-3">
                                 <label class="po-label">Mati (Qty)</label>
 
                                 <input
@@ -399,7 +410,7 @@
                                     placeholder="0,00">
                             </div>
 
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label class="po-label">Mati (BW)</label>
 
                                 <input
@@ -407,10 +418,23 @@
                                     id="masterMatiBw"
                                     name="MATI_BW"
                                     class="form-control po-input decimal-input"
+                                    readonly
+                                    style="background:#f5f6f8"
                                     placeholder="0,00">
                             </div>
 
-                            <div class="col-md-4">
+                            <div class="col-md-3">
+                                <label class="po-label">Actual Hasil Timbang</label>
+
+                                <input
+                                    type="text"
+                                    id="masterActualTimbang"
+                                    name="ACTUAL_HASIL_TIMBANG"
+                                    class="form-control po-input decimal-input"
+                                    placeholder="0,00">
+                            </div>
+
+                            <div class="col-md-3">
                                 <label class="po-label">Susut (BW)</label>
 
                                 <input
@@ -418,10 +442,36 @@
                                     id="masterSusutBw"
                                     name="SUSUT_BW"
                                     class="form-control po-input decimal-input"
+                                    readonly
+                                    style="background:#f5f6f8"
                                     placeholder="0,00">
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-3">
+                                <label class="po-label">Claim Qty</label>
+
+                                <input
+                                    type="text"
+                                    id="masterClaimQty"
+                                    name="CLAIM_QTY"
+                                    class="form-control po-input decimal-input"
+                                    placeholder="0,00">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="po-label">Claim BW</label>
+
+                                <input
+                                    type="text"
+                                    id="masterClaimBw"
+                                    name="CLAIM_BW"
+                                    class="form-control po-input decimal-input"
+                                    readonly
+                                    style="background:#f5f6f8"
+                                    placeholder="0,00">
+                            </div>
+
+                            <div class="col-md-3">
                                 <label class="po-label">Total Terima Qty</label>
 
                                 <input
@@ -434,7 +484,7 @@
                                     placeholder="0,00">
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-3">
                                 <label class="po-label">Total Terima BW</label>
 
                                 <input
@@ -448,17 +498,20 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label class="po-label">Harga *</label>
+                                <label class="po-label">BW (Final)</label>
 
                                 <input
                                     type="text"
-                                    id="masterHarga"
-                                    class="form-control po-input rupiah-input"
-                                    placeholder="0">
+                                    id="masterBayarBw"
+                                    name="TOTAL_BAYAR_BW"
+                                    class="form-control po-input decimal-input"
+                                    readonly
+                                    style="background:#f5f6f8"
+                                    placeholder="0,00">
                             </div>
 
                             <div class="col-md-6">
-                                <label class="po-label">Total *</label>
+                                <label class="po-label">Total bayar *</label>
 
                                 <input
                                     type="text"
@@ -783,7 +836,7 @@
 
                             </div>
 
-                            <div class="col-md-4">
+                            <div class="col-md-3">
 
                                 <label class="po-label">
                                     Qty / Ekor *
@@ -797,7 +850,7 @@
 
                             </div>
 
-                            <div class="col-md-4">
+                            <div class="col-md-3">
 
                                 <label class="po-label">
                                     Berat / BW *
@@ -811,7 +864,7 @@
 
                             </div>
 
-                            <div class="col-md-4">
+                            <div class="col-md-3">
 
                                 <label class="po-label">
                                     Avg BW
@@ -827,7 +880,21 @@
 
                             </div>
 
-                            <div class="col-md-4">
+                            <div class="col-md-3">
+
+                                <label class="po-label">
+                                    Harga *
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="masterHargaEdit"
+                                    class="form-control po-input rupiah-input"
+                                    placeholder="0">
+
+                            </div>
+
+                            <div class="col-md-3">
 
                                 <label class="po-label">
                                     Mati (Qty)
@@ -841,21 +908,35 @@
 
                             </div>
 
-                            <div class="col-md-4">
+                            <div class="col-md-3">
 
                                 <label class="po-label">
                                     Mati (BW)
                                 </label>
 
-                                <input
-                                    type="text"
-                                    id="masterMatiBwEdit"
-                                    class="form-control po-input decimal-input"
-                                    placeholder="0,00">
+                                    <input
+                                        type="text"
+                                        id="masterMatiBwEdit"
+                                        name="MATI_BW"
+                                        class="form-control po-input decimal-input"
+                                        readonly
+                                        style="background:#f5f6f8"
+                                        placeholder="0,00">
 
                             </div>
 
-                            <div class="col-md-4">
+                            <div class="col-md-3">
+                                <label class="po-label">Actual Hasil Timbang</label>
+
+                                <input
+                                    type="text"
+                                    id="masterActualTimbangEdit"
+                                    name="ACTUAL_HASIL_TIMBANG"
+                                    class="form-control po-input decimal-input"
+                                    placeholder="0,00">
+                            </div>
+
+                            <div class="col-md-3">
 
                                 <label class="po-label">
                                     Susut (BW)
@@ -864,12 +945,39 @@
                                 <input
                                     type="text"
                                     id="masterSusutBwEdit"
+                                    name="SUSUT_BW"
                                     class="form-control po-input decimal-input"
+                                    readonly
+                                    style="background:#f5f6f8"
                                     placeholder="0,00">
 
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-3">
+                                <label class="po-label">Claim Qty</label>
+
+                                <input
+                                    type="text"
+                                    id="masterClaimQtyEdit"
+                                    name="CLAIM_QTY"
+                                    class="form-control po-input decimal-input"
+                                    placeholder="0,00">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="po-label">Claim BW</label>
+
+                                <input
+                                    type="text"
+                                    id="masterClaimBwEdit"
+                                    name="CLAIM_BW"
+                                    class="form-control po-input decimal-input"
+                                    readonly
+                                    style="background:#f5f6f8"
+                                    placeholder="0,00">
+                            </div>
+
+                            <div class="col-md-3">
 
                                 <label class="po-label">
                                     Total Terima Qty
@@ -885,7 +993,7 @@
 
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-3">
 
                                 <label class="po-label">
                                     Total Terima BW
@@ -900,18 +1008,18 @@
                                     placeholder="0,00">
 
                             </div>
-                                                        <div class="col-md-6">
 
-                                <label class="po-label">
-                                    Harga *
-                                </label>
+                            <div class="col-md-6">
+                                <label class="po-label">BW (Final)</label>
 
                                 <input
                                     type="text"
-                                    id="masterHargaEdit"
-                                    class="form-control po-input rupiah-input"
-                                    placeholder="0">
-
+                                    id="masterBayarBwEdit"
+                                    name="TOTAL_BAYAR_BW"
+                                    class="form-control po-input decimal-input"
+                                    readonly
+                                    style="background:#f5f6f8"
+                                    placeholder="0,00">
                             </div>
 
                             <div class="col-md-6">
@@ -1193,19 +1301,6 @@
 
 </div>
 
-<!-- MODAL DETAIL PO -->
-<div class="modal fade" id="poDetail" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Detail PO</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="poDetailBody">Loading...</div>
-        </div>
-    </div>
-</div>
-
 <style>
     .table-box{
         min-height:300px;
@@ -1351,7 +1446,7 @@
 
         date_to: '',
 
-        order: 'PO_DATE',
+        order: 'PO',
 
         dir: 'DESC'
     };
@@ -1549,85 +1644,92 @@
                 let actionBtn = `
                     <button
                         class="btn btn-outline-primary exportPdf"
-                        title="Print PDF"
                         data-po="${row.PO}"
                         data-plant="${row.PLANT}">
-
                         Print
-
                     </button>
-                `;
-
-                /*
-                |--------------------------------------------------------------------------
-                | ONLY NOT RECEIVED
-                |--------------------------------------------------------------------------
-                */
-
-                if(
-                    row.STATUS_PO !== 'RECEIVED'
-                    &&
-                    (
-                        LOGIN_ROLE == 1 ||
-                        row.CREATED_BY === LOGIN_USER
-                    )
-                ){
-
-                    actionBtn += `
-
-                        <button
-                            class="btn btn-outline-warning editBtn"
-                            data-po="${row.PO}"
-                            data-plant="${row.PLANT}">
-
-                            Edit
-
-                        </button>
-
-                        <button
-                            class="btn btn-outline-danger deleteBtn"
-                            data-po="${row.PO}"
-                            data-plant="${row.PLANT}">
-
-                            Hapus
-
-                        </button>
-
                     `;
-                }
-                if(row.STATUS_PO === 'RECEIVED'){
 
-                    actionBtn += `
-                        <span class="badge bg-success" style="border-radius: 0px; padding-top: 7px;">
-                            LOCKED
-                        </span>
-                    `;
-                }
+                    if (row.STATUS === 'OPEN') {
+
+                        actionBtn += `
+                            <button
+                                class="btn btn-outline-warning editBtn"
+                                data-po="${row.PO}"
+                                data-plant="${row.PLANT}">
+                                Edit
+                            </button>
+
+                            <button
+                                class="btn btn-outline-danger deleteBtn"
+                                data-po="${row.PO}"
+                                data-plant="${row.PLANT}">
+                                Hapus
+                            </button>
+                        `;
+
+                    } else {
+
+                        actionBtn += `
+                            <span class="badge bg-success">
+                                LOCKED
+                            </span>
+                        `;
+
+                    }
 
                 let statusBadge = '';
 
-                if(row.STATUS_PO === 'OPEN'){
+                switch (row.STATUS) {
 
-                    statusBadge =
-                        `<span class="badge bg-warning">
-                            OPEN
-                        </span>`;
-                }
+                    case 'OPEN':
 
-                if(row.STATUS_PO === 'PARTIAL'){
+                        statusBadge = `
+                            <span class="badge bg-warning">
+                                OPEN
+                            </span>
+                        `;
 
-                    statusBadge =
-                        `<span class="badge bg-info">
-                            PARTIAL
-                        </span>`;
-                }
+                        break;
 
-                if(row.STATUS_PO === 'RECEIVED'){
+                    case 'RECEIVED':
 
-                    statusBadge =
-                        `<span class="badge bg-success">
-                            RECEIVED
-                        </span>`;
+                        statusBadge = `
+                            <span class="badge bg-success">
+                                RECEIVED
+                            </span>
+                        `;
+
+                        break;
+
+                    case 'PARTIAL':
+
+                        statusBadge = `
+                            <span class="badge bg-info">
+                                PARTIAL
+                            </span>
+                        `;
+
+                        break;
+
+                    case 'PAID':
+
+                        statusBadge = `
+                            <span class="badge bg-primary">
+                                PAID
+                            </span>
+                        `;
+
+                        break;
+
+                    default:
+
+                        statusBadge = `
+                            <span class="badge bg-secondary">
+                                -
+                            </span>
+                        `;
+
                 }
 
                 var tr = `
@@ -2253,67 +2355,116 @@
             $('#masterMatiQty' + prefix).val()
         ) || 0;
 
-        let matiBw = parseDecimalID(
-            $('#masterMatiBw' + prefix).val()
+        let actualTimbang = parseDecimalID(
+            $('#masterActualTimbang' + prefix).val()
         ) || 0;
 
-        let susutBw = parseDecimalID(
-            $('#masterSusutBw' + prefix).val()
+        let claimQty = parseDecimalID(
+            $('#masterClaimQty' + prefix).val()
         ) || 0;
-
-        // ================= AVG BW =================
-
-        let avgBw = 0;
-
-        if(qty > 0){
-
-            avgBw = berat / qty;
-
-        }
-
-        // ================= TOTAL TERIMA QTY =================
-
-        let totalQty = qty - matiQty;
-
-        if(totalQty < 0){
-
-            totalQty = 0;
-
-        }
-
-        // ================= TOTAL TERIMA BW =================
-
-        let totalBw = berat - matiBw - susutBw;
-
-        if(totalBw < 0){
-
-            totalBw = 0;
-
-        }
-
-        // ================= AVG BW =================
-
-        $('#masterAvgBw' + prefix).val(
-            formatDecimalID(avgBw)
-        );
-
-        // ================= TOTAL TERIMA =================
-
-        $('#masterTerimaQty' + prefix).val(
-            formatDecimalID(totalQty)
-        );
-
-        $('#masterTerimaBw' + prefix).val(
-            formatDecimalID(totalBw)
-        );
-
-        // ================= TOTAL =================
 
         let harga = parseRupiah(
             $('#masterHarga' + prefix).val()
         ) || 0;
 
-        let total = totalBw * harga;
+        // ================= VALIDASI RINGAN =================
+
+        if (matiQty > qty) {
+            matiQty = qty;
+        }
+
+        if (claimQty > matiQty) {
+            claimQty = matiQty;
+        }
+
+        // ================= AVG BW =================
+
+        let avgBw = 0;
+
+        if (qty > 0) {
+            avgBw = berat / qty;
+        }
+
+        // ================= MATI BW =================
+
+        let matiBw = avgBw * matiQty;
+
+        // ================= TOTAL TERIMA QTY =================
+
+        let totalTerimaQty = qty - matiQty;
+
+        if (totalTerimaQty < 0) {
+            totalTerimaQty = 0;
+        }
+
+        // ================= TOTAL TERIMA BW =================
+
+        let maxTerimaBw = berat - matiBw;
+
+        let susutBw = 0;
+        let totalTerimaBw = 0;
+
+        if (actualTimbang > 0) {
+
+            if (actualTimbang > maxTerimaBw) {
+                actualTimbang = maxTerimaBw;
+            }
+
+            susutBw = maxTerimaBw - actualTimbang;
+            totalTerimaBw = actualTimbang;
+
+        } else {
+
+            susutBw = 0;
+            totalTerimaBw = maxTerimaBw;
+
+        }
+
+        // ================= CLAIM =================
+
+        let claimBw = avgBw * claimQty;
+
+        // ================= TOTAL BAYAR =================
+
+        let totalBayarBw = totalTerimaBw - claimBw;
+
+        if (totalBayarBw < 0) {
+            totalBayarBw = 0;
+        }
+
+        // ================= TOTAL =================
+
+        let total = totalBayarBw * harga;
+
+        // ================= SET VALUE =================
+
+        $('#masterAvgBw' + prefix).val(
+            formatDecimalID(avgBw)
+        );
+
+        $('#masterMatiBw' + prefix).val(
+            formatDecimalID(matiBw)
+        );
+
+        $('#masterSusutBw' + prefix).val(
+            formatDecimalID(susutBw)
+        );
+
+        $('#masterTerimaQty' + prefix).val(
+            formatDecimalID(totalTerimaQty)
+        );
+
+        $('#masterTerimaBw' + prefix).val(
+            formatDecimalID(totalTerimaBw)
+        );
+
+        $('#masterClaimBw' + prefix).val(
+            formatDecimalID(claimBw)
+        );
+
+        $('#masterBayarBw' + prefix).val(
+            formatDecimalID(totalBayarBw)
+        );
 
         $('#masterTotal' + prefix).val(
             formatMoneyID(total)
@@ -2323,7 +2474,7 @@
 
     $(document).on(
         'keyup change',
-        '#masterJumlah,#masterBerat,#masterHarga,#masterMatiQty,#masterMatiBw,#masterSusutBw',
+        '#masterJumlah,#masterBerat,#masterHarga,#masterMatiQty,#masterActualTimbang,#masterClaimQty',
         function(){
 
             calculateActualHeader();
@@ -2333,7 +2484,7 @@
 
     $(document).on(
         'keyup change',
-        '#masterJumlahEdit,#masterBeratEdit,#masterHargaEdit,#masterMatiQtyEdit,#masterMatiBwEdit,#masterSusutBwEdit',
+        '#masterJumlahEdit,#masterBeratEdit,#masterHargaEdit,#masterMatiQtyEdit,#masterActualTimbangEdit,#masterClaimQtyEdit',
         function(){
 
             calculateActualHeader(true);
@@ -2560,12 +2711,12 @@
                     $('#masterMatiQty').val()
                 ),
 
-                MATI_BW : parseDecimalID(
-                    $('#masterMatiBw').val()
+                ACTUAL_HASIL_TIMBANG : parseDecimalID(
+                    $('#masterActualTimbang').val()
                 ),
 
-                SUSUT_BW : parseDecimalID(
-                    $('#masterSusutBw').val()
+                CLAIM_QTY : parseDecimalID(
+                    $('#masterClaimQty').val()
                 ),
 
                 // ================= OTHER =================
@@ -2624,6 +2775,14 @@
                     $('#masterTerimaQty').val('');
 
                     $('#masterTerimaBw').val('');
+
+                    $('#masterActualTimbang').val('');
+
+                    $('#masterClaimQty').val('');
+
+                    $('#masterClaimBw').val('');
+
+                    $('#masterBayarBw').val('');
 
                     calculateActualHeader();
 
@@ -2768,6 +2927,18 @@
                     $('#masterTerimaBwEdit')
                         .val(formatDecimalID(h.TOTAL_TERIMA_BW));
 
+                    $('#masterActualTimbangEdit')
+                        .val(formatDecimalID(h.ACTUAL_HASIL_TIMBANG));
+
+                    $('#masterClaimQtyEdit')
+                        .val(formatDecimalID(h.CLAIM_QTY));
+
+                    $('#masterClaimBwEdit')
+                        .val(formatDecimalID(h.CLAIM_BW));
+
+                    $('#masterBayarBwEdit')
+                        .val(formatDecimalID(h.TOTAL_BAYAR_BW));
+
                     $('#masterHargaEdit')
                         .val(formatMoneyID(h.HARGA));
 
@@ -2862,12 +3033,12 @@
                 $('#masterMatiQtyEdit').val()
             );
 
-            let matiBw = parseDecimalID(
-                $('#masterMatiBwEdit').val()
+            let actualHasilTimbang = parseDecimalID(
+                $('#masterActualTimbangEdit').val()
             );
 
-            let susutBw = parseDecimalID(
-                $('#masterSusutBwEdit').val()
+            let claimQty = parseDecimalID(
+                $('#masterClaimQtyEdit').val()
             );
 
             /*
@@ -2903,22 +3074,6 @@
             if (matiQty > masterJumlah) {
 
                 alert('Mati Qty tidak boleh melebihi Qty');
-
-                return;
-
-            }
-
-            if (matiBw > masterBerat) {
-
-                alert('Mati BW tidak boleh melebihi Weight');
-
-                return;
-
-            }
-
-            if ((matiBw + susutBw) > masterBerat) {
-
-                alert('Mati BW + Susut BW melebihi Weight');
 
                 return;
 
@@ -3009,9 +3164,9 @@
 
                     MATI_QTY: matiQty,
 
-                    MATI_BW: matiBw,
+                    ACTUAL_HASIL_TIMBANG: actualHasilTimbang,
 
-                    SUSUT_BW: susutBw,
+                    CLAIM_QTY: claimQty,
 
                     HARGA: masterHarga,
 
