@@ -10,19 +10,7 @@ $roleId    = $this->session->userdata('role_id');
         <div class="col-md-2">
             <div class="summary-card">
                 <div class="summary-label">
-                    TOTAL PO
-                </div>
-
-                <div class="summary-value" id="sumPO">
-                    0
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-2">
-            <div class="summary-card">
-                <div class="summary-label">
-                    SUPPLIER
+                    OPEN
                 </div>
 
                 <div class="summary-value" id="sumSupplier">
@@ -34,7 +22,7 @@ $roleId    = $this->session->userdata('role_id');
         <div class="col-md-2">
             <div class="summary-card">
                 <div class="summary-label">
-                    CUSTOMER
+                    RECEIVED
                 </div>
 
                 <div class="summary-value" id="sumCustomer">
@@ -46,16 +34,16 @@ $roleId    = $this->session->userdata('role_id');
         <div class="col-md-2">
             <div class="summary-card">
                 <div class="summary-label">
-                    TOTAL QTY
+                    PAID
                 </div>
 
-                <div class="summary-value" id="sumQty">
+                <div class="summary-value" id="sumPaid">
                     0
                 </div>
             </div>
         </div>
 
-        <div class="col-md-2">
+        <div class="col-md-3">
             <div class="summary-card">
                 <div class="summary-label">
                     TOTAL WEIGHT
@@ -67,7 +55,7 @@ $roleId    = $this->session->userdata('role_id');
             </div>
         </div>
 
-        <div class="col-md-2">
+        <div class="col-md-3">
             <div class="summary-card summary-money">
                 <div class="summary-label">
                     TOTAL AMOUNT
@@ -326,6 +314,126 @@ $roleId    = $this->session->userdata('role_id');
     .summary-money .summary-value{
         color:#0F4C81;
     }
+    .table th{
+        white-space:nowrap;
+        font-size:14px;
+    }
+
+    .table td{
+        white-space:nowrap;
+    }
+
+    .table-responsive{
+
+        max-height:550px;
+
+    }
+
+    thead th{
+
+        position:sticky;
+
+        top:0;
+
+        z-index:5;
+
+        background:#0F4C81;
+
+        color:#000;
+
+        font-weight:600;
+
+        border:none;
+
+        padding:14px 12px;
+
+        font-size:13px;
+
+        letter-spacing:.3px;
+
+        text-align: center;
+
+        padding: 10px 15px !important;
+
+    }
+
+    .text-money{
+
+        white-space:nowrap;
+
+    }
+
+    .report-table-card{
+
+        background:#fff;
+
+        border-radius:18px;
+
+        overflow:hidden;
+
+        box-shadow:0 12px 35px rgba(15,23,42,.06);
+
+    }
+
+    tbody tr{
+
+        transition:.2s;
+
+    }
+
+    tbody tr:hover{
+        background:#eef7ff;
+    }
+
+    tbody tr:nth-child(even){
+
+        background:#fbfcfd;
+
+    }
+
+    .badge-open{
+
+        background:#FFF6D8;
+
+        color:#C68600;
+
+    }
+
+    .badge-received{
+
+        background:#DCFCE7;
+
+        color:#15803D;
+
+    }
+
+    .badge-paid{
+
+        background:#DBEAFE;
+
+        color:#2563EB;
+
+    }
+
+    .po-number{
+
+        font-weight:700;
+
+        color:#0F4C81;
+
+        cursor:pointer;
+
+    }
+
+    .material{
+
+        max-width:180px;
+
+        overflow:hidden;
+
+        text-overflow:ellipsis;
+
+    }
 </style>
 
 <script>
@@ -481,25 +589,23 @@ const POReport = {
     renderSummary(summary){
 
         if(!summary){
-
             return;
-
         }
 
         $('#sumPO').text(
             this.money(summary.TOTAL_PO || 0)
         );
 
-        $('#sumSupplier').text(
-            this.money(summary.TOTAL_SUPPLIER || 0)
+        $('#sumOpen').text(
+            this.money(summary.TOTAL_OPEN || 0)
         );
 
-        $('#sumCustomer').text(
-            this.money(summary.TOTAL_CUSTOMER || 0)
+        $('#sumReceived').text(
+            this.money(summary.TOTAL_RECEIVED || 0)
         );
 
-        $('#sumQty').text(
-            this.decimal(summary.TOTAL_QTY || 0)
+        $('#sumPaid').text(
+            this.money(summary.TOTAL_PAID || 0)
         );
 
         $('#sumWeight').text(
@@ -509,176 +615,166 @@ const POReport = {
         $('#sumAmount').text(
             'Rp ' + this.money(summary.TOTAL_AMOUNT || 0)
         );
+
     },
 
     render(rows){
+
         const wrap = $('#poReportWrapper').empty();
 
         if(!rows || !rows.length){
+
             wrap.html(`
                 <div class="text-center py-5 text-muted">
                     Data tidak ditemukan
                 </div>
             `);
+
             return;
         }
 
-        const grouped = {};
+        const badge = (status)=>{
 
-        rows.forEach(r=>{
-            const key = r.PO+'|'+r.PLANT;
+            switch((status || '').toUpperCase()){
 
-            if(!grouped[key]){
-                grouped[key] = {
-                    PO: r.PO,
-                    PLANT_NAME: r.PLANT_NAME,
-                    PO_DATE: r.PO_DATE,
-                    PO_NAME: r.PO_NAME,
-                    SUPPLIER: r.SUPPLIER,
-                    SUPPLIER_NAME: r.SUPPLIER_NAME,
-                    STATUS: r.STATUS,
-                    REMARK: r.REMARK,
+                case 'PAID':
+                    return '<span class="badge bg-primary">PAID</span>';
 
-                    NO_TRUCK: r.NO_TRUCK,
-                    DRIVER: r.DRIVER,
+                case 'PARTIAL':
+                    return '<span class="badge bg-info">PARTIAL</span>';
 
-                    HEADER_QTY: r.HEADER_QTY,
-                    HEADER_BERAT: r.HEADER_BERAT,
-                    HEADER_HARGA: r.HEADER_HARGA,
-                    HEADER_TOTAL: r.HEADER_TOTAL,
+                case 'RECEIVED':
+                    return '<span class="badge bg-success">RECEIVED</span>';
 
-                    DETAIL:[]
-                };
+                default:
+                    return '<span class="badge bg-warning text-dark">OPEN</span>';
+
             }
 
-            grouped[key].DETAIL.push(r);
+        };
+
+        let html = `
+        <div class="report-table-card">
+            <div class="table-responsive">
+
+                <table class="table table-bordered table-hover table-sm align-middle">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>PO</th>
+                            <th>Date</th>
+                            <th>Plant</th>
+                            <th>Supplier</th>
+                            <th>Material</th>
+
+                            <th class="text-end">Qty</th>
+                            <th class="text-end">Weight</th>
+                            <th class="text-end">Avg BW</th>
+
+                            <th class="text-end">Dead Qty</th>
+                            <th class="text-end">Dead BW</th>
+
+                            <th class="text-end">Actual</th>
+                            <th class="text-end">Shrink</th>
+
+                            <th class="text-end">Receive Qty</th>
+                            <th class="text-end">Receive BW</th>
+
+                            <th class="text-end">Claim Qty</th>
+                            <th class="text-end">Claim BW</th>
+
+                            <th class="text-end">Payable BW</th>
+
+                            <th class="text-end">Price</th>
+                            <th class="text-end">Total</th>
+
+                            <th>Truck</th>
+                            <th>Driver</th>
+
+                            <th>Status</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+        `;
+
+        rows.forEach(r=>{
+
+            html += `
+
+                <tr>
+
+                    <td class="text-center po-number">#${r.PO}</td>
+
+                    <td class="text-center">${this.dateIndoLong(r.PO_DATE)}</td>
+
+                    <td class="text-center">${r.PLANT_NAME}</td>
+
+                    <td class="text-center">${r.SUPPLIER_NAME}</td>
+
+                    <td class="material">${r.MATERIAL_NAME}</td>
+
+                    <td class="text-end">${this.decimal(r.JUMLAH)}</td>
+
+                    <td class="text-end">${this.decimal(r.BERAT)}</td>
+
+                    <td class="text-end">${this.decimal(r.AVG_BW)}</td>
+
+                    <td class="text-end">${this.decimal(r.MATI_QTY)}</td>
+
+                    <td class="text-end">${this.decimal(r.MATI_BW)}</td>
+
+                    <td class="text-end">${this.decimal(r.ACTUAL_HASIL_TIMBANG)}</td>
+
+                    <td class="text-end">${this.decimal(r.SUSUT_BW)}</td>
+
+                    <td class="text-end">${this.decimal(r.TOTAL_TERIMA_QTY)}</td>
+
+                    <td class="text-end">${this.decimal(r.TOTAL_TERIMA_BW)}</td>
+
+                    <td class="text-end">${this.decimal(r.CLAIM_QTY)}</td>
+
+                    <td class="text-end">${this.decimal(r.CLAIM_BW)}</td>
+
+                    <td class="text-end">${this.decimal(r.TOTAL_BAYAR_BW)}</td>
+
+                    <td class="text-end text-money">
+                        Rp ${this.money(r.HARGA)}
+                    </td>
+
+                    <td class="text-end text-money fw-bold">
+                        Rp ${this.money(r.TOTAL)}
+                    </td>
+
+                    <td class="text-center">${r.NO_TRUCK || '-'}</td>
+
+                    <td class="text-center">${r.DRIVER || '-'}</td>
+
+                    <td class="text-center">${badge(r.STATUS)}</td>
+
+                </tr>
+
+            `;
+
         });
 
-        Object.values(grouped).forEach(po=>{
+        html += `
 
-            let badge = po.STATUS
-                ? `<span class="status-badge status-received">RECEIVED</span>`
-                : `<span class="status-badge status-open">OPEN</span>`;
+                    </tbody>
 
-            let detailRows = '';
-            let subQty = 0;
-            let subWeight = 0;
-            let subTotal = 0;
+                </table>
 
-            po.DETAIL.forEach(r=>{
+            </div>
+        </div>
 
-                subQty += Number(r.JUMLAH || 0);
-                subWeight += Number(r.BERAT || 0);
-                subTotal += Number(r.TOTAL || 0);
+        `;
 
-                detailRows += `
-                    <tr>
-                        <td>${r.CUSTOMER_NAME}</td>
-                        <td>${r.MATERIAL_NAME}</td>
-                        <td class="text-end">${this.decimal(r.JUMLAH)}</td>
-                        <td class="text-end">${this.decimal(r.BERAT)}</td>
-                        <td class="text-end">${this.money(r.HARGA)}</td>
-                        <td class="text-end fw-semibold">${this.money(r.TOTAL)}</td>
-                    </tr>
-                `;
-            });
+        wrap.html(html);
 
-            wrap.append(`
-                <div class="po-card">
-                    <div class="po-head">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="po-title">#${po.PO}</div>
-                            ${badge}
-                        </div>
-
-                        <div class="po-meta-grid">
-                            <div>
-                                <span class="meta-label">PLANT</span>
-                                <span class="meta-value">: ${po.PLANT_NAME}</span>
-                            </div>
-
-                            <div>
-                                <span class="meta-label">SUPPLIER</span>
-                                <span class="meta-value">: ${po.SUPPLIER} - ${po.SUPPLIER_NAME}</span>
-                            </div>
-
-                            <div>
-                                <span class="meta-label">TANGGAL PO</span>
-                                <span class="meta-value">: ${this.dateIndoLong(po.PO_DATE)}</span>
-                            </div>
-
-                            <div>
-                                <span class="meta-label">JENIS PO</span>
-                                <span class="meta-value">: ${po.PO_NAME || '-'}</span>
-                            </div>
-                            <div>
-                                <span class="meta-label">KETERANGAN</span>
-                                <span class="meta-value">: ${po.REMARK || '-'}</span>
-                            </div>
-                            <div>
-                                <span class="meta-label">SUPIR / PLAT NOMOR.</span>
-                                <span class="meta-value">
-                                    : ${po.DRIVER || '-'} / ${po.NO_TRUCK || '-'}
-                                </span>
-                            </div>
-
-                            <div>
-                                <span class="meta-label">JUMLAH</span>
-                                <span class="meta-value">
-                                    : ${this.decimal(po.HEADER_QTY)}
-                                </span>
-                            </div>
-
-                            <div>
-                                <span class="meta-label">BERAT</span>
-                                <span class="meta-value">
-                                    : ${this.decimal(po.HEADER_BERAT)}
-                                </span>
-                            </div>
-
-                            <div>
-                                <span class="meta-label">HARGA</span>
-                                <span class="meta-value">
-                                    : Rp ${this.money(po.HEADER_HARGA)}
-                                </span>
-                            </div>
-
-                            <div>
-                                <span class="meta-label">TOTAL</span>
-                                <span class="meta-value">
-                                    : Rp ${this.money(po.HEADER_TOTAL)}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="po-body">
-                        <table class="table table-bordered table-hover table-detail mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Customer</th>
-                                    <th>Material</th>
-                                    <th class="text-end">Jumlah</th>
-                                    <th class="text-end">Berat</th>
-                                    <th class="text-end">Harga</th>
-                                    <th class="text-end">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${detailRows}
-                                <tr class="subtotal-row">
-                                    <td colspan="2">SUBTOTAL</td>
-                                    <td class="text-end">${this.decimal(subQty)}</td>
-                                    <td class="text-end">${this.decimal(subWeight)}</td>
-                                    <td></td>
-                                    <td class="text-end">${this.money(subTotal)}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            `);
-        });
     },
 
     load(){

@@ -2390,10 +2390,6 @@ class Receive extends MY_Controller {
 
             'RECEIVE_DATE'  => 'Receive Date',
 
-            'PEMBAYARAN'    => 'Pembayaran',
-
-            'JENIS_PAY'     => 'Jenis Pembayaran'
-
         ];
 
         foreach($required as $key => $label)
@@ -2441,12 +2437,6 @@ class Receive extends MY_Controller {
         $header['PO'] =
             trim($header['PO']);
 
-        $header['PEMBAYARAN'] =
-            trim($header['PEMBAYARAN']);
-
-        $header['JENIS_PAY'] =
-            trim($header['JENIS_PAY']);
-
         $header['NOTA'] =
             isset($header['NOTA'])
                 ? trim($header['NOTA'])
@@ -2470,11 +2460,11 @@ class Receive extends MY_Controller {
         $row = $this->Receive_model
             ->get_po_actual($plant, $po);
 
-        if(!$row){
+        if (!$row) {
             throw new Exception("PO tidak ditemukan.");
         }
 
-        if((int)$row['STATUS'] === 1){
+        if ($row['STATUS'] !== 'OPEN') {
             throw new Exception("PO sudah selesai di Receive.");
         }
 
@@ -3348,12 +3338,6 @@ class Receive extends MY_Controller {
 
                 $validated['header']['NO_REF'],
 
-            'PEMBAYARAN'=>
-
-                $validated['header']['PEMBAYARAN'],
-
-            'JENIS_PAY'=>'TEMPO',
-
             'TOTAL_QTY'=>
 
                 $allocation['summary']['receive_qty'],
@@ -3546,10 +3530,6 @@ class Receive extends MY_Controller {
                 'SALES_DATE' => $receiveHeader['RECEIVE_DATE'],
 
                 'SLIP_NO' => $receiveHeader['SLIP_NO'],
-
-                'PEMBAYARAN' => $receiveHeader['PEMBAYARAN'],
-
-                'JENIS_PAY' => $receiveHeader['JENIS_PAY'],
 
                 'NOTA' => $receiveHeader['NOTA'],
 

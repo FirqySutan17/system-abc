@@ -1084,6 +1084,30 @@
 
     }
 
+    .summary-table{
+        margin-bottom:0;
+    }
+
+    .summary-table th{
+        width:20%;
+        background:#f8f9fa;
+        font-weight:600;
+        vertical-align:middle;
+    }
+
+    .summary-table td{
+        width:30%;
+        font-weight:500;
+        vertical-align:middle;
+    }
+
+    .summary-table .grand-total th,
+    .summary-table .grand-total td{
+        font-size:16px;
+        font-weight:700;
+        background:#e7f1ff;
+    }
+
     @media(max-width:768px){
 
         .receive-card .modal-body{
@@ -1322,58 +1346,6 @@
                         </div>
 
                         <!-- ===================================================== -->
-                        <!-- PAYMENT -->
-                        <!-- ===================================================== -->
-
-                        <div class="receive-group-title">
-                            Payment Information
-                        </div>
-
-                        <div class="row g-3 mb-4">
-
-                            <div class="col-md-6">
-
-                                <label class="po-label">
-                                    Payment <span class="required">*</span>
-                                </label>
-
-                                <select
-                                    id="paymentAdd"
-                                    name="PEMBAYARAN"
-                                    class="form-select po-select"
-                                    required>
-
-                                    <option value="">-- SELECT --</option>
-                                    <option value="CASH">CASH</option>
-                                    <option value="TRANSFER">TRANSFER</option>
-
-                                </select>
-
-                            </div>
-
-                            <div class="col-md-6">
-
-                                <label class="po-label">
-                                    Payment Type <span class="required">*</span>
-                                </label>
-
-                                <select
-                                    id="jenisPayAdd"
-                                    name="JENIS_PAY"
-                                    class="form-select po-select"
-                                    required>
-
-                                    <option value="">-- SELECT --</option>
-                                    <option value="LUNAS">LUNAS</option>
-                                    <option value="TEMPO" selected>TEMPO</option>
-
-                                </select>
-
-                            </div>
-
-                        </div>
-
-                        <!-- ===================================================== -->
                         <!-- OTHER -->
                         <!-- ===================================================== -->
 
@@ -1432,265 +1404,76 @@
 
                         </div>
 
-                        <!-- ========================================================= -->
-                        <!-- Production -->
-                        <!-- ========================================================= -->
+                        <div class="table-responsive mt-3">
 
-                        <div class="receive-group-title">
-                            Production
-                        </div>
+                            <table class="table table-bordered align-middle summary-table">
 
-                        <div class="row g-3 mb-4">
+                                <tbody>
 
-                            <div class="col-md-3">
+                                    <tr>
+                                        <th>Qty / Ekor</th>
+                                        <td id="masterQtyAdd">0 Ekor</td>
 
-                                <div class="metric-card">
+                                        <th>BW / Berat</th>
+                                        <td id="masterBwAdd">0 Kg</td>
+                                    </tr>
 
-                                    <div class="metric-label">
-                                        Qty Actual
-                                    </div>
+                                    <tr>
+                                        <th>Avg BW</th>
+                                        <td id="masterAvgBwAdd">0 Kg</td>
 
-                                    <div
-                                        id="masterQtyAdd"
-                                        class="metric-value">
-                                        -
-                                    </div>
+                                        <th>Harga</th>
+                                        <td id="masterHargaAdd">Rp 0</td>
+                                    </tr>
 
-                                    <div class="metric-unit">
-                                        Ekor
-                                    </div>
+                                    <tr>
+                                        <th>Mati Qty</th>
+                                        <td id="masterMatiQtyAdd">0 Ekor</td>
 
-                                </div>
+                                        <th>Mati BW</th>
+                                        <td id="masterMatiBwAdd">0 Kg</td>
+                                    </tr>
 
-                            </div>
+                                    <tr>
+                                        <th>Susut BW</th>
+                                        <td id="masterSusutBwAdd">0 Kg</td>
 
-                            <div class="col-md-3">
+                                        <th>Terima Qty</th>
+                                        <td id="masterTerimaQtyAdd">0 Ekor</td>
+                                    </tr>
 
-                                <div class="metric-card">
+                                    <tr>
+                                        <th>Terima BW</th>
+                                        <td id="masterTerimaBwAdd">0 Kg</td>
 
-                                    <div class="metric-label">
-                                        Weight
-                                    </div>
+                                        <th>Klaim Qty</th>
+                                        <td id="masterClaimQtyAdd">0 Ekor</td>
+                                    </tr>
 
-                                    <div
-                                        id="masterBwAdd"
-                                        class="metric-value">
-                                        -
-                                    </div>
+                                    <tr>
+                                        <th>Klaim BW</th>
+                                        <td id="masterClaimBwAdd">0 Kg</td>
 
-                                    <div class="metric-unit">
-                                        Kg
-                                    </div>
+                                        <th>Total BW</th>
+                                        <td id="masterPayableBwAdd">0 Kg</td>
+                                    </tr>
 
-                                </div>
+                                    <tr>
+                                        <th>Truck</th>
+                                        <td id="masterTruckAdd">-</td>
 
-                            </div>
+                                        <th>Driver</th>
+                                        <td id="masterDriverAdd">-</td>
+                                    </tr>
 
-                            <div class="col-md-3">
+                                    <tr class="grand-total">
+                                        <th>Grand Total</th>
+                                        <td id="masterTotalAdd" colspan="3">Rp 0</td>
+                                    </tr>
 
-                                <div class="metric-card">
+                                </tbody>
 
-                                    <div class="metric-label">
-                                        Avg BW
-                                    </div>
-
-                                    <div
-                                        id="masterAvgBwAdd"
-                                        class="metric-value">
-                                        -
-                                    </div>
-
-                                    <div class="metric-unit">
-                                        Kg
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                            <div class="col-md-3">
-
-                                <div class="metric-card">
-
-                                    <div class="metric-label">
-                                        Price
-                                    </div>
-
-                                    <div
-                                        id="masterHargaAdd"
-                                        class="metric-money">
-                                        Rp 0
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        <!-- ========================================================= -->
-                        <!-- Quality -->
-                        <!-- ========================================================= -->
-
-                        <div class="receive-group-title">
-                            Quality
-                        </div>
-
-                        <div class="row g-3 mb-4">
-
-                            <div class="col-md-3">
-
-                                <div class="metric-card danger">
-
-                                    <div class="metric-label">
-                                        Dead Qty
-                                    </div>
-
-                                    <div
-                                        id="masterMatiQtyAdd"
-                                        class="metric-value">
-                                        0
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                            <div class="col-md-3">
-
-                                <div class="metric-card danger">
-
-                                    <div class="metric-label">
-                                        Dead BW
-                                    </div>
-
-                                    <div
-                                        id="masterMatiBwAdd"
-                                        class="metric-value">
-                                        0
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                            <div class="col-md-3">
-
-                                <div class="metric-card warning">
-
-                                    <div class="metric-label">
-                                        Shrink BW
-                                    </div>
-
-                                    <div
-                                        id="masterSusutBwAdd"
-                                        class="metric-value">
-                                        0
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                            <div class="col-md-3">
-
-                                <div class="metric-card success">
-
-                                    <div class="metric-label">
-                                        Receive Qty
-                                    </div>
-
-                                    <div
-                                        id="masterTerimaQtyAdd"
-                                        class="metric-value">
-                                        0
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        <!-- ========================================================= -->
-                        <!-- Financial & Logistic -->
-                        <!-- ========================================================= -->
-
-                        <div class="receive-group-title">
-                            Financial & Logistic
-                        </div>
-
-                        <div class="row g-3">
-
-                            <div class="col-md-4">
-
-                                <div class="metric-card success">
-
-                                    <div class="metric-label">
-                                        Receive BW
-                                    </div>
-
-                                    <div
-                                        id="masterTerimaBwAdd"
-                                        class="metric-value">
-                                        0
-                                    </div>
-
-                                    <div class="metric-unit">
-                                        Kg
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                            <div class="col-md-4">
-
-                                <div class="metric-card primary">
-
-                                    <div class="metric-label">
-                                        Grand Total
-                                    </div>
-
-                                    <div
-                                        id="masterTotalAdd"
-                                        class="metric-money">
-                                        Rp 0
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                            <div class="col-md-4">
-
-                                <div class="info-box">
-
-                                    <div class="info-item">
-
-                                        <label>Truck</label>
-
-                                        <span id="masterTruckAdd">
-                                            -
-                                        </span>
-
-                                    </div>
-
-                                    <div class="info-divider"></div>
-
-                                    <div class="info-item">
-
-                                        <label>Driver</label>
-
-                                        <span id="masterDriverAdd">
-                                            -
-                                        </span>
-
-                                    </div>
-
-                                </div>
-
-                            </div>
+                            </table>
 
                         </div>
 
@@ -2100,502 +1883,6 @@
                         class="btn btn-primary">
 
                         Simpan Receive
-
-                    </button>
-
-                </div>
-
-            </div>
-
-        </form>
-
-    </div>
-
-</div>
-
-<div class="modal fade"
-    id="receiveEdit"
-    tabindex="-1"
-    aria-hidden="true">
-
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-
-        <form id="freceiveEdit"
-            enctype="multipart/form-data">
-
-            <div class="modal-content receive-card">
-
-                <!-- HEADER -->
-                <div class="modal-header">
-
-                    <h5 class="modal-title">
-                        RECEIVE - EDIT
-                    </h5>
-
-                    <button type="button"
-                        class="btn-close btn-close-white"
-                        data-bs-dismiss="modal"></button>
-
-                </div>
-
-                <div class="modal-body">
-
-                    <!-- =====================================
-                    HEADER SECTION
-                    ====================================== -->
-
-                    <div class="receive-section">
-
-                        <div class="receive-section-title">
-                            HEADER RECEIVE
-                        </div>
-
-                        <div class="row g-3">
-
-                            <!-- RECEIVE -->
-                            <div class="col-md-4">
-
-                                <label class="form-label">
-                                    No Receive
-                                </label>
-
-                                <input type="text"
-                                    id="RECEIVE_EDIT_DISPLAY"
-                                    class="form-control"
-                                    readonly
-                                    style="background:#f1f5f9">
-
-                                <input type="hidden"
-                                    id="RECEIVE_EDIT_HIDDEN"
-                                    name="RECEIVE">
-
-                            </div>
-
-                            <!-- PLANT -->
-                            <div class="col-md-4">
-
-                                <label class="form-label">
-                                    Plant
-                                </label>
-
-                                <input type="text"
-                                    id="PLANT_EDIT_DISPLAY"
-                                    class="form-control"
-                                    readonly
-                                    style="background:#f1f5f9">
-
-                                <input type="hidden"
-                                    id="PLANT_EDIT_HIDDEN"
-                                    name="PLANT">
-
-                            </div>
-
-                            <!-- PO -->
-                            <div class="col-md-4">
-
-                                <label class="form-label">
-                                    PO
-                                </label>
-
-                                <input type="text"
-                                    id="PO_EDIT_DISPLAY"
-                                    class="form-control"
-                                    readonly
-                                    style="background:#f1f5f9">
-
-                                <input type="hidden"
-                                    id="PO_EDIT_HIDDEN"
-                                    name="PO">
-
-                            </div>
-
-                            <!-- RECEIVE DATE -->
-                            <div class="col-md-3">
-
-                                <label class="form-label">
-                                    Receive Date *
-                                </label>
-
-                                <input type="date"
-                                    id="RECEIVE_DATE_EDIT"
-                                    name="RECEIVE_DATE"
-                                    class="form-control"
-                                    required>
-
-                            </div>
-
-                            <!-- SUPPLIER -->
-                            <div class="col-md-3">
-
-                                <label class="form-label">
-                                    Supplier
-                                </label>
-
-                                <input type="text"
-                                    id="SUPPLIER_EDIT_DISPLAY"
-                                    class="form-control"
-                                    readonly
-                                    style="background:#f1f5f9">
-
-                                <input type="hidden"
-                                    id="SUPPLIER_EDIT_HIDDEN"
-                                    name="SUPPLIER">
-
-                            </div>
-
-                            <!-- PAYMENT -->
-                            <div class="col-md-3">
-
-                                <label class="form-label">
-                                    Pembayaran *
-                                </label>
-
-                                <select id="paymentEdit"
-                                    name="PEMBAYARAN"
-                                    class="form-select"
-                                    required>
-
-                                    <option value="">
-                                        -- PILIH --
-                                    </option>
-
-                                    <option value="CASH">
-                                        CASH
-                                    </option>
-
-                                    <option value="TRANSFER">
-                                        TRANSFER
-                                    </option>
-
-                                </select>
-
-                            </div>
-
-                            <!-- JENIS PAY -->
-                            <div class="col-md-3">
-
-                                <label class="form-label">
-                                    Jenis Pay *
-                                </label>
-
-                                <select id="jenisPayEdit"
-                                    name="JENIS_PAY"
-                                    class="form-select"
-                                    required>
-
-                                    <option value="">
-                                        -- PILIH --
-                                    </option>
-
-                                    <option value="LUNAS">
-                                        LUNAS
-                                    </option>
-
-                                    <option value="TEMPO">
-                                        TEMPO
-                                    </option>
-
-                                </select>
-
-                            </div>
-
-                            <!-- NOTA -->
-                            <div class="col-md-3">
-
-                                <label class="form-label">
-                                    No Nota
-                                </label>
-
-                                <input type="text"
-                                    id="NOTA_EDIT"
-                                    name="NOTA"
-                                    class="form-control"
-                                    placeholder="Opsional..">
-
-                            </div>
-
-                            <!-- NO REF -->
-                            <div class="col-md-3">
-
-                                <label class="form-label">
-                                    No Ref
-                                </label>
-
-                                <input type="text"
-                                    id="NO_REF_EDIT"
-                                    name="NO_REF"
-                                    class="form-control"
-                                    placeholder="Opsional..">
-
-                            </div>
-
-                            <!-- ATTACHMENT -->
-                            <div class="col-md-6">
-
-                                <label class="form-label">
-                                    Attachment Baru
-                                </label>
-
-                                <input type="file"
-                                    id="ATTACHMENT_EDIT"
-                                    name="ATTACHMENT"
-                                    class="form-control">
-
-                            </div>
-
-                            <!-- REMARK -->
-                            <div class="col-md-12">
-
-                                <label class="form-label">
-                                    Remark
-                                </label>
-
-                                <textarea id="REMARK_EDIT"
-                                    name="REMARK"
-                                    rows="2"
-                                    class="form-control"
-                                    placeholder="Opsional.."></textarea>
-
-                            </div>
-                            
-                            <div class="col-md-12" style="margin-top: 0px">
-                                <!-- PREVIEW -->
-                                <div id="attachmentPreviewEdit"
-                                    class="mt-3 d-none">
-
-                                    <!-- IMAGE -->
-                                    <img id="attachmentImageEdit"
-                                        src=""
-                                        class="img-fluid rounded border d-none"
-                                        style="
-                                            max-height:220px;
-                                            object-fit:contain;
-                                            background:#fff;
-                                            padding:10px;
-                                        ">
-
-                                    <!-- PDF -->
-                                    <iframe id="attachmentPdfEdit"
-                                        class="w-100 border rounded d-none"
-                                        style="
-                                            height:320px;
-                                            background:#fff;
-                                        "></iframe>
-
-                                    <!-- FILE -->
-                                    <div id="attachmentFileEdit"
-                                        class="d-none">
-
-                                        <div class="alert alert-light border mb-0">
-
-                                            <div class="fw-semibold mb-1">
-                                                Attachment tersedia
-                                            </div>
-
-                                            <a href="#"
-                                                target="_blank"
-                                                id="ATTACHMENT_EDIT_LINK"
-                                                class="btn btn-sm btn-primary">
-
-                                                Download File
-
-                                            </a>
-
-                                        </div>
-
-                                    </div>
-
-                                </div>
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <!-- =====================================
-                    MASTER PO
-                    ====================================== -->
-
-                    <div class="po-master-card mb-3">
-
-                        <div class="po-master-title">
-                            MASTER PO INFORMATION
-                        </div>
-
-                        <div class="row g-3">
-
-                            <!-- MATERIAL -->
-                            <div class="col-md-4">
-
-                                <label class="form-label">
-                                    Material
-                                </label>
-
-                                <input type="text"
-                                    id="poMaterialEdit"
-                                    class="form-control"
-                                    readonly>
-
-                            </div>
-
-                            <!-- QTY -->
-                            <div class="col-md-2">
-
-                                <label class="form-label">
-                                    Qty
-                                </label>
-
-                                <input type="text"
-                                    id="poJumlahEdit"
-                                    class="form-control text-end"
-                                    readonly>
-
-                            </div>
-
-                            <!-- BERAT -->
-                            <div class="col-md-2">
-
-                                <label class="form-label">
-                                    Berat
-                                </label>
-
-                                <input type="text"
-                                    id="poBeratEdit"
-                                    class="form-control text-end"
-                                    readonly>
-
-                            </div>
-
-                            <!-- HARGA -->
-                            <div class="col-md-2">
-
-                                <label class="form-label">
-                                    Harga
-                                </label>
-
-                                <input type="text"
-                                    id="poHargaEdit"
-                                    class="form-control text-end"
-                                    readonly>
-
-                            </div>
-
-                            <!-- TOTAL -->
-                            <div class="col-md-2">
-
-                                <label class="form-label">
-                                    Total
-                                </label>
-
-                                <input type="text"
-                                    id="poTotalEdit"
-                                    class="form-control text-end"
-                                    readonly>
-
-                            </div>
-
-                            <!-- TRUCK -->
-                            <div class="col-md-6">
-
-                                <label class="form-label">
-                                    Truck
-                                </label>
-
-                                <input type="text"
-                                    id="poTruckEdit"
-                                    class="form-control"
-                                    readonly>
-
-                            </div>
-
-                            <!-- DRIVER -->
-                            <div class="col-md-6">
-
-                                <label class="form-label">
-                                    Driver
-                                </label>
-
-                                <input type="text"
-                                    id="poDriverEdit"
-                                    class="form-control"
-                                    readonly>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <!-- =====================================
-                    DETAIL RECEIVE
-                    ====================================== -->
-
-                    <div class="receive-section">
-
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-
-                            <div class="receive-section-title mb-0">
-                                DETAIL RECEIVE
-                            </div>
-
-                            <button type="button"
-                                class="btn btn-warning btn-sm"
-                                id="btnAddRemainingRowEdit">
-
-                                + Remaining Row
-
-                            </button>
-
-                        </div>
-
-                        <div class="table-responsive">
-
-                            <table class="table table-bordered"
-                                id="receiveDetailTableEdit">
-
-                                <thead>
-
-                                    <tr>
-
-                                        <th>Customer</th>
-                                        <th>PO Type</th>
-                                        <th>Jumlah</th>
-                                        <th>Berat</th>
-                                        <th>Harga</th>
-                                        <th>Total</th>
-                                        <th>Susut Jumlah</th>
-                                        <th>Susut Berat</th>
-                                        <th>Keterangan</th>
-
-                                    </tr>
-
-                                </thead>
-
-                                <tbody></tbody>
-
-                            </table>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <!-- FOOTER -->
-                <div class="modal-footer">
-
-                    <button type="button"
-                        class="btn btn-light"
-                        data-bs-dismiss="modal">
-
-                        Tutup
-
-                    </button>
-
-                    <button type="submit"
-                        class="btn btn-primary">
-
-                        Update Receive
 
                     </button>
 
@@ -3358,6 +2645,12 @@
 
             receiveBw : 0,
 
+            claimQty : 0,
+
+            claimBw : 0,
+
+            payableBw : 0,
+
             harga : 0,
 
             total : 0
@@ -3889,6 +3182,7 @@
         $("#masterSusutBwAdd").text(
             formatDecimal(po.SUSUT_BW)
         );
+        
 
         $("#masterTerimaQtyAdd").text(
             formatDecimal(po.TOTAL_TERIMA_QTY)
@@ -4726,34 +4020,6 @@
 
         }
 
-        if($("#paymentAdd").val()==""){
-
-            Swal.fire({
-
-                icon:"warning",
-
-                title:"Pilih Payment."
-
-            });
-
-            return false;
-
-        }
-
-        if($("#jenisPayAdd").val()==""){
-
-            Swal.fire({
-
-                icon:"warning",
-
-                title:"Pilih Payment Type."
-
-            });
-
-            return false;
-
-        }
-
         let valid=true;
 
         $.each(receiveState.customerRows,function(i,row){
@@ -4831,10 +4097,6 @@
                 PO : receiveState.po.PO,
 
                 RECEIVE_DATE : $("#RECEIVE_DATE").val(),
-
-                PEMBAYARAN : $("#paymentAdd").val(),
-
-                JENIS_PAY : $("#jenisPayAdd").val(),
 
                 NOTA : $("input[name='NOTA']").val(),
 

@@ -97,21 +97,6 @@ class ReportInventory_model extends CI_Model {
 
         /*
         |--------------------------------------------------------------------------
-        | DETAIL
-        |--------------------------------------------------------------------------
-        */
-
-        $this->db->join(
-            'abc_mst_po_detail b',
-            '
-                a.PO = b.PO
-                AND a.PLANT = b.PLANT
-            ',
-            'inner'
-        );
-
-        /*
-        |--------------------------------------------------------------------------
         | PLANT
         |--------------------------------------------------------------------------
         */
@@ -155,22 +140,6 @@ class ReportInventory_model extends CI_Model {
             '
                 supplier.CUST COLLATE utf8mb4_unicode_ci =
                 a.SUPPLIER COLLATE utf8mb4_unicode_ci
-            ',
-            'left',
-            false
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | CUSTOMER
-        |--------------------------------------------------------------------------
-        */
-
-        $this->db->join(
-            'abc_cd_customer customer',
-            '
-                customer.CUST COLLATE utf8mb4_unicode_ci =
-                b.CUSTOMER COLLATE utf8mb4_unicode_ci
             ',
             'left',
             false
@@ -293,35 +262,41 @@ class ReportInventory_model extends CI_Model {
             a.SUPPLIER,
             supplier.FULL_NAME AS SUPPLIER_NAME,
 
-            a.STATUS,
-            a.REMARK,
+            a.MATERIAL,
+            material.MATERIAL_NAME,
+
+            a.JUMLAH,
+            a.BERAT,
+            a.AVG_BW,
+
+            a.MATI_QTY,
+            a.MATI_BW,
+
+            a.ACTUAL_HASIL_TIMBANG,
+            a.SUSUT_BW,
+
+            a.TOTAL_TERIMA_QTY,
+            a.TOTAL_TERIMA_BW,
+
+            a.CLAIM_QTY,
+            a.CLAIM_BW,
+
+            a.TOTAL_BAYAR_BW,
+
+            a.HARGA,
+            a.TOTAL,
 
             a.NO_TRUCK,
             a.DRIVER,
 
-            a.JUMLAH AS HEADER_QTY,
-            a.BERAT AS HEADER_BERAT,
-            a.HARGA AS HEADER_HARGA,
-            a.TOTAL AS HEADER_TOTAL,
-
-            b.SEQ_NO,
-            b.CUSTOMER,
-            customer.FULL_NAME AS CUSTOMER_NAME,
-
-            a.MATERIAL,
-            material.MATERIAL_NAME,
-
-            b.JUMLAH,
-            b.BERAT,
-            b.HARGA,
-            b.TOTAL
+            a.STATUS,
+            a.REMARK
         ", false);
 
         $this->base_po_report_query($filters);
 
         $this->db->order_by($order, $dir);
         $this->db->order_by('a.PO', 'DESC');
-        $this->db->order_by('b.SEQ_NO', 'ASC');
 
         if($limit > 0){
 
@@ -340,22 +315,21 @@ class ReportInventory_model extends CI_Model {
     public function get_po_summary($filters = [])
     {
         $this->db->select("
-            COUNT(DISTINCT a.PO) AS TOTAL_PO,
+            COUNT(*) AS TOTAL_PO,
 
-            COUNT(DISTINCT a.SUPPLIER)
-                AS TOTAL_SUPPLIER,
+            SUM(CASE WHEN a.STATUS = 'OPEN' THEN 1 ELSE 0 END) AS TOTAL_OPEN,
 
-            COUNT(DISTINCT b.CUSTOMER)
-                AS TOTAL_CUSTOMER,
+            SUM(CASE WHEN a.STATUS = 'RECEIVED' THEN 1 ELSE 0 END) AS TOTAL_RECEIVED,
 
-            SUM(b.JUMLAH)
-                AS TOTAL_QTY,
+            SUM(CASE WHEN a.STATUS = 'PAID' THEN 1 ELSE 0 END) AS TOTAL_PAID,
 
-            SUM(b.BERAT)
-                AS TOTAL_BERAT,
+            SUM(a.JUMLAH) AS TOTAL_QTY,
 
-            SUM(b.TOTAL)
-                AS TOTAL_AMOUNT
+            SUM(a.BERAT) AS TOTAL_BERAT,
+
+            SUM(a.TOTAL_BAYAR_BW) AS TOTAL_BAYAR_BW,
+
+            SUM(a.TOTAL) AS TOTAL_AMOUNT
         ", false);
 
         $this->base_po_report_query($filters);
@@ -367,10 +341,7 @@ class ReportInventory_model extends CI_Model {
 
     public function count_po_report($filters = [])
     {
-        $this->db->select(
-            'COUNT(DISTINCT a.PO) AS TOTAL',
-            false
-        );
+        $this->db->select('COUNT(*) AS TOTAL', false);
 
         $this->base_po_report_query($filters);
 

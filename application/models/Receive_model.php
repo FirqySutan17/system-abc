@@ -390,28 +390,15 @@ class Receive_model extends CI_Model {
 
         if($role_id !== 1){
 
-            $plants = json_decode(
-                $plant,
-                true
-            );
+            $plants = json_decode($plant, true);
 
             if(!is_array($plants)){
-
-                $plants = explode(
-                    ',',
-                    $plant
-                );
-
+                $plants = explode(',', $plant);
             }
 
             $this->db->where_in(
                 'r.PLANT',
                 $plants
-            );
-
-            $this->db->where(
-                'r.CREATED_BY',
-                $username
             );
 
         }
@@ -512,7 +499,7 @@ class Receive_model extends CI_Model {
 
             ->from("abc_mst_po")
 
-            ->where("STATUS",0)
+            ->where("STATUS", "OPEN")
 
             ->where("DELETED IS NULL",null,false)
 
@@ -569,7 +556,7 @@ class Receive_model extends CI_Model {
 
             ->where("p.PLANT", $plant)
 
-            ->where("p.STATUS", 0)
+            ->where("p.STATUS", "OPEN")
 
             ->where("p.DELETED IS NULL", null, false);
 
@@ -1328,7 +1315,7 @@ class Receive_model extends CI_Model {
 
         // 🔐 FILTER
         $this->db->where('r.PLANT', $plant);
-        $this->db->where('r.STATUS IS NULL', null, false);
+        $this->db->where('r.STATUS', 'OPEN');
 
         if (!empty($q)) {
             $this->db->like('r.PO', $q);
