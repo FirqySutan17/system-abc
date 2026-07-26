@@ -227,18 +227,8 @@ class Sales extends MY_Controller {
             ->get_customer_by_id($cust);
 
         if ($row) {
-
-            echo json_encode([
-
-                'id'   => $row['CUST'],
-
-                'text' => $row['CUST']
-                    .' - '.
-                    $row['FULL_NAME']
-            ]);
-
+            echo json_encode($row);
         } else {
-
             echo json_encode(null);
         }
     }
@@ -249,8 +239,34 @@ class Sales extends MY_Controller {
     public function get_material()
     {
         $term = $this->input->get('q');
-        $data = $this->Sales_model->search_material($term);
+        $selectedPlant = $this->input->get('plant');
+        $data = $this->Sales_model->search_material($term, $selectedPlant);
         echo json_encode($data);
+    }
+
+    public function get_stock_preview()
+    {
+        ob_clean();
+
+        header('Content-Type: application/json');
+
+        $plant = trim($this->input->get('plant', true));
+        $material = trim($this->input->get('material', true));
+
+        if (!$plant || !$material) {
+            echo json_encode([
+                'status' => false,
+                'message' => 'Parameter tidak lengkap'
+            ]);
+            return;
+        }
+
+        $stock = $this->Sales_model->get_company_stock($plant, $material);
+
+        echo json_encode([
+            'status' => true,
+            'stock' => $stock
+        ]);
     }
 
     public function get_plant_by_user()
@@ -319,7 +335,7 @@ class Sales extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
-        $this->db->trans_begin();
+        $this->db->trans_start();
 
         /*
         |--------------------------------------------------------------------------
@@ -339,6 +355,8 @@ class Sales extends MY_Controller {
         */
 
         $rows  = [];
+
+        $stockTransactions = [];
 
         $seq   = 1;
 
@@ -385,6 +403,35 @@ class Sales extends MY_Controller {
             $amount = $berat * $harga;
 
             $grand += $amount;
+
+            $stock = $this->Sales_model->get_company_stock($plant, $material);
+
+            $availableQty = (float)($stock['QTY'] ?? 0);
+            $availableBw  = (float)($stock['BW'] ?? 0);
+
+            if (
+                ($stock['STATUS'] ?? '') === 'NOT_FOUND' ||
+                $availableQty < $jumlah ||
+                $availableBw < $berat
+            ) {
+                $this->db->trans_rollback();
+
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Stok tidak mencukupi untuk material ' . $material
+                ]);
+
+                return;
+            }
+
+            $stockTransactions[] = [
+                'PLANT' => $plant,
+                'MATERIAL' => $material,
+                'QTY_OUT' => $jumlah,
+                'BW_OUT' => $berat,
+                'CREATED_AT' => date('Y-m-d H:i:s'),
+                'CREATED_BY' => $username
+            ];
 
             $rows[] = [
 
@@ -493,8 +540,16 @@ class Sales extends MY_Controller {
             'CREATED_BY' => $username
         ];
 
-        $this->Sales_model
-            ->insert_sales_header($header);
+        if (!$this->Sales_model->insert_sales_header($header)) {
+            $this->db->trans_rollback();
+
+            echo json_encode([
+                'status' => false,
+                'message' => 'Gagal menyimpan header sales'
+            ]);
+
+            return;
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -590,8 +645,90 @@ class Sales extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
-        $this->Sales_model
-            ->insert_sales_detail_batch($rows);
+        if (!$this->Sales_model->insert_sales_detail_batch($rows)) {
+            $this->db->trans_rollback();
+
+            echo json_encode([
+                'status' => false,
+                'message' => 'Gagal menyimpan detail sales'
+            ]);
+
+            return;
+        }
+
+        if (!$this->Sales_model->insert_company_stock_transaction($stockTransactions)) {
+            $this->db->trans_rollback();
+
+            echo json_encode([
+                'status' => false,
+                'message' => 'Gagal mencatat transaksi stock perusahaan'
+            ]);
+
+            return;
+        }
+
+        if (!$this->Sales_model->update_company_stock_for_sales($stockTransactions, $username)) {
+            $this->db->trans_rollback();
+
+            echo json_encode([
+                'status' => false,
+                'message' => 'Gagal mengurangi stok perusahaan'
+            ]);
+
+            return;
+        }
+
+        if (!$this->Sales_model->insert_company_stock_card($stockTransactions, $salesNo, 'SALES', $header['SALES_DATE'], $username)) {
+            $this->db->trans_rollback();
+
+            echo json_encode([
+                'status' => false,
+                'message' => 'Gagal mencatat kartu stock perusahaan'
+            ]);
+
+            return;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | SAVING
+        |--------------------------------------------------------------------------
+        */
+
+        try {
+
+            $savings = $this->parseSavingPayload(
+                $data['SAVINGS'] ?? '[]',
+                trim($data['CUSTOMER'])
+            );
+
+            $savingRows = $this->buildSavingRecords(
+                $salesNo,
+                $plant,
+                trim($data['CUSTOMER']),
+                $header['SALES_DATE'],
+                $savings,
+                $username
+            );
+
+            if (
+                !empty($savingRows) &&
+                !$this->Sales_model->insert_saving_batch($savingRows)
+            ) {
+                throw new Exception('Gagal menyimpan data Saving');
+            }
+
+        } catch (Exception $e) {
+
+            $this->db->trans_rollback();
+
+            echo json_encode([
+                'status'  => false,
+                'message' => $e->getMessage()
+            ]);
+
+            return;
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -625,6 +762,93 @@ class Sales extends MY_Controller {
 
             'sales'   => $salesNo
         ]);
+    }
+
+    private function parseSavingPayload($raw, $customer)
+    {
+        $rows = json_decode($raw ?? '[]', true);
+
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $result = [];
+
+        foreach ($rows as $row) {
+
+            $cust = trim($row['CUSTOMER'] ?? '');
+
+            if ($cust === '' || $cust !== $customer) {
+                continue;
+            }
+
+            $amount = round(
+                $this->parseDecimalID($row['SAVING_AMOUNT'] ?? 0),
+                2
+            );
+
+            if ($amount < 0) {
+                throw new Exception('Saving tidak boleh negatif');
+            }
+
+            if ($amount <= 0) {
+                continue;
+            }
+
+            $result[] = [
+                'CUSTOMER'      => $cust,
+                'SAVING_AMOUNT' => $amount,
+                'REMARK'        => trim($row['REMARK'] ?? '')
+            ];
+        }
+
+        return $result;
+    }
+
+    private function buildSavingRecords(
+        $salesNo,
+        $plant,
+        $customer,
+        $salesDate,
+        array $savings,
+        $username
+    )
+    {
+        if (empty($savings)) {
+            return [];
+        }
+
+        $amount = round(
+            array_sum(array_column($savings, 'SAVING_AMOUNT')),
+            2
+        );
+
+        if ($amount <= 0) {
+            return [];
+        }
+
+        $remarks = array_filter(array_column($savings, 'REMARK'));
+        $userRemark = !empty($remarks)
+            ? implode('; ', $remarks)
+            : '';
+
+        $systemRemark = 'AUTO FROM SALES ' . $salesNo;
+        $finalRemark  = $userRemark !== ''
+            ? $userRemark . ' | ' . $systemRemark
+            : $systemRemark;
+
+        return [[
+            'SV_NO'      => $this->Sales_model->generate_saving_no(),
+            'PLANT'      => $plant,
+            'CUSTOMER'   => $customer,
+            'SV_DATE'    => date('Y-m-d', strtotime($salesDate)),
+            'RELATED'    => 'SALES',
+            'AMOUNT'     => $amount,
+            'REMARK'     => $finalRemark,
+            'STATUS'     => 'OPEN',
+            'CREATED_AT' => date('Y-m-d H:i:s'),
+            'CREATED_BY' => $username
+        ]];
     }
 
     private function parseDecimalID($value)
@@ -768,13 +992,18 @@ class Sales extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
+        $saving = $this->Sales_model
+            ->get_saving_by_sales($sales, $plant);
+
         echo json_encode([
 
             'status' => true,
 
             'header' => $header,
 
-            'detail' => $detail
+            'detail' => $detail,
+
+            'saving' => $saving ?: null
         ]);
     }
 
@@ -888,11 +1117,31 @@ class Sales extends MY_Controller {
 
         /*
         |--------------------------------------------------------------------------
+        | REVERSE OLD STOCK
+        |--------------------------------------------------------------------------
+        */
+
+        $oldDetailRows = $this->Sales_model
+            ->get_sales_detail_rows($plant, $sales);
+
+        $reverseStockRows = [];
+
+        foreach ($oldDetailRows as $oldRow) {
+            $reverseStockRows[] = [
+                'PLANT' => $plant,
+                'MATERIAL' => $oldRow['MATERIAL'],
+                'QTY_OUT' => (float)($oldRow['JUMLAH'] ?? 0),
+                'BW_OUT' => (float)($oldRow['BERAT'] ?? 0)
+            ];
+        }
+
+        /*
+        |--------------------------------------------------------------------------
         | TRANSACTION
         |--------------------------------------------------------------------------
         */
 
-        $this->db->trans_begin();
+        $this->db->trans_start();
 
         /*
         |--------------------------------------------------------------------------
@@ -1208,6 +1457,18 @@ class Sales extends MY_Controller {
 
         /*
         |--------------------------------------------------------------------------
+        | RESET OLD STOCK
+        |--------------------------------------------------------------------------
+        */
+
+        if (!empty($reverseStockRows)) {
+            $this->Sales_model->delete_company_stock_card_by_reference($sales, 'SALES');
+            $this->Sales_model->restore_company_stock_for_sales($reverseStockRows, $username);
+            $this->Sales_model->insert_company_stock_card_reversal($reverseStockRows, $sales, 'SALES', $header['SALES_DATE'], $username);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
         | DELETE OLD DETAIL
         |--------------------------------------------------------------------------
         */
@@ -1220,6 +1481,52 @@ class Sales extends MY_Controller {
 
         /*
         |--------------------------------------------------------------------------
+        | NEW STOCK VALIDATION
+        |--------------------------------------------------------------------------
+        */
+
+        $newStockRows = [];
+
+        foreach ($rows as $row) {
+            $newStockRows[] = [
+                'PLANT' => $row['PLANT'],
+                'MATERIAL' => $row['MATERIAL'],
+                'QTY_OUT' => (float)($row['JUMLAH'] ?? 0),
+                'BW_OUT' => (float)($row['BERAT'] ?? 0)
+            ];
+        }
+
+        foreach ($newStockRows as $stockRow) {
+            $stock = $this->Sales_model->get_company_stock($stockRow['PLANT'], $stockRow['MATERIAL']);
+
+            if (($stock['STATUS'] ?? '') === 'NOT_FOUND') {
+                $this->db->trans_rollback();
+
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Stok tidak ditemukan untuk material ' . $stockRow['MATERIAL']
+                ]);
+
+                return;
+            }
+
+            if (
+                (float)($stock['QTY'] ?? 0) < (float)($stockRow['QTY_OUT'] ?? 0) ||
+                (float)($stock['BW'] ?? 0) < (float)($stockRow['BW_OUT'] ?? 0)
+            ) {
+                $this->db->trans_rollback();
+
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Stok tidak mencukupi untuk material ' . $stockRow['MATERIAL']
+                ]);
+
+                return;
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
         | INSERT NEW DETAIL
         |--------------------------------------------------------------------------
         */
@@ -1228,6 +1535,62 @@ class Sales extends MY_Controller {
             ->insert_sales_detail_batch(
                 $rows
             );
+
+        /*
+        |--------------------------------------------------------------------------
+        | APPLY NEW STOCK
+        |--------------------------------------------------------------------------
+        */
+
+        $this->Sales_model->update_company_stock_for_sales($newStockRows, $username);
+        $this->Sales_model->insert_company_stock_card($newStockRows, $sales, 'SALES', $header['SALES_DATE'], $username);
+
+        /*
+        |--------------------------------------------------------------------------
+        | SAVING
+        |--------------------------------------------------------------------------
+        */
+
+        try {
+
+            $this->Sales_model->delete_saving_by_sales(
+                $sales,
+                $plant,
+                $username
+            );
+
+            $savings = $this->parseSavingPayload(
+                $data['SAVINGS'] ?? '[]',
+                trim($data['CUSTOMER'])
+            );
+
+            $savingRows = $this->buildSavingRecords(
+                $sales,
+                $plant,
+                trim($data['CUSTOMER']),
+                $headerUpdate['SALES_DATE'],
+                $savings,
+                $username
+            );
+
+            if (
+                !empty($savingRows) &&
+                !$this->Sales_model->insert_saving_batch($savingRows)
+            ) {
+                throw new Exception('Gagal menyimpan data Saving');
+            }
+
+        } catch (Exception $e) {
+
+            $this->db->trans_rollback();
+
+            echo json_encode([
+                'status'  => false,
+                'message' => $e->getMessage()
+            ]);
+
+            return;
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -1282,11 +1645,37 @@ class Sales extends MY_Controller {
 
         $this->db->trans_begin();
 
+        $username = $this->session->userdata('username');
+
+        $header = $this->Sales_model->get_sales_header($sales, $plant);
+
+        $detailRows = $this->Sales_model->get_sales_detail_rows($plant, $sales);
+
+        $restoreRows = [];
+
+        foreach ($detailRows as $row) {
+            $restoreRows[] = [
+                'PLANT' => $plant,
+                'MATERIAL' => $row['MATERIAL'],
+                'QTY_OUT' => (float)($row['JUMLAH'] ?? 0),
+                'BW_OUT' => (float)($row['BERAT'] ?? 0)
+            ];
+        }
+
+        if (!empty($restoreRows)) {
+            $this->Sales_model->delete_company_stock_card_by_reference($sales, 'SALES');
+            $this->Sales_model->restore_company_stock_for_sales($restoreRows, $username);
+            $this->Sales_model->insert_company_stock_card_reversal($restoreRows, $sales, 'SALES', $header['SALES_DATE'] ?? date('Y-m-d H:i:s'), $username);
+        }
+
         // 🔥 HAPUS CASH IN DP
         $this->CashIn_model->delete_dp_by_sales($sales, $plant);
 
         // Hapus detail
         $this->Sales_model->delete_sales_detail($plant, $sales);
+
+        // Hapus saving terkait sales
+        $this->Sales_model->delete_saving_by_sales($sales, $plant, $username);
 
         // Hapus header
         $this->Sales_model->delete_sales_header($plant, $sales);

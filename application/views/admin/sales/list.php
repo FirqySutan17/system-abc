@@ -200,6 +200,74 @@
         line-height: 2;
         font-size: 14PX;
     }
+
+    .section-description {
+        color: #64748b;
+        font-size: 13px;
+        margin-bottom: 18px;
+    }
+
+    .saving-table { margin-bottom: 0; }
+    .saving-table thead th {
+        background: #f8fafc;
+        color: #475569;
+        font-weight: 600;
+        font-size: 13px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .saving-table tbody td {
+        vertical-align: middle;
+        padding: 12px 10px;
+    }
+    .saving-footer { display: flex; justify-content: flex-end; }
+    .saving-total {
+        min-width: 260px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 14px 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .saving-total span { color: #64748b; font-size: 14px; }
+    .saving-total strong { font-size: 20px; color: #059669; font-weight: 700; }
+
+    .payment-table { margin-bottom: 0; }
+    .payment-table thead th {
+        background: #f8fafc;
+        color: #475569;
+        font-size: 13px;
+        font-weight: 600;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .payment-table tbody td {
+        padding: 13px 10px;
+        vertical-align: middle;
+    }
+    .payment-table tbody td:not(:first-child) {
+        text-align: right;
+        font-weight: 600;
+    }
+    .payment-footer { display: flex; justify-content: flex-end; }
+    .payment-summary-box {
+        width: 380px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 18px 22px;
+    }
+    .payment-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .payment-row.payment-grand {
+        font-size: 18px;
+        font-weight: 700;
+        color: #0f172a;
+    }
 </style>
 
 <!-- MODAL ADD SALES -->
@@ -480,6 +548,80 @@
 
                             </div>
 
+                        </div>
+                    </div>
+
+                    <!-- SAVING -->
+                    <div class="card border-0 shadow-sm mb-4 mt-3">
+                        <div class="card-header bg-light fw-bold">
+                            <i class="ti ti-pig-money me-2"></i>
+                            CUSTOMER SAVING
+                        </div>
+                        <div class="card-body">
+                            <p class="section-description mb-3">
+                                Tambahkan tabungan customer apabila ada potongan yang akan disimpan sebagai saldo/tabungan.
+                            </p>
+                            <div class="table-responsive">
+                                <table class="table saving-table table-bordered align-middle" id="savingTableAdd">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:35%">Customer</th>
+                                            <th style="width:20%">Saving Amount</th>
+                                            <th>Remark</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                            <div class="saving-footer mt-3">
+                                <div class="saving-total">
+                                    <span>Total Saving</span>
+                                    <strong id="savingGrandTotalAdd">Rp 0</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PAYMENT SUMMARY -->
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-light fw-bold">
+                            <i class="ti ti-cash-banknote me-2"></i>
+                            PAYMENT SUMMARY
+                        </div>
+                        <div class="card-body">
+                            <p class="section-description mb-3">
+                                Ringkasan pembayaran customer. Total pembayaran terdiri dari nilai penjualan (Sales) dan nominal tabungan (Saving).
+                            </p>
+                            <div class="table-responsive">
+                                <table class="table payment-table table-bordered align-middle" id="paymentSummaryTableAdd">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:40%">Customer</th>
+                                            <th class="text-end">Sales</th>
+                                            <th class="text-end">Saving</th>
+                                            <th class="text-end">Total Payment</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                            <div class="payment-footer mt-4">
+                                <div class="payment-summary-box">
+                                    <div class="payment-row">
+                                        <span>Total Sales</span>
+                                        <strong id="grandSalesAdd">Rp 0</strong>
+                                    </div>
+                                    <div class="payment-row">
+                                        <span>Total Saving</span>
+                                        <strong id="grandSavingAdd">Rp 0</strong>
+                                    </div>
+                                    <hr>
+                                    <div class="payment-row payment-grand">
+                                        <span>Grand Payment</span>
+                                        <strong id="grandPaymentAdd">Rp 0</strong>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -861,6 +1003,77 @@
 
                     </div>
 
+                    <!-- SAVING EDIT -->
+                    <div class="card border-0 shadow-sm mb-4 mt-3">
+                        <div class="card-header bg-light fw-bold">
+                            <i class="ti ti-pig-money me-2"></i>
+                            CUSTOMER SAVING
+                        </div>
+                        <div class="card-body">
+                            <p class="section-description mb-3">
+                                Tabungan customer terkait transaksi sales ini.
+                            </p>
+                            <div class="table-responsive">
+                                <table class="table saving-table table-bordered align-middle" id="savingTableEdit">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:35%">Customer</th>
+                                            <th style="width:20%">Saving Amount</th>
+                                            <th>Remark</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                            <div class="saving-footer mt-3">
+                                <div class="saving-total">
+                                    <span>Total Saving</span>
+                                    <strong id="savingGrandTotalEdit">Rp 0</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PAYMENT SUMMARY EDIT -->
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-header bg-light fw-bold">
+                            <i class="ti ti-cash-banknote me-2"></i>
+                            PAYMENT SUMMARY
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table payment-table table-bordered align-middle" id="paymentSummaryTableEdit">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:40%">Customer</th>
+                                            <th class="text-end">Sales</th>
+                                            <th class="text-end">Saving</th>
+                                            <th class="text-end">Total Payment</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                            <div class="payment-footer mt-4">
+                                <div class="payment-summary-box">
+                                    <div class="payment-row">
+                                        <span>Total Sales</span>
+                                        <strong id="grandSalesEdit">Rp 0</strong>
+                                    </div>
+                                    <div class="payment-row">
+                                        <span>Total Saving</span>
+                                        <strong id="grandSavingEdit">Rp 0</strong>
+                                    </div>
+                                    <hr>
+                                    <div class="payment-row payment-grand">
+                                        <span>Grand Payment</span>
+                                        <strong id="grandPaymentEdit">Rp 0</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- FOOTER -->
@@ -899,11 +1112,270 @@
 <script>
     var state = { page: 1, limit: 10, search: '', order: 'SALES', dir: 'ASC' };
 
+    const salesState = {
+        savingRowAdd: null,
+        savingRowEdit: null
+    };
+
+    function getCustomerLabel(selector) {
+        let data = $(selector).select2('data');
+
+        if (data && data.length > 0 && data[0].text) {
+            return data[0].text;
+        }
+
+        let val = $(selector).val();
+
+        return val || '-';
+    }
+
+    function extractSavingRemark(remark) {
+        if (!remark) {
+            return '';
+        }
+
+        let marker = ' | AUTO FROM SALES ';
+
+        if (remark.indexOf(marker) !== -1) {
+            return remark.split(marker)[0];
+        }
+
+        if (remark.indexOf('AUTO FROM SALES ') === 0) {
+            return '';
+        }
+
+        return remark;
+    }
+
+    function syncSavingRowAdd() {
+        let customerId = $('#hiddenCustomerAdd').val();
+
+        if (!customerId) {
+            salesState.savingRowAdd = null;
+            renderSavingTableAdd();
+            refreshPaymentSummaryAdd();
+            return;
+        }
+
+        salesState.savingRowAdd = {
+            customer: customerId,
+            customer_name: getCustomerLabel('#customerAdd'),
+            saving: salesState.savingRowAdd ? salesState.savingRowAdd.saving : 0,
+            remark: salesState.savingRowAdd ? salesState.savingRowAdd.remark : ''
+        };
+
+        renderSavingTableAdd();
+        refreshPaymentSummaryAdd();
+    }
+
+    function syncSavingRowEdit(customerId, customerName, savingAmount, remark) {
+        if (!customerId) {
+            salesState.savingRowEdit = null;
+            renderSavingTableEdit();
+            refreshPaymentSummaryEdit();
+            return;
+        }
+
+        salesState.savingRowEdit = {
+            customer: customerId,
+            customer_name: customerName || customerId,
+            saving: parseFloat(savingAmount || 0),
+            remark: remark || ''
+        };
+
+        renderSavingTableEdit();
+        refreshPaymentSummaryEdit();
+    }
+
+    function renderSavingTableAdd() {
+        let tbody = $('#savingTableAdd tbody');
+        tbody.empty();
+
+        if (!salesState.savingRowAdd) {
+            tbody.append(`
+                <tr>
+                    <td colspan="3" class="text-center text-muted py-3">
+                        Pilih customer terlebih dahulu
+                    </td>
+                </tr>
+            `);
+            $('#savingGrandTotalAdd').text('Rp 0');
+            return;
+        }
+
+        let row = salesState.savingRowAdd;
+
+        tbody.append(`
+            <tr>
+                <td>${row.customer_name}</td>
+                <td>
+                    <input
+                        type="text"
+                        class="form-control rupiah-input saving-input-add text-end"
+                        value="${formatRupiah(row.saving)}">
+                </td>
+                <td>
+                    <input
+                        type="text"
+                        class="form-control saving-remark-add"
+                        value="${row.remark || ''}">
+                </td>
+            </tr>
+        `);
+
+        $('#savingGrandTotalAdd').text(
+            'Rp ' + formatRupiah(row.saving || 0)
+        );
+    }
+
+    function renderSavingTableEdit() {
+        let tbody = $('#savingTableEdit tbody');
+        tbody.empty();
+
+        if (!salesState.savingRowEdit) {
+            tbody.append(`
+                <tr>
+                    <td colspan="3" class="text-center text-muted py-3">
+                        Customer belum dipilih
+                    </td>
+                </tr>
+            `);
+            $('#savingGrandTotalEdit').text('Rp 0');
+            return;
+        }
+
+        let row = salesState.savingRowEdit;
+
+        tbody.append(`
+            <tr>
+                <td>${row.customer_name}</td>
+                <td>
+                    <input
+                        type="text"
+                        class="form-control rupiah-input saving-input-edit text-end"
+                        value="${formatRupiah(row.saving)}">
+                </td>
+                <td>
+                    <input
+                        type="text"
+                        class="form-control saving-remark-edit"
+                        value="${row.remark || ''}">
+                </td>
+            </tr>
+        `);
+
+        $('#savingGrandTotalEdit').text(
+            'Rp ' + formatRupiah(row.saving || 0)
+        );
+    }
+
+    function getSalesGrandTotalAdd() {
+        let grand = 0;
+
+        $('#salesDetailTableAdd tbody tr').each(function () {
+            grand += clearFormat($(this).find('.total').val());
+        });
+
+        return grand;
+    }
+
+    function getSalesGrandTotalEdit() {
+        let grand = 0;
+
+        $('#salesDetailTableEdit tbody tr').each(function () {
+            grand += parseNumber($(this).find('.total').val());
+        });
+
+        return grand;
+    }
+
+    function refreshPaymentSummaryAdd() {
+        let salesTotal = getSalesGrandTotalAdd();
+        let savingTotal = salesState.savingRowAdd
+            ? parseFloat(salesState.savingRowAdd.saving || 0)
+            : 0;
+
+        let tbody = $('#paymentSummaryTableAdd tbody');
+        tbody.empty();
+
+        if (!salesState.savingRowAdd) {
+            tbody.append(`
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-3">
+                        Pilih customer terlebih dahulu
+                    </td>
+                </tr>
+            `);
+        } else {
+            tbody.append(`
+                <tr>
+                    <td>${salesState.savingRowAdd.customer_name}</td>
+                    <td class="text-end">${formatRupiah(salesTotal)}</td>
+                    <td class="text-end">${formatRupiah(savingTotal)}</td>
+                    <td class="text-end">${formatRupiah(salesTotal + savingTotal)}</td>
+                </tr>
+            `);
+        }
+
+        $('#grandSalesAdd').text('Rp ' + formatRupiah(salesTotal));
+        $('#grandSavingAdd').text('Rp ' + formatRupiah(savingTotal));
+        $('#grandPaymentAdd').text('Rp ' + formatRupiah(salesTotal + savingTotal));
+    }
+
+    function refreshPaymentSummaryEdit() {
+        let salesTotal = getSalesGrandTotalEdit();
+        let savingTotal = salesState.savingRowEdit
+            ? parseFloat(salesState.savingRowEdit.saving || 0)
+            : 0;
+
+        let tbody = $('#paymentSummaryTableEdit tbody');
+        tbody.empty();
+
+        if (!salesState.savingRowEdit) {
+            tbody.append(`
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-3">
+                        Customer belum dipilih
+                    </td>
+                </tr>
+            `);
+        } else {
+            tbody.append(`
+                <tr>
+                    <td>${salesState.savingRowEdit.customer_name}</td>
+                    <td class="text-end">${formatCurrencyID(salesTotal)}</td>
+                    <td class="text-end">${formatCurrencyID(savingTotal)}</td>
+                    <td class="text-end">${formatCurrencyID(salesTotal + savingTotal)}</td>
+                </tr>
+            `);
+        }
+
+        $('#grandSalesEdit').text(formatCurrencyID(salesTotal));
+        $('#grandSavingEdit').text(formatCurrencyID(savingTotal));
+        $('#grandPaymentEdit').text(formatCurrencyID(salesTotal + savingTotal));
+    }
+
+    function buildSavingPayload(mode) {
+        let row = mode === 'edit'
+            ? salesState.savingRowEdit
+            : salesState.savingRowAdd;
+
+        if (!row || !row.customer) {
+            return [];
+        }
+
+        return [{
+            CUSTOMER: row.customer,
+            SAVING_AMOUNT: parseFloat(row.saving || 0),
+            REMARK: row.remark || ''
+        }];
+    }
+
     function initPlantSelect2() {
         $('#plantAdd').select2({
             theme:'bootstrap-5',
 
-            placeholder:'-- PILIH CUSTOMER --',
+            placeholder:'-- PILIH PLANT --',
 
             dropdownParent: $('#salesAdd .modal-body'),
 
@@ -1341,6 +1813,8 @@
 
             placeholder:'-- PILIH CUSTOMER --',
 
+            minimumInputLength:3,
+
             dropdownParent: $('#salesAdd .modal-body'),
 
             width:'100%',
@@ -1370,10 +1844,14 @@
         });
 
         $(selector).on('change', function(){
+            let value = $(this).val();
 
-            $('#hiddenCustomerAdd').val(
-                $(this).val()
-            );
+            if (!value) {
+                value = 'CS000002';
+            }
+
+            $('#hiddenCustomerAdd').val(value);
+            syncSavingRowAdd();
         });
     }
 
@@ -1386,13 +1864,15 @@
 
             placeholder:'-- PILIH CUSTOMER --',
 
+            minimumInputLength:3,
+
             dropdownParent: $('#salesEdit .modal-body'),
 
             width:'100%',
 
             ajax:{
 
-                url:'<?= base_url("receive/get_customer"); ?>',
+                url:'<?= base_url("sales/get_customer"); ?>',
 
                 dataType:'json',
 
@@ -1421,9 +1901,18 @@
         */
 
         $(selector).on('change', function(){
+            let value = $(this).val();
 
-            $('#hiddenCustomerEdit').val(
-                $(this).val()
+            if (!value) {
+                value = 'CS000002';
+            }
+
+            $('#hiddenCustomerEdit').val(value);
+            syncSavingRowEdit(
+                value,
+                getCustomerLabel('#customerEdit'),
+                salesState.savingRowEdit ? salesState.savingRowEdit.saving : 0,
+                salesState.savingRowEdit ? salesState.savingRowEdit.remark : ''
             );
 
         });
@@ -1433,6 +1922,7 @@
         $('#hiddenCustomerAdd').val(
             $(this).val()
         );
+        syncSavingRowAdd();
     });
 
     function setDefaultCustomer(selector, custId, custName) {
@@ -1450,23 +1940,55 @@
         $('#hiddenCustomerAdd').val(custId);
     }
 
-    function initItemSelect2(el, parentModal){
-        $(el).select2({
-            theme:'bootstrap-5',
+    function ensureDefaultCustomer(selector, hiddenSelector) {
+        let current = $(selector).val();
 
-            placeholder:'-- PILIH CUSTOMER --',
+        if (!current) {
+            let defaultId = 'CS000002';
+            let defaultText = 'CS000002 - COMMON CUSTOMER';
+            let opt = new Option(defaultText, defaultId, true, true);
 
-            dropdownParent: $('#salesAdd .modal-body'),
+            $(selector)
+                .append(opt)
+                .trigger('change');
+        }
 
-            width:'100%',
-            ajax:{
-                url:'<?= base_url("sales/get_material"); ?>',
-                dataType:'json',
-                delay:400,
-                cache:true,
-                data: p => ({ q: p.term }),
-                processResults: d => ({ results: d })
+        if (hiddenSelector) {
+            $(hiddenSelector).val($(selector).val() || 'CS000002');
+        }
+
+        if (selector === '#customerAdd') {
+            syncSavingRowAdd();
+        }
+    }
+
+    function renderMaterialStockPreview($row, plant, materialId) {
+        const $preview = $row.find('.stock-preview');
+
+        if (!$preview.length) {
+            return;
+        }
+
+        if (!plant || !materialId) {
+            $preview.html('');
+            return;
+        }
+
+        $preview.html('<small class="text-muted">Memuat stok...</small>');
+
+        $.getJSON('<?= base_url("sales/get_stock_preview"); ?>', {
+            plant: plant,
+            material: materialId
+        }, function (resp) {
+            if (!resp || !resp.status) {
+                $preview.html('<small class="text-muted">Stok tidak tersedia</small>');
+                return;
             }
+
+            const stock = resp.stock || {};
+            $preview.html(
+                '<small class="text-primary">Stok: Qty ' + formatDecimalID(stock.QTY || 0) + ' / BW ' + formatDecimalID(stock.BW || 0) + '</small>'
+            );
         });
     }
 
@@ -1597,6 +2119,8 @@
         $('#grandTotalDisplayEdit').text(
             formatCurrencyID(grand)
         );
+
+        refreshPaymentSummaryEdit();
     }
 
     function recalcGrandTotal(){
@@ -1610,6 +2134,8 @@
         $('#grandTotalDisplay').html(
             formatRupiah(grand)
         );
+
+        refreshPaymentSummaryAdd();
     }
 
     $(document).on(
@@ -1671,27 +2197,31 @@
 
                 <td>
                     <select class="form-select material-select"></select>
+                    <div class="stock-preview mt-1"></div>
                 </td>
 
                 <td>
                     <input
                         type="text"
-                        class="form-control jumlah text-end"
-                        value="0">
+                        class="form-control jumlah decimal-input text-end"
+                        value="0"
+                        placeholder="0,00">
                 </td>
 
                 <td>
                     <input
                         type="text"
-                        class="form-control berat text-end"
-                        value="0">
+                        class="form-control berat decimal-input text-end"
+                        value="0"
+                        placeholder="0,00">
                 </td>
 
                 <td>
                     <input
                         type="text"
-                        class="form-control harga text-end"
-                        value="0">
+                        class="form-control harga rupiah-input text-end"
+                        value="0"
+                        placeholder="0">
                 </td>
 
                 <td>
@@ -1721,7 +2251,11 @@
 
         let tr = tbody.find('tr').last();
 
-        tr.find('.material-select').select2({
+        let selectedPlant = $("#plantAdd option:selected").val();
+
+        let $materialSelectAdd = tr.find('.material-select');
+
+        $materialSelectAdd.select2({
 
             theme:'bootstrap-5',
 
@@ -1740,13 +2274,29 @@
                 delay:300,
 
                 data:params => ({
-                    q:params.term
+                    q:params.term,
+                    plant:selectedPlant
                 }),
 
                 processResults:data => ({
                     results:data
                 })
             }
+        });
+
+        $materialSelectAdd.on('select2:select', function (e) {
+            let data = e.params.data || {};
+            let $select = $(this);
+            let $option = $select.find('option[value="' + data.id + '"]');
+
+            if (!$option.length) {
+                $option = $(new Option(data.text, data.id, false, true));
+                $select.append($option);
+            }
+
+            $option.attr('data-bw', data.bw ?? '');
+            $option.attr('data-qty', data.qty ?? '');
+            renderMaterialStockPreview(tr, selectedPlant, data.id);
         });
 
         /*
@@ -1764,7 +2314,10 @@
 
         tr.find('.material-select')
             .append(defaultMaterial)
+            .val('01220021')
             .trigger('change');
+
+        renderMaterialStockPreview(tr, selectedPlant, '01220021');
 
         recalcGrandTotal();
     }
@@ -1778,27 +2331,31 @@
 
                 <td>
                     <select class="form-select material-select"></select>
+                    <div class="stock-preview mt-1"></div>
                 </td>
 
                 <td>
                     <input
                         type="text"
-                        class="form-control jumlah text-end"
-                        value="${formatDecimalID(data.jumlah || 0)}">
+                        class="form-control jumlah decimal-input text-end"
+                        value="${formatDecimalID(data.jumlah || 0)}"
+                        placeholder="0,00">
                 </td>
 
                 <td>
                     <input
                         type="text"
-                        class="form-control berat text-end"
-                        value="${formatDecimalID(data.berat || 0)}">
+                        class="form-control berat decimal-input text-end"
+                        value="${formatDecimalID(data.berat || 0)}"
+                        placeholder="0,00">
                 </td>
 
                 <td>
                     <input
                         type="text"
-                        class="form-control harga text-end"
-                        value="${formatCurrencyID(data.harga || 0)}">
+                        class="form-control harga rupiah-input text-end"
+                        value="${formatCurrencyID(data.harga || 0)}"
+                        placeholder="0">
                 </td>
 
                 <td>
@@ -1828,7 +2385,11 @@
 
         let tr = tbody.find('tr').last();
 
-        tr.find('.material-select').select2({
+        let selectedPlant = $('#PLANT_EDIT').val() || '';
+
+        let $materialSelectEdit = tr.find('.material-select');
+
+        $materialSelectEdit.select2({
 
             theme:'bootstrap-5',
 
@@ -1845,12 +2406,28 @@
                 dataType:'json',
                 delay:300,
                 data:params => ({
-                    q:params.term
+                    q:params.term,
+                    plant:selectedPlant
                 }),
                 processResults:data => ({
                     results:data
                 })
             }
+        });
+
+        $materialSelectEdit.on('select2:select', function (e) {
+            let data = e.params.data || {};
+            let $select = $(this);
+            let $option = $select.find('option[value="' + data.id + '"]');
+
+            if (!$option.length) {
+                $option = $(new Option(data.text, data.id, false, true));
+                $select.append($option);
+            }
+
+            $option.attr('data-bw', data.bw ?? '');
+            $option.attr('data-qty', data.qty ?? '');
+            renderMaterialStockPreview(tr, selectedPlant, data.id);
         });
 
         if(data.material){
@@ -1864,7 +2441,10 @@
 
             tr.find('.material-select')
                 .append(opt)
+                .val(data.material)
                 .trigger('change');
+
+            renderMaterialStockPreview(tr, selectedPlant, data.material);
         }
 
         recalcGrandTotalEdit();
@@ -1902,21 +2482,10 @@
         // init select2 customer
         initPlantSelect2('#plantAdd', '#salesAdd');
         initCustomerSelect2('#customerAdd');
-        let defaultOption = new Option(
-            'CS000002 - COMMON CUSTOMER',
-            'CS000002',
-            true,
-            true
-        );
-
-        $('#customerAdd')
-            .append(defaultOption)
-            .trigger('change');
-
-        $('#hiddenCustomerAdd')
-            .val('CS000002');
+        ensureDefaultCustomer('#customerAdd', '#hiddenCustomerAdd');
         loadDefaultCustomer('#customerAdd');
         initCustomerEditSelect2('#customerEdit', '#salesEdit');
+        ensureDefaultCustomer('#customerEdit', '#hiddenCustomerEdit');
 
         $('#addDetailRowAdd').on('click', function(){
             addDetailRow();
@@ -2011,6 +2580,11 @@
                 JSON.stringify(DETAIL)
             );
 
+            formData.set(
+                'SAVINGS',
+                JSON.stringify(buildSavingPayload('add'))
+            );
+
             $.ajax({
 
                 url:'<?= base_url("sales/create"); ?>',
@@ -2038,6 +2612,10 @@
                         $('#salesDetailTableAdd tbody').empty();
 
                         $('#grandTotalDisplay').html('0');
+
+                        salesState.savingRowAdd = null;
+                        renderSavingTableAdd();
+                        refreshPaymentSummaryAdd();
 
                         $('#customerAdd')
                             .val(null)
@@ -2070,6 +2648,7 @@
             $('#salesDetailTableEdit tbody').empty();
             $('#attachmentPreviewEdit').html('');
             $('#grandTotalDisplayEdit').text('0');
+            salesState.savingRowEdit = null;
 
             $.get('<?= base_url("sales/edit"); ?>', { sales: sales, plant: plant }, function(resp){
 
@@ -2135,6 +2714,21 @@
                     });
                 });
 
+                let savingAmount = 0;
+                let savingRemark = '';
+
+                if (resp.saving) {
+                    savingAmount = parseFloat(resp.saving.AMOUNT || 0);
+                    savingRemark = extractSavingRemark(resp.saving.REMARK || '');
+                }
+
+                syncSavingRowEdit(
+                    h.CUSTOMER,
+                    h.CUSTOMER_NAME + ' - ' + h.CUSTOMER,
+                    savingAmount,
+                    savingRemark
+                );
+
                 $('#salesEdit').modal('show');
 
             }, 'json');
@@ -2195,6 +2789,10 @@
             formData.append('BAYAR_AWAL', $('#BAYAR_AWAL_EDIT').val());
             formData.append('CUSTOMER', $('#hiddenCustomerEdit').val());
             formData.append('DETAIL', JSON.stringify(DETAIL));
+            formData.append(
+                'SAVINGS',
+                JSON.stringify(buildSavingPayload('edit'))
+            );
 
             $.ajax({
                 url: '<?= base_url("sales/update"); ?>',
@@ -2358,6 +2956,43 @@
             addDetailRow();
         }
         setDefaultPlantAdd();
+        syncSavingRowAdd();
+    });
+
+    $(document).on('input', '.saving-input-add', function () {
+        let val = parseRupiah($(this).val());
+        $(this).val(formatRupiah(val));
+
+        if (salesState.savingRowAdd) {
+            salesState.savingRowAdd.saving = val;
+        }
+
+        $('#savingGrandTotalAdd').text('Rp ' + formatRupiah(val));
+        refreshPaymentSummaryAdd();
+    });
+
+    $(document).on('input', '.saving-remark-add', function () {
+        if (salesState.savingRowAdd) {
+            salesState.savingRowAdd.remark = $(this).val();
+        }
+    });
+
+    $(document).on('input', '.saving-input-edit', function () {
+        let val = parseRupiah($(this).val());
+        $(this).val(formatRupiah(val));
+
+        if (salesState.savingRowEdit) {
+            salesState.savingRowEdit.saving = val;
+        }
+
+        $('#savingGrandTotalEdit').text('Rp ' + formatRupiah(val));
+        refreshPaymentSummaryEdit();
+    });
+
+    $(document).on('input', '.saving-remark-edit', function () {
+        if (salesState.savingRowEdit) {
+            salesState.savingRowEdit.remark = $(this).val();
+        }
     });
 
     $(document).on('input','#BAYAR_AWAL_EDIT', function(){

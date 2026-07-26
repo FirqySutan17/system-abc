@@ -1334,34 +1334,26 @@ class CashIn_model extends CI_Model {
     public function simulate_fifo($customer, $plant, $newAmount)
     {
         $allocations = [];
+        $newAmount   = round((float) $newAmount, 2);
 
-        // =============================
-        // 1. Ambil DEPOSIT aktif
-        // =============================
-        $deposit = $this->db->select_sum('REMAIN')
-            ->from('mst_customer_deposit')
-            ->where('CUSTOMER', $customer)
-            ->where('PLANT', $plant)
-            ->where('REMAIN >', 0)
-            ->get()
-            ->row()
-            ->REMAIN ?? 0;
+        $savingDebt = round(
+            (float) $this->get_customer_saving_debt($customer, $plant),
+            2
+        );
 
-        $available = $deposit + $newAmount;
+        $savingPayment = min($newAmount, max($savingDebt, 0));
+        $available     = round($newAmount - $savingPayment, 2);
 
-        // =============================
-        // 2. Ambil INVOICE TEMPO FIFO
-        // =============================
         $invoices = $this->get_fifo_open_invoices($customer, $plant);
 
         foreach ($invoices as $inv) {
 
             if ($available <= 0) break;
 
-            $remainInvoice = (float)$inv['REMAIN'];
+            $remainInvoice = round((float)$inv['REMAIN'], 2);
             if ($remainInvoice <= 0) continue;
 
-            $offset = min($remainInvoice, $available);
+            $offset = round(min($remainInvoice, $available), 2);
 
             $allocations[] = [
                 'sales'                 => $inv['SALES'],
@@ -1371,13 +1363,15 @@ class CashIn_model extends CI_Model {
                 'offset'                => $offset
             ];
 
-            $available -= $offset;
+            $available = round($available - $offset, 2);
         }
 
         return [
             'allocations'       => $allocations,
-            'deposit_used'      => min($deposit, $deposit + $newAmount),
-            'deposit_remaining' => $available > 0 ? $available : 0
+            'saving_debt'       => $savingDebt,
+            'saving_payment'    => $savingPayment,
+            'deposit_used'      => 0,
+            'deposit_remaining' => max($available, 0)
         ];
     }
 
@@ -1793,5 +1787,93 @@ class CashIn_model extends CI_Model {
     public function insert_detail_batch($rows)
     {
         return $this->db->insert_batch('abc_mst_cash_in_detail', $rows);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | SAVING ALLOCATION
+    |--------------------------------------------------------------------------
+    */
+
+    public function get_customer_saving_debt($customer, $plant)
+    {
+        $row = $this->db
+            ->select(
+                'COALESCE(SUM(AMOUNT), 0) AS total',
+                false
+            )
+            ->from('abc_mst_saving')
+            ->where('CUSTOMER', $customer)
+            ->where('PLANT', $plant)
+            ->where('DELETED IS NULL', null, false)
+            ->get()
+            ->row();
+
+        return max(0, round((float) ($row->total ?? 0), 2));
+    }
+
+    public function generate_saving_no()
+    {
+        $prefix = 'SV' . date('Ymd');
+
+        $row = $this->db
+            ->select('SV_NO')
+            ->from('abc_mst_saving')
+            ->like('SV_NO', $prefix, 'after')
+            ->order_by('SV_NO', 'DESC')
+            ->limit(1)
+            ->get()
+            ->row();
+
+        $seq = $row
+            ? ((int) substr($row->SV_NO, -4) + 1)
+            : 1;
+
+        return $prefix . str_pad($seq, 4, '0', STR_PAD_LEFT);
+    }
+
+    public function insert_saving_payment(
+        $customer,
+        $plant,
+        $amount,
+        $cashInNo,
+        $date,
+        $user
+    )
+    {
+        $amount = round((float) $amount, 2);
+
+        if ($amount <= 0) {
+            return false;
+        }
+
+        return $this->db->insert('abc_mst_saving', [
+            'SV_NO'      => $this->generate_saving_no(),
+            'PLANT'      => $plant,
+            'CUSTOMER'   => $customer,
+            'SV_DATE'    => $date,
+            'RELATED'    => 'CASH_IN',
+            'AMOUNT'     => -$amount,
+            'REMARK'     => 'AUTO FROM CASH_IN ' . $cashInNo,
+            'CREATED_AT' => date('Y-m-d H:i:s'),
+            'CREATED_BY' => $user
+        ]);
+    }
+
+    public function delete_saving_payment_by_cash_in($cashInNo, $plant, $deletedBy = null)
+    {
+        $data = [
+            'DELETED' => date('Y-m-d H:i:s')
+        ];
+
+        if ($deletedBy) {
+            $data['DELETED_BY'] = $deletedBy;
+        }
+
+        return $this->db
+            ->where('PLANT', $plant)
+            ->where('RELATED', 'CASH_IN')
+            ->where('REMARK', 'AUTO FROM CASH_IN ' . $cashInNo)
+            ->update('abc_mst_saving', $data);
     }
 }

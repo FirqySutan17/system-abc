@@ -594,10 +594,31 @@
 
         function renderTable(rows)
         {
-            let wrapper =
-                $('#salesResult');
+            let wrapper = $('#salesResult');
 
             wrapper.html('');
+
+            let thead = `
+                <thead>
+                    <tr>
+                        <th class="text-center">Sales</th>
+                        <th class="text-center">Plant</th>
+                        <th class="text-center">Tanggal</th>
+                        <th class="text-center">Customer</th>
+                        <th class="text-center">Payment</th>
+                        <th class="text-center">Nota</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-end">Grand Total</th>
+                        <th class="text-end">Sisa</th>
+                        <th>Material</th>
+                        <th class="text-end">Qty</th>
+                        <th class="text-end">Berat</th>
+                        <th class="text-end">Harga</th>
+                        <th class="text-end">Discount</th>
+                        <th class="text-end">Total</th>
+                    </tr>
+                </thead>
+            `;
 
             /*
             |--------------------------------------------------------------------------
@@ -608,17 +629,18 @@
             if(rows.length === 0){
 
                 wrapper.html(`
-
-                    <div class="card border-0 shadow-sm">
-
-                        <div class="card-body text-center py-5 text-muted">
-
-                            Tidak ada data sales
-
-                        </div>
-
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle table-modern">
+                            ${thead}
+                            <tbody>
+                                <tr>
+                                    <td colspan="15" class="text-center text-muted py-4">
+                                        Data Tidak Ditemukan
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-
                 `);
 
                 return;
@@ -630,7 +652,19 @@
             |--------------------------------------------------------------------------
             */
 
-            rows.forEach(function(row){
+            let totalGrandTotal = 0;
+            let totalRemain     = 0;
+            let totalQty        = 0;
+            let totalBerat      = 0;
+            let totalDetailAmt  = 0;
+
+            let rowsHtml = rows.map(function(row){
+
+                let details  = row.DETAILS || [];
+                let rowCount = Math.max(details.length, 1);
+
+                totalGrandTotal += Number(row.GRAND_TOTAL || 0);
+                totalRemain     += Number(row.REMAIN      || 0);
 
                 /*
                 |--------------------------------------------------------------------------
@@ -638,345 +672,118 @@
                 |--------------------------------------------------------------------------
                 */
 
-                let statusBadge = `
-                    <span class="badge sales-badge">
-                        OPEN
-                    </span>
-                `;
-
-                if(row.STATUS === 'PARTIAL'){
-
-                    statusBadge = `
-                        <span class="badge sales-badge">
-                            PARTIAL
-                        </span>
-                    `;
-                }
+                let statusBadge = '<span class="badge bg-warning text-dark">OPEN</span>';
 
                 if(row.STATUS === 'PAID'){
-
-                    statusBadge = `
-                        <span class="badge sales-badge">
-                            PAID
-                        </span>
-                    `;
+                    statusBadge = '<span class="badge bg-success">PAID</span>';
+                } else if(row.STATUS === 'PARTIAL'){
+                    statusBadge = '<span class="badge bg-info">PARTIAL</span>';
                 }
 
                 /*
                 |--------------------------------------------------------------------------
-                | DETAIL
+                | KOLOM HEADER (rowspan)
                 |--------------------------------------------------------------------------
                 */
 
-                let detailRows = '';
-
-                let subtotalQty    = 0;
-                let subtotalWeight = 0;
-                let subtotalTotal  = 0;
-
-                (row.DETAILS || [])
-                    .forEach(function(d){
-
-                        subtotalQty +=
-                            Number(d.JUMLAH || 0);
-
-                        subtotalWeight +=
-                            Number(d.BERAT || 0);
-
-                        subtotalTotal +=
-                            Number(d.TOTAL || 0);
-
-                        detailRows += `
-
-                            <tr>
-
-                                <!-- MATERIAL -->
-                                <td>
-
-                                    <div class="fw-semibold text-dark">
-
-                                        ${d.MATERIAL_NAME || '-'}
-
-                                    </div>
-
-                                </td>
-
-                                <!-- QTY -->
-                                <td class="text-end">
-
-                                    ${formatQty(d.JUMLAH)}
-
-                                </td>
-
-                                <!-- BERAT -->
-                                <td class="text-end">
-
-                                    ${formatWeight(d.BERAT)}
-
-                                </td>
-
-                                <!-- HARGA -->
-                                <td class="text-end">
-
-                                    Rp ${formatRupiah(d.HARGA)}
-
-                                </td>
-
-                                <!-- DISCOUNT -->
-                                <td class="text-end text-danger">
-
-                                    Rp ${formatRupiah(d.DISCOUNT)}
-
-                                </td>
-
-                                <!-- TOTAL -->
-                                <td class="text-end fw-bold text-primary">
-
-                                    Rp ${formatRupiah(d.TOTAL)}
-
-                                </td>
-
-                            </tr>
-
-                        `;
-                    });
-
-                /*
-                |--------------------------------------------------------------------------
-                | CARD
-                |--------------------------------------------------------------------------
-                */
-
-                let card = `
-
-                    <div class="card border-0 shadow-sm mb-4 overflow-hidden">
-
-                        <!-- HEADER -->
-                        <div class="sales-header">
-
-                            <div class="d-flex justify-content-between mb-3">
-
-                                <h2 class="sales-title">
-
-                                    #${row.SALES}
-
-                                </h2>
-
-                                ${statusBadge}
-
-                            </div>
-
-                            <div class="row">
-
-                                <!-- LEFT -->
-                                <div class="col-md-6">
-
-                                    <table class="table table-borderless text-white mb-0 sales-info-table">
-
-                                        <tr>
-                                            <td width="160">
-                                                <b>PLANT</b>
-                                            </td>
-                                            <td>
-                                                :
-                                                ${row.PLANT_NAME || '-'}
-                                            </td>
-                                        </tr>
-
-                                        <tr>
-                                            <td>
-                                                <b>CUSTOMER</b>
-                                            </td>
-                                            <td>
-                                                :
-                                                ${row.CUSTOMER_NAME || '-'}
-                                            </td>
-                                        </tr>
-
-                                        <tr>
-                                            <td>
-                                                <b>PAYMENT</b>
-                                            </td>
-                                            <td>
-                                                :
-                                                ${row.PEMBAYARAN || '-'}
-                                            </td>
-                                        </tr>
-
-                                        <tr>
-                                            <td>
-                                                <b>SLIP NO</b>
-                                            </td>
-                                            <td>
-                                                :
-                                                ${row.SLIP_NO || '-'}
-                                            </td>
-                                        </tr>
-
-                                        <tr>
-                                            <td>
-                                                <b>NOTA</b>
-                                            </td>
-                                            <td>
-                                                :
-                                                ${row.NOTA || '-'}
-                                            </td>
-                                        </tr>
-
-                                    </table>
-
-                                </div>
-
-                                <!-- RIGHT -->
-                                <div class="col-md-6">
-
-                                    <table class="table table-borderless text-white mb-0 sales-info-table">
-
-                                        <tr>
-                                            <td width="160">
-                                                <b>SALES DATE</b>
-                                            </td>
-                                            <td>
-                                                :
-                                                ${formatDate(row.SALES_DATE)}
-                                            </td>
-                                        </tr>
-
-                                        <tr>
-                                            <td>
-                                                <b>TOTAL ITEM</b>
-                                            </td>
-                                            <td>
-                                                :
-                                                ${row.TOTAL_ITEM || 0}
-                                            </td>
-                                        </tr>
-
-                                        <tr>
-                                            <td>
-                                                <b>GRAND TOTAL</b>
-                                            </td>
-                                            <td class="fw-bold">
-                                                :
-                                                Rp ${formatRupiah(row.GRAND_TOTAL)}
-                                            </td>
-                                        </tr>
-
-                                        <tr>
-                                            <td>
-                                                <b>REMAIN</b>
-                                            </td>
-                                            <td class="fw-bold text-warning">
-                                                :
-                                                Rp ${formatRupiah(row.REMAIN)}
-                                            </td>
-                                        </tr>
-
-                                        <tr>
-                                            <td>
-                                                <b>REMARK</b>
-                                            </td>
-                                            <td>
-                                                :
-                                                ${row.REMARK || '-'}
-                                            </td>
-                                        </tr>
-
-                                    </table>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        <!-- DETAIL -->
-                        <div class="table-responsive">
-
-                            <table class="table table-hover align-middle mb-0">
-
-                                <thead class="table-light">
-
-                                    <tr>
-
-                                        <th width="35%">
-                                            Material
-                                        </th>
-
-                                        <th class="text-end">
-                                            Qty
-                                        </th>
-
-                                        <th class="text-end">
-                                            Berat
-                                        </th>
-
-                                        <th class="text-end">
-                                            Harga
-                                        </th>
-
-                                        <th class="text-end">
-                                            Discount
-                                        </th>
-
-                                        <th class="text-end">
-                                            Total
-                                        </th>
-
-                                    </tr>
-
-                                </thead>
-
-                                <tbody>
-
-                                    ${detailRows}
-
-                                    <!-- SUBTOTAL -->
-                                    <tr class="table-light fw-bold">
-
-                                        <td>
-
-                                            SUBTOTAL
-
-                                        </td>
-
-                                        <td class="text-end">
-
-                                            ${formatQty(subtotalQty)}
-
-                                        </td>
-
-                                        <td class="text-end">
-
-                                            ${formatWeight(subtotalWeight)}
-
-                                        </td>
-
-                                        <td></td>
-
-                                        <td></td>
-
-                                        <td class="text-end text-primary">
-
-                                            Rp ${formatRupiah(subtotalTotal)}
-
-                                        </td>
-
-                                    </tr>
-
-                                </tbody>
-
-                            </table>
-
-                        </div>
-
-                    </div>
-
+                let headerCols = `
+                    <td class="text-center align-middle fw-bold text-primary" rowspan="${rowCount}">
+                        #${row.SALES || '-'}
+                    </td>
+                    <td class="text-center align-middle" rowspan="${rowCount}">
+                        ${row.PLANT_NAME || '-'}
+                    </td>
+                    <td class="text-center align-middle" rowspan="${rowCount}">
+                        ${formatDate(row.SALES_DATE)}
+                    </td>
+                    <td class="align-middle" rowspan="${rowCount}">
+                        <div class="fw-semibold">${row.CUSTOMER_NAME || '-'}</div>
+                        <small class="text-muted">${row.CUSTOMER || ''}</small>
+                    </td>
+                    <td class="text-center align-middle" rowspan="${rowCount}">
+                        <span class="badge bg-secondary">${row.PEMBAYARAN || '-'}</span>
+                    </td>
+                    <td class="text-center align-middle" rowspan="${rowCount}">
+                        ${row.NOTA || '-'}
+                    </td>
+                    <td class="text-center align-middle" rowspan="${rowCount}">
+                        ${statusBadge}
+                    </td>
+                    <td class="text-end align-middle fw-bold" rowspan="${rowCount}">
+                        Rp ${formatRupiah(row.GRAND_TOTAL || 0)}
+                    </td>
+                    <td class="text-end align-middle" rowspan="${rowCount}">
+                        Rp ${formatRupiah(row.REMAIN || 0)}
+                    </td>
                 `;
 
-                wrapper.append(card);
+                let html = '';
 
-            });
+                if(details.length === 0){
+
+                    html += `
+                        <tr>
+                            ${headerCols}
+                            <td>-</td>
+                            <td class="text-end">-</td>
+                            <td class="text-end">-</td>
+                            <td class="text-end">-</td>
+                            <td class="text-end">-</td>
+                            <td class="text-end">-</td>
+                        </tr>
+                    `;
+
+                } else {
+
+                    details.forEach(function(d, idx){
+
+                        totalQty       += Number(d.JUMLAH   || 0);
+                        totalBerat     += Number(d.BERAT    || 0);
+                        totalDetailAmt += Number(d.TOTAL    || 0);
+
+                        html += `
+                            <tr>
+                                ${idx === 0 ? headerCols : ''}
+                                <td class="fw-semibold">${d.MATERIAL_NAME || '-'}</td>
+                                <td class="text-end">${formatQty(d.JUMLAH || 0)}</td>
+                                <td class="text-end">${formatWeight(d.BERAT || 0)}</td>
+                                <td class="text-end">Rp ${formatRupiah(d.HARGA || 0)}</td>
+                                <td class="text-end text-danger">Rp ${formatRupiah(d.DISCOUNT || 0)}</td>
+                                <td class="text-end fw-semibold text-primary">Rp ${formatRupiah(d.TOTAL || 0)}</td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                return html;
+
+            }).join('');
+
+            let table = `
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle table-modern">
+                        ${thead}
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-light fw-bold">
+                                <td colspan="7" class="text-end">Total Semua</td>
+                                <td class="text-end">Rp ${formatRupiah(totalGrandTotal)}</td>
+                                <td class="text-end">Rp ${formatRupiah(totalRemain)}</td>
+                                <td></td>
+                                <td class="text-end">${formatQty(totalQty)}</td>
+                                <td class="text-end">${formatWeight(totalBerat)}</td>
+                                <td></td>
+                                <td></td>
+                                <td class="text-end">Rp ${formatRupiah(totalDetailAmt)}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            `;
+
+            wrapper.html(table);
         }
 
         function loadPlant()

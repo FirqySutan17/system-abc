@@ -65,6 +65,7 @@ $route['cash-in/get-supplier'] = 'CashIn/get_supplier';
 $route['cash-in/get_invoice_tempo'] = 'CashIn/get_invoice_tempo';
 $route['cash-in/get_user_plant_select2'] = 'CashIn/get_user_plant_select2';
 $route['cash-in/get_customer_deposit'] = 'CashIn/get_customer_deposit';
+$route['cash-in/get_customer_saving'] = 'CashIn/get_customer_saving';
 $route['cash-in/get_invoice_fifo_source'] = 'CashIn/get_invoice_fifo_source';
 $route['cash-in/validate_invoice_remain'] = 'CashIn/validate_invoice_remain';
 $route['cash-in/create'] = 'CashIn/create';

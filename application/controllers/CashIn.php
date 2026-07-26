@@ -297,9 +297,30 @@ class CashIn extends MY_Controller {
 
     public function get_customer()
     {
-        $term = $this->input->get('q');
+        $term = trim($this->input->get('q') ?? '');
+
+        if (strlen($term) < 3) {
+            echo json_encode([]);
+            return;
+        }
+
         $data = $this->CashIn_model->search_customer($term);
         echo json_encode($data);
+    }
+
+    public function get_customer_saving()
+    {
+        $customer = $this->input->get('customer', true);
+        $plant    = $this->input->get('plant', true);
+
+        if (!$customer || !$plant) {
+            echo json_encode(['amount' => 0]);
+            return;
+        }
+
+        $amount = $this->CashIn_model->get_customer_saving_debt($customer, $plant);
+
+        echo json_encode(['amount' => (float) $amount]);
     }
 
     public function get_rekening()
@@ -462,13 +483,7 @@ class CashIn extends MY_Controller {
         }
 
         if(empty($post['DETAIL'])){
-
-            echo json_encode([
-                'status'  => false,
-                'message' => 'Detail invoice kosong'
-            ]);
-
-            return;
+            $post['DETAIL'] = [];
         }
 
         /*
@@ -495,6 +510,26 @@ class CashIn extends MY_Controller {
                 '',
                 $post['TOTAL_INPUT']
             );
+
+        $savingDebtCheck =
+            $this->CashIn_model
+                ->get_customer_saving_debt(
+                    $customer,
+                    $plant
+                );
+
+        if(
+            empty($post['DETAIL']) &&
+            $savingDebtCheck <= 0
+        ){
+
+            echo json_encode([
+                'status'  => false,
+                'message' => 'Detail invoice kosong'
+            ]);
+
+            return;
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -559,6 +594,40 @@ class CashIn extends MY_Controller {
 
             /*
             |--------------------------------------------------------------------------
+            | SAVING — PRIORITAS UTAMA
+            |--------------------------------------------------------------------------
+            */
+
+            $savingDebt =
+                $this->CashIn_model
+                    ->get_customer_saving_debt(
+                        $customer,
+                        $plant
+                    );
+
+            $savingPayment =
+                min(
+                    $totalInput,
+                    max($savingDebt, 0)
+                );
+
+            if($savingPayment > 0){
+
+                $this->CashIn_model->insert_saving_payment(
+                    $customer,
+                    $plant,
+                    $savingPayment,
+                    $cashInNo,
+                    $date,
+                    $user
+                );
+            }
+
+            $amountLeft =
+                $totalInput - $savingPayment;
+
+            /*
+            |--------------------------------------------------------------------------
             | DETAIL
             |--------------------------------------------------------------------------
             */
@@ -568,6 +637,10 @@ class CashIn extends MY_Controller {
             $totalAllocated = 0;
 
             foreach($post['DETAIL'] as $d){
+
+                if($amountLeft <= 0){
+                    break;
+                }
 
                 $salesNo =
                     $d['SALES'];
@@ -631,10 +704,18 @@ class CashIn extends MY_Controller {
                 */
 
                 if($bayar > $outstanding){
-
                     $bayar = $outstanding;
-
                 }
+
+                if($bayar > $amountLeft){
+                    $bayar = $amountLeft;
+                }
+
+                if($bayar <= 0){
+                    continue;
+                }
+
+                $amountLeft -= $bayar;
 
                 /*
                 |--------------------------------------------------------------------------
@@ -723,20 +804,36 @@ class CashIn extends MY_Controller {
             |--------------------------------------------------------------------------
             */
 
+            $totalUsed =
+                $totalAllocated + $savingPayment;
+
             $cashInStatus = 'OPEN';
 
-            if($totalAllocated >= $totalInput){
+            if($totalUsed >= $totalInput){
 
                 $cashInStatus = 'PAID';
 
             }
-            else if($totalAllocated > 0){
+            else if($totalUsed > 0){
 
                 $cashInStatus = 'PARTIAL';
 
             }
 
-            if($totalAllocated < $totalInput){
+            if(
+                $totalAllocated <= 0 &&
+                $savingPayment > 0 &&
+                $totalUsed < $totalInput
+            ){
+
+                $cashInStatus = 'DEPOSIT';
+            }
+            else if($totalAllocated <= 0 && $savingPayment > 0){
+
+                $cashInStatus = 'PAID';
+
+            }
+            else if($totalUsed < $totalInput){
 
                 $cashInStatus = 'DEPOSIT';
             }
@@ -954,12 +1051,37 @@ class CashIn extends MY_Controller {
 
         $this->CashIn_model->delete_cash_in_details($cashInNo, $plant);
         $this->CashIn_model->delete_deposit_by_cash_in($cashInNo);
+        $this->CashIn_model->delete_saving_payment_by_cash_in($cashInNo, $plant, $username);
 
 
         /* =====================
-        STEP 2 — HITUNG ULANG OFFSET BARU (FIFO)
+        STEP 2 — SAVING DULU, LALU OFFSET AR (FIFO)
         ===================== */
-        $amountLeft = $inputCashIn;
+        $savingDebt =
+            $this->CashIn_model
+                ->get_customer_saving_debt(
+                    $customer,
+                    $plant
+                );
+
+        $savingPayment =
+            min(
+                $inputCashIn,
+                max($savingDebt, 0)
+            );
+
+        if ($savingPayment > 0) {
+            $this->CashIn_model->insert_saving_payment(
+                $customer,
+                $plant,
+                $savingPayment,
+                $cashInNo,
+                $data['CASHIN_DATE'],
+                $username
+            );
+        }
+
+        $amountLeft = $inputCashIn - $savingPayment;
         $seq        = 1;
 
         $invoices = $this->CashIn_model->get_fifo_open_invoices($customer, $plant);
@@ -1341,6 +1463,19 @@ class CashIn extends MY_Controller {
                         ]
                     );
             }
+
+            /*
+            |--------------------------------------------------------------------------
+            | ROLLBACK SAVING PAYMENT
+            |--------------------------------------------------------------------------
+            */
+
+            $this->CashIn_model
+                ->delete_saving_payment_by_cash_in(
+                    $cashIn,
+                    $plant,
+                    $this->session->userdata('username')
+                );
 
             /*
             |--------------------------------------------------------------------------

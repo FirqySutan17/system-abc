@@ -518,12 +518,18 @@
                                 Plant *
                             </label>
 
-                            <select
+                            <input
+                                type="text"
+                                class="form-control"
+                                value="Jakarta"
+                                readonly
+                                style="background:#efefef">
+
+                            <input
+                                type="hidden"
                                 name="PLANT"
                                 id="plantAdd"
-                                class="form-control"
-                                required>
-                            </select>
+                                value="0001">
 
                         </div>
 
@@ -552,7 +558,9 @@
                             <input
                                 type="date"
                                 name="CASHIN_DATE"
+                                id="cashInDateAdd"
                                 class="form-control"
+                                value="<?= date('Y-m-d'); ?>"
                                 required>
 
                         </div>
@@ -1194,6 +1202,13 @@
         ) || 0;
     }
 
+    function roundMoney(value)
+    {
+        return Math.round(
+            (cleanNumber(value) + Number.EPSILON) * 100
+        ) / 100;
+    }
+
     function formatRupiah(value)
     {
         return Number(
@@ -1250,8 +1265,10 @@
             $('input[name="MODE_CASH_IN"]:checked').val();
 
         let totalInput =
-            cleanNumber(
-                $('#cashInAmount').val()
+            roundMoney(
+                cleanNumber(
+                    $('#cashInAmount').val()
+                )
             );
 
         /*
@@ -1264,8 +1281,8 @@
 
         $('.pay-input').each(function(){
 
-            allocated += cleanNumber(
-                $(this).val()
+            allocated = roundMoney(
+                allocated + cleanNumber($(this).val())
             );
 
         });
@@ -1281,19 +1298,6 @@
             totalInput = allocated;
         }
 
-        $('#detailTable tbody tr').each(function(){
-
-            let bayar =
-                cleanNumber(
-                    $(this)
-                        .find('.pay-input')
-                        .val()
-                );
-
-            allocated += bayar;
-
-        });
-
         /*
         |--------------------------------------------------------------------------
         | REMAINING
@@ -1301,10 +1305,12 @@
         */
 
         let remaining =
-        Math.max(
-            totalInput - allocated,
-            0
-        );
+            roundMoney(
+                Math.max(
+                    totalInput - allocated - (window.CURRENT_SAVING_PAY || 0),
+                    0
+                )
+            );
 
         /*
         |--------------------------------------------------------------------------
@@ -1349,7 +1355,11 @@
         */
 
         $('#grandTotal').val(
-            'Rp ' + formatRupiah(allocated)
+            'Rp ' + formatRupiah(
+                roundMoney(
+                    allocated + (window.CURRENT_SAVING_PAY || 0)
+                )
+            )
         );
     }
 
@@ -1370,13 +1380,17 @@
         let tr = el.closest('tr');
 
         let outstanding =
-            cleanNumber(
-                tr.find('.outstanding-value').val()
+            roundMoney(
+                cleanNumber(
+                    tr.find('.outstanding-value').val()
+                )
             );
 
         let bayar =
-            cleanNumber(
-                tr.find('.pay-input').val()
+            roundMoney(
+                cleanNumber(
+                    tr.find('.pay-input').val()
+                )
             );
 
         /*
@@ -1402,7 +1416,12 @@
         */
 
         let sisa =
-            outstanding - bayar;
+            roundMoney(
+                Math.max(
+                    outstanding - bayar,
+                    0
+                )
+            );
 
         tr.find('.remaining-text').html(
             'Rp ' + formatRupiah(sisa)
@@ -1478,15 +1497,17 @@
             data.CUSTOMER_NAME || '-';
 
         let outstanding =
-            parseFloat(data.OUTSTANDING || 0);
+            roundMoney(data.OUTSTANDING || 0);
 
         let bayar =
-            parseFloat(data.BAYAR || 0);
+            roundMoney(data.BAYAR || 0);
 
         let remaining =
-            Math.max(
-                outstanding - bayar,
-                0
+            roundMoney(
+                Math.max(
+                    outstanding - bayar,
+                    0
+                )
             );
 
         /*
@@ -2101,8 +2122,10 @@
             $('#hiddenCustomerAdd').val();
 
         let totalInput =
-            cleanNumber(
-                $('#cashInAmount').val()
+            roundMoney(
+                cleanNumber(
+                    $('#cashInAmount').val()
+                )
             );
 
         if(!customer){
@@ -2134,133 +2157,172 @@
 
         /*
         |--------------------------------------------------------------------------
-        | GET FIFO DATA
+        | GET SAVING DEBT + FIFO DATA
         |--------------------------------------------------------------------------
         */
 
-        $.get(
+        $.when(
 
-            '<?= base_url("cashin/load_sales_picker"); ?>',
+            $.get(
+                '<?= base_url("cash-in/get_customer_saving"); ?>',
+                { customer: customer, plant: plant }
+            ),
 
-            {
+            $.get(
+                '<?= base_url("cashin/load_sales_picker"); ?>',
+                { plant: plant, customer: customer }
+            )
 
-                plant   : plant,
+        ).done(function(savingRes, invoiceRes){
 
-                customer: customer
+            let savingData =
+                typeof savingRes[0] === 'string'
+                    ? JSON.parse(savingRes[0])
+                    : savingRes[0];
 
-            },
+            let rows =
+                typeof invoiceRes[0] === 'string'
+                    ? JSON.parse(invoiceRes[0])
+                    : invoiceRes[0];
 
-            function(rows){
+            let savingDebt =
+                roundMoney(
+                    savingData.amount || 0
+                );
 
-                /*
-                |--------------------------------------------------------------------------
-                | EMPTY
-                |--------------------------------------------------------------------------
-                */
+            let remainingCash =
+                totalInput;
 
-                if(rows.length === 0){
+            /*
+            |--------------------------------------------------------------------------
+            | PRIORITAS SAVING
+            |--------------------------------------------------------------------------
+            */
 
-                    renderEmptyDetail(
-                        'Customer tidak memiliki invoice outstanding'
+            if(savingDebt > 0){
+
+                let savingPay =
+                    roundMoney(
+                        Math.min(
+                            remainingCash,
+                            savingDebt
+                        )
                     );
 
-                    updateSummary();
+                remainingCash =
+                    roundMoney(
+                        remainingCash - savingPay
+                    );
 
-                    return;
-                }
+                window.CURRENT_SAVING_PAY =
+                    savingPay;
 
-                let remainingCash =
-                    totalInput;
+            }else{
 
-                /*
-                |--------------------------------------------------------------------------
-                | LOOP INVOICE
-                |--------------------------------------------------------------------------
-                */
+                window.CURRENT_SAVING_PAY = 0;
 
-                rows.forEach(function(r){
+            }
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | STOP
-                    |--------------------------------------------------------------------------
-                    */
+            /*
+            |--------------------------------------------------------------------------
+            | EMPTY INVOICE
+            |--------------------------------------------------------------------------
+            */
 
-                    if(remainingCash <= 0){
+            if(
+                rows.length === 0 &&
+                remainingCash <= 0 &&
+                savingDebt <= 0
+            ){
 
-                        return;
-
-                    }
-
-                    let outstanding =
-                        parseFloat(
-                            r.OUTSTANDING || 0
-                        );
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | ALLOCATE
-                    |--------------------------------------------------------------------------
-                    */
-
-                    let bayar = 0;
-
-                    if(
-                        remainingCash >= outstanding
-                    ){
-
-                        bayar = outstanding;
-
-                    }else{
-
-                        bayar = remainingCash;
-
-                    }
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | PUSH ROW
-                    |--------------------------------------------------------------------------
-                    */
-
-                    addDetailRow({
-
-                        SALES :
-                            r.SALES,
-
-                        CUSTOMER_NAME :
-                            r.CUSTOMER_NAME,
-
-                        OUTSTANDING :
-                            outstanding,
-
-                        BAYAR :
-                            bayar
-
-                    }, true);
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | REDUCE
-                    |--------------------------------------------------------------------------
-                    */
-
-                    remainingCash -= bayar;
-
-                });
-
-                /*
-                |--------------------------------------------------------------------------
-                | UPDATE SUMMARY
-                |--------------------------------------------------------------------------
-                */
+                renderEmptyDetail(
+                    'Customer tidak memiliki invoice outstanding'
+                );
 
                 updateSummary();
 
-            },
+                return;
+            }
 
-            'json'
-        );
+            if(
+                rows.length === 0 &&
+                remainingCash <= 0 &&
+                savingDebt > 0
+            ){
+
+                renderEmptyDetail(
+                    'Seluruh nominal dialokasikan ke Tabungan/Saving'
+                );
+
+                updateSummary();
+
+                return;
+            }
+
+            if(rows.length === 0){
+
+                renderEmptyDetail(
+                    'Customer tidak memiliki invoice outstanding'
+                );
+
+                updateSummary();
+
+                return;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | LOOP INVOICE
+            |--------------------------------------------------------------------------
+            */
+
+            rows.forEach(function(r){
+
+                if(remainingCash <= 0){
+
+                    return;
+
+                }
+
+                let outstanding =
+                    roundMoney(
+                        r.OUTSTANDING || 0
+                    );
+
+                let bayar =
+                    roundMoney(
+                        Math.min(
+                            remainingCash,
+                            outstanding
+                        )
+                    );
+
+                addDetailRow({
+
+                    SALES :
+                        r.SALES,
+
+                    CUSTOMER_NAME :
+                        r.CUSTOMER_NAME,
+
+                    OUTSTANDING :
+                        outstanding,
+
+                    BAYAR :
+                        bayar
+
+                }, true);
+
+                remainingCash =
+                    roundMoney(
+                        remainingCash - bayar
+                    );
+
+            });
+
+            updateSummary();
+
+        });
     }
 
     /*
@@ -2303,6 +2365,8 @@
 
             $('#detailTable tbody')
                 .html('');
+
+            window.CURRENT_SAVING_PAY = 0;
 
             /*
             |--------------------------------------------------------------------------
@@ -2995,7 +3059,13 @@
 
         initRekeningSelect2('#NO_REK', '#CashInAdd');
 
-        initPlantSelect();
+        $('#cashInDateAdd').val(
+            '<?= date('Y-m-d'); ?>'
+        );
+
+        $('#plantAdd').val('0001');
+
+        window.CURRENT_SAVING_PAY = 0;
 
         $('input[name="MODE_CASH_IN"][value="FIFO"]')
             .prop('checked', true)
@@ -3028,6 +3098,14 @@
 
             allowClear: true,
 
+            minimumInputLength: 3,
+
+            language: {
+                inputTooShort: function () {
+                    return 'Ketik minimal 3 karakter';
+                }
+            },
+
             dropdownParent: modalId
                 ? $(modalId)
                 : $(document.body),
@@ -3036,7 +3114,7 @@
 
             ajax: {
 
-                url: "<?= base_url('cashin/get_customer'); ?>",
+                url: "<?= base_url('cash-in/get-customer'); ?>",
 
                 dataType: "json",
 
@@ -3181,7 +3259,13 @@
                     .not('.empty-row')
                     .length;
 
-            if(detailCount <= 0){
+            let savingPay =
+                window.CURRENT_SAVING_PAY || 0;
+
+            if(
+                detailCount <= 0 &&
+                savingPay <= 0
+            ){
 
                 alert(
                     'Detail invoice kosong'
@@ -3198,18 +3282,22 @@
 
             let invalid = false;
 
-            $('.pay-input').each(function(){
+            if(detailCount > 0){
 
-                let val =
-                    cleanNumber($(this).val());
+                $('.pay-input').each(function(){
 
-                if(val <= 0){
+                    let val =
+                        cleanNumber($(this).val());
 
-                    invalid = true;
+                    if(val <= 0){
 
-                }
+                        invalid = true;
 
-            });
+                    }
+
+                });
+
+            }
 
             if(invalid){
 

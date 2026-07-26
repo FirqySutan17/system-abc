@@ -405,21 +405,36 @@ class Sales_model extends CI_Model {
         return $plants;
     }
 
-    public function get_plant_select2()
+    public function get_plant_select2($username = null)
     {
-        return $this->db
+        $plantCodes = null;
+
+        if ($username) {
+            $plantCodes = $this->get_user_plants($username);
+            if (empty($plantCodes)) {
+                return [];
+            }
+        }
+
+        // echo '<pre>';
+        // print_r($plantCodes);
+        // echo '</pre>';
+        // exit;
+        $this->db->reset_query();
+
+        $this->db
             ->select('CODE as id, CODE_NAME as text')
-
             ->from('abc_cd_code')
-
             ->where('HEAD_CODE', 'PLANT')
+            ->where('CODE !=', '*');
 
-            ->where('CODE !=', '*')
+        // if ($plantCodes) {
+        //     $this->db->where_in('CODE', $plantCodes);
+        // }
 
+        return $this->db
             ->order_by('CODE_NAME', 'ASC')
-
             ->get()
-
             ->result_array();
     }
 
@@ -431,12 +446,15 @@ class Sales_model extends CI_Model {
             return [];
         }
 
+        $this->db->reset_query();
+
         return $this->db
             ->select('CODE as id, CODE_NAME as text')
+            ->from('abc_cd_code')
             ->where('HEAD_CODE', 'PLANT')
             ->where_in('CODE', $plantCodes)
             ->order_by('CODE_NAME', 'ASC')
-            ->get('abc_cd_code')
+            ->get()
             ->result_array();
     }
 
@@ -800,6 +818,17 @@ class Sales_model extends CI_Model {
             ->result_array();
     }
 
+    public function get_sales_detail_rows($plant, $sales)
+    {
+        return $this->db
+            ->select('PLANT, MATERIAL, JUMLAH, BERAT')
+            ->from('abc_mst_sales_detail')
+            ->where('PLANT', $plant)
+            ->where('SALES', $sales)
+            ->get()
+            ->result_array();
+    }
+
     public function update_sales_header(
         $plant,
         $sales,
@@ -889,44 +918,53 @@ class Sales_model extends CI_Model {
         return $out;
     }
 
-    public function get_customer_default()
+    public function get_customer_by_id($cust)
     {
-        $cust = 'CS000002';
+        $row = $this->db
+            ->select('CUST, FULL_NAME')
+            ->from('abc_cd_customer')
+            ->where('CUST', $cust)
+            ->get()
+            ->row_array();
 
-        $row = $this->Sales_model
-            ->get_customer_by_id($cust);
-
-        if ($row) {
-
-            echo json_encode([
-
-                'id'   => $row['CUST'],
-
-                'text' => $row['CUST']
-                    .' - '.
-                    $row['FULL_NAME']
-            ]);
-
-        } else {
-
-            echo json_encode(null);
+        if (!$row) {
+            return null;
         }
+
+        return [
+            'id' => $row['CUST'],
+            'text' => $row['CUST'] . ' - ' . $row['FULL_NAME'],
+            'CUST' => $row['CUST'],
+            'FULL_NAME' => $row['FULL_NAME']
+        ];
     }
 
-    public function search_material($q = null, $limit = 20)
+    public function search_material($q = null, $selectedPlant = null)
     {
-        // Asumsikan master item ada di abc_cd_material (MATERIAL, MATERIAL_NAME)
-        $this->db->select('MATERIAL as id, MATERIAL_NAME');
-        $this->db->from('abc_cd_material');
+        $limit = 20; // batasi hasil pencarian untuk performa
+
+        $this->db->select('a.MATERIAL as id, a.MATERIAL_NAME, b.QTY, b.BW');
+        $this->db->from('abc_cd_material as a');
+        $this->db->join(
+            'abc_mst_company_stock b',
+            'a.MATERIAL COLLATE utf8mb4_unicode_ci = b.MATERIAL',
+            'left',
+            FALSE
+        );
 
         if ($q) {
             $this->db->group_start();
-            $this->db->like('MATERIAL', $q);
-            $this->db->or_like('MATERIAL_NAME', $q);
+            $this->db->like('a.MATERIAL', $q);
+            $this->db->or_like('a.MATERIAL_NAME', $q);
             $this->db->group_end();
         }
 
-        $this->db->order_by('MATERIAL', 'ASC');
+        if (!empty($selectedPlant)) {
+            $this->db->where('b.PLANT', $selectedPlant);
+        }
+
+        $this->db->where('b.STATUS', 'AVAILABLE');
+        $this->db->order_by('a.MATERIAL', 'ASC');
         $this->db->limit($limit);
 
         $rows = $this->db->get()->result_array();
@@ -935,15 +973,468 @@ class Sales_model extends CI_Model {
         foreach ($rows as $r) {
             $out[] = [
                 'id'   => $r['id'],
-                'text' => $r['id'] . ' - ' . $r['MATERIAL_NAME']
+                'text' => $r['id'] . ' - ' . $r['MATERIAL_NAME'],
+                'bw'    => $r['BW'],
+                'qty'   => $r['QTY']
             ];
         }
 
         return $out;
     }
 
+    public function get_company_stock($plant, $material)
+    {
+        if (!$plant || !$material) {
+            return [
+                'PLANT' => $plant,
+                'MATERIAL' => $material,
+                'QTY' => 0,
+                'BW' => 0,
+                'AVG_BW' => 0,
+                'STATUS' => 'NOT_FOUND'
+            ];
+        }
+
+        $row = $this->db
+            ->select('PLANT, MATERIAL, QTY, BW, AVG_BW, STATUS')
+            ->from('abc_mst_company_stock')
+            ->where('PLANT', $plant)
+            ->where('MATERIAL', $material)
+            ->get()
+            ->row_array();
+
+        if (!$row) {
+            return [
+                'PLANT' => $plant,
+                'MATERIAL' => $material,
+                'QTY' => 0,
+                'BW' => 0,
+                'AVG_BW' => 0,
+                'STATUS' => 'NOT_FOUND'
+            ];
+        }
+
+        return [
+            'PLANT' => $row['PLANT'] ?? $plant,
+            'MATERIAL' => $row['MATERIAL'] ?? $material,
+            'QTY' => (float)($row['QTY'] ?? 0),
+            'BW' => (float)($row['BW'] ?? 0),
+            'AVG_BW' => (float)($row['AVG_BW'] ?? 0),
+            'STATUS' => $row['STATUS'] ?? 'AVAILABLE'
+        ];
+    }
+
+    private function get_table_columns($table)
+    {
+        $columns = [];
+
+        $tableName = str_replace('`', '', $table);
+        $result = $this->db->query('SHOW COLUMNS FROM `' . $tableName . '`');
+
+        if ($result && $result->num_rows() > 0) {
+            foreach ($result->result_array() as $row) {
+                $columns[] = $row['Field'];
+            }
+        }
+
+        return $columns;
+    }
+
+    public function insert_company_stock_transaction(array $rows)
+    {
+        if (empty($rows)) {
+            return true;
+        }
+
+        $columns = $this->get_table_columns('abc_trx_company_stock_card');
+
+        $payload = [];
+
+        foreach ($rows as $row) {
+            $item = [];
+
+            if (in_array('PLANT', $columns, true)) {
+                $item['PLANT'] = $row['PLANT'] ?? null;
+            }
+
+            if (in_array('MATERIAL', $columns, true)) {
+                $item['MATERIAL'] = $row['MATERIAL'] ?? null;
+            }
+
+            if (in_array('QTY_OUT', $columns, true)) {
+                $item['QTY_OUT'] = (float)($row['QTY_OUT'] ?? 0);
+            } elseif (in_array('QTY', $columns, true)) {
+                $item['QTY'] = (float)($row['QTY_OUT'] ?? 0);
+            }
+
+            if (in_array('BW_OUT', $columns, true)) {
+                $item['BW_OUT'] = (float)($row['BW_OUT'] ?? 0);
+            } elseif (in_array('BW', $columns, true)) {
+                $item['BW'] = (float)($row['BW_OUT'] ?? 0);
+            }
+
+            if (in_array('CREATED_AT', $columns, true)) {
+                $item['CREATED_AT'] = $row['CREATED_AT'] ?? date('Y-m-d H:i:s');
+            }
+
+            if (in_array('CREATED_BY', $columns, true)) {
+                $item['CREATED_BY'] = $row['CREATED_BY'] ?? null;
+            }
+
+            if (!empty($item)) {
+                $payload[] = $item;
+            }
+        }
+
+        if (empty($payload)) {
+            return true;
+        }
+
+        return $this->db->insert_batch('abc_trx_company_stock_card', $payload);
+    }
+
+    public function update_company_stock_for_sales(array $rows, $createdBy = null)
+    {
+        foreach ($rows as $row) {
+            $stock = $this->get_company_stock($row['PLANT'], $row['MATERIAL']);
+
+            if (($stock['STATUS'] ?? '') === 'NOT_FOUND') {
+                continue;
+            }
+
+            $newQty = (float)($stock['QTY'] ?? 0) - (float)($row['QTY_OUT'] ?? 0);
+            $newBw  = (float)($stock['BW'] ?? 0) - (float)($row['BW_OUT'] ?? 0);
+            $avgBw  = $newQty > 0 ? round($newBw / $newQty, 2) : 0;
+
+            $this->db
+                ->where('PLANT', $row['PLANT'])
+                ->where('MATERIAL', $row['MATERIAL'])
+                ->update('abc_mst_company_stock', [
+                    'QTY' => $newQty,
+                    'BW' => $newBw,
+                    'AVG_BW' => $avgBw,
+                    'UPDATED_AT' => date('Y-m-d H:i:s'),
+                    'UPDATED_BY' => $createdBy
+                ]);
+        }
+
+        return true;
+    }
+
+    public function restore_company_stock_for_sales(array $rows, $createdBy = null)
+    {
+        foreach ($rows as $row) {
+            $stock = $this->get_company_stock($row['PLANT'], $row['MATERIAL']);
+
+            if (($stock['STATUS'] ?? '') === 'NOT_FOUND') {
+                continue;
+            }
+
+            $newQty = (float)($stock['QTY'] ?? 0) + (float)($row['QTY_OUT'] ?? 0);
+            $newBw  = (float)($stock['BW'] ?? 0) + (float)($row['BW_OUT'] ?? 0);
+            $avgBw  = $newQty > 0 ? round($newBw / $newQty, 2) : 0;
+
+            $this->db
+                ->where('PLANT', $row['PLANT'])
+                ->where('MATERIAL', $row['MATERIAL'])
+                ->update('abc_mst_company_stock', [
+                    'QTY' => $newQty,
+                    'BW' => $newBw,
+                    'AVG_BW' => $avgBw,
+                    'UPDATED_AT' => date('Y-m-d H:i:s'),
+                    'UPDATED_BY' => $createdBy
+                ]);
+        }
+
+        return true;
+    }
+
+    public function insert_company_stock_card(array $rows, $referenceNo, $referenceType, $referenceDate, $createdBy = null)
+    {
+        if (empty($rows)) {
+            return true;
+        }
+
+        $columns = $this->get_table_columns('abc_trx_company_stock_card');
+
+        foreach ($rows as $row) {
+            $stock = $this->get_company_stock($row['PLANT'], $row['MATERIAL']);
+            $balanceQty = (float)($stock['QTY'] ?? 0);
+            $balanceBw  = (float)($stock['BW'] ?? 0);
+            $avgBw      = $balanceQty > 0 ? round($balanceBw / $balanceQty, 2) : 0;
+
+            $payload = [];
+
+            if (in_array('CARD_NO', $columns, true)) {
+                $payload['CARD_NO'] = $this->generate_company_stock_card_no();
+            }
+
+            if (in_array('PLANT', $columns, true)) {
+                $payload['PLANT'] = $row['PLANT'];
+            }
+
+            if (in_array('MATERIAL', $columns, true)) {
+                $payload['MATERIAL'] = $row['MATERIAL'];
+            }
+
+            if (in_array('TRANSACTION_DATE', $columns, true)) {
+                $payload['TRANSACTION_DATE'] = $referenceDate;
+            }
+
+            if (in_array('REFERENCE_NO', $columns, true)) {
+                $payload['REFERENCE_NO'] = $referenceNo;
+            }
+
+            if (in_array('REFERENCE_TYPE', $columns, true)) {
+                $payload['REFERENCE_TYPE'] = $referenceType;
+            }
+
+            if (in_array('QTY_IN', $columns, true)) {
+                $payload['QTY_IN'] = 0;
+            }
+
+            if (in_array('BW_IN', $columns, true)) {
+                $payload['BW_IN'] = 0;
+            }
+
+            if (in_array('QTY_OUT', $columns, true)) {
+                $payload['QTY_OUT'] = (float)($row['QTY_OUT'] ?? 0);
+            }
+
+            if (in_array('BW_OUT', $columns, true)) {
+                $payload['BW_OUT'] = (float)($row['BW_OUT'] ?? 0);
+            }
+
+            if (in_array('BALANCE_QTY', $columns, true)) {
+                $payload['BALANCE_QTY'] = $balanceQty;
+            }
+
+            if (in_array('BALANCE_BW', $columns, true)) {
+                $payload['BALANCE_BW'] = $balanceBw;
+            }
+
+            if (in_array('BALANCE_AVG_BW', $columns, true)) {
+                $payload['BALANCE_AVG_BW'] = $avgBw;
+            }
+
+            if (in_array('AVG_BW', $columns, true)) {
+                $payload['AVG_BW'] = $avgBw;
+            }
+
+            if (in_array('REMARK', $columns, true)) {
+                $payload['REMARK'] = 'Sales ' . $referenceNo;
+            }
+
+            if (in_array('CREATED_AT', $columns, true)) {
+                $payload['CREATED_AT'] = date('Y-m-d H:i:s');
+            }
+
+            if (in_array('CREATED_BY', $columns, true)) {
+                $payload['CREATED_BY'] = $createdBy;
+            }
+
+            if (empty($payload)) {
+                continue;
+            }
+
+            $this->db->insert('abc_trx_company_stock_card', $payload);
+        }
+
+        return true;
+    }
+
+    public function insert_company_stock_card_reversal(array $rows, $referenceNo, $referenceType, $referenceDate, $createdBy = null)
+    {
+        if (empty($rows)) {
+            return true;
+        }
+
+        $columns = $this->get_table_columns('abc_trx_company_stock_card');
+
+        foreach ($rows as $row) {
+            $stock = $this->get_company_stock($row['PLANT'], $row['MATERIAL']);
+            $balanceQty = (float)($stock['QTY'] ?? 0);
+            $balanceBw  = (float)($stock['BW'] ?? 0);
+            $avgBw      = $balanceQty > 0 ? round($balanceBw / $balanceQty, 2) : 0;
+
+            $payload = [];
+
+            if (in_array('CARD_NO', $columns, true)) {
+                $payload['CARD_NO'] = $this->generate_company_stock_card_no();
+            }
+
+            if (in_array('PLANT', $columns, true)) {
+                $payload['PLANT'] = $row['PLANT'];
+            }
+
+            if (in_array('MATERIAL', $columns, true)) {
+                $payload['MATERIAL'] = $row['MATERIAL'];
+            }
+
+            if (in_array('TRANSACTION_DATE', $columns, true)) {
+                $payload['TRANSACTION_DATE'] = $referenceDate;
+            }
+
+            if (in_array('REFERENCE_NO', $columns, true)) {
+                $payload['REFERENCE_NO'] = $referenceNo;
+            }
+
+            if (in_array('REFERENCE_TYPE', $columns, true)) {
+                $payload['REFERENCE_TYPE'] = $referenceType;
+            }
+
+            if (in_array('QTY_IN', $columns, true)) {
+                $payload['QTY_IN'] = (float)($row['QTY_OUT'] ?? 0);
+            }
+
+            if (in_array('BW_IN', $columns, true)) {
+                $payload['BW_IN'] = (float)($row['BW_OUT'] ?? 0);
+            }
+
+            if (in_array('QTY_OUT', $columns, true)) {
+                $payload['QTY_OUT'] = 0;
+            }
+
+            if (in_array('BW_OUT', $columns, true)) {
+                $payload['BW_OUT'] = 0;
+            }
+
+            if (in_array('BALANCE_QTY', $columns, true)) {
+                $payload['BALANCE_QTY'] = $balanceQty;
+            }
+
+            if (in_array('BALANCE_BW', $columns, true)) {
+                $payload['BALANCE_BW'] = $balanceBw;
+            }
+
+            if (in_array('BALANCE_AVG_BW', $columns, true)) {
+                $payload['BALANCE_AVG_BW'] = $avgBw;
+            }
+
+            if (in_array('AVG_BW', $columns, true)) {
+                $payload['AVG_BW'] = $avgBw;
+            }
+
+            if (in_array('REMARK', $columns, true)) {
+                $payload['REMARK'] = 'Sales reversal ' . $referenceNo;
+            }
+
+            if (in_array('CREATED_AT', $columns, true)) {
+                $payload['CREATED_AT'] = date('Y-m-d H:i:s');
+            }
+
+            if (in_array('CREATED_BY', $columns, true)) {
+                $payload['CREATED_BY'] = $createdBy;
+            }
+
+            if (empty($payload)) {
+                continue;
+            }
+
+            $this->db->insert('abc_trx_company_stock_card', $payload);
+        }
+
+        return true;
+    }
+
+    public function delete_company_stock_card_by_reference($referenceNo, $referenceType)
+    {
+        return $this->db
+            ->where('REFERENCE_NO', $referenceNo)
+            ->where('REFERENCE_TYPE', $referenceType)
+            ->delete('abc_trx_company_stock_card');
+    }
+
+    private function generate_company_stock_card_no()
+    {
+        $prefix = 'CSC' . date('Ymd');
+
+        $this->db->select('CARD_NO');
+        $this->db->from('abc_trx_company_stock_card');
+        $this->db->like('CARD_NO', $prefix, 'after');
+        $this->db->order_by('CARD_NO', 'DESC');
+        $this->db->limit(1);
+
+        $row = $this->db->get()->row();
+
+        if ($row) {
+            $last = (int) substr($row->CARD_NO, -4);
+            $running = $last + 1;
+        } else {
+            $running = 1;
+        }
+
+        return $prefix . str_pad($running, 4, '0', STR_PAD_LEFT);
+    }
+
     public function get_all_sales()
     {
         return $this->db->get('abc_mst_sales')->result_array();
+    }
+
+    public function generate_saving_no()
+    {
+        $prefix = 'SV' . date('Ymd');
+
+        $row = $this->db
+            ->select('SV_NO')
+            ->from('abc_mst_saving')
+            ->like('SV_NO', $prefix, 'after')
+            ->order_by('SV_NO', 'DESC')
+            ->limit(1)
+            ->get()
+            ->row();
+
+        $seq = $row
+            ? ((int) substr($row->SV_NO, -4) + 1)
+            : 1;
+
+        return $prefix . str_pad($seq, 4, '0', STR_PAD_LEFT);
+    }
+
+    public function get_saving_by_sales($sales, $plant)
+    {
+        return $this->db
+            ->from('abc_mst_saving')
+            ->where('PLANT', $plant)
+            ->where('RELATED', 'SALES')
+            ->group_start()
+                ->where('REMARK', 'AUTO FROM SALES ' . $sales)
+                ->or_like('REMARK', 'AUTO FROM SALES ' . $sales, 'before')
+            ->group_end()
+            ->where('DELETED IS NULL', null, false)
+            ->order_by('CREATED_AT', 'DESC')
+            ->limit(1)
+            ->get()
+            ->row_array();
+    }
+
+    public function insert_saving_batch(array $rows)
+    {
+        if (empty($rows)) {
+            return true;
+        }
+
+        return $this->db->insert_batch('abc_mst_saving', $rows);
+    }
+
+    public function delete_saving_by_sales($sales, $plant, $deletedBy = null)
+    {
+        $data = [
+            'DELETED' => date('Y-m-d H:i:s')
+        ];
+
+        if ($deletedBy) {
+            $data['DELETED_BY'] = $deletedBy;
+        }
+
+        return $this->db
+            ->where('PLANT', $plant)
+            ->where('RELATED', 'SALES')
+            ->group_start()
+                ->where('REMARK', 'AUTO FROM SALES ' . $sales)
+                ->or_like('REMARK', 'AUTO FROM SALES ' . $sales, 'before')
+            ->group_end()
+            ->update('abc_mst_saving', $data);
     }
 }
