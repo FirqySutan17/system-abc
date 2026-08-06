@@ -876,23 +876,24 @@ class Sales_model extends CI_Model {
         $this->db->where('CUST !=', 'CS000001');
 
         // hanya CUSTOMER
-        $this->db->group_start();
+        // $this->db->group_start();
 
-        $this->db->where('CUST_KIND', 'CUSTOMER');
+        // $this->db->where('CUST_KIND', 'CUSTOMER');
 
-        $this->db->or_where('CUST_CLASS', 'CUSTOMER');
+        // $this->db->or_where('CUST_CLASS', 'CUSTOMER');
 
-        $this->db->group_end();
+        // $this->db->group_end();
 
         if ($q) {
+            $this->db->where('CUST LIKE "%'.$q.'%" OR FULL_NAME LIKE "%'.$q.'%"', null, false);
 
-            $this->db->group_start();
+            // $this->db->group_start();
 
-            $this->db->like('CUST', $q);
+            // $this->db->like('CUST', $q);
 
-            $this->db->or_like('FULL_NAME', $q);
+            // $this->db->or_like('FULL_NAME', $q);
 
-            $this->db->group_end();
+            // $this->db->group_end();
         }
 
         $this->db->order_by('CUST', 'ASC');
@@ -902,7 +903,7 @@ class Sales_model extends CI_Model {
         $rows = $this->db
             ->get()
             ->result_array();
-
+        // echo "<pre/>";print_r($rows);exit;
         $out = [];
 
         foreach ($rows as $r) {
@@ -914,7 +915,7 @@ class Sales_model extends CI_Model {
                 'text' => $r['id'] . ' - ' . $r['name']
             ];
         }
-
+        
         return $out;
     }
 
@@ -1048,10 +1049,22 @@ class Sales_model extends CI_Model {
 
         $columns = $this->get_table_columns('abc_trx_company_stock_card');
 
+        $prefix  = 'CSC' . date('Ymd');
+        $running = $this->get_last_company_stock_card_running();
+
         $payload = [];
 
         foreach ($rows as $row) {
             $item = [];
+
+            if (in_array('CARD_NO', $columns, true)) {
+
+                $running++;
+
+                $item['CARD_NO'] =
+                    $prefix .
+                    str_pad($running, 4, '0', STR_PAD_LEFT);
+            }
 
             if (in_array('PLANT', $columns, true)) {
                 $item['PLANT'] = $row['PLANT'] ?? null;
@@ -1089,6 +1102,10 @@ class Sales_model extends CI_Model {
         if (empty($payload)) {
             return true;
         }
+
+        echo "<pre>";
+        print_r($payload);
+        die();
 
         return $this->db->insert_batch('abc_trx_company_stock_card', $payload);
     }
@@ -1365,6 +1382,25 @@ class Sales_model extends CI_Model {
         }
 
         return $prefix . str_pad($running, 4, '0', STR_PAD_LEFT);
+    }
+
+    private function get_last_company_stock_card_running()
+    {
+        $prefix = 'CSC' . date('Ymd');
+
+        $this->db->select('CARD_NO');
+        $this->db->from('abc_trx_company_stock_card');
+        $this->db->like('CARD_NO', $prefix, 'after');
+        $this->db->order_by('CARD_NO', 'DESC');
+        $this->db->limit(1);
+
+        $row = $this->db->get()->row();
+
+        if ($row) {
+            return (int)substr($row->CARD_NO, -4);
+        }
+
+        return 0;
     }
 
     public function get_all_sales()

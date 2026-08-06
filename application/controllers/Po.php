@@ -82,21 +82,6 @@ class Po extends MY_Controller {
 
         /*
         |--------------------------------------------------------------------------
-        | SESSION
-        |--------------------------------------------------------------------------
-        */
-
-        $role_id = (int)$this->session
-            ->userdata('role_id');
-
-        $plant = $this->session
-            ->userdata('plant');
-
-        $username = $this->session
-            ->userdata('username');
-
-        /*
-        |--------------------------------------------------------------------------
         | DATA
         |--------------------------------------------------------------------------
         */
@@ -104,9 +89,6 @@ class Po extends MY_Controller {
         $rows = $this->Po_model->get_data(
             $limit,
             $start,
-            $role_id,
-            $plant,
-            $username,
             $search,
             $order,
             $dir,
@@ -115,10 +97,11 @@ class Po extends MY_Controller {
             $dateTo
         );
 
+        echo "<pre>";
+        print_r($rows);
+        die();
+
         $total = $this->Po_model->count_data(
-            $role_id,
-            $plant,
-            $username,
             $search,
             $status,
             $dateFrom,

@@ -2728,7 +2728,7 @@
             <tr>
                 <th>Customer</th>
                 <th>Nama</th>
-                <th>Alamat</th>
+                <th>Area</th>
             </tr>
         `);
     }
@@ -3071,7 +3071,7 @@
                 <tr class="lookup-row">
                     <td>${row.CUSTOMER}</td>
                     <td>${row.CUSTOMER_NAME}</td>
-                    <td>${row.ADDRESS ?? "-"}</td>
+                    <td>${row.AREA ?? "-"}</td>
                 </tr>
             `);
 

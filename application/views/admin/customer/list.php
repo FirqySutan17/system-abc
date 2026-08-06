@@ -29,6 +29,7 @@
                             <th class="border-bottom-0 cursor-pointer" data-order="full_name" style="text-align: center; vertical-align: middle;">Nama <span class="sort-icon"></span></th>
                             <th class="border-bottom-0 cursor-pointer" data-order="cust_class" style="text-align: center; vertical-align: middle;">Class <span class="sort-icon"></span></th>
                             <th class="border-bottom-0 cursor-pointer" data-order="grade" style="text-align: center; vertical-align: middle;">Grade <span class="sort-icon"></span></th>
+                            <th class="border-bottom-0 cursor-pointer" data-order="grade" style="text-align: center; vertical-align: middle;">Area <span class="sort-icon"></span></th>
                             <th class="border-bottom-0" style="text-align: center; vertical-align: middle;"></th>
                         </tr>
                     </thead>
@@ -521,6 +522,7 @@ function renderTable(rows){
                     <td style="text-align: center; vertical-align: middle;">${escapeHtml(r.FULL_NAME)}</td>
                     <td style="text-align: center; vertical-align: middle;">${escapeHtml(r.CUST_CLASS)}</td>
                     <td style="text-align: center; vertical-align: middle;">${escapeHtml(r.CUST_KIND)}</td>
+                    <td style="text-align: center; vertical-align: middle;">${escapeHtml(r.AREA)}</td>
                     <td style="text-align: center; vertical-align: middle;">
                         <button class="btn btn-sm btn-warning me-1" onclick="showEdit('${r.CUST}')">Edit</button>
                         <button class="btn btn-sm btn-danger" onclick="doDelete('${r.CUST}')">Delete</button>

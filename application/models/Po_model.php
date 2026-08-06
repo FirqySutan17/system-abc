@@ -12,9 +12,6 @@ class Po_model extends CI_Model {
     public function get_data(
         $limit,
         $start,
-        $role_id,
-        $plant,
-        $username,
         $search = '',
         $order = 'PO_DATE',
         $dir = 'DESC',
@@ -176,39 +173,6 @@ class Po_model extends CI_Model {
 
         /*
         |--------------------------------------------------------------------------
-        | ROLE
-        |--------------------------------------------------------------------------
-        */
-
-        if ($role_id != 1) {
-
-            $plants = json_decode(
-                $plant,
-                true
-            );
-
-            if (!is_array($plants)) {
-
-                $plants = explode(
-                    ',',
-                    $plant
-                );
-
-            }
-
-            $this->db->where_in(
-                'po.PLANT',
-                $plants
-            );
-
-            $this->db->where(
-                'po.CREATED_BY',
-                $username
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
         | SEARCH
         |--------------------------------------------------------------------------
         */
@@ -322,9 +286,6 @@ class Po_model extends CI_Model {
     }
 
     public function count_data(
-        $role_id,
-        $plant,
-        $username,
         $search = '',
         $status = '',
         $dateFrom = '',
@@ -412,34 +373,6 @@ class Po_model extends CI_Model {
             null,
             false
         );
-
-        /*
-        |--------------------------------------------------------------------------
-        | ROLE
-        |--------------------------------------------------------------------------
-        */
-
-        if ($role_id != 1) {
-
-            $plants = json_decode(
-                $plant,
-                true
-            );
-
-            if (!is_array($plants)) {
-
-                $plants = explode(
-                    ',',
-                    $plant
-                );
-
-            }
-
-            $this->db->where_in(
-                'po.PLANT',
-                $plants
-            );
-        }
 
         /*
         |--------------------------------------------------------------------------

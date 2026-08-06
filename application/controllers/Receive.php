@@ -118,21 +118,6 @@ class Receive extends MY_Controller {
 
         /*
         |--------------------------------------------------------------------------
-        | SESSION
-        |--------------------------------------------------------------------------
-        */
-
-        $role_id = (int)$this->session
-            ->userdata('role_id');
-
-        $username = $this->session
-            ->userdata('username');
-
-        $plant = $this->session
-            ->userdata('plant');
-
-        /*
-        |--------------------------------------------------------------------------
         | DATA
         |--------------------------------------------------------------------------
         */
@@ -140,9 +125,6 @@ class Receive extends MY_Controller {
         $rows = $this->Receive_model->get_data(
             $limit,
             $start,
-            $role_id,
-            $plant,
-            $username,
             $search,
             $order,
             $dir,
@@ -152,9 +134,6 @@ class Receive extends MY_Controller {
         );
 
         $total = $this->Receive_model->count_data(
-            $role_id,
-            $plant,
-            $username,
             $search,
             $status,
             $dateFrom,
@@ -3005,11 +2984,15 @@ class Receive extends MY_Controller {
                 -
                 $customer['DISCOUNT'];
 
+            $type = ($customer['CUSTOMER'] === 'CS000001')
+                ? 'COMPANY_STOCK'
+                : 'SALES';
+
             $rows[] = [
 
                 'CUSTOMER'=>$customer['CUSTOMER'],
 
-                'TYPE'=>'SALES',
+                'TYPE' => $type,
 
                 'QTY'=>$qty,
 
@@ -3070,63 +3053,78 @@ class Receive extends MY_Controller {
         array $actual
     )
     {
-        if(
-
-            $actual['REMAIN_QTY'] <= 0
-
-            &&
-
+        if (
+            $actual['REMAIN_QTY'] <= 0 &&
             $actual['REMAIN_BW'] <= 0
-
-        ){
-
+        ) {
             return $rows;
-
         }
 
-        $avg = 0;
+        /*
+        |--------------------------------------------------------------------------
+        | Jika CS000001 sudah ada, tambahkan sisa ke sana
+        |--------------------------------------------------------------------------
+        */
 
-        if($actual['REMAIN_QTY'] > 0){
+        foreach ($rows as &$row) {
 
-            $avg = round(
+            if (
+                $row['CUSTOMER'] === 'CS000001' &&
+                $row['TYPE'] === 'COMPANY_STOCK'
+            ) {
 
-                $actual['REMAIN_BW']
+                $row['QTY'] += $actual['REMAIN_QTY'];
 
-                /
+                $row['BW'] += $actual['REMAIN_BW'];
 
-                $actual['REMAIN_QTY'],
+                $row['AVG_BW'] =
+                    $row['QTY'] > 0
+                        ? round($row['BW'] / $row['QTY'], 2)
+                        : 0;
 
-                2
+                $row['IS_REMAINING'] = 1;
 
-            );
-
+                return $rows;
+            }
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Jika belum ada Company Stock, buat baru
+        |--------------------------------------------------------------------------
+        */
 
         $rows[] = [
 
-            'CUSTOMER'=>'CS000001',
+            'CUSTOMER' => 'CS000001',
 
-            'TYPE'=>'COMPANY_STOCK',
+            'TYPE' => 'COMPANY_STOCK',
 
-            'QTY'=>$actual['REMAIN_QTY'],
+            'QTY' => $actual['REMAIN_QTY'],
 
-            'BW'=>$actual['REMAIN_BW'],
+            'BW' => $actual['REMAIN_BW'],
 
-            'AVG_BW'=>$avg,
+            'AVG_BW' => $actual['REMAIN_QTY'] > 0
+                ? round(
+                    $actual['REMAIN_BW'] /
+                    $actual['REMAIN_QTY'],
+                    2
+                )
+                : 0,
 
-            'PRICE'=>0,
+            'PRICE' => 0,
 
-            'DISCOUNT'=>0,
+            'DISCOUNT' => 0,
 
-            'SALES_AMOUNT'=>0,
+            'SALES_AMOUNT' => 0,
 
-            'SAVING_AMOUNT'=>0,
+            'SAVING_AMOUNT' => 0,
 
-            'PAYMENT_AMOUNT'=>0,
+            'PAYMENT_AMOUNT' => 0,
 
-            'REMARK'=>'Remaining Receive',
+            'REMARK' => 'Remaining Receive',
 
-            'IS_REMAINING'=>1
+            'IS_REMAINING' => 1
 
         ];
 
@@ -3963,7 +3961,7 @@ class Receive extends MY_Controller {
             empty($file) ||
             empty($file['name'])
         ) {
-            return null;
+            return [];
         }
 
         $config = [
@@ -3997,9 +3995,7 @@ class Receive extends MY_Controller {
 
         $_FILES['ATTACHMENT'] = $file;
 
-        if (
-            !$this->upload->do_upload('ATTACHMENT')
-        ) {
+        if (!$this->upload->do_upload('ATTACHMENT')) {
 
             throw new Exception(
                 $this->upload->display_errors('', '')
@@ -4010,11 +4006,72 @@ class Receive extends MY_Controller {
         $upload = $this->upload->data();
 
         return [
-            'ATTACH_FILE_NAME' => $upload['file_name'],
+            'ATTACH_FILE_NAME'     => $upload['file_name'],
             'ATTACH_ORIGINAL_NAME' => $upload['orig_name'],
-            'FILE_PATH' => 'uploads/receive/' . $upload['file_name'],
-            'FILE_TYPE' => $upload['file_ext'],
-            'FILE_SIZE' => $upload['file_size']
+            'FILE_PATH'            => 'uploads/receive/' . $upload['file_name'],
+            'FILE_TYPE'            => $upload['file_ext'],
+            'FILE_SIZE'            => $upload['file_size']
         ];
     }
+
+    // private function handleAttachment($file = null)
+    // {
+    //     if (
+    //         empty($file) ||
+    //         empty($file['name'])
+    //     ) {
+    //         return null;
+    //     }
+
+    //     $config = [
+
+    //         'upload_path'   => FCPATH . 'uploads/receive/',
+
+    //         'allowed_types' => 'jpg|jpeg|png|pdf',
+
+    //         'encrypt_name'  => true,
+
+    //         'remove_spaces' => true,
+
+    //         'max_size'      => 5120
+
+    //     ];
+
+    //     if (!is_dir($config['upload_path'])) {
+
+    //         mkdir(
+    //             $config['upload_path'],
+    //             0777,
+    //             true
+    //         );
+
+    //     }
+
+    //     $this->load->library(
+    //         'upload',
+    //         $config
+    //     );
+
+    //     $_FILES['ATTACHMENT'] = $file;
+
+    //     if (
+    //         !$this->upload->do_upload('ATTACHMENT')
+    //     ) {
+
+    //         throw new Exception(
+    //             $this->upload->display_errors('', '')
+    //         );
+
+    //     }
+
+    //     $upload = $this->upload->data();
+
+    //     return [
+    //         'ATTACH_FILE_NAME' => $upload['file_name'],
+    //         'ATTACH_ORIGINAL_NAME' => $upload['orig_name'],
+    //         'FILE_PATH' => 'uploads/receive/' . $upload['file_name'],
+    //         'FILE_TYPE' => $upload['file_ext'],
+    //         'FILE_SIZE' => $upload['file_size']
+    //     ];
+    // }
 }

@@ -43,9 +43,6 @@ class Receive_model extends CI_Model {
     public function get_data(
         $limit,
         $start,
-        $role_id,
-        $plant,
-        $username,
         $search = '',
         $order = 'RECEIVE_DATE',
         $dir = 'DESC',
@@ -54,8 +51,6 @@ class Receive_model extends CI_Model {
         $dateTo = ''
     )
     {
-        $role_id = (int)$role_id;
-
         $this->db->select("
             r.*,
 
@@ -309,17 +304,12 @@ class Receive_model extends CI_Model {
     }
 
     public function count_data(
-        $role_id,
-        $plant,
-        $username,
         $search = '',
         $status = '',
         $dateFrom = '',
         $dateTo = ''
     )
     {
-        $role_id = (int)$role_id;
-
         $this->db->from('abc_mst_receive r');
 
         /*
@@ -381,27 +371,6 @@ class Receive_model extends CI_Model {
             null,
             false
         );
-
-        /*
-        |--------------------------------------------------------------------------
-        | ROLE FILTER
-        |--------------------------------------------------------------------------
-        */
-
-        if($role_id !== 1){
-
-            $plants = json_decode($plant, true);
-
-            if(!is_array($plants)){
-                $plants = explode(',', $plant);
-            }
-
-            $this->db->where_in(
-                'r.PLANT',
-                $plants
-            );
-
-        }
 
         /*
         |--------------------------------------------------------------------------
@@ -624,7 +593,8 @@ class Receive_model extends CI_Model {
         ->select("
             CUST AS CUSTOMER,
             FULL_NAME AS CUSTOMER_NAME,
-            CUST_KIND
+            CUST_KIND,
+            AREA
         ")
         ->from("abc_cd_customer")
         ->where("STATUS","Y")

@@ -656,16 +656,16 @@ class Sales extends MY_Controller {
             return;
         }
 
-        if (!$this->Sales_model->insert_company_stock_transaction($stockTransactions)) {
-            $this->db->trans_rollback();
+        // if (!$this->Sales_model->insert_company_stock_transaction($stockTransactions)) {
+        //     $this->db->trans_rollback();
 
-            echo json_encode([
-                'status' => false,
-                'message' => 'Gagal mencatat transaksi stock perusahaan'
-            ]);
+        //     echo json_encode([
+        //         'status' => false,
+        //         'message' => 'Gagal mencatat transaksi stock perusahaan'
+        //     ]);
 
-            return;
-        }
+        //     return;
+        // }
 
         if (!$this->Sales_model->update_company_stock_for_sales($stockTransactions, $username)) {
             $this->db->trans_rollback();
