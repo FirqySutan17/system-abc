@@ -500,6 +500,7 @@ class Sales extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
+        $grand = $grand + $data['TOTAL_SAVING'];
         $header = [
 
             'PLANT'      => $plant,
@@ -528,6 +529,8 @@ class Sales extends MY_Controller {
             ),
 
             'AMOUNT'     => $grand,
+
+            'DISCOUNT'  => $data['DISCOUNT'] ?? 0,
 
             'DP_AMOUNT'  => $dp,
 
@@ -1298,6 +1301,8 @@ class Sales extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
+        $grand = $grand + $data['TOTAL_SAVING_EDIT'];
+
         $headerUpdate = [
 
             'CUSTOMER' => trim(
@@ -1326,6 +1331,8 @@ class Sales extends MY_Controller {
             ),
 
             'AMOUNT' => $grand,
+
+            'DISCOUNT' => $data['DISCOUNT'] ?? 0,
 
             'DP_AMOUNT' => $dp,
 

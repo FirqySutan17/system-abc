@@ -608,6 +608,19 @@
                             <div class="payment-footer mt-4">
                                 <div class="payment-summary-box">
                                     <div class="payment-row">
+                                        <span>Discount</span>
+                                        <div>
+                                            <input
+                                                id="discountAdd"
+                                                type="text"
+                                                class="form-control rupiah-input text-end"
+                                                value="0">
+
+                                            <input type="hidden" id="grandSavingAddHidden"/>
+                                            
+                                        </div>
+                                    </div>
+                                    <div class="payment-row">
                                         <span>Total Sales</span>
                                         <strong id="grandSalesAdd">Rp 0</strong>
                                     </div>
@@ -1057,6 +1070,19 @@
                             <div class="payment-footer mt-4">
                                 <div class="payment-summary-box">
                                     <div class="payment-row">
+                                        <span>Discount</span>
+                                        <div>
+                                            <input
+                                                id="discountEdit"
+                                                type="text"
+                                                class="form-control rupiah-input text-end"
+                                                value="0">
+
+                                            <input type="hidden" id="grandSavingEditHidden"/>
+                                            
+                                        </div>
+                                    </div>
+                                    <div class="payment-row">
                                         <span>Total Sales</span>
                                         <strong id="grandSalesEdit">Rp 0</strong>
                                     </div>
@@ -1317,9 +1343,14 @@
             `);
         }
 
+        let discount = parseRupiah($('#discountAdd').val() || 0);
+        let grandPayment = salesTotal + savingTotal - discount;
+
+        $("#grandSavingAddHidden").val(savingTotal);
+
         $('#grandSalesAdd').text('Rp ' + formatRupiah(salesTotal));
         $('#grandSavingAdd').text('Rp ' + formatRupiah(savingTotal));
-        $('#grandPaymentAdd').text('Rp ' + formatRupiah(salesTotal + savingTotal));
+        $('#grandPaymentAdd').text('Rp ' + formatRupiah(grandPayment));
     }
 
     function refreshPaymentSummaryEdit() {
@@ -1350,9 +1381,15 @@
             `);
         }
 
+        let discount = parseRupiah($('#discountEdit').val() || 0);
+        let grandPayment = salesTotal + savingTotal - discount;
+        console.log(grandPayment, discount, salesTotal, savingTotal);
+
+        $("#grandSavingEditHidden").val(savingTotal);
+
         $('#grandSalesEdit').text(formatCurrencyID(salesTotal));
         $('#grandSavingEdit').text(formatCurrencyID(savingTotal));
-        $('#grandPaymentEdit').text(formatCurrencyID(salesTotal + savingTotal));
+        $('#grandPaymentEdit').text(formatCurrencyID(grandPayment));
     }
 
     function buildSavingPayload(mode) {
@@ -2585,6 +2622,16 @@
                 JSON.stringify(buildSavingPayload('add'))
             );
 
+            formData.set(
+                'TOTAL_SAVING',
+                parseRupiah($('#grandSavingAddHidden').val() || 0)
+            );
+
+            formData.set(
+                'DISCOUNT',
+                parseRupiah($('#discountAdd').val() || 0)
+            );
+
             $.ajax({
 
                 url:'<?= base_url("sales/create"); ?>',
@@ -2729,6 +2776,11 @@
                     savingRemark
                 );
 
+                $('#discountEdit').val(formatRupiahEdit(h.DISCOUNT || 0));
+                $('#grandSavingEditHidden').val(formatRupiahEdit(savingAmount));
+
+                refreshPaymentSummaryEdit();
+
                 $('#salesEdit').modal('show');
 
             }, 'json');
@@ -2792,6 +2844,16 @@
             formData.append(
                 'SAVINGS',
                 JSON.stringify(buildSavingPayload('edit'))
+            );
+
+            formData.set(
+                'TOTAL_SAVING_EDIT',
+                parseRupiah($('#grandSavingEditHidden').val() || 0)
+            );
+
+            formData.set(
+                'DISCOUNT',
+                parseRupiah($('#discountEdit').val() || 0)
             );
 
             $.ajax({
@@ -2971,6 +3033,12 @@
         refreshPaymentSummaryAdd();
     });
 
+    $(document).on('input', '#discountAdd', function () {
+        let val = parseRupiah($(this).val());
+        $(this).val(formatRupiah(val));
+        refreshPaymentSummaryAdd();
+    });
+
     $(document).on('input', '.saving-remark-add', function () {
         if (salesState.savingRowAdd) {
             salesState.savingRowAdd.remark = $(this).val();
@@ -2986,6 +3054,12 @@
         }
 
         $('#savingGrandTotalEdit').text('Rp ' + formatRupiah(val));
+        refreshPaymentSummaryEdit();
+    });
+
+    $(document).on('input', '#discountEdit', function () {
+        let val = parseRupiah($(this).val());
+        $(this).val(formatRupiah(val));
         refreshPaymentSummaryEdit();
     });
 
