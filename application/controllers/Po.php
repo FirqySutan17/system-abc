@@ -96,10 +96,10 @@ class Po extends MY_Controller {
             $dateFrom,
             $dateTo
         );
-
-        echo "<pre>";
-        print_r($rows);
-        die();
+        
+        // echo "<pre>";
+        // print_r($rows);
+        // die();
 
         $total = $this->Po_model->count_data(
             $search,
@@ -1767,13 +1767,13 @@ class Po extends MY_Controller {
 
         $maxTerimaBw = $berat - $matiBw;
 
-        if ($actualHasilTimbang > $maxTerimaBw) {
+        // if ($actualHasilTimbang > $maxTerimaBw) {
 
-            throw new Exception(
-                'Actual Hasil Timbang tidak boleh melebihi berat setelah dikurangi Mati BW.'
-            );
+        //     throw new Exception(
+        //         'Actual Hasil Timbang tidak boleh melebihi berat setelah dikurangi Mati BW.'
+        //     );
 
-        }
+        // }
 
         /*
         |--------------------------------------------------------------------------

@@ -71,6 +71,7 @@ $route['cash-in/validate_invoice_remain'] = 'CashIn/validate_invoice_remain';
 $route['cash-in/create'] = 'CashIn/create';
 $route['cash-in/update'] = 'CashIn/update';
 $route['cash-in/remove'] = 'CashIn/remove';
+$route['cashin/load_sales_picker'] = 'CashIn/load_sales_picker';
 
 $route['credit-note'] = 'CreditNote/index';
 $route['credit-note/print_pdf'] = 'CreditNote/print_pdf';

@@ -399,6 +399,8 @@ class Sales extends MY_Controller {
             | TOTAL
             |--------------------------------------------------------------------------
             */
+            
+            // CREATE 
 
             $amount = $berat * $harga;
 
@@ -1697,243 +1699,175 @@ class Sales extends MY_Controller {
     }
 
     public function print_pdf()
-    {
-        require_once APPPATH . '../vendor/autoload.php';
+{
+    $this->load->helper('terbilang');
 
-        $this->load->helper('terbilang');
+    $sales = trim(
+        $this->input->get('sales', true)
+    );
 
-        $sales = trim(
-            $this->input->get('sales')
-        );
+    $plant = trim(
+        $this->input->get('plant', true)
+    );
 
-        $plant = trim(
-            $this->input->get('plant')
-        );
+    /*
+    |--------------------------------------------------------------------------
+    | VALIDATION
+    |--------------------------------------------------------------------------
+    */
 
-        /*
-        |--------------------------------------------------------------------------
-        | VALIDATION
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            empty($sales) ||
-            empty($plant)
-        ) {
-
-            show_error(
-                'Parameter SALES atau PLANT tidak lengkap'
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | HEADER
-        |--------------------------------------------------------------------------
-        */
-
-        $header = $this->db
-            ->select('
-                s.SALES,
-                s.PLANT,
-
-                plant.CODE_NAME AS PLANT_NAME,
-
-                s.SALES_DATE,
-
-                s.CUSTOMER,
-
-                customer.FULL_NAME AS CUSTOMER_NAME,
-
-                s.JENIS_PAY,
-                s.PEMBAYARAN,
-
-                s.NOTA,
-
-                s.AMOUNT,
-
-                s.REMAIN,
-
-                s.STATUS,
-
-                s.REMARK
-            ')
-            ->from('abc_mst_sales s')
-
-            ->join(
-                'abc_cd_code plant',
-                "plant.CODE = s.PLANT
-                AND plant.HEAD_CODE = 'PLANT'",
-                'left'
-            )
-
-            ->join(
-                'abc_cd_customer customer',
-                'customer.CUST = s.CUSTOMER',
-                'left'
-            )
-
-            ->where(
-                's.SALES',
-                $sales
-            )
-
-            ->where(
-                's.PLANT',
-                $plant
-            )
-
-            ->get()
-            ->row();
-
-        /*
-        |--------------------------------------------------------------------------
-        | NOT FOUND
-        |--------------------------------------------------------------------------
-        */
-
-        if (!$header) {
-
-            show_error(
-                'Data SALES tidak ditemukan'
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | DETAIL
-        |--------------------------------------------------------------------------
-        */
-
-        $detail = $this->db
-            ->select('
-                d.SEQ_NO,
-
-                d.MATERIAL,
-
-                material.MATERIAL_NAME,
-
-                d.JUMLAH,
-
-                d.BERAT,
-
-                d.HARGA,
-
-                d.TOTAL
-            ')
-            ->from('abc_mst_sales_detail d')
-
-            ->join(
-                'abc_cd_material material',
-                'material.MATERIAL = d.MATERIAL',
-                'left'
-            )
-
-            ->where(
-                'd.SALES',
-                $sales
-            )
-
-            ->where(
-                'd.PLANT',
-                $plant
-            )
-
-            ->order_by(
-                'd.SEQ_NO',
-                'ASC'
-            )
-
-            ->get()
-            ->result();
-
-        /*
-        |--------------------------------------------------------------------------
-        | DATA
-        |--------------------------------------------------------------------------
-        */
-
-        $data = [
-
-            'header' => $header,
-
-            'detail' => $detail
-        ];
-
-        /*
-        |--------------------------------------------------------------------------
-        | HTML VIEW
-        |--------------------------------------------------------------------------
-        */
-
-        $html = $this->load->view(
-            'admin/sales/pdf_template_thermal',
-            $data,
-            true
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | MPDF
-        |--------------------------------------------------------------------------
-        */
-
-        $mpdf = new \Mpdf\Mpdf([
-
-            'mode' => 'utf-8',
-
-            /*
-            |--------------------------------------------------------------------------
-            | CONTINUOUS FORM LANDSCAPE
-            |--------------------------------------------------------------------------
-            |
-            | 24.13 cm x 13.97 cm
-            |
-            */
-
-            'format' => [139.7, 241.3],
-
-            'orientation' => 'L',
-
-            'margin_left'   => 0,
-            'margin_right'  => 0,
-            'margin_top'    => 0,
-            'margin_bottom' => 0
-        ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | IMPORTANT
-        |--------------------------------------------------------------------------
-        */
-
-        $mpdf->shrink_tables_to_fit = 0;
-
-        $mpdf->SetDisplayMode('fullpage');
-
-        $mpdf->SetTitle('Sales Print');
-
-        $mpdf->SetJS('this.print();');
-
-        /*
-        |--------------------------------------------------------------------------
-        | WRITE HTML
-        |--------------------------------------------------------------------------
-        */
-
-        $mpdf->WriteHTML($html);
-
-        /*
-        |--------------------------------------------------------------------------
-        | OUTPUT
-        |--------------------------------------------------------------------------
-        */
-
-        $mpdf->Output(
-            "SALES_{$sales}.pdf",
-            'I'
+    if (
+        empty($sales) ||
+        empty($plant)
+    ) {
+        show_error(
+            'Parameter SALES atau PLANT tidak lengkap'
         );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | HEADER
+    |--------------------------------------------------------------------------
+    */
+
+    $header = $this->db
+        ->select('
+            s.SALES,
+            s.PLANT,
+
+            plant.CODE_NAME AS PLANT_NAME,
+
+            s.SALES_DATE,
+
+            s.CUSTOMER,
+
+            customer.FULL_NAME AS CUSTOMER_NAME,
+
+            s.JENIS_PAY,
+            s.PEMBAYARAN,
+
+            s.NOTA,
+
+            s.AMOUNT,
+
+            s.REMAIN,
+
+            s.STATUS,
+
+            s.REMARK
+        ')
+        ->from('abc_mst_sales s')
+
+        ->join(
+            'abc_cd_code plant',
+            "plant.CODE = s.PLANT
+            AND plant.HEAD_CODE = 'PLANT'",
+            'left'
+        )
+
+        ->join(
+            'abc_cd_customer customer',
+            'customer.CUST = s.CUSTOMER',
+            'left'
+        )
+
+        ->where(
+            's.SALES',
+            $sales
+        )
+
+        ->where(
+            's.PLANT',
+            $plant
+        )
+
+        ->get()
+        ->row();
+
+    /*
+    |--------------------------------------------------------------------------
+    | NOT FOUND
+    |--------------------------------------------------------------------------
+    */
+
+    if (!$header) {
+
+        show_error(
+            'Data SALES tidak ditemukan'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | DETAIL
+    |--------------------------------------------------------------------------
+    */
+
+    $detail = $this->db
+        ->select('
+            d.SEQ_NO,
+
+            d.MATERIAL,
+
+            material.MATERIAL_NAME,
+
+            d.JUMLAH,
+
+            d.BERAT,
+
+            d.HARGA,
+
+            d.TOTAL
+        ')
+        ->from('abc_mst_sales_detail d')
+
+        ->join(
+            'abc_cd_material material',
+            'material.MATERIAL = d.MATERIAL',
+            'left'
+        )
+
+        ->where(
+            'd.SALES',
+            $sales
+        )
+
+        ->where(
+            'd.PLANT',
+            $plant
+        )
+
+        ->order_by(
+            'd.SEQ_NO',
+            'ASC'
+        )
+
+        ->get()
+        ->result();
+
+    /*
+    |--------------------------------------------------------------------------
+    | DATA
+    |--------------------------------------------------------------------------
+    */
+
+    $data = [
+        'header' => $header,
+        'detail' => $detail
+    ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | PRINT VIEW
+    |--------------------------------------------------------------------------
+    */
+
+    $this->load->view(
+        'admin/sales/pdf_template_thermal',
+        $data
+    );
+}
 
     public function print_invoice_pdf()
     {

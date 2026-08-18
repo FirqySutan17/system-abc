@@ -412,67 +412,168 @@ class CashIn_model extends CI_Model {
             ->row_array();
     }
 
+    /**
+     * ============================================================
+     * SALES PICKER
+     * ============================================================
+     */
     public function get_sales_picker(
         $plant,
-        $customer = '',
-        $search = ''
-    )
-    {
-        /*
-        |--------------------------------------------------------------------------
-        | SELECT
-        |--------------------------------------------------------------------------
-        */
-
+        $customer,
+        $search = null
+    ) {
         $this->db->select("
-
             s.SALES,
-
             s.PLANT,
-
             s.CUSTOMER,
-
-            customer.FULL_NAME AS CUSTOMER_NAME,
-
+            s.CUSTOMER_NAME,
             s.SALES_DATE,
 
-            s.AMOUNT,
+            s.AMOUNT AS SALES_AMOUNT,
 
-            COALESCE(
-                SUM(d.AMOUNT_OFFSET),
+            s.REMAIN AS SALES_REMAIN,
+
+            COALESCE(sv.SAVING_AMOUNT, 0)
+                AS SAVING_AMOUNT,
+
+            COALESCE(sv.SAVING_OFFSET, 0)
+                AS SAVING_OFFSET,
+
+            GREATEST(
+                COALESCE(sv.SAVING_AMOUNT, 0)
+                -
+                COALESCE(sv.SAVING_OFFSET, 0),
                 0
-            ) AS TOTAL_PAID,
+            ) AS SAVING_REMAIN,
 
             (
-                s.AMOUNT
-                -
-                COALESCE(
-                    SUM(d.AMOUNT_OFFSET),
+                s.REMAIN
+                +
+                GREATEST(
+                    COALESCE(sv.SAVING_AMOUNT, 0)
+                    -
+                    COALESCE(sv.SAVING_OFFSET, 0),
                     0
                 )
-            ) AS OUTSTANDING
+            ) AS GRAND_OUTSTANDING
 
         ", false);
 
-        /*
-        |--------------------------------------------------------------------------
-        | FROM
-        |--------------------------------------------------------------------------
-        */
-
-        $this->db->from('abc_mst_sales s');
+        $this->db->from(
+            'abc_mst_sales s'
+        );
 
         /*
         |--------------------------------------------------------------------------
-        | CUSTOMER
+        | SAVING PER SALES
         |--------------------------------------------------------------------------
         */
+
+        $savingSubquery = "
+            SELECT
+                sv.PLANT,
+
+                sv.CUSTOMER,
+
+                sv.AMOUNT AS SAVING_AMOUNT,
+
+                sv.SV_NO,
+
+                sv.REMARK
+
+            FROM abc_mst_saving sv
+
+            WHERE sv.DELETED IS NULL
+        ";
+
+        /*
+        |--------------------------------------------------------------------------
+        | Untuk menghindari duplicate:
+        | aggregate Saving menggunakan derived table
+        |--------------------------------------------------------------------------
+        */
+
+        $savingAggregate = "
+            SELECT
+                x.PLANT,
+                x.CUSTOMER,
+                x.SALES,
+
+                SUM(x.SAVING_AMOUNT)
+                    AS SAVING_AMOUNT,
+
+                SUM(x.SAVING_OFFSET)
+                    AS SAVING_OFFSET
+
+            FROM (
+
+                SELECT
+
+                    sv.PLANT,
+
+                    sv.CUSTOMER,
+
+                    sv.SV_NO,
+
+                    sv.AMOUNT AS SAVING_AMOUNT,
+
+                    /*
+                    --------------------------------------------------
+                    | Ambil total allocation Saving
+                    --------------------------------------------------
+                    */
+
+                    COALESCE(
+                        (
+                            SELECT
+                                SUM(cis.AMOUNT_OFFSET)
+
+                            FROM abc_mst_cash_in_saving cis
+
+                            WHERE cis.SV_NO = sv.SV_NO
+
+                            AND cis.PLANT = sv.PLANT
+
+                            AND cis.DELETED IS NULL
+
+                        ),
+                        0
+                    ) AS SAVING_OFFSET,
+
+                    /*
+                    --------------------------------------------------
+                    | SALES dari REMARK
+                    --------------------------------------------------
+                    */
+
+                    SUBSTRING_INDEX(
+                        SUBSTRING_INDEX(
+                            sv.REMARK,
+                            '#',
+                            -1
+                        ),
+                        ' ',
+                        1
+                    ) AS SALES
+
+                FROM abc_mst_saving sv
+
+                WHERE sv.DELETED IS NULL
+
+            ) x
+
+            GROUP BY
+                x.PLANT,
+                x.CUSTOMER,
+                x.SALES
+        ";
 
         $this->db->join(
-            'abc_cd_customer customer',
+            "($savingAggregate) sv",
             "
-                customer.CUST COLLATE utf8mb4_unicode_ci =
-                s.CUSTOMER COLLATE utf8mb4_unicode_ci
+                sv.PLANT = s.PLANT
+                AND sv.CUSTOMER = s.CUSTOMER
+                AND sv.SALES = s.SALES
             ",
             'left',
             false
@@ -480,23 +581,7 @@ class CashIn_model extends CI_Model {
 
         /*
         |--------------------------------------------------------------------------
-        | CASH IN DETAIL
-        |--------------------------------------------------------------------------
-        */
-
-        $this->db->join(
-            'abc_mst_cash_in_detail d',
-            '
-                d.SALES = s.SALES
-                AND d.PLANT = s.PLANT
-            ',
-            'left',
-            false
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | FILTER PLANT
+        | FILTER
         |--------------------------------------------------------------------------
         */
 
@@ -505,22 +590,10 @@ class CashIn_model extends CI_Model {
             $plant
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | TEMPO ONLY
-        |--------------------------------------------------------------------------
-        */
-
         $this->db->where(
-            's.JENIS_PAY',
-            'TEMPO'
+            's.CUSTOMER',
+            $customer
         );
-
-        /*
-        |--------------------------------------------------------------------------
-        | NOT DELETED
-        |--------------------------------------------------------------------------
-        */
 
         $this->db->where(
             's.DELETED IS NULL',
@@ -530,18 +603,15 @@ class CashIn_model extends CI_Model {
 
         /*
         |--------------------------------------------------------------------------
-        | CUSTOMER FILTER
+        | HANYA YANG MASIH ADA OUTSTANDING
         |--------------------------------------------------------------------------
         */
 
-        if(!empty($customer)){
-
-            $this->db->where(
-                's.CUSTOMER',
-                $customer
-            );
-
-        }
+        $this->db->where(
+            '(s.REMAIN > 0 OR COALESCE(sv.SAVING_AMOUNT,0) - COALESCE(sv.SAVING_OFFSET,0) > 0)',
+            null,
+            false
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -549,7 +619,7 @@ class CashIn_model extends CI_Model {
         |--------------------------------------------------------------------------
         */
 
-        if(!empty($search)){
+        if (!empty($search)) {
 
             $this->db->group_start();
 
@@ -559,32 +629,12 @@ class CashIn_model extends CI_Model {
             );
 
             $this->db->or_like(
-                'customer.FULL_NAME',
+                's.CUSTOMER_NAME',
                 $search
             );
 
             $this->db->group_end();
-
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | GROUP
-        |--------------------------------------------------------------------------
-        */
-
-        $this->db->group_by('s.SALES');
-
-        /*
-        |--------------------------------------------------------------------------
-        | HAVING OUTSTANDING
-        |--------------------------------------------------------------------------
-        */
-
-        $this->db->having(
-            'OUTSTANDING >',
-            0
-        );
 
         /*
         |--------------------------------------------------------------------------
@@ -592,10 +642,15 @@ class CashIn_model extends CI_Model {
         |--------------------------------------------------------------------------
         */
 
-        $this->db->order_by(
-            's.SALES_DATE',
-            'ASC'
-        );
+        $this->db
+            ->order_by(
+                's.SALES_DATE',
+                'ASC'
+            )
+            ->order_by(
+                's.SALES',
+                'ASC'
+            );
 
         return $this->db
             ->get()
@@ -1100,7 +1155,7 @@ class CashIn_model extends CI_Model {
     {
         return $this->db
             ->select('CUSTOMER as customer, AMOUNT as invoice_amount, REMAIN as remain')
-            ->from('mst_sales')
+            ->from('abc_mst_sales')
             ->where('SALES', $sales)
             ->where('PLANT', $plant)
             ->get()
@@ -1145,7 +1200,7 @@ class CashIn_model extends CI_Model {
     public function get_invoice_remain_batch($salesList, $plant)
     {
         $this->db->select('SALES, CUSTOMER, AMOUNT, REMAIN');
-        $this->db->from('mst_sales');
+        $this->db->from('abc_mst_sales');
         $this->db->where('PLANT', $plant);
         $this->db->where_in('SALES', $salesList);
 
@@ -1164,7 +1219,7 @@ class CashIn_model extends CI_Model {
     //         $this->db->set('REMAIN', 'REMAIN - '.$u['amount'], false);
     //         $this->db->where('SALES', $u['sales']);
     //         $this->db->where('PLANT', $u['plant']);
-    //         $this->db->update('mst_sales');
+    //         $this->db->update('abc_mst_sales');
     //     }
     // }
 
@@ -1177,7 +1232,7 @@ class CashIn_model extends CI_Model {
     // public function restore_invoice_offset($sales,$plant,$amount){
     //     $this->db->set('AMOUNT_PAID',"AMOUNT_PAID-$amount",false)
     //             ->where(['SALES'=>$sales,'PLANT'=>$plant])
-    //             ->update('mst_sales');
+    //             ->update('abc_mst_sales');
     // }
 
     // public function rollback_deposit_usage($cashIn)
@@ -1198,7 +1253,7 @@ class CashIn_model extends CI_Model {
     //         $this->db->set('REMAIN', 'REMAIN + '.$u['amount'], false);
     //         $this->db->where('SALES', $u['sales']);
     //         $this->db->where('PLANT', $u['plant']);
-    //         $this->db->update('mst_sales');
+    //         $this->db->update('abc_mst_sales');
     //     }
     // }
 
@@ -1219,7 +1274,7 @@ class CashIn_model extends CI_Model {
         ", [$sales, $plant]);
 
         $inv = $this->db->select('AMOUNT')
-            ->from('mst_sales')
+            ->from('abc_mst_sales')
             ->where([
                 'SALES' => $sales,
                 'PLANT' => $plant
@@ -1257,7 +1312,7 @@ class CashIn_model extends CI_Model {
                 'SALES' => $sales,
                 'PLANT' => $plant
             ])
-            ->update('mst_sales', [
+            ->update('abc_mst_sales', [
                 'REMAIN'     => $remain,
                 'STATUS'     => $status,
                 'UPDATED_AT' => date('Y-m-d H:i:s')
@@ -1278,7 +1333,7 @@ class CashIn_model extends CI_Model {
     public function get_fifo_open_invoices($customer, $plant)
     {
         return $this->db
-            ->from('mst_sales')
+            ->from('abc_mst_sales')
             ->where('CUSTOMER', $customer)
             ->where('PLANT', $plant)
             ->where('JENIS_PAY', 'TEMPO') // 🔥 WAJIB TEMPO
@@ -1307,7 +1362,7 @@ class CashIn_model extends CI_Model {
         $this->db->set('REMAIN', 'REMAIN + '.$amount, false)
             ->where('SALES', $sales)
             ->where('PLANT', $plant)
-            ->update('mst_sales');
+            ->update('abc_mst_sales');
     }
 
     public function get_next_seq($cashIn, $plant)
@@ -1379,7 +1434,7 @@ class CashIn_model extends CI_Model {
     {
         return $this->db
             ->select('SALES, AMOUNT, REMAIN, SALES_DATE')
-            ->from('mst_sales')
+            ->from('abc_mst_sales')
             ->where('SALES', $sales)
             ->where('CUSTOMER', $customer)
             ->where('PLANT', $plant)
@@ -1397,7 +1452,7 @@ class CashIn_model extends CI_Model {
     {
         $rows = $this->db
             ->select('SALES, SALES_DATE, AMOUNT, REMAIN')
-            ->from('mst_sales')
+            ->from('abc_mst_sales')
             ->where('CUSTOMER', $customer)
             ->where('PLANT', $plant)
             ->where('JENIS_PAY', 'TEMPO')
@@ -1447,7 +1502,7 @@ class CashIn_model extends CI_Model {
                 ->set('STATUS', "'UNPAID'", false)
                 ->where('CUSTOMER', $customer)
                 ->where('PLANT', $plant)
-                ->update('mst_sales');
+                ->update('abc_mst_sales');
 
 
         /* =========================
@@ -1490,7 +1545,7 @@ class CashIn_model extends CI_Model {
             /* =========================
             4A. APPLY KE INVOICE (FIFO)
             ========================= */
-            $invoices = $this->db->from('mst_sales')
+            $invoices = $this->db->from('abc_mst_sales')
                 ->where('CUSTOMER', $customer)
                 ->where('PLANT', $plant)
                 ->where('REMAIN >', 0)
@@ -1524,7 +1579,7 @@ class CashIn_model extends CI_Model {
                 $this->db->set('REMAIN', "REMAIN - $offset", false)
                         ->where('SALES', $inv['SALES'])
                         ->where('PLANT', $plant)
-                        ->update('mst_sales');
+                        ->update('abc_mst_sales');
 
                 $amount -= $offset;
             }
@@ -1549,7 +1604,7 @@ class CashIn_model extends CI_Model {
         5. HITUNG ULANG STATUS INVOICE
         ========================= */
         $salesList = $this->db->select('SALES, AMOUNT, DP_AMOUNT, REMAIN')
-            ->from('mst_sales')
+            ->from('abc_mst_sales')
             ->where('CUSTOMER', $customer)
             ->where('PLANT', $plant)
             ->get()->result_array();
@@ -1569,7 +1624,7 @@ class CashIn_model extends CI_Model {
 
             $this->db->where('SALES', $s['SALES'])
                     ->where('PLANT', $plant)
-                    ->update('mst_sales', ['STATUS' => $status]);
+                    ->update('abc_mst_sales', ['STATUS' => $status]);
         }
 
         $this->db->trans_complete();
@@ -1680,7 +1735,7 @@ class CashIn_model extends CI_Model {
     //         'SALES' => $sales,
     //         'PLANT' => $plant
     //     ]);
-    //     $this->db->update('mst_sales');
+    //     $this->db->update('abc_mst_sales');
     // }
 
     // public function restore_invoice_remain($sales, $plant, $amount)
@@ -1690,7 +1745,7 @@ class CashIn_model extends CI_Model {
     //         'SALES' => $sales,
     //         'PLANT' => $plant
     //     ]);
-    //     $this->db->update('mst_sales');
+    //     $this->db->update('abc_mst_sales');
     // }
 
     public function get_detail_by_cash_in($plant, $cashInNo)
@@ -1721,7 +1776,7 @@ class CashIn_model extends CI_Model {
     // {
     //     $row = $this->db
     //         ->select('AMOUNT, REMAIN')
-    //         ->from('mst_sales')
+    //         ->from('abc_mst_sales')
     //         ->where('SALES', $sales)
     //         ->where('PLANT', $plant)
     //         ->get()
@@ -1740,7 +1795,7 @@ class CashIn_model extends CI_Model {
     //     return $this->db
     //         ->where('SALES', $sales)
     //         ->where('PLANT', $plant)
-    //         ->update('mst_sales', [
+    //         ->update('abc_mst_sales', [
     //             'STATUS'     => $status,
     //             'UPDATED_AT' => date('Y-m-d H:i:s')
     //         ]);
@@ -1875,5 +1930,1077 @@ class CashIn_model extends CI_Model {
             ->where('RELATED', 'CASH_IN')
             ->where('REMARK', 'AUTO FROM CASH_IN ' . $cashInNo)
             ->update('abc_mst_saving', $data);
+    }
+
+    /**
+     * ============================================================
+     * GET SALES + SAVING PER INVOICE
+     * ============================================================
+     *
+     * Saving HARUS berdasarkan SALES.
+     *
+     * SALES AMOUNT DISPLAY:
+     *     AMOUNT - DISCOUNT
+     *
+     * GRAND OUTSTANDING:
+     *     SALES REMAIN + SAVING REMAIN
+     *
+     * Catatan:
+     * SALES.REMAIN dianggap sebagai outstanding Sales setelah
+     * discount / DP / pembayaran Sales sebelumnya.
+     */
+    public function get_sales_with_saving($customer, $plant)
+    {
+        $sql = "
+            SELECT
+                s.SALES,
+                s.PLANT,
+                s.CUSTOMER,
+                s.CUSTOMER_NAME,
+                s.SALES_DATE,
+                s.SLIP_NO,
+                s.JENIS_PAY,
+
+                /* =================================================
+                * SALES VALUE UNTUK DISPLAY
+                * AMOUNT - DISCOUNT
+                * ================================================= */
+                (
+                    COALESCE(s.AMOUNT, 0)
+                    -
+                    COALESCE(s.DISCOUNT, 0)
+                ) AS SALES_AMOUNT,
+
+                COALESCE(s.AMOUNT, 0) AS SALES_GROSS,
+                COALESCE(s.DISCOUNT, 0) AS DISCOUNT,
+                COALESCE(s.DP_AMOUNT, 0) AS DP_AMOUNT,
+
+                /* =================================================
+                * SALES OUTSTANDING
+                * ================================================= */
+                GREATEST(
+                    COALESCE(s.REMAIN, 0),
+                    0
+                ) AS SALES_REMAIN,
+
+                /* =================================================
+                * SAVING
+                * ================================================= */
+                COALESCE(sv.SAVING_AMOUNT, 0) AS SAVING_AMOUNT,
+
+                COALESCE(sv.SAVING_REMAIN, 0) AS SAVING_REMAIN,
+
+                /* =================================================
+                * GRAND OUTSTANDING
+                * ================================================= */
+                (
+                    GREATEST(
+                        COALESCE(s.REMAIN, 0),
+                        0
+                    )
+                    +
+                    COALESCE(sv.SAVING_REMAIN, 0)
+                ) AS GRAND_OUTSTANDING,
+
+                s.STATUS
+
+            FROM abc_mst_sales s
+
+            /* =====================================================
+            * AGGREGATE SAVING DULU
+            *
+            * Jangan JOIN langsung ke abc_mst_saving karena satu
+            * SALES bisa memiliki banyak Saving dan akan membuat
+            * row Sales menjadi duplicate.
+            * ===================================================== */
+            LEFT JOIN (
+                SELECT
+                    SALES,
+                    PLANT,
+
+                    SUM(
+                        CASE
+                            WHEN DELETED IS NULL
+                            THEN COALESCE(AMOUNT, 0)
+                            ELSE 0
+                        END
+                    ) AS SAVING_AMOUNT,
+
+                    SUM(
+                        CASE
+                            WHEN DELETED IS NULL
+                            THEN GREATEST(COALESCE(REMAIN, 0), 0)
+                            ELSE 0
+                        END
+                    ) AS SAVING_REMAIN
+
+                FROM abc_mst_saving
+
+                WHERE DELETED IS NULL
+                AND SALES IS NOT NULL
+                AND SALES <> ''
+
+                GROUP BY SALES, PLANT
+
+            ) sv
+                ON sv.SALES = s.SALES
+                AND sv.PLANT = s.PLANT
+
+            WHERE s.CUSTOMER = ?
+            AND s.PLANT = ?
+            AND s.DELETED IS NULL
+
+            /* Hanya invoice yang masih memiliki outstanding */
+            AND (
+                    COALESCE(s.REMAIN, 0)
+                    +
+                    COALESCE(sv.SAVING_REMAIN, 0)
+                ) > 0
+
+            ORDER BY
+                s.SALES_DATE ASC,
+                s.SALES ASC
+        ";
+
+        return $this->db
+            ->query($sql, [
+                $customer,
+                $plant
+            ])
+            ->result_array();
+    }
+
+    /**
+     * ============================================================
+     * GET OPEN SAVING BY SALES
+     * ============================================================
+     */
+    public function get_saving_by_sales($sales, $plant)
+    {
+        $sales = trim($sales);
+
+        if ($sales === '' || $plant === '') {
+            return [];
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Saving harus:
+        | - Plant sama
+        | - Belum dihapus
+        | - Remark mengandung SALES
+        |--------------------------------------------------------------------------
+        */
+
+        return $this->db
+            ->select('
+                s.SV_NO,
+                s.PLANT,
+                s.SV_DATE,
+                s.CUSTOMER,
+                s.AMOUNT,
+                s.REMARK,
+                s.STATUS,
+
+                COALESCE(
+                    (
+                        SELECT SUM(cis.AMOUNT_OFFSET)
+                        FROM abc_mst_cash_in_saving cis
+                        WHERE cis.SV_NO = s.SV_NO
+                        AND cis.PLANT = s.PLANT
+                        AND cis.DELETED IS NULL
+                    ),
+                    0
+                ) AS TOTAL_OFFSET
+
+            ', false)
+
+            ->from('abc_mst_saving s')
+
+            ->where(
+                's.PLANT',
+                $plant
+            )
+
+            ->where(
+                's.DELETED IS NULL',
+                null,
+                false
+            )
+
+            ->like(
+                's.REMARK',
+                $sales,
+                'both'
+            )
+
+            ->order_by(
+                's.SV_DATE',
+                'ASC'
+            )
+
+            ->order_by(
+                's.SV_NO',
+                'ASC'
+            )
+
+            ->get()
+            ->result_array();
+    }
+
+    /**
+     * ============================================================
+     * GET SAVING TOTAL BY SALES
+     * ============================================================
+     */
+    public function get_saving_total_by_sales($sales, $plant)
+    {
+        $rows = $this->get_saving_by_sales(
+            $sales,
+            $plant
+        );
+
+        $totalAmount = 0;
+        $totalOffset = 0;
+
+        foreach ($rows as &$row) {
+
+            $amount =
+                round(
+                    (float)$row['AMOUNT'],
+                    2
+                );
+
+            $offset =
+                round(
+                    (float)$row['TOTAL_OFFSET'],
+                    2
+                );
+
+            $remain =
+                round(
+                    $amount - $offset,
+                    2
+                );
+
+            if ($remain < 0) {
+                $remain = 0;
+            }
+
+            $row['SAVING_REMAIN'] = $remain;
+
+            $totalAmount += $amount;
+            $totalOffset += $offset;
+        }
+
+        return [
+
+            'amount' =>
+                round($totalAmount, 2),
+
+            'offset' =>
+                round($totalOffset, 2),
+
+            'remain' =>
+                round(
+                    max(
+                        $totalAmount - $totalOffset,
+                        0
+                    ),
+                    2
+                ),
+
+            'rows' =>
+                $rows
+        ];
+    }
+
+    /**
+     * ============================================================
+     * ALLOCATE SAVING
+     * ============================================================
+     *
+     * Saving dialokasikan FIFO berdasarkan:
+     *
+     * SV_DATE
+     * CREATED_AT
+     * SV_NO
+     *
+     * Return:
+     * [
+     *     'allocated' => total saving yang dibayar,
+     *     'remaining' => sisa Cash In setelah saving
+     * ]
+     */
+    public function allocate_saving(
+        $cashInNo,
+        $plant,
+        $sales,
+        $amount,
+        $date,
+        $user
+    ) {
+        $amount =
+            round(
+                (float)$amount,
+                2
+            );
+
+        if ($amount <= 0) {
+
+            return [
+                'allocated' => 0,
+                'details'   => []
+            ];
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Ambil semua Saving milik SALES tersebut
+        |--------------------------------------------------------------------------
+        */
+
+        $savingRows =
+            $this->get_saving_by_sales(
+                $sales,
+                $plant
+            );
+
+        $remaining =
+            $amount;
+
+        $allocatedTotal = 0;
+
+        $details = [];
+
+        foreach ($savingRows as $saving) {
+
+            if ($remaining <= 0) {
+                break;
+            }
+
+            $svNo =
+                $saving['SV_NO'];
+
+            $savingAmount =
+                round(
+                    (float)$saving['AMOUNT'],
+                    2
+                );
+
+            /*
+            |--------------------------------------------------------------------------
+            | Hitung yang sudah pernah dipakai
+            |--------------------------------------------------------------------------
+            */
+
+            $offsetRow =
+                $this->db
+                    ->select(
+                        'COALESCE(SUM(AMOUNT_OFFSET),0) AS TOTAL_OFFSET',
+                        false
+                    )
+                    ->from(
+                        'abc_mst_cash_in_saving'
+                    )
+                    ->where(
+                        'SV_NO',
+                        $svNo
+                    )
+                    ->where(
+                        'PLANT',
+                        $plant
+                    )
+                    ->where(
+                        'DELETED IS NULL',
+                        null,
+                        false
+                    )
+                    ->get()
+                    ->row_array();
+
+            $alreadyOffset =
+                round(
+                    (float)(
+                        $offsetRow['TOTAL_OFFSET']
+                        ?? 0
+                    ),
+                    2
+                );
+
+            /*
+            |--------------------------------------------------------------------------
+            | Remaining Saving
+            |--------------------------------------------------------------------------
+            */
+
+            $savingRemain =
+                round(
+                    $savingAmount
+                    -
+                    $alreadyOffset,
+                    2
+                );
+
+            if ($savingRemain <= 0) {
+                continue;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Amount yang dibayar ke Saving ini
+            |--------------------------------------------------------------------------
+            */
+
+            $offset =
+                min(
+                    $remaining,
+                    $savingRemain
+                );
+
+            $offset =
+                round(
+                    $offset,
+                    2
+                );
+
+            if ($offset <= 0) {
+                continue;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | INSERT HISTORI
+            |--------------------------------------------------------------------------
+            */
+
+            $inserted =
+                $this->db->insert(
+                    'abc_mst_cash_in_saving',
+                    [
+
+                        'CASH_IN' =>
+                            $cashInNo,
+
+                        'PLANT' =>
+                            $plant,
+
+                        'SALES' =>
+                            $sales,
+
+                        'SV_NO' =>
+                            $svNo,
+
+                        'AMOUNT_OFFSET' =>
+                            $offset,
+
+                        'DATE_OFFSET' =>
+                            date(
+                                'Y-m-d H:i:s',
+                                strtotime($date)
+                            ),
+
+                        'CREATED_AT' =>
+                            date(
+                                'Y-m-d H:i:s'
+                            ),
+
+                        'CREATED_BY' =>
+                            $user
+
+                    ]
+                );
+
+            if (!$inserted) {
+
+                throw new Exception(
+                    'Gagal menyimpan allocation Saving '
+                    . $svNo
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | HITUNG TOTAL
+            |--------------------------------------------------------------------------
+            */
+
+            $allocatedTotal += $offset;
+
+            $remaining -= $offset;
+
+            $remaining =
+                round(
+                    $remaining,
+                    2
+                );
+
+            $details[] = [
+
+                'SV_NO' =>
+                    $svNo,
+
+                'AMOUNT' =>
+                    $savingAmount,
+
+                'PREVIOUS_OFFSET' =>
+                    $alreadyOffset,
+
+                'OFFSET' =>
+                    $offset,
+
+                'REMAIN_AFTER' =>
+                    round(
+                        $savingRemain - $offset,
+                        2
+                    )
+
+            ];
+
+            /*
+            |--------------------------------------------------------------------------
+            | UPDATE STATUS SAVING
+            |--------------------------------------------------------------------------
+            */
+
+            $remainAfter =
+                round(
+                    $savingRemain - $offset,
+                    2
+                );
+
+            $savingStatus =
+                $remainAfter <= 0
+                    ? 'PAID'
+                    : 'PARTIAL';
+
+            $this->db
+                ->where(
+                    'SV_NO',
+                    $svNo
+                )
+                ->where(
+                    'PLANT',
+                    $plant
+                )
+                ->update(
+                    'abc_mst_saving',
+                    [
+                        'STATUS' =>
+                            $savingStatus,
+
+                        'UPDATED_AT' =>
+                            date(
+                                'Y-m-d H:i:s'
+                            ),
+
+                        'UPDATED_BY' =>
+                            $user
+                    ]
+                );
+        }
+
+        return [
+
+            'allocated' =>
+                round(
+                    $allocatedTotal,
+                    2
+                ),
+
+            'remaining' =>
+                round(
+                    max(
+                        $remaining,
+                        0
+                    ),
+                    2
+                ),
+
+            'details' =>
+                $details
+        ];
+    }
+
+    /**
+     * ============================================================
+     * ALLOCATE SALES
+     * ============================================================
+     */
+    public function allocate_sales(
+        $cashInNo,
+        $plant,
+        $sales,
+        $amount,
+        $date,
+        $slipNo,
+        $user,
+        $seq
+    ) {
+        $amount =
+            round(
+                (float)$amount,
+                2
+            );
+
+        if ($amount <= 0) {
+
+            return [
+                'allocated' => 0
+            ];
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | LOCK SALES
+        |--------------------------------------------------------------------------
+        */
+
+        $this->lock_sales_row(
+            $sales,
+            $plant
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | GET CURRENT SALES
+        |--------------------------------------------------------------------------
+        */
+
+        $row =
+            $this->db
+                ->where(
+                    'SALES',
+                    $sales
+                )
+                ->where(
+                    'PLANT',
+                    $plant
+                )
+                ->where(
+                    'DELETED IS NULL',
+                    null,
+                    false
+                )
+                ->get(
+                    'abc_mst_sales'
+                )
+                ->row_array();
+
+        if (!$row) {
+
+            throw new Exception(
+                'Sales tidak ditemukan: '
+                . $sales
+            );
+        }
+
+        $remain =
+            round(
+                (float)$row['REMAIN'],
+                2
+            );
+
+        if ($remain <= 0) {
+
+            return [
+                'allocated' => 0
+            ];
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | MAX PAYMENT
+        |--------------------------------------------------------------------------
+        */
+
+        $offset =
+            min(
+                $amount,
+                $remain
+            );
+
+        $offset =
+            round(
+                $offset,
+                2
+            );
+
+        if ($offset <= 0) {
+
+            return [
+                'allocated' => 0
+            ];
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | REMAIN AFTER
+        |--------------------------------------------------------------------------
+        */
+
+        $remainAfter =
+            round(
+                $remain - $offset,
+                2
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | STATUS SALES
+        |--------------------------------------------------------------------------
+        */
+
+        if ($remainAfter <= 0) {
+
+            $status = 'PAID';
+
+        } else {
+
+            $status = 'PARTIAL';
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | INSERT CASH IN DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        $inserted =
+            $this->db->insert(
+                'abc_mst_cash_in_detail',
+                [
+
+                    'CASH_IN' =>
+                        $cashInNo,
+
+                    'PLANT' =>
+                        $plant,
+
+                    'SALES' =>
+                        $sales,
+
+                    'SEQ_NO' =>
+                        $seq,
+
+                    'AMOUNT_INVOICE' =>
+                        $remain,
+
+                    'AMOUNT_OFFSET' =>
+                        $offset,
+
+                    'DATE_OFFSET' =>
+                        date(
+                            'Y-m-d H:i:s',
+                            strtotime($date)
+                        ),
+
+                    'ORG_SLIP_NO' =>
+                        $slipNo,
+
+                    'SLIP_NO' =>
+                        $slipNo,
+
+                    'CREATED_AT' =>
+                        date(
+                            'Y-m-d H:i:s'
+                        ),
+
+                    'CREATED_BY' =>
+                        $user
+
+                ]
+            );
+
+        if (!$inserted) {
+
+            throw new Exception(
+                'Gagal menyimpan Cash In Detail untuk Sales '
+                . $sales
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | UPDATE SALES REMAIN
+        |--------------------------------------------------------------------------
+        */
+
+        $updated =
+            $this->db
+                ->where(
+                    'SALES',
+                    $sales
+                )
+                ->where(
+                    'PLANT',
+                    $plant
+                )
+                ->update(
+                    'abc_mst_sales',
+                    [
+
+                        'REMAIN' =>
+                            $remainAfter,
+
+                        'STATUS' =>
+                            $status,
+
+                        'UPDATED_AT' =>
+                            date(
+                                'Y-m-d H:i:s'
+                            ),
+
+                        'UPDATED_BY' =>
+                            $user
+
+                    ]
+                );
+
+        if (!$updated) {
+
+            throw new Exception(
+                'Gagal update REMAIN Sales '
+                . $sales
+            );
+        }
+
+        return [
+
+            'allocated' =>
+                $offset,
+
+            'remain_before' =>
+                $remain,
+
+            'remain_after' =>
+                $remainAfter,
+
+            'status' =>
+                $status
+
+        ];
+    }
+
+    /**
+     * ============================================================
+     * RESTORE SAVING FROM CASH IN
+     * ============================================================
+     */
+    public function restore_cash_in_saving(
+        $cashInNo,
+        $plant,
+        $deletedBy
+    )
+    {
+        $rows = $this->db
+            ->where('CASH_IN', $cashInNo)
+            ->where('PLANT', $plant)
+            ->where('DELETED IS NULL', null, false)
+            ->get('abc_mst_cash_in_saving')
+            ->result_array();
+
+        foreach ($rows as $row) {
+
+            /*
+            ========================================================
+            RESTORE SAVING REMAIN
+            ========================================================
+            */
+            $saving = $this->db
+                ->where('SV_NO', $row['SV_NO'])
+                ->where('PLANT', $plant)
+                ->where('DELETED IS NULL', null, false)
+                ->get('abc_mst_saving')
+                ->row_array();
+
+            if (!$saving) {
+                continue;
+            }
+
+            $newRemain = round(
+                (float)$saving['REMAIN']
+                +
+                (float)$row['AMOUNT_OFFSET'],
+                2
+            );
+
+            $amount = round(
+                (float)$saving['AMOUNT'],
+                2
+            );
+
+            if ($newRemain >= $amount) {
+
+                $newRemain = $amount;
+                $status = 'OPEN';
+
+            } elseif ($newRemain > 0) {
+
+                $status = 'PARTIAL';
+
+            } else {
+
+                $status = 'PAID';
+            }
+
+            $this->db
+                ->where('SV_NO', $row['SV_NO'])
+                ->where('PLANT', $plant)
+                ->update(
+                    'abc_mst_saving',
+                    [
+                        'REMAIN'     => $newRemain,
+                        'STATUS'     => $status,
+                        'UPDATED_AT' => date('Y-m-d H:i:s'),
+                        'UPDATED_BY' => $deletedBy
+                    ]
+                );
+        }
+
+        /*
+        ============================================================
+        SOFT DELETE ALLOCATION
+        ============================================================
+        */
+        $this->db
+            ->where('CASH_IN', $cashInNo)
+            ->where('PLANT', $plant)
+            ->where('DELETED IS NULL', null, false)
+            ->update(
+                'abc_mst_cash_in_saving',
+                [
+                    'DELETED'    => date('Y-m-d H:i:s'),
+                    'DELETED_BY' => $deletedBy
+                ]
+            );
+
+        return true;
+    }
+
+    /**
+     * ============================================================
+     * RESTORE SALES FROM CASH IN DETAIL
+     * ============================================================
+     */
+    public function restore_cash_in_sales(
+        $cashInNo,
+        $plant,
+        $deletedBy
+    )
+    {
+        $details = $this->db
+            ->where('CASH_IN', $cashInNo)
+            ->where('PLANT', $plant)
+            ->where('DELETED IS NULL', null, false)
+            ->get('abc_mst_cash_in_detail')
+            ->result_array();
+
+        foreach ($details as $detail) {
+
+            $sales = $this->db
+                ->where('SALES', $detail['SALES'])
+                ->where('PLANT', $plant)
+                ->where('DELETED IS NULL', null, false)
+                ->get('abc_mst_sales')
+                ->row_array();
+
+            if (!$sales) {
+                continue;
+            }
+
+            $newRemain = round(
+                (float)$sales['REMAIN']
+                +
+                (float)$detail['AMOUNT_OFFSET'],
+                2
+            );
+
+            /*
+            ========================================================
+            BATAS MAKSIMAL
+            ========================================================
+            *
+            * Jangan sampai REMAIN > nilai invoice net.
+            */
+            $maxRemain = round(
+                (float)$sales['AMOUNT']
+                -
+                (float)$sales['DISCOUNT']
+                -
+                (float)$sales['DP_AMOUNT'],
+                2
+            );
+
+            if ($maxRemain < 0) {
+                $maxRemain = 0;
+            }
+
+            if ($newRemain > $maxRemain) {
+                $newRemain = $maxRemain;
+            }
+
+            if ($newRemain <= 0) {
+
+                $status = 'PAID';
+
+            } elseif ($newRemain < $maxRemain) {
+
+                $status = 'PARTIAL';
+
+            } else {
+
+                $status = 'OPEN';
+            }
+
+            $this->db
+                ->where('SALES', $detail['SALES'])
+                ->where('PLANT', $plant)
+                ->update(
+                    'abc_mst_sales',
+                    [
+                        'REMAIN'     => $newRemain,
+                        'STATUS'     => $status,
+                        'UPDATED_AT' => date('Y-m-d H:i:s'),
+                        'UPDATED_BY' => $deletedBy
+                    ]
+                );
+        }
+
+        /*
+        ============================================================
+        SOFT DELETE CASH IN DETAIL
+        ============================================================
+        */
+        $this->db
+            ->where('CASH_IN', $cashInNo)
+            ->where('PLANT', $plant)
+            ->where('DELETED IS NULL', null, false)
+            ->update(
+                'abc_mst_cash_in_detail',
+                [
+                    'DELETED'    => date('Y-m-d H:i:s'),
+                    'UPDATED_AT' => date('Y-m-d H:i:s'),
+                    'UPDATED_BY' => $deletedBy
+                ]
+            );
+
+        return true;
+    }
+
+    public function lock_sales_row($sales, $plant)
+    {
+        return $this->db->query(
+            "SELECT SALES
+            FROM abc_mst_sales
+            WHERE SALES = ?
+            AND PLANT = ?
+            AND DELETED IS NULL
+            FOR UPDATE",
+            [
+                $sales,
+                $plant
+            ]
+        );
     }
 }

@@ -5,46 +5,43 @@
 
 <meta charset="utf-8">
 
+<title>SALES <?= $header->SALES; ?></title>
+
 <style>
 
-@page{
-
+@page {
     size: 241.3mm 139.7mm;
-
-    margin:0;
-
+    margin: 0;
 }
 
 html,
-body{
+body {
 
-    width:241.3mm;
-    height:139.7mm;
+    width: 241.3mm;
+    height: 139.7mm;
 
-    margin:0;
-    padding:0;
+    margin: 0;
+    padding: 0;
 
-    font-family:"Courier New", monospace;
+    font-family: "Courier New", monospace;
+    font-size: 10px;
 
-    font-size:11px;
-
-    color:#000;
-
-}
-
-body{
-
-    position:relative;
+    color: #000;
 
 }
 
-.wrapper{
+body {
 
-    position:absolute;
+    overflow: hidden;
 
-    top:12mm;
-    left:18mm;
-    right:18mm;
+}
+
+.print-area {
+
+    width: 205mm;
+
+    margin-left: 18mm;
+    margin-top: 10mm;
 
 }
 
@@ -54,35 +51,45 @@ body{
 |--------------------------------------------------------------------------
 */
 
-table{
+table {
 
-    width:100%;
+    width: 100%;
 
-    border-collapse:collapse;
+    border-collapse: collapse;
 
 }
 
 td,
-th{
+th {
 
-    vertical-align:top;
+    padding: 0;
+
+    vertical-align: top;
 
 }
 
-.right{
-    text-align:right;
+.center {
+
+    text-align: center;
+
 }
 
-.center{
-    text-align:center;
+.right {
+
+    text-align: right;
+
 }
 
-.bold{
-    font-weight:bold;
+.bold {
+
+    font-weight: bold;
+
 }
 
-.nowrap{
-    white-space:nowrap;
+.nowrap {
+
+    white-space: nowrap;
+
 }
 
 /*
@@ -91,62 +98,49 @@ th{
 |--------------------------------------------------------------------------
 */
 
-.header-table td{
+.header {
 
-    padding:0;
-
-}
-
-.company{
-
-    line-height:1.5;
+    width: 100%;
 
 }
 
-.company-name{
+.company {
 
-    margin-top:4px;
+    width: 30%;
 
-}
-
-.company-plant{
-
-    margin-top:10px;
-
-    font-weight:bold;
+    line-height: 1.5;
 
 }
 
-.title{
+.invoice {
 
-    text-align:center;
+    width: 40%;
 
-    font-size:26px;
-
-    font-weight:bold;
-
-    letter-spacing:5px;
-
-    margin-top:2px;
+    text-align: center;
 
 }
 
-.invoice-no{
+.info {
 
-    text-align:center;
-
-    font-size:16px;
-
-    font-weight:bold;
-
-    margin-top:5px;
+    width: 30%;
 
 }
 
-.info-table td{
+.title {
 
-    padding-top:2px;
-    padding-bottom:2px;
+    font-size: 20px;
+
+    font-weight: bold;
+
+    letter-spacing: 3px;
+
+}
+
+.invoice-no {
+
+    margin-top: 3px;
+
+    font-weight: bold;
 
 }
 
@@ -156,62 +150,25 @@ th{
 |--------------------------------------------------------------------------
 */
 
-.detail-table{
+.detail {
 
-    margin-top:20px;
-
-}
-
-.detail-table thead th{
-
-    border-bottom:1px solid #000;
-
-    padding-bottom:7px;
-
-    font-weight:normal;
+    margin-top: 10mm;
 
 }
 
-.detail-table tbody td{
+.detail th {
 
-    padding-top:6px;
-    padding-bottom:6px;
+    border-bottom: 1px solid #000;
 
-}
+    padding-bottom: 2mm;
 
-.detail-total td{
-
-    padding-top:10px;
-
-    font-weight:bold;
+    font-weight: normal;
 
 }
 
-/*
-|--------------------------------------------------------------------------
-| SAY
-|--------------------------------------------------------------------------
-*/
+.detail td {
 
-.say{
-
-    margin-top:28px;
-
-    line-height:1.7;
-
-}
-
-/*
-|--------------------------------------------------------------------------
-| BANK
-|--------------------------------------------------------------------------
-*/
-
-.bank{
-
-    margin-top:24px;
-
-    line-height:1.8;
+    padding-top: 1.5mm;
 
 }
 
@@ -221,20 +178,61 @@ th{
 |--------------------------------------------------------------------------
 */
 
-.total-wrapper{
+.detail-total td {
 
-    width:320px;
+    padding-top: 3mm;
 
-    margin-left:auto;
-
-    margin-top:40px;
+    font-weight: bold;
 
 }
 
-.total-wrapper td{
+/*
+|--------------------------------------------------------------------------
+| SUMMARY
+|--------------------------------------------------------------------------
+*/
 
-    padding-top:5px;
-    padding-bottom:5px;
+.summary {
+
+    width: 75mm;
+
+    margin-left: auto;
+
+    margin-top: 5mm;
+
+}
+
+.summary td {
+
+    padding-top: 1mm;
+
+    padding-bottom: 1mm;
+
+}
+
+/*
+|--------------------------------------------------------------------------
+| SAY
+|--------------------------------------------------------------------------
+*/
+
+.say {
+
+    margin-top: 5mm;
+
+}
+
+/*
+|--------------------------------------------------------------------------
+| BANK
+|--------------------------------------------------------------------------
+*/
+
+.bank {
+
+    margin-top: 4mm;
+
+    line-height: 1.5;
 
 }
 
@@ -244,17 +242,15 @@ th{
 |--------------------------------------------------------------------------
 */
 
-.signature{
+.signature {
 
-    margin-top:38px;
+    margin-top: 6mm;
 
 }
 
-.signature-line{
+.signature-space {
 
-    margin-top:60px;
-
-    text-align:center;
+    height: 15mm;
 
 }
 
@@ -264,45 +260,32 @@ th{
 
 <body>
 
-<div class="wrapper">
+<div class="print-area">
 
     <!-- HEADER -->
-    <table class="header-table">
+
+    <table class="header">
 
         <tr>
 
-            <!-- LEFT -->
-            <td width="20%">
+            <td class="company">
 
-                <div class="company">
+                Pangkalan Ayam<br>
 
-                    Pangkalan Ayam
+                <strong>
+                    PT. ABADI BERSAMA CERAH
+                </strong>
 
-                    <div class="company-name">
+                <br>
 
-                        PT. ABADI BERSAMA CERAH
-
-                    </div>
-
-                    <!-- <div class="company-plant">
-
-                        <?= strtoupper($header->PLANT_NAME); ?>
-
-                    </div> -->
-
-                    Jakarta Timur
-
-                </div>
+                Jakarta Timur
 
             </td>
 
-            <!-- CENTER -->
-            <td width="55%" style="text-align: center">
+            <td class="invoice">
 
                 <div class="title">
-
                     INVOICES
-
                 </div>
 
                 <div class="invoice-no">
@@ -313,14 +296,13 @@ th{
 
             </td>
 
-            <!-- RIGHT -->
-            <td width="25%">
+            <td class="info">
 
-                <table class="info-table">
+                <table>
 
                     <tr>
 
-                        <td width="90">
+                        <td width="70">
                             Tanggal
                         </td>
 
@@ -329,7 +311,10 @@ th{
                         </td>
 
                         <td>
-                            <?= date('d/m/Y', strtotime($header->SALES_DATE)); ?>
+                            <?= date(
+                                'd/m/Y',
+                                strtotime($header->SALES_DATE)
+                            ); ?>
                         </td>
 
                     </tr>
@@ -361,7 +346,9 @@ th{
                         </td>
 
                         <td>
-                            <?= strtoupper($header->CUSTOMER_NAME); ?>
+                            <?= strtoupper(
+                                $header->CUSTOMER_NAME
+                            ); ?>
                         </td>
 
                     </tr>
@@ -374,30 +361,40 @@ th{
 
     </table>
 
+
     <!-- DETAIL -->
-    <table class="detail-table">
+
+    <?php
+
+    $totalQty    = 0;
+    $totalBerat  = 0;
+    $grandTotal  = 0;
+
+    ?>
+
+    <table class="detail">
 
         <thead>
 
             <tr>
 
-                <th align="left" width="48%">
+                <th width="45%" align="left">
                     Keterangan
                 </th>
 
-                <th class="center" width="10%">
+                <th width="10%" class="center">
                     Ekor
                 </th>
 
-                <th class="center" width="12%">
+                <th width="12%" class="center">
                     Berat
                 </th>
 
-                <th class="right" width="12%">
+                <th width="13%" class="right">
                     Price
                 </th>
 
-                <th class="right" width="18%">
+                <th width="20%" class="right">
                     Jumlah(Rp)
                 </th>
 
@@ -407,77 +404,107 @@ th{
 
         <tbody>
 
-        <?php
+        <?php foreach ($detail as $d): ?>
 
-        $totalQty = 0;
-        $totalBerat = 0;
-        $grandTotal = 0;
+            <?php
 
-        foreach($detail as $d):
+            $qty   = (float) $d->JUMLAH;
+            $berat = (float) $d->BERAT;
+            $harga = (float) $d->HARGA;
+            $total = (float) $d->TOTAL;
 
-            $qty    = (float)$d->JUMLAH;
-            $berat  = (float)$d->BERAT;
-            $harga  = (float)$d->HARGA;
-            $total  = (float)$d->TOTAL;
-
-            $totalQty += $qty;
+            $totalQty   += $qty;
             $totalBerat += $berat;
             $grandTotal += $total;
 
-        ?>
+            ?>
 
-        <tr>
+            <tr>
 
-            <td>
+                <td>
 
-                <?= $d->MATERIAL; ?>
-                -
-                <?= strtoupper($d->MATERIAL_NAME); ?>
+                    <?= $d->MATERIAL; ?>
+                    -
+                    <?= strtoupper(
+                        $d->MATERIAL_NAME
+                    ); ?>
 
-            </td>
+                </td>
 
-            <td class="center">
+                <td class="center">
 
-                <?= number_format($qty,0,',','.'); ?>
+                    <?= number_format(
+                        $qty,
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
 
-            </td>
+                </td>
 
-            <td class="center">
+                <td class="center">
 
-                <?= number_format($berat,2,',','.'); ?>
+                    <?= number_format(
+                        $berat,
+                        2,
+                        ',',
+                        '.'
+                    ); ?>
 
-            </td>
+                </td>
 
-            <td class="right">
+                <td class="right">
 
-                <?= number_format($harga,0,',','.'); ?>
+                    <?= number_format(
+                        $harga,
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
 
-            </td>
+                </td>
 
-            <td class="right">
+                <td class="right">
 
-                <?= number_format($total,0,',','.'); ?>
+                    <?= number_format(
+                        $total,
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
 
-            </td>
+                </td>
 
-        </tr>
+            </tr>
 
         <?php endforeach; ?>
 
-        <!-- TOTAL -->
+
+        <!-- TOTAL DETAIL -->
+
         <tr class="detail-total">
 
             <td></td>
 
             <td class="center">
 
-                <?= number_format($totalQty,0,',','.'); ?>
+                <?= number_format(
+                    $totalQty,
+                    0,
+                    ',',
+                    '.'
+                ); ?>
 
             </td>
 
             <td class="center">
 
-                <?= number_format($totalBerat,2,',','.'); ?>
+                <?= number_format(
+                    $totalBerat,
+                    2,
+                    ',',
+                    '.'
+                ); ?>
 
             </td>
 
@@ -485,7 +512,12 @@ th{
 
             <td class="right">
 
-                <?= number_format($grandTotal,0,',','.'); ?>
+                <?= number_format(
+                    $grandTotal,
+                    0,
+                    ',',
+                    '.'
+                ); ?>
 
             </td>
 
@@ -495,24 +527,31 @@ th{
 
     </table>
 
-    <!-- TOTAL -->
-    <div class="total-wrapper">
+
+    <!-- SUMMARY -->
+
+    <div class="summary">
 
         <table>
 
             <tr>
 
-                <td width="120">
+                <td>
                     Subtotal
                 </td>
 
-                <td width="40">
+                <td width="30">
                     IDR
                 </td>
 
                 <td class="right">
 
-                    <?= number_format($grandTotal,0,',','.'); ?>
+                    <?= number_format(
+                        $grandTotal,
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
 
                 </td>
 
@@ -530,7 +569,12 @@ th{
 
                 <td class="right bold">
 
-                    <?= number_format($grandTotal,0,',','.'); ?>
+                    <?= number_format(
+                        $grandTotal,
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
 
                 </td>
 
@@ -540,21 +584,27 @@ th{
 
     </div>
 
+
     <!-- SAY -->
+
     <div class="say">
 
         Say :
-        <?= ucwords(terbilang($grandTotal)); ?>
+        <?= ucwords(
+            terbilang($grandTotal)
+        ); ?>
         Rupiah
 
     </div>
 
+
     <!-- BANK -->
+
     <div class="bank">
 
         Pembayaran Transfer ke Rekening:
 
-        <br><br>
+        <br>
 
         BCA A/C 275757999
 
@@ -564,7 +614,9 @@ th{
 
     </div>
 
+
     <!-- SIGNATURE -->
+
     <div class="signature">
 
         <table>
@@ -572,8 +624,10 @@ th{
             <tr>
 
                 <td width="60%">
+
                     Jakarta,
                     <?= date('d/m/Y'); ?>
+
                 </td>
 
                 <td class="center">
@@ -584,26 +638,19 @@ th{
 
             </tr>
 
-        </table>
-
-        <div class="signature-line">
-
-            
-
-        </div>
-
-    </div>
-
-    <div class="signature">
-
-        <table>
             <tr>
 
-                <td width="60%">
+                <td></td>
 
-                </td>
+                <td class="center signature-space"></td>
 
-                <td class="center" height="50%">
+            </tr>
+
+            <tr>
+
+                <td></td>
+
+                <td class="center">
 
                     (__________________)
 
@@ -612,9 +659,22 @@ th{
             </tr>
 
         </table>
+
     </div>
 
 </div>
 
+
+<script>
+
+window.onload = function () {
+
+    window.print();
+
+};
+
+</script>
+
 </body>
+
 </html>

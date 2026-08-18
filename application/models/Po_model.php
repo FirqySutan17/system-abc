@@ -279,6 +279,7 @@ class Po_model extends CI_Model {
             (int)$limit,
             (int)$start
         );
+        
 
         return $this->db
             ->get()
