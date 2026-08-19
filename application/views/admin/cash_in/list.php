@@ -1313,10 +1313,11 @@
             <tr class="empty-row">
 
                 <td
-                    colspan="8"
-                    class="text-center text-muted py-5">
+                    colspan="9"
+                    class="text-center text-muted py-5"
+                >
 
-                    ${message}
+                    ${escapeHtml(message)}
 
                 </td>
 
@@ -1649,13 +1650,19 @@
         };
     }
 
-    function loadCashInInvoices() {
-
+    function loadCashInInvoices()
+    {
         const customer =
             $('#hiddenCustomerAdd').val();
 
         const plant =
             $('#plantAdd').val();
+
+        console.log('================================');
+        console.log('LOAD CASH IN INVOICES');
+        console.log('CUSTOMER:', customer);
+        console.log('PLANT:', plant);
+        console.log('================================');
 
         if (!customer || !plant) {
 
@@ -1668,64 +1675,119 @@
             return;
         }
 
-        $.get(
-            '<?= base_url("cashin/load_sales_picker"); ?>',
-            {
-                plant: plant,
-                customer: customer
-            }
-        )
-        .done(function(response) {
+        $.ajax({
 
-            let rows = response;
+            url:
+                '<?= base_url("cashin/load_sales_picker"); ?>',
 
-            if (typeof response === 'string') {
+            type:
+                'GET',
 
-                try {
+            dataType:
+                'json',
 
-                    rows = JSON.parse(response);
+            data: {
 
-                } catch (e) {
+                plant:
+                    plant,
 
-                    console.error(
-                        'Invalid JSON Sales Picker:',
-                        response
-                    );
+                customer:
+                    customer
 
-                    rows = [];
-                }
             }
 
-            if (!Array.isArray(rows)) {
-                rows = [];
-            }
+        })
+        .done(function(rows) {
 
             console.log(
-                '=== CASH IN SALES + SAVING ==='
+                '=== RAW SALES PICKER ==='
             );
 
-            console.table(rows);
+            console.log(rows);
 
             /*
-            ========================================================
-            NORMALIZE
-            ========================================================
+            |--------------------------------------------------------------------------
+            | VALIDATE RESPONSE
+            |--------------------------------------------------------------------------
+            */
+
+            if (!Array.isArray(rows)) {
+
+                console.error(
+                    'Response Sales Picker bukan array',
+                    rows
+                );
+
+                window.CASH_IN_INVOICES = [];
+
+                $('#detailTable tbody').empty();
+
+                renderEmptyDetail(
+                    'Format data invoice tidak valid'
+                );
+
+                updateSummary();
+
+                return;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | NORMALIZE
+            |--------------------------------------------------------------------------
             */
 
             window.CASH_IN_INVOICES =
                 rows
-                    .map(normalizeSalesPickerRow)
+                    .map(function(row) {
+
+                        const normalized =
+                            normalizeSalesPickerRow(
+                                row
+                            );
+
+                        console.log(
+                            'NORMALIZED SALES:',
+                            normalized.SALES,
+                            {
+                                SALES_AMOUNT:
+                                    normalized.SALES_AMOUNT,
+
+                                SALES_REMAIN:
+                                    normalized.SALES_REMAIN,
+
+                                SAVING_AMOUNT:
+                                    normalized.SAVING_AMOUNT,
+
+                                SAVING_REMAIN:
+                                    normalized.SAVING_REMAIN,
+
+                                GRAND_OUTSTANDING:
+                                    normalized.GRAND_OUTSTANDING
+                            }
+                        );
+
+                        return normalized;
+
+                    })
                     .filter(function(row) {
 
                         return (
-                            getInvoiceGrandOutstanding(row)
-                            > 0
+                            getInvoiceGrandOutstanding(
+                                row
+                            ) > 0
                         );
 
                     });
 
+            /*
+            |--------------------------------------------------------------------------
+            | DEBUG FINAL
+            |--------------------------------------------------------------------------
+            */
+
             console.log(
-                '=== NORMALIZED INVOICES ==='
+                '=== FINAL CASH_IN_INVOICES ==='
             );
 
             console.table(
@@ -1733,38 +1795,84 @@
             );
 
             /*
-            ========================================================
-            CLEAR DETAIL
-            ========================================================
+            |--------------------------------------------------------------------------
+            | CLEAR DETAIL
+            |--------------------------------------------------------------------------
             */
 
             $('#detailTable tbody').empty();
 
             /*
-            ========================================================
-            MODE
-            ========================================================
+            |--------------------------------------------------------------------------
+            | EMPTY
+            |--------------------------------------------------------------------------
+            */
+
+            if (
+                window.CASH_IN_INVOICES.length === 0
+            ) {
+
+                renderEmptyDetail(
+                    'Customer tidak memiliki invoice outstanding'
+                );
+
+                updateSummary();
+
+                return;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | MODE
+            |--------------------------------------------------------------------------
             */
 
             const mode =
                 $('input[name="MODE_CASH_IN"]:checked')
                     .val();
 
+            console.log(
+                'CURRENT MODE:',
+                mode
+            );
+
+            /*
+            |--------------------------------------------------------------------------
+            | FIFO
+            |--------------------------------------------------------------------------
+            */
+
             if (mode === 'FIFO') {
 
                 runFIFOAllocation();
 
-            } else {
+            }
+            /*
+            |--------------------------------------------------------------------------
+            | MANUAL
+            |--------------------------------------------------------------------------
+            */
+
+            else {
 
                 renderManualInvoices();
 
             }
 
+            updateSummary();
+
         })
         .fail(function(xhr) {
 
             console.error(
-                'Gagal load Sales Picker',
+                '=== LOAD SALES PICKER ERROR ==='
+            );
+
+            console.error(
+                xhr.status
+            );
+
+            console.error(
                 xhr.responseText
             );
 
@@ -1773,10 +1881,11 @@
             $('#detailTable tbody').empty();
 
             renderEmptyDetail(
-                'Gagal mengambil data invoice'
+                'Gagal mengambil invoice'
             );
 
             updateSummary();
+
         });
     }
 
@@ -2664,16 +2773,6 @@
         updateSummary();
     }
 
-    $(document).on(
-        'change',
-        'input[name="MODE_CASH_IN"]',
-        function(){
-
-            toggleCashInMode();
-
-        }
-    );
-
     let searchInvoiceTimer = null;
 
     $('#searchInvoice').on(
@@ -2734,20 +2833,37 @@
             */
 
             addDetailRow({
-
-                SALES :
+                SALES:
                     $(this).data('sales'),
 
-                CUSTOMER_NAME :
+                CUSTOMER_NAME:
                     $(this).data('customer-name'),
 
-                OUTSTANDING :
-                    $(this).data('outstanding'),
+                SALES_AMOUNT:
+                    $(this).data('sales-amount'),
 
-                BAYAR :
-                    $(this).data('outstanding')
+                SALES_REMAIN:
+                    $(this).data('sales-remain'),
 
-            });
+                SAVING_AMOUNT:
+                    $(this).data('saving-amount'),
+
+                SAVING_REMAIN:
+                    $(this).data('saving-remain'),
+
+                GRAND_OUTSTANDING:
+                    $(this).data('grand-outstanding'),
+
+                BAYAR:
+                    0,
+
+                REMAIN_AFTER:
+                    $(this).data('grand-outstanding'),
+
+                REMARK:
+                    ''
+
+            }, false);
 
         });
 
@@ -2805,13 +2921,51 @@
     );
 
     $(document).on(
-        'change',
+        'change.cashInMode',
         'input[name="MODE_CASH_IN"]',
-        function() {
+        function () {
 
-            const mode = $(this).val();
+            const mode =
+                $(this).val();
+
+            /*
+            --------------------------------------------------------
+            | Update card active
+            --------------------------------------------------------
+            */
+
+            $('.mode-card')
+                .removeClass('active');
+
+            $(this)
+                .closest('.mode-card')
+                .addClass('active');
+
+            /*
+            --------------------------------------------------------
+            | Toggle input Cash In
+            --------------------------------------------------------
+            */
+
+            toggleCashInMode();
+
+            /*
+            --------------------------------------------------------
+            | Render invoice
+            --------------------------------------------------------
+            */
 
             $('#detailTable tbody').empty();
+
+            if (
+                !window.CASH_IN_INVOICES ||
+                window.CASH_IN_INVOICES.length === 0
+            ) {
+
+                loadCashInInvoices();
+
+                return;
+            }
 
             if (mode === 'FIFO') {
 
@@ -3166,8 +3320,86 @@
         `;
     }
 
-    $('#plantAdd').on(
-        'change',
+    /*
+    |--------------------------------------------------------------------------
+    | CUSTOMER CHANGE
+    |--------------------------------------------------------------------------
+    */
+
+    $(document).off(
+        'change.cashInCustomer',
+        '#customerAdd'
+    );
+
+    $(document).on(
+        'change.cashInCustomer',
+        '#customerAdd',
+        function () {
+
+            const customer =
+                $(this).val();
+
+            console.log(
+                'CUSTOMER SELECTED:',
+                customer
+            );
+
+            $('#hiddenCustomerAdd')
+                .val(customer || '');
+
+            /*
+            --------------------------------------------------------
+            | RESET CASH IN
+            --------------------------------------------------------
+            */
+
+            $('#cashInAmount')
+                .val('');
+
+            /*
+            --------------------------------------------------------
+            | RESET DETAIL
+            --------------------------------------------------------
+            */
+
+            $('#detailTable tbody')
+                .empty();
+
+            /*
+            --------------------------------------------------------
+            | RESET STATE
+            --------------------------------------------------------
+            */
+
+            window.CASH_IN_INVOICES = [];
+
+            window.CURRENT_SAVING_PAY = 0;
+
+            /*
+            --------------------------------------------------------
+            | SUMMARY
+            --------------------------------------------------------
+            */
+
+            updateSummary();
+
+            /*
+            --------------------------------------------------------
+            | LOAD INVOICE
+            --------------------------------------------------------
+            */
+
+            if (!customer) {
+                return;
+            }
+
+            loadCashInInvoices();
+        }
+    );
+
+    $(document).on(
+        'change.cashInPlant',
+        '#plantAdd',
         function () {
 
             $('#detailTable tbody')
@@ -3180,94 +3412,6 @@
             const customer =
                 $('#hiddenCustomerAdd').val();
 
-            if (customer) {
-
-                loadCashInInvoices();
-            }
-        }
-    );
-
-    /*
-    |--------------------------------------------------------------------------
-    | CUSTOMER CHANGE
-    |--------------------------------------------------------------------------
-    */
-
-    $(document).on(
-        'select2:select',
-        '#customerAdd',
-        function(e){
-
-            let customerId =
-                e.params.data.id;
-
-            /*
-            |--------------------------------------------------------------------------
-            | SET CUSTOMER
-            |--------------------------------------------------------------------------
-            */
-
-            $('#hiddenCustomerAdd')
-                .val(customerId);
-
-            /*
-            |--------------------------------------------------------------------------
-            | RESET CASH IN
-            |--------------------------------------------------------------------------
-            */
-
-            $('#cashInAmount')
-                .val('');
-
-            /*
-            |--------------------------------------------------------------------------
-            | RESET DETAIL
-            |--------------------------------------------------------------------------
-            */
-
-            $('#detailTable tbody')
-                .html('');
-
-            window.CURRENT_SAVING_PAY = 0;
-
-            /*
-            |--------------------------------------------------------------------------
-            | RESET SUMMARY
-            |--------------------------------------------------------------------------
-            */
-
-            updateSummary();
-
-            /*
-            |--------------------------------------------------------------------------
-            | MODE
-            |--------------------------------------------------------------------------
-            */
-
-            let mode =
-                $('[name="MODE_CASH_IN"]:checked')
-                    .val();
-
-        }
-    );
-
-    $('#customerAdd').on(
-        'change',
-        function () {
-
-            const customer =
-                $(this).val();
-
-            $('#hiddenCustomerAdd')
-                .val(customer || '');
-
-            $('#detailTable tbody')
-                .empty();
-
-            window.CASH_IN_INVOICES = [];
-
-            updateSummary();
-
             if (!customer) {
                 return;
             }
@@ -3275,24 +3419,6 @@
             loadCashInInvoices();
         }
     );
-
-    $('#plantAdd').change(function(){
-
-        let mode =
-            $('[name="MODE_CASH_IN"]:checked')
-                .val();
-
-        if(mode === 'FIFO'){
-
-            setTimeout(function(){
-
-                runFIFOAllocation();
-
-            }, 100);
-
-        }
-
-    });
 
     /*
     |--------------------------------------------------------------------------

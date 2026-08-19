@@ -417,45 +417,209 @@ class CashIn_model extends CI_Model {
      * SALES PICKER
      * ============================================================
      */
-    public function get_sales_picker(
-        $plant,
-        $customer,
-        $search = null
-    ) {
+    public function get_sales_picker($plant, $customer, $search = null)
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | SALES DETAIL
+        |--------------------------------------------------------------------------
+        | SALES_AMOUNT = SUM(TOTAL) dari sales detail aktif.
+        |
+        | Ini yang kita tampilkan sebagai nilai Sales setelah discount
+        | sesuai nilai detail.
+        |--------------------------------------------------------------------------
+        */
+
+        $salesDetailSql = "
+            SELECT
+                sd.SALES,
+                sd.PLANT,
+                SUM(
+                    CASE
+                        WHEN sd.DELETED IS NULL
+                        THEN COALESCE(sd.TOTAL, 0)
+                        ELSE 0
+                    END
+                ) AS SALES_AMOUNT
+            FROM abc_mst_sales_detail sd
+            GROUP BY
+                sd.SALES,
+                sd.PLANT
+        ";
+
+        /*
+        |--------------------------------------------------------------------------
+        | SAVING
+        |--------------------------------------------------------------------------
+        |
+        | Data baru:
+        |   sv.SALES terisi
+        |
+        | Legacy:
+        |   sv.SALES bisa NULL
+        |   referensi SALES diambil dari REMARK
+        |
+        | Hanya Saving yang:
+        |   - RELATED = SALES
+        |   - aktif
+        |   - REMAIN > 0
+        |--------------------------------------------------------------------------
+        */
+
+        $savingSql = "
+            SELECT
+                x.PLANT,
+                x.SALES,
+
+                SUM(x.AMOUNT) AS SAVING_AMOUNT,
+
+                SUM(x.REMAIN) AS SAVING_REMAIN
+
+            FROM (
+
+                SELECT
+                    sv.PLANT,
+                    sv.AMOUNT,
+                    sv.REMAIN,
+
+                    CASE
+
+                        /*
+                        --------------------------------------------------
+                        | DATA BARU
+                        --------------------------------------------------
+                        */
+                        WHEN sv.SALES IS NOT NULL
+                            AND TRIM(sv.SALES) <> ''
+                        THEN TRIM(sv.SALES)
+
+                        /*
+                        --------------------------------------------------
+                        | LEGACY:
+                        | AUTO FROM SALES 20260806SLS0049
+                        --------------------------------------------------
+                        */
+                        WHEN sv.REMARK LIKE 'AUTO FROM SALES %'
+                        THEN TRIM(
+                            SUBSTRING(
+                                sv.REMARK,
+                                LENGTH('AUTO FROM SALES ') + 1
+                            )
+                        )
+
+                        /*
+                        --------------------------------------------------
+                        | LEGACY:
+                        | user remark | AUTO FROM SALES 20260806SLS0049
+                        --------------------------------------------------
+                        */
+                        WHEN sv.REMARK LIKE '%AUTO FROM SALES %'
+                        THEN TRIM(
+                            SUBSTRING_INDEX(
+                                sv.REMARK,
+                                'AUTO FROM SALES ',
+                                -1
+                            )
+                        )
+
+                        ELSE NULL
+
+                    END AS SALES
+
+                FROM abc_mst_saving sv
+
+                WHERE sv.RELATED = 'SALES'
+                AND sv.DELETED IS NULL
+                AND COALESCE(sv.REMAIN, 0) > 0
+
+            ) x
+
+            WHERE x.SALES IS NOT NULL
+            AND TRIM(x.SALES) <> ''
+
+            GROUP BY
+                x.PLANT,
+                x.SALES
+        ";
+
+        /*
+        |--------------------------------------------------------------------------
+        | MAIN QUERY
+        |--------------------------------------------------------------------------
+        */
+
         $this->db->select("
             s.SALES,
             s.PLANT,
             s.CUSTOMER,
             s.CUSTOMER_NAME,
             s.SALES_DATE,
+            s.SLIP_NO,
+            s.JENIS_PAY,
 
-            s.AMOUNT AS SALES_AMOUNT,
+            /*
+            --------------------------------------------------------------
+            | SALES AMOUNT
+            --------------------------------------------------------------
+            */
+            COALESCE(sd.SALES_AMOUNT, 0)
+                AS SALES_AMOUNT,
 
-            s.REMAIN AS SALES_REMAIN,
+            COALESCE(s.DISCOUNT, 0)
+                AS DISCOUNT,
 
+            /*
+            --------------------------------------------------------------
+            | SALES REMAIN
+            --------------------------------------------------------------
+            */
+            GREATEST(
+                COALESCE(s.REMAIN, 0),
+                0
+            ) AS SALES_REMAIN,
+
+            /*
+            --------------------------------------------------------------
+            | SAVING
+            --------------------------------------------------------------
+            */
             COALESCE(sv.SAVING_AMOUNT, 0)
                 AS SAVING_AMOUNT,
 
-            COALESCE(sv.SAVING_OFFSET, 0)
-                AS SAVING_OFFSET,
+            COALESCE(sv.SAVING_REMAIN, 0)
+                AS SAVING_REMAIN,
 
-            GREATEST(
-                COALESCE(sv.SAVING_AMOUNT, 0)
-                -
-                COALESCE(sv.SAVING_OFFSET, 0),
-                0
-            ) AS SAVING_REMAIN,
-
+            /*
+            --------------------------------------------------------------
+            | GRAND OUTSTANDING
+            --------------------------------------------------------------
+            */
             (
-                s.REMAIN
-                +
                 GREATEST(
-                    COALESCE(sv.SAVING_AMOUNT, 0)
-                    -
-                    COALESCE(sv.SAVING_OFFSET, 0),
+                    COALESCE(s.REMAIN, 0),
                     0
                 )
-            ) AS GRAND_OUTSTANDING
+                +
+                COALESCE(sv.SAVING_REMAIN, 0)
+            ) AS GRAND_OUTSTANDING,
+
+            /*
+            --------------------------------------------------------------
+            | SOURCE
+            --------------------------------------------------------------
+            */
+            CASE
+                WHEN s.RECEIVE IS NOT NULL
+                    AND TRIM(s.RECEIVE) <> ''
+                THEN 'RECEIVE'
+                ELSE 'SALES'
+            END AS SALES_SOURCE,
+
+            s.RECEIVE,
+
+            s.REMARK AS SALES_REMARK,
+
+            s.STATUS
 
         ", false);
 
@@ -465,115 +629,31 @@ class CashIn_model extends CI_Model {
 
         /*
         |--------------------------------------------------------------------------
-        | SAVING PER SALES
+        | JOIN SALES DETAIL
         |--------------------------------------------------------------------------
         */
 
-        $savingSubquery = "
-            SELECT
-                sv.PLANT,
-
-                sv.CUSTOMER,
-
-                sv.AMOUNT AS SAVING_AMOUNT,
-
-                sv.SV_NO,
-
-                sv.REMARK
-
-            FROM abc_mst_saving sv
-
-            WHERE sv.DELETED IS NULL
-        ";
+        $this->db->join(
+            "($salesDetailSql) sd",
+            "
+                sd.SALES = s.SALES
+                AND sd.PLANT = s.PLANT
+            ",
+            'left',
+            false
+        );
 
         /*
         |--------------------------------------------------------------------------
-        | Untuk menghindari duplicate:
-        | aggregate Saving menggunakan derived table
+        | JOIN SAVING
         |--------------------------------------------------------------------------
         */
 
-        $savingAggregate = "
-            SELECT
-                x.PLANT,
-                x.CUSTOMER,
-                x.SALES,
-
-                SUM(x.SAVING_AMOUNT)
-                    AS SAVING_AMOUNT,
-
-                SUM(x.SAVING_OFFSET)
-                    AS SAVING_OFFSET
-
-            FROM (
-
-                SELECT
-
-                    sv.PLANT,
-
-                    sv.CUSTOMER,
-
-                    sv.SV_NO,
-
-                    sv.AMOUNT AS SAVING_AMOUNT,
-
-                    /*
-                    --------------------------------------------------
-                    | Ambil total allocation Saving
-                    --------------------------------------------------
-                    */
-
-                    COALESCE(
-                        (
-                            SELECT
-                                SUM(cis.AMOUNT_OFFSET)
-
-                            FROM abc_mst_cash_in_saving cis
-
-                            WHERE cis.SV_NO = sv.SV_NO
-
-                            AND cis.PLANT = sv.PLANT
-
-                            AND cis.DELETED IS NULL
-
-                        ),
-                        0
-                    ) AS SAVING_OFFSET,
-
-                    /*
-                    --------------------------------------------------
-                    | SALES dari REMARK
-                    --------------------------------------------------
-                    */
-
-                    SUBSTRING_INDEX(
-                        SUBSTRING_INDEX(
-                            sv.REMARK,
-                            '#',
-                            -1
-                        ),
-                        ' ',
-                        1
-                    ) AS SALES
-
-                FROM abc_mst_saving sv
-
-                WHERE sv.DELETED IS NULL
-
-            ) x
-
-            GROUP BY
-                x.PLANT,
-                x.CUSTOMER,
-                x.SALES
-        ";
-
         $this->db->join(
-            "($savingAggregate) sv",
+            "($savingSql) sv",
             "
-                sv.PLANT = s.PLANT
-                AND sv.CUSTOMER = s.CUSTOMER
-                AND sv.SALES = s.SALES
+                sv.SALES = s.SALES
+                AND sv.PLANT = s.PLANT
             ",
             'left',
             false
@@ -603,12 +683,21 @@ class CashIn_model extends CI_Model {
 
         /*
         |--------------------------------------------------------------------------
-        | HANYA YANG MASIH ADA OUTSTANDING
+        | HANYA INVOICE YANG MASIH PUNYA OUTSTANDING
         |--------------------------------------------------------------------------
         */
 
         $this->db->where(
-            '(s.REMAIN > 0 OR COALESCE(sv.SAVING_AMOUNT,0) - COALESCE(sv.SAVING_OFFSET,0) > 0)',
+            "
+            (
+                GREATEST(
+                    COALESCE(s.REMAIN, 0),
+                    0
+                )
+                +
+                COALESCE(sv.SAVING_REMAIN, 0)
+            ) > 0
+            ",
             null,
             false
         );
@@ -638,7 +727,7 @@ class CashIn_model extends CI_Model {
 
         /*
         |--------------------------------------------------------------------------
-        | FIFO
+        | FIFO ORDER
         |--------------------------------------------------------------------------
         */
 
@@ -652,9 +741,71 @@ class CashIn_model extends CI_Model {
                 'ASC'
             );
 
-        return $this->db
-            ->get()
-            ->result_array();
+        $rows =
+            $this->db
+                ->get()
+                ->result_array();
+
+        /*
+        |--------------------------------------------------------------------------
+        | NORMALIZE NUMERIC VALUES
+        |--------------------------------------------------------------------------
+        */
+
+        foreach ($rows as &$row) {
+
+            $row['SALES_AMOUNT'] =
+                round(
+                    (float)(
+                        $row['SALES_AMOUNT'] ?? 0
+                    ),
+                    2
+                );
+
+            $row['DISCOUNT'] =
+                round(
+                    (float)(
+                        $row['DISCOUNT'] ?? 0
+                    ),
+                    2
+                );
+
+            $row['SALES_REMAIN'] =
+                round(
+                    (float)(
+                        $row['SALES_REMAIN'] ?? 0
+                    ),
+                    2
+                );
+
+            $row['SAVING_AMOUNT'] =
+                round(
+                    (float)(
+                        $row['SAVING_AMOUNT'] ?? 0
+                    ),
+                    2
+                );
+
+            $row['SAVING_REMAIN'] =
+                round(
+                    (float)(
+                        $row['SAVING_REMAIN'] ?? 0
+                    ),
+                    2
+                );
+
+            $row['GRAND_OUTSTANDING'] =
+                round(
+                    $row['SALES_REMAIN']
+                    +
+                    $row['SAVING_REMAIN'],
+                    2
+                );
+        }
+
+        unset($row);
+
+        return $rows;
     }
 
     public function insert_header($data)
@@ -2155,63 +2306,35 @@ class CashIn_model extends CI_Model {
      */
     public function get_saving_total_by_sales($sales, $plant)
     {
-        $rows = $this->get_saving_by_sales(
+        $rows = $this->get_saving_rows_by_sales(
             $sales,
             $plant
         );
 
+        if (!is_array($rows)) {
+            $rows = [];
+        }
+
         $totalAmount = 0;
-        $totalOffset = 0;
+        $totalRemain = 0;
 
-        foreach ($rows as &$row) {
+        foreach ($rows as $row) {
 
-            $amount =
-                round(
-                    (float)$row['AMOUNT'],
-                    2
-                );
+            $totalAmount += round(
+                (float)($row['AMOUNT'] ?? 0),
+                2
+            );
 
-            $offset =
-                round(
-                    (float)$row['TOTAL_OFFSET'],
-                    2
-                );
-
-            $remain =
-                round(
-                    $amount - $offset,
-                    2
-                );
-
-            if ($remain < 0) {
-                $remain = 0;
-            }
-
-            $row['SAVING_REMAIN'] = $remain;
-
-            $totalAmount += $amount;
-            $totalOffset += $offset;
+            $totalRemain += round(
+                (float)($row['REMAIN'] ?? 0),
+                2
+            );
         }
 
         return [
-
-            'amount' =>
-                round($totalAmount, 2),
-
-            'offset' =>
-                round($totalOffset, 2),
-
-            'remain' =>
-                round(
-                    max(
-                        $totalAmount - $totalOffset,
-                        0
-                    ),
-                    2
-                ),
-
-            'rows' =>
-                $rows
+            'amount' => round($totalAmount, 2),
+            'remain' => round($totalRemain, 2),
+            'rows'   => $rows
         ];
     }
 
@@ -2469,57 +2592,77 @@ class CashIn_model extends CI_Model {
                     2
                 );
 
-            $savingStatus =
-                $remainAfter <= 0
-                    ? 'PAID'
-                    : 'PARTIAL';
+            if ($remainAfter <= 0) {
+
+                $remainAfter = 0;
+
+                $savingStatus = 'PAID';
+
+            } elseif (
+                $remainAfter < $savingAmount
+            ) {
+
+                $savingStatus = 'PARTIAL';
+
+            } else {
+
+                $savingStatus = 'OPEN';
+            }
 
             $this->db
-                ->where(
-                    'SV_NO',
-                    $svNo
-                )
-                ->where(
-                    'PLANT',
-                    $plant
-                )
-                ->update(
-                    'abc_mst_saving',
-                    [
-                        'STATUS' =>
-                            $savingStatus,
+                ->where('SV_NO', $svNo)
+                ->where('PLANT', $plant)
+            ->where(
+                'DELETED IS NULL',
+                null,
+                false
+            )
+            ->update(
+                'abc_mst_saving',
+                [
+                    'REMAIN' =>
+                        $remainAfter,
 
-                        'UPDATED_AT' =>
-                            date(
-                                'Y-m-d H:i:s'
-                            ),
+                    'STATUS' =>
+                        $savingStatus,
 
-                        'UPDATED_BY' =>
-                            $user
-                    ]
+                    'UPDATED_AT' =>
+                        date('Y-m-d H:i:s'),
+
+                    'UPDATED_BY' =>
+                        $user
+                ]
+            );
+
+            if ($this->db->affected_rows() < 0) {
+
+                throw new Exception(
+                    'Gagal update Saving '
+                    . $svNo
                 );
-        }
+            }
 
-        return [
+            return [
 
-            'allocated' =>
-                round(
-                    $allocatedTotal,
-                    2
-                ),
-
-            'remaining' =>
-                round(
-                    max(
-                        $remaining,
-                        0
+                'allocated' =>
+                    round(
+                        $allocatedTotal,
+                        2
                     ),
-                    2
-                ),
 
-            'details' =>
-                $details
-        ];
+                'remaining' =>
+                    round(
+                        max(
+                            $remaining,
+                            0
+                        ),
+                        2
+                    ),
+
+                'details' =>
+                    $details
+            ];
+        }
     }
 
     /**

@@ -617,7 +617,8 @@ class Receive extends MY_Controller {
         $saving = $this->buildSaving(
             $allocation,
             $receiveHeader,
-            $context
+            $context,
+            $salesMap
         );
 
         $companyStock = $this->buildCompanyStock(
@@ -3602,21 +3603,63 @@ class Receive extends MY_Controller {
     private function buildSaving(
         array $allocation,
         array $receiveHeader,
-        array $context
+        array $context,
+        array $salesMap
     )
     {
-        $groups = $this->groupSavingAllocation($allocation);
+        $groups =
+            $this->groupSavingAllocation(
+                $allocation
+            );
 
-        $firstSavingNo = $this->Receive_model->generateSavingNo();
+        $firstSavingNo =
+            $this->Receive_model
+                ->generateSavingNo();
 
-        $prefix  = substr($firstSavingNo, 0, -4);
-        $running = (int) substr($firstSavingNo, -4);
+        $prefix =
+            substr(
+                $firstSavingNo,
+                0,
+                -4
+            );
+
+        $running =
+            (int)substr(
+                $firstSavingNo,
+                -4
+            );
 
         $saving = [];
 
         foreach ($groups as $customer => $rows) {
 
-            $svNo = $prefix .
+            /*
+            |--------------------------------------------------------------------------
+            | SALES DARI CUSTOMER
+            |--------------------------------------------------------------------------
+            |
+            | buildSales() membuat:
+            |
+            | $salesMap[$customer] = $salesNo
+            |
+            */
+
+            $salesNo =
+                $salesMap[$customer]
+                ?? null;
+
+            /*
+            |--------------------------------------------------------------------------
+            | Kalau tidak ada Sales, jangan membuat Saving orphan
+            |--------------------------------------------------------------------------
+            */
+
+            if (empty($salesNo)) {
+                continue;
+            }
+
+            $svNo =
+                $prefix .
                 str_pad(
                     $running++,
                     4,
@@ -3624,38 +3667,71 @@ class Receive extends MY_Controller {
                     STR_PAD_LEFT
                 );
 
-            $createdAt = date('Y-m-d H:i:s');
+            $createdAt =
+                date(
+                    'Y-m-d H:i:s'
+                );
 
-            $amount = array_sum(
-                array_column($rows, 'SAVING_AMOUNT')
-            );
+            $amount =
+                round(
+                    array_sum(
+                        array_column(
+                            $rows,
+                            'SAVING_AMOUNT'
+                        )
+                    ),
+                    2
+                );
+
+            if ($amount <= 0) {
+                continue;
+            }
 
             $saving[] = [
 
-                'SV_NO' => $svNo,
+                'SV_NO' =>
+                    $svNo,
 
-                'PLANT' => $receiveHeader['PLANT'],
+                'PLANT' =>
+                    $receiveHeader['PLANT'],
 
-                'SV_DATE' => $receiveHeader['RECEIVE_DATE'],
+                'SV_DATE' =>
+                    $receiveHeader['RECEIVE_DATE'],
 
-                'CUSTOMER' => $customer,
+                'CUSTOMER' =>
+                    $customer,
 
-                'RELATED' => 'RECEIVE',
+                'RELATED' =>
+                    'RECEIVE',
 
-                'RECEIVE' => $receiveHeader['RECEIVE'],
+                'RECEIVE' =>
+                    $receiveHeader['RECEIVE'],
 
-                'AMOUNT' => $amount,
+                'SALES' =>
+                    $salesNo,
 
-                'REMARK' => 'AUTO FROM RECEIVE '.$receiveHeader['RECEIVE'],
+                'AMOUNT' =>
+                    $amount,
 
-                'STATUS' => 'OPEN',
+                'REMAIN' =>
+                    $amount,
 
-                'CREATED_AT' => $createdAt,
+                'REMARK' =>
+                    'AUTO FROM RECEIVE '
+                    . $receiveHeader['RECEIVE']
+                    . ' | AUTO FROM SALES '
+                    . $salesNo,
 
-                'CREATED_BY' => $context['receive']['username']
+                'STATUS' =>
+                    'OPEN',
+
+                'CREATED_AT' =>
+                    $createdAt,
+
+                'CREATED_BY' =>
+                    $context['receive']['username']
 
             ];
-
         }
 
         return $saving;

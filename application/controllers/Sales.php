@@ -823,8 +823,19 @@ class Sales extends MY_Controller {
             return [];
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | TOTAL SAVING
+        |--------------------------------------------------------------------------
+        */
+
         $amount = round(
-            array_sum(array_column($savings, 'SAVING_AMOUNT')),
+            array_sum(
+                array_column(
+                    $savings,
+                    'SAVING_AMOUNT'
+                )
+            ),
             2
         );
 
@@ -832,27 +843,93 @@ class Sales extends MY_Controller {
             return [];
         }
 
-        $remarks = array_filter(array_column($savings, 'REMARK'));
+        /*
+        |--------------------------------------------------------------------------
+        | USER REMARK
+        |--------------------------------------------------------------------------
+        */
+
+        $remarks = array_filter(
+            array_column(
+                $savings,
+                'REMARK'
+            )
+        );
+
         $userRemark = !empty($remarks)
             ? implode('; ', $remarks)
             : '';
 
-        $systemRemark = 'AUTO FROM SALES ' . $salesNo;
-        $finalRemark  = $userRemark !== ''
-            ? $userRemark . ' | ' . $systemRemark
-            : $systemRemark;
+        /*
+        |--------------------------------------------------------------------------
+        | SYSTEM REMARK
+        |--------------------------------------------------------------------------
+        */
+
+        $systemRemark =
+            'AUTO FROM SALES ' . $salesNo;
+
+        $finalRemark =
+            $userRemark !== ''
+                ? $userRemark . ' | ' . $systemRemark
+                : $systemRemark;
+
+        /*
+        |--------------------------------------------------------------------------
+        | SAVING
+        |--------------------------------------------------------------------------
+        |
+        | AMOUNT = nilai Saving asli
+        | REMAIN = seluruh Saving masih tersedia
+        | SALES  = invoice asal Saving
+        |
+        */
 
         return [[
-            'SV_NO'      => $this->Sales_model->generate_saving_no(),
-            'PLANT'      => $plant,
-            'CUSTOMER'   => $customer,
-            'SV_DATE'    => date('Y-m-d', strtotime($salesDate)),
-            'RELATED'    => 'SALES',
-            'AMOUNT'     => $amount,
-            'REMARK'     => $finalRemark,
-            'STATUS'     => 'OPEN',
-            'CREATED_AT' => date('Y-m-d H:i:s'),
-            'CREATED_BY' => $username
+
+            'SV_NO' =>
+                $this->Sales_model
+                    ->generate_saving_no(),
+
+            'PLANT' =>
+                $plant,
+
+            'SV_DATE' =>
+                date(
+                    'Y-m-d',
+                    strtotime($salesDate)
+                ),
+
+            'CUSTOMER' =>
+                $customer,
+
+            'RELATED' =>
+                'SALES',
+
+            'RECEIVE' =>
+                null,
+
+            'SALES' =>
+                $salesNo,
+
+            'AMOUNT' =>
+                $amount,
+
+            'REMAIN' =>
+                $amount,
+
+            'REMARK' =>
+                $finalRemark,
+
+            'STATUS' =>
+                'OPEN',
+
+            'CREATED_AT' =>
+                date('Y-m-d H:i:s'),
+
+            'CREATED_BY' =>
+                $username
+
         ]];
     }
 

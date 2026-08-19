@@ -176,30 +176,6 @@ class CashIn extends MY_Controller {
 
         echo json_encode($rows);
     }
-    
-    // public function load_sales_picker()
-    // {
-    //     $plant = $this->input->get('plant', true);
-    //     $customer = $this->input->get('customer', true);
-    //     $search = $this->input->get('search', true);
-    
-    //     if (empty($plant)) {
-    //         echo json_encode([]);
-    //         return;
-    //     }
-    
-    //     $rows = $this->CashIn_model
-    //         ->get_sales_picker(
-    //             $plant,
-    //             $customer,
-    //             $search
-    //         );
-    
-    //     echo '<pre>';
-    //     print_r($rows);
-    //     echo '</pre>';
-    //     exit;
-    // }
 
     private function build_pagination($pages, $current)
     {
@@ -482,54 +458,71 @@ class CashIn extends MY_Controller {
 
         /*
         |--------------------------------------------------------------------------
-        | VALIDASI HEADER
+        | BASIC PARAMETER
         |--------------------------------------------------------------------------
         */
 
-        $plant    = trim($post['PLANT'] ?? '');
-        $customer = trim($post['CUSTOMER'] ?? '');
-        $date     = trim($post['CASHIN_DATE'] ?? '');
-        $payment  = trim($post['PEMBAYARAN'] ?? '');
-        $remark   = trim($post['REMARK'] ?? '');
-        $mode     = strtoupper(trim($post['MODE_CASH_IN'] ?? 'FIFO'));
+        $plant = trim(
+            $post['PLANT'] ?? ''
+        );
 
-        if (empty($plant)) {
+        $customer = trim(
+            $post['CUSTOMER'] ?? ''
+        );
 
+        $date = trim(
+            $post['CASHIN_DATE'] ?? ''
+        );
+
+        $payment = trim(
+            $post['PEMBAYARAN'] ?? ''
+        );
+
+        $remark = trim(
+            $post['REMARK'] ?? ''
+        );
+
+        $mode = strtoupper(
+            trim(
+                $post['MODE_CASH_IN'] ?? 'FIFO'
+            )
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDATION
+        |--------------------------------------------------------------------------
+        */
+
+        if ($plant === '') {
             echo json_encode([
                 'status'  => false,
-                'message' => 'Plant wajib dipilih'
+                'message' => 'Plant wajib diisi'
             ]);
-
             return;
         }
 
-        if (empty($customer)) {
-
+        if ($customer === '') {
             echo json_encode([
                 'status'  => false,
                 'message' => 'Customer wajib dipilih'
             ]);
-
             return;
         }
 
-        if (empty($date)) {
-
+        if ($date === '') {
             echo json_encode([
                 'status'  => false,
-                'message' => 'Tanggal Cash In wajib diisi'
+                'message' => 'Tanggal wajib diisi'
             ]);
-
             return;
         }
 
-        if (empty($payment)) {
-
+        if ($payment === '') {
             echo json_encode([
                 'status'  => false,
                 'message' => 'Tipe pembayaran wajib dipilih'
             ]);
-
             return;
         }
 
@@ -537,15 +530,6 @@ class CashIn extends MY_Controller {
         |--------------------------------------------------------------------------
         | TOTAL CASH IN
         |--------------------------------------------------------------------------
-        |
-        | Input UI menggunakan format Indonesia:
-        |
-        | 5.000.000
-        |
-        | menjadi:
-        |
-        | 5000000
-        |
         */
 
         $totalInput = $this->normalize_number(
@@ -573,83 +557,16 @@ class CashIn extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
-        $details = $post['DETAIL'] ?? [];
+        $details =
+            $post['DETAIL'] ?? [];
 
         if (!is_array($details)) {
             $details = [];
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | MODE
-        |--------------------------------------------------------------------------
-        */
-
-        if (!in_array($mode, ['FIFO', 'MANUAL'], true)) {
-            $mode = 'FIFO';
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | USER PLANT VALIDATION
-        |--------------------------------------------------------------------------
-        */
-
-        $username = $this->session->userdata('username');
-
-        $plants = $this->CashIn_model
-            ->get_user_plants($username);
-
-        $plants = array_map(
-            'strval',
-            $plants
-        );
-
-        if (!in_array((string)$plant, $plants, true)) {
-
-            echo json_encode([
-                'status'  => false,
-                'message' => 'Plant tidak valid'
-            ]);
-
-            return;
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | VALIDASI CUSTOMER
-        |--------------------------------------------------------------------------
-        */
-
-        $customerExists = $this->db
-            ->where('CUST', $customer)
-            ->get('abc_cd_customer')
-            ->row_array();
-
-        if (!$customerExists) {
-
-            echo json_encode([
-                'status'  => false,
-                'message' => 'Customer tidak ditemukan'
-            ]);
-
-            return;
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | DETAIL NORMALIZATION
-        |--------------------------------------------------------------------------
-        |
-        | BAYAR = TOTAL PAYMENT UNTUK INVOICE
-        |
-        | BUKAN khusus Sales.
-        |
-        */
-
         $normalizedDetails = [];
 
-        foreach ($details as $index => $d) {
+        foreach ($details as $d) {
 
             $salesNo = trim(
                 $d['SALES'] ?? ''
@@ -668,45 +585,22 @@ class CashIn extends MY_Controller {
                 2
             );
 
-            /*
-            ----------------------------------------------------------
-            | Skip zero
-            ----------------------------------------------------------
-            */
-
             if ($bayar <= 0) {
                 continue;
             }
 
-            $detailRemark =
-                isset($d['REMARK'])
-                    ? trim($d['REMARK'])
-                    : null;
-
             $normalizedDetails[] = [
                 'SALES'  => $salesNo,
                 'BAYAR'  => $bayar,
-                'REMARK' => $detailRemark,
-                'INDEX'  => $index
+                'REMARK' => trim($d['REMARK'] ?? '')
             ];
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | DETAIL WAJIB ADA
-        |--------------------------------------------------------------------------
-        |
-        | Karena sekarang Saving juga selalu terkait SALES,
-        | Cash In tidak boleh lagi hanya mempunyai "saving customer"
-        | tanpa invoice.
-        |--------------------------------------------------------------------------
-        */
 
         if (empty($normalizedDetails)) {
 
             echo json_encode([
                 'status'  => false,
-                'message' => 'Silakan pilih minimal satu invoice'
+                'message' => 'Belum ada invoice yang dibayar'
             ]);
 
             return;
@@ -714,39 +608,42 @@ class CashIn extends MY_Controller {
 
         /*
         |--------------------------------------------------------------------------
-        | TOTAL DETAIL
+        | TOTAL DETAIL PAYMENT
         |--------------------------------------------------------------------------
         */
 
-        $totalRequested = 0;
+        $requestedTotal = 0;
 
-        foreach ($normalizedDetails as $d) {
+        foreach ($normalizedDetails as $detail) {
 
-            $totalRequested +=
-                (float)$d['BAYAR'];
+            $requestedTotal +=
+                $detail['BAYAR'];
         }
 
-        $totalRequested = round(
-            $totalRequested,
+        $requestedTotal = round(
+            $requestedTotal,
             2
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Jangan sampai allocation detail > Cash In
-        |--------------------------------------------------------------------------
-        */
-
-        if ($totalRequested > $totalInput) {
+        if ($requestedTotal > $totalInput) {
 
             echo json_encode([
                 'status'  => false,
                 'message' =>
-                    'Total Bayar invoice ('
-                    . number_format($totalRequested, 0, ',', '.')
-                    . ') melebihi Total Cash In ('
-                    . number_format($totalInput, 0, ',', '.')
-                    . ')'
+                    'Total pembayaran invoice '
+                    . number_format(
+                        $requestedTotal,
+                        0,
+                        ',',
+                        '.'
+                    )
+                    . ' melebihi Cash In '
+                    . number_format(
+                        $totalInput,
+                        0,
+                        ',',
+                        '.'
+                    )
             ]);
 
             return;
@@ -760,11 +657,15 @@ class CashIn extends MY_Controller {
 
         $cashInNo =
             $this->CashIn_model
-                ->generate_cash_in_number($plant);
+                ->generate_cash_in_number(
+                    $plant
+                );
 
         $slipNo =
             $this->CashIn_model
-                ->generate_slip_number($plant);
+                ->generate_slip_number(
+                    $plant
+                );
 
         /*
         |--------------------------------------------------------------------------
@@ -778,42 +679,55 @@ class CashIn extends MY_Controller {
 
             /*
             |--------------------------------------------------------------------------
-            | HEADER
+            | INSERT HEADER
             |--------------------------------------------------------------------------
             */
 
-            $header = [
-
-                'CASH_IN'      => $cashInNo,
-
-                'PLANT'        => $plant,
-
-                'CASHIN_DATE'  => $date,
-
-                'CUSTOMER'     => $customer,
-
-                'SLIP_NO'      => $slipNo,
-
-                'PEMBAYARAN'   => $payment,
-
-                'AMOUNT'       => $totalInput,
-
-                'STATUS'       => 'OPEN',
-
-                'REMARK'       => $remark,
-
-                'CREATED_AT'   => date('Y-m-d H:i:s'),
-
-                'CREATED_BY'   => $user
-
-            ];
-
             $this->db->insert(
                 'abc_mst_cash_in',
-                $header
+                [
+
+                    'CASH_IN' =>
+                        $cashInNo,
+
+                    'PLANT' =>
+                        $plant,
+
+                    'CASHIN_DATE' =>
+                        $date,
+
+                    'CUSTOMER' =>
+                        $customer,
+
+                    'SLIP_NO' =>
+                        $slipNo,
+
+                    'PEMBAYARAN' =>
+                        $payment,
+
+                    'AMOUNT' =>
+                        $totalInput,
+
+                    'STATUS' =>
+                        'OPEN',
+
+                    'REMARK' =>
+                        $remark,
+
+                    'CREATED_AT' =>
+                        date(
+                            'Y-m-d H:i:s'
+                        ),
+
+                    'CREATED_BY' =>
+                        $user
+
+                ]
             );
 
-            if (!$this->db->affected_rows()) {
+            if (
+                $this->db->affected_rows() <= 0
+            ) {
 
                 throw new Exception(
                     'Gagal membuat header Cash In'
@@ -822,14 +736,12 @@ class CashIn extends MY_Controller {
 
             /*
             |--------------------------------------------------------------------------
-            | ALLOCATION
-            |--------------------------------------------------------------------------
-            |
-            | amountLeft = uang Cash In yang masih belum dialokasikan.
+            | CASH AVAILABLE
             |--------------------------------------------------------------------------
             */
 
-            $amountLeft = $totalInput;
+            $cashRemaining =
+                $totalInput;
 
             $totalSavingAllocated = 0;
 
@@ -841,55 +753,21 @@ class CashIn extends MY_Controller {
             |--------------------------------------------------------------------------
             | LOOP INVOICE
             |--------------------------------------------------------------------------
-            |
-            | Urutan DETAIL yang dikirim:
-            |
-            | FIFO  -> urutan invoice tertua
-            | MANUAL -> urutan pilihan user
-            |
             */
 
-            foreach ($normalizedDetails as $d) {
+            foreach ($normalizedDetails as $detail) {
 
-                if ($amountLeft <= 0) {
+                if ($cashRemaining <= 0) {
                     break;
                 }
 
-                $salesNo = $d['SALES'];
+                $salesNo =
+                    $detail['SALES'];
 
                 /*
-                ----------------------------------------------------------
-                | BAYAR INVOICE
-                ----------------------------------------------------------
-                |
-                | Ini adalah GRAND PAYMENT invoice:
-                |
-                | Saving + Sales
-                |
-                */
-
-                $invoicePayment = min(
-                    (float)$d['BAYAR'],
-                    $amountLeft
-                );
-
-                $invoicePayment = round(
-                    $invoicePayment,
-                    2
-                );
-
-                if ($invoicePayment <= 0) {
-                    continue;
-                }
-
-                /*
-                |--------------------------------------------------------------------------
+                ========================================================
                 | LOCK SALES
-                |--------------------------------------------------------------------------
-                |
-                | Mencegah dua Cash In membayar invoice yang sama
-                | secara bersamaan.
-                |--------------------------------------------------------------------------
+                ========================================================
                 */
 
                 $this->CashIn_model
@@ -899,32 +777,30 @@ class CashIn extends MY_Controller {
                     );
 
                 /*
-                |--------------------------------------------------------------------------
+                ========================================================
                 | GET CURRENT SALES
-                |--------------------------------------------------------------------------
+                ========================================================
                 */
 
-                $sales = $this->CashIn_model
-                    ->get_sales_by_number(
-                        $salesNo,
-                        $plant
-                    );
+                $sales =
+                    $this->CashIn_model
+                        ->get_sales_by_number(
+                            $salesNo,
+                            $plant
+                        );
 
                 if (!$sales) {
 
                     throw new Exception(
-                        'Sales tidak ditemukan : '
+                        'Sales tidak ditemukan: '
                         . $salesNo
                     );
                 }
 
                 /*
-                |--------------------------------------------------------------------------
-                | VALIDASI CUSTOMER
-                |--------------------------------------------------------------------------
-                |
-                | Jangan sampai user mengirim invoice customer lain.
-                |--------------------------------------------------------------------------
+                ========================================================
+                | VALIDATE CUSTOMER
+                ========================================================
                 */
 
                 if (
@@ -942,46 +818,55 @@ class CashIn extends MY_Controller {
                 }
 
                 /*
-                |--------------------------------------------------------------------------
-                | CURRENT SALES OUTSTANDING
-                |--------------------------------------------------------------------------
+                ========================================================
+                | GET CURRENT SALES REMAIN
+                ========================================================
                 */
 
                 $salesRemain = round(
-                    (float)$sales['REMAIN'],
+                    max(
+                        (float)$sales['REMAIN'],
+                        0
+                    ),
                     2
                 );
 
-                if ($salesRemain < 0) {
-                    $salesRemain = 0;
-                }
-
                 /*
-                |--------------------------------------------------------------------------
-                | CURRENT SAVING OUTSTANDING
-                |--------------------------------------------------------------------------
+                ========================================================
+                | GET CURRENT SAVING REMAIN
+                ========================================================
                 */
 
-                $savingTotal =
+                $savingInfo =
                     $this->CashIn_model
                         ->get_saving_total_by_sales(
                             $salesNo,
                             $plant
                         );
 
-                $savingRemain = round(
-                    (float)$savingTotal['remain'],
-                    2
-                );
+                if (!is_array($savingInfo)) {
 
-                if ($savingRemain < 0) {
-                    $savingRemain = 0;
+                    $savingInfo = [
+                        'amount' => 0,
+                        'offset' => 0,
+                        'remain' => 0,
+                        'rows'   => []
+                    ];
                 }
 
+                $savingRemain =
+                    round(
+                        max(
+                            (float)($savingInfo['remain'] ?? 0),
+                            0
+                        ),
+                        2
+                    );
+
                 /*
-                |--------------------------------------------------------------------------
-                | GRAND OUTSTANDING CURRENT
-                |--------------------------------------------------------------------------
+                ========================================================
+                | GRAND OUTSTANDING
+                ========================================================
                 */
 
                 $grandOutstanding =
@@ -991,12 +876,6 @@ class CashIn extends MY_Controller {
                         $savingRemain,
                         2
                     );
-
-                /*
-                |--------------------------------------------------------------------------
-                | VALIDASI INVOICE
-                |--------------------------------------------------------------------------
-                */
 
                 if ($grandOutstanding <= 0) {
 
@@ -1008,27 +887,32 @@ class CashIn extends MY_Controller {
                 }
 
                 /*
-                |--------------------------------------------------------------------------
-                | BAYAR TIDAK BOLEH MELEBIHI GRAND OUTSTANDING
-                |--------------------------------------------------------------------------
+                ========================================================
+                | PAYMENT UNTUK INVOICE INI
+                ========================================================
                 */
 
-                if (
-                    $invoicePayment
-                    >
-                    $grandOutstanding
-                ) {
+                $invoicePayment =
+                    min(
+                        $detail['BAYAR'],
+                        $cashRemaining,
+                        $grandOutstanding
+                    );
 
-                    $invoicePayment =
-                        $grandOutstanding;
+                $invoicePayment =
+                    round(
+                        $invoicePayment,
+                        2
+                    );
+
+                if ($invoicePayment <= 0) {
+                    continue;
                 }
 
                 /*
-                |--------------------------------------------------------------------------
-                | STEP 1
-                |--------------------------------------------------------------------------
-                | BAYAR SAVING TERLEBIH DAHULU
-                |--------------------------------------------------------------------------
+                ========================================================
+                | 1. BAYAR SAVING DULU
+                ========================================================
                 */
 
                 $savingResult =
@@ -1042,29 +926,37 @@ class CashIn extends MY_Controller {
                             $user
                         );
 
-                $savingAllocated = round(
-                    (float)$savingResult['allocated'],
-                    2
-                );
+                if (!is_array($savingResult)) {
 
-                $remainingForSales =
-                    $invoicePayment
-                    -
-                    $savingResult['allocated'];
+                    throw new Exception(
+                        'Allocation Saving mengembalikan response tidak valid untuk Sales '
+                        . $salesNo
+                    );
+                }
 
-                $totalSavingAllocated +=
-                    $savingAllocated;
+                $savingAllocated =
+                    round(
+                        (float)($savingResult['allocated'] ?? 0),
+                        2
+                    );
 
                 /*
-                |--------------------------------------------------------------------------
-                | STEP 2
-                |--------------------------------------------------------------------------
-                | JIKA SAVING SUDAH HABIS / TIDAK ADA
-                | BARU BAYAR SALES
-                |--------------------------------------------------------------------------
+                ========================================================
+                | SISA PAYMENT → SALES
+                ========================================================
                 */
 
-                if ($remainingForSales > 0) {
+                $remainingToSales =
+                    round(
+                        $invoicePayment
+                        -
+                        $savingAllocated,
+                        2
+                    );
+
+                $salesAllocated = 0;
+
+                if ($remainingToSales > 0) {
 
                     $salesResult =
                         $this->CashIn_model
@@ -1072,76 +964,88 @@ class CashIn extends MY_Controller {
                                 $cashInNo,
                                 $plant,
                                 $salesNo,
-                                $remainingForSales,
+                                $remainingToSales,
                                 $date,
                                 $slipNo,
                                 $user,
                                 $seq
                             );
 
-                    $salesAllocated = round(
-                        (float)$salesResult['allocated'],
-                        2
-                    );
+                    if (!is_array($salesResult)) {
 
-                    $totalSalesAllocated +=
-                        $salesAllocated;
+                        throw new Exception(
+                            'Allocation Sales mengembalikan response tidak valid untuk Sales '
+                            . $salesNo
+                        );
+                    }
 
-                    $seq++;
+                    $salesAllocated =
+                        round(
+                            (float)($salesResult['allocated'] ?? 0),
+                            2
+                        );
+
+                    if ($salesAllocated > 0) {
+                        $seq++;
+                    }
                 }
 
                 /*
-                |--------------------------------------------------------------------------
-                | TOTAL YANG BENAR-BENAR TERPAKAI
-                |--------------------------------------------------------------------------
+                ========================================================
+                | ACTUAL ALLOCATION
+                ========================================================
                 */
 
                 $actualAllocated =
-                    $savingAllocated
-                    +
-                    ($salesAllocated ?? 0);
-
-                $actualAllocated = round(
-                    $actualAllocated,
-                    2
-                );
+                    round(
+                        $savingAllocated
+                        +
+                        $salesAllocated,
+                        2
+                    );
 
                 /*
-                |--------------------------------------------------------------------------
-                | KURANGI CASH IN
-                |--------------------------------------------------------------------------
+                ========================================================
+                | SAFETY CHECK
+                ========================================================
                 */
 
-                $amountLeft = round(
-                    $amountLeft
-                    -
-                    $actualAllocated,
-                    2
-                );
+                if (
+                    $actualAllocated
+                    >
+                    $invoicePayment
+                ) {
 
-                if ($amountLeft < 0) {
-                    $amountLeft = 0;
+                    throw new Exception(
+                        'Allocation Cash In melebihi pembayaran invoice '
+                        . $salesNo
+                    );
                 }
 
                 /*
-                |--------------------------------------------------------------------------
-                | RESET VARIABLE
-                |--------------------------------------------------------------------------
+                ========================================================
+                | REDUCE CASH
+                ========================================================
                 */
 
-                $salesAllocated = 0;
+                $cashRemaining =
+                    round(
+                        $cashRemaining
+                        -
+                        $actualAllocated,
+                        2
+                    );
+
+                if ($cashRemaining < 0) {
+                    $cashRemaining = 0;
+                }
+
+                $totalSavingAllocated +=
+                    $savingAllocated;
+
+                $totalSalesAllocated +=
+                    $salesAllocated;
             }
-
-            /*
-            |--------------------------------------------------------------------------
-            | SISA CASH IN
-            |--------------------------------------------------------------------------
-            */
-
-            $depositAmount = round(
-                $amountLeft,
-                2
-            );
 
             /*
             |--------------------------------------------------------------------------
@@ -1149,35 +1053,43 @@ class CashIn extends MY_Controller {
             |--------------------------------------------------------------------------
             */
 
+            $depositAmount =
+                round(
+                    max(
+                        $cashRemaining,
+                        0
+                    ),
+                    2
+                );
+
             if ($depositAmount > 0) {
 
                 $this->CashIn_model
                     ->insert_customer_deposit([
-                        'CUSTOMER'   => $customer,
-                        'PLANT'      => $plant,
-                        'CASH_IN'    => $cashInNo,
-                        'AMOUNT'     => $depositAmount,
-                        'REMAIN'     => $depositAmount,
-                        'CREATED_AT' => date('Y-m-d H:i:s'),
-                        'CREATED_BY' => $user
+                        'CUSTOMER' =>
+                            $customer,
+
+                        'PLANT' =>
+                            $plant,
+
+                        'CASH_IN' =>
+                            $cashInNo,
+
+                        'AMOUNT' =>
+                            $depositAmount,
+
+                        'REMAIN' =>
+                            $depositAmount,
+
+                        'CREATED_AT' =>
+                            date(
+                                'Y-m-d H:i:s'
+                            ),
+
+                        'CREATED_BY' =>
+                            $user
                     ]);
             }
-
-            /*
-            |--------------------------------------------------------------------------
-            | TOTAL USED
-            |--------------------------------------------------------------------------
-            */
-
-            $totalUsed =
-                $totalSavingAllocated
-                +
-                $totalSalesAllocated;
-
-            $totalUsed = round(
-                $totalUsed,
-                2
-            );
 
             /*
             |--------------------------------------------------------------------------
@@ -1185,26 +1097,33 @@ class CashIn extends MY_Controller {
             |--------------------------------------------------------------------------
             */
 
+            $totalAllocated =
+                round(
+                    $totalSavingAllocated
+                    +
+                    $totalSalesAllocated,
+                    2
+                );
+
             if ($depositAmount > 0) {
 
-                /*
-                * Ada uang Cash In yang tidak teralokasi
-                */
-                $cashInStatus = 'DEPOSIT';
+                $cashStatus = 'DEPOSIT';
 
             } elseif (
-                $totalUsed >= $totalInput
+                $totalAllocated >= $totalInput
             ) {
 
-                $cashInStatus = 'PAID';
+                $cashStatus = 'PAID';
 
-            } elseif ($totalUsed > 0) {
+            } elseif (
+                $totalAllocated > 0
+            ) {
 
-                $cashInStatus = 'PARTIAL';
+                $cashStatus = 'PARTIAL';
 
             } else {
 
-                $cashInStatus = 'OPEN';
+                $cashStatus = 'OPEN';
             }
 
             /*
@@ -1214,12 +1133,19 @@ class CashIn extends MY_Controller {
             */
 
             $this->db
-                ->where('CASH_IN', $cashInNo)
-                ->where('PLANT', $plant)
+                ->where(
+                    'CASH_IN',
+                    $cashInNo
+                )
+                ->where(
+                    'PLANT',
+                    $plant
+                )
                 ->update(
                     'abc_mst_cash_in',
                     [
-                        'STATUS' => $cashInStatus
+                        'STATUS' =>
+                            $cashStatus
                     ]
                 );
 
@@ -1248,29 +1174,32 @@ class CashIn extends MY_Controller {
             $this->db->trans_commit();
 
             echo json_encode([
-
                 'status' => true,
+                'message' => 'Cash In berhasil disimpan',
 
-                'message' =>
-                    'Cash In berhasil disimpan',
-
-                'cash_in' => $cashInNo,
+                'cash_in' =>
+                    $cashInNo,
 
                 'total_cash_in' =>
                     $totalInput,
 
                 'saving_allocated' =>
-                    $totalSavingAllocated,
+                    round(
+                        $totalSavingAllocated,
+                        2
+                    ),
 
                 'sales_allocated' =>
-                    $totalSalesAllocated,
+                    round(
+                        $totalSalesAllocated,
+                        2
+                    ),
 
                 'deposit' =>
                     $depositAmount,
 
                 'status_cash_in' =>
-                    $cashInStatus
-
+                    $cashStatus
             ]);
 
         } catch (Exception $e) {
@@ -1278,11 +1207,8 @@ class CashIn extends MY_Controller {
             $this->db->trans_rollback();
 
             echo json_encode([
-
-                'status'  => false,
-
+                'status' => false,
                 'message' => $e->getMessage()
-
             ]);
         }
     }
@@ -1584,35 +1510,27 @@ class CashIn extends MY_Controller {
 
     public function remove()
     {
-        $cashIn =
-            $this->input->post(
-                'cashin',
-                true
-            );
+        $cashInNo = trim(
+            $this->input->post('cashin', true)
+        );
 
-        $plant =
-            $this->input->post(
-                'plant',
-                true
-            );
+        $plant = trim(
+            $this->input->post('plant', true)
+        );
+
+        $user = $this->session->userdata('username');
 
         /*
         |--------------------------------------------------------------------------
-        | VALIDASI
+        | VALIDASI PARAMETER
         |--------------------------------------------------------------------------
         */
 
-        if(
-            empty($cashIn) ||
-            empty($plant)
-        ){
+        if ($cashInNo === '' || $plant === '') {
 
             echo json_encode([
-
                 'status'  => false,
-
-                'message' => 'Cash in tidak valid'
-
+                'message' => 'Cash In tidak valid'
             ]);
 
             return;
@@ -1620,28 +1538,26 @@ class CashIn extends MY_Controller {
 
         /*
         |--------------------------------------------------------------------------
-        | HEADER
+        | GET CASH IN HEADER
         |--------------------------------------------------------------------------
         */
 
         $header = $this->db
-
-            ->where('CASH_IN', $cashIn)
-
+            ->where('CASH_IN', $cashInNo)
             ->where('PLANT', $plant)
-
+            ->where(
+                'DELETED IS NULL',
+                null,
+                false
+            )
             ->get('abc_mst_cash_in')
-
             ->row_array();
 
-        if(!$header){
+        if (!$header) {
 
             echo json_encode([
-
                 'status'  => false,
-
-                'message' => 'Data cash in tidak ditemukan'
-
+                'message' => 'Cash In tidak ditemukan / sudah dihapus'
             ]);
 
             return;
@@ -1649,113 +1565,183 @@ class CashIn extends MY_Controller {
 
         /*
         |--------------------------------------------------------------------------
-        | DETAIL
+        | GET SALES ALLOCATION
         |--------------------------------------------------------------------------
         */
 
-        $details = $this->db
-
-            ->where('CASH_IN', $cashIn)
-
+        $salesDetails = $this->db
+            ->where('CASH_IN', $cashInNo)
             ->where('PLANT', $plant)
-
+            ->where(
+                'DELETED IS NULL',
+                null,
+                false
+            )
             ->get('abc_mst_cash_in_detail')
-
             ->result_array();
 
-        $salesList = array_column(
-            $details,
-            'SALES'
-        );
+        /*
+        |--------------------------------------------------------------------------
+        | GET SAVING ALLOCATION
+        |--------------------------------------------------------------------------
+        */
 
-        if(!empty($salesList)){
+        $savingDetails = $this->db
+            ->where('CASH_IN', $cashInNo)
+            ->where('PLANT', $plant)
+            ->where(
+                'DELETED IS NULL',
+                null,
+                false
+            )
+            ->get('abc_mst_cash_in_saving')
+            ->result_array();
 
-            /*
-            |--------------------------------------------------------------------------
-            | CURRENT CREATED
-            |--------------------------------------------------------------------------
-            */
+        /*
+        |--------------------------------------------------------------------------
+        | CHECK TRANSACTION LEBIH BARU
+        |--------------------------------------------------------------------------
+        |
+        | Jika invoice yang sama sudah terkena Cash In lebih baru,
+        | Cash In lama tidak boleh dihapus karena rollback akan
+        | merusak saldo invoice.
+        |--------------------------------------------------------------------------
+        */
 
-            $currentCreated =
-                $header['CREATED_AT'];
+        $affectedSales = [];
 
-            /*
-            |--------------------------------------------------------------------------
-            | CHECK
-            |--------------------------------------------------------------------------
-            */
+        foreach ($salesDetails as $detail) {
 
-            $exists = $this->db
+            if (!empty($detail['SALES'])) {
 
+                $affectedSales[] =
+                    $detail['SALES'];
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Tambahkan Sales dari Saving allocation
+        |--------------------------------------------------------------------------
+        |
+        | Bisa terjadi Cash In hanya membayar Saving sehingga
+        | cash_in_detail kosong.
+        |--------------------------------------------------------------------------
+        */
+
+        foreach ($savingDetails as $detail) {
+
+            if (!empty($detail['SALES'])) {
+
+                $affectedSales[] =
+                    $detail['SALES'];
+            }
+        }
+
+        $affectedSales =
+            array_values(
+                array_unique(
+                    $affectedSales
+                )
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | BLOCK JIKA ADA CASH IN LEBIH BARU
+        |--------------------------------------------------------------------------
+        */
+
+        if (!empty($affectedSales)) {
+
+            $newerExists = $this->db
                 ->select('1', false)
-
                 ->from('abc_mst_cash_in_detail d')
-
                 ->join(
                     'abc_mst_cash_in c',
-                    '
-                        c.CASH_IN = d.CASH_IN
-                        AND c.PLANT = d.PLANT
-                    ',
+                    'c.CASH_IN = d.CASH_IN
+                    AND c.PLANT = d.PLANT',
                     'inner'
                 )
-
-                ->where_in(
-                    'd.SALES',
-                    $salesList
-                )
-
                 ->where(
                     'd.PLANT',
                     $plant
                 )
-
-                /*
-                |--------------------------------------------------------------------------
-                | BUKAN CASH IN SEKARANG
-                |--------------------------------------------------------------------------
-                */
-
+                ->where_in(
+                    'd.SALES',
+                    $affectedSales
+                )
                 ->where(
                     'd.CASH_IN !=',
-                    $cashIn
+                    $cashInNo
                 )
-
-                /*
-                |--------------------------------------------------------------------------
-                | LEBIH BARU
-                |--------------------------------------------------------------------------
-                */
-
                 ->where(
                     'c.CREATED_AT >',
-                    $currentCreated
+                    $header['CREATED_AT']
                 )
-
+                ->where(
+                    'c.DELETED IS NULL',
+                    null,
+                    false
+                )
                 ->limit(1)
-
                 ->count_all_results();
 
             /*
             |--------------------------------------------------------------------------
-            | BLOCK DELETE
+            | Saving-only Cash In
+            |--------------------------------------------------------------------------
+            |
+            | Cash In yang hanya membayar Saving tidak punya row
+            | di cash_in_detail.
+            |
+            | Jadi kita juga cek cash_in_saving terhadap Cash In
+            | yang lebih baru.
             |--------------------------------------------------------------------------
             */
 
-            if($exists > 0){
+            $newerSavingExists = $this->db
+                ->select('1', false)
+                ->from('abc_mst_cash_in_saving cs')
+                ->join(
+                    'abc_mst_cash_in c',
+                    'c.CASH_IN = cs.CASH_IN
+                    AND c.PLANT = cs.PLANT',
+                    'inner'
+                )
+                ->where(
+                    'cs.PLANT',
+                    $plant
+                )
+                ->where_in(
+                    'cs.SALES',
+                    $affectedSales
+                )
+                ->where(
+                    'cs.CASH_IN !=',
+                    $cashInNo
+                )
+                ->where(
+                    'c.CREATED_AT >',
+                    $header['CREATED_AT']
+                )
+                ->where(
+                    'c.DELETED IS NULL',
+                    null,
+                    false
+                )
+                ->limit(1)
+                ->count_all_results();
+
+            if (
+                $newerExists > 0
+                ||
+                $newerSavingExists > 0
+            ) {
 
                 echo json_encode([
-
                     'status'  => false,
-
-                    'message' => '
-
-                        Cash in tidak bisa dihapus karena
-                        sudah ada cash in lebih baru
-                        untuk invoice yang sama
-
-                    '
-
+                    'message' =>
+                        'Cash In tidak dapat dihapus karena sudah ada Cash In yang lebih baru pada invoice yang sama.'
                 ]);
 
                 return;
@@ -1770,181 +1756,488 @@ class CashIn extends MY_Controller {
 
         $this->db->trans_begin();
 
-        try{
+        try {
 
             /*
-            |--------------------------------------------------------------------------
+            ==========================================================
+            | STEP 1
             | ROLLBACK SALES
-            |--------------------------------------------------------------------------
+            ==========================================================
             */
 
-            foreach($details as $d){
+            foreach ($salesDetails as $detail) {
 
                 $salesNo =
-                    $d['SALES'];
+                    $detail['SALES'];
 
                 $offset =
-                    (float) $d['AMOUNT_OFFSET'];
+                    round(
+                        (float)$detail['AMOUNT_OFFSET'],
+                        2
+                    );
 
-                /*
-                |--------------------------------------------------------------------------
-                | GET SALES
-                |--------------------------------------------------------------------------
-                */
-
-                $sales = $this->db
-
-                    ->where('SALES', $salesNo)
-
-                    ->where('PLANT', $plant)
-
-                    ->get('abc_mst_sales')
-
-                    ->row_array();
-
-                if(!$sales){
-
+                if (
+                    $salesNo === ''
+                    ||
+                    $offset <= 0
+                ) {
                     continue;
                 }
 
                 /*
-                |--------------------------------------------------------------------------
-                | RETURN REMAIN
-                |--------------------------------------------------------------------------
+                ------------------------------------------------------
+                | LOCK SALES
+                ------------------------------------------------------
                 */
 
-                $newRemain =
-                    (float) $sales['REMAIN']
-                    +
-                    $offset;
+                $this->CashIn_model
+                    ->lock_sales_row(
+                        $salesNo,
+                        $plant
+                    );
 
                 /*
-                |--------------------------------------------------------------------------
-                | STATUS
-                |--------------------------------------------------------------------------
+                ------------------------------------------------------
+                | GET CURRENT SALES
+                ------------------------------------------------------
                 */
 
-                $status = 'OPEN';
+                $sales = $this->db
+                    ->where(
+                        'SALES',
+                        $salesNo
+                    )
+                    ->where(
+                        'PLANT',
+                        $plant
+                    )
+                    ->where(
+                        'DELETED IS NULL',
+                        null,
+                        false
+                    )
+                    ->get(
+                        'abc_mst_sales'
+                    )
+                    ->row_array();
 
-                if(
-                    $newRemain > 0 &&
-                    $newRemain < (float) $sales['AMOUNT']
-                ){
+                if (!$sales) {
+                    continue;
+                }
 
+                /*
+                ------------------------------------------------------
+                | KEMBALIKAN REMAIN
+                ------------------------------------------------------
+                */
+
+                $currentRemain =
+                    round(
+                        (float)$sales['REMAIN'],
+                        2
+                    );
+
+                $newRemain =
+                    round(
+                        $currentRemain + $offset,
+                        2
+                    );
+
+                /*
+                ------------------------------------------------------
+                | STATUS
+                ------------------------------------------------------
+                */
+
+                if ($newRemain <= 0) {
+
+                    $status = 'PAID';
+
+                } else {
+
+                    /*
+                    * Setelah rollback, invoice kembali memiliki
+                    * outstanding.
+                    */
                     $status = 'PARTIAL';
 
                 }
 
-                if(
-                    $newRemain <= 0
-                ){
-
-                    $status = 'PAID';
-
-                }
-
                 /*
-                |--------------------------------------------------------------------------
+                ------------------------------------------------------
                 | UPDATE SALES
-                |--------------------------------------------------------------------------
+                ------------------------------------------------------
                 */
 
                 $this->db
-                    ->where('SALES', $salesNo)
-                    ->where('PLANT', $plant)
+                    ->where(
+                        'SALES',
+                        $salesNo
+                    )
+                    ->where(
+                        'PLANT',
+                        $plant
+                    )
                     ->update(
                         'abc_mst_sales',
                         [
+                            'REMAIN' =>
+                                $newRemain,
 
-                            'REMAIN' => $newRemain,
+                            'STATUS' =>
+                                $status,
 
-                            'STATUS' => $status
+                            'UPDATED_AT' =>
+                                date(
+                                    'Y-m-d H:i:s'
+                                ),
 
+                            'UPDATED_BY' =>
+                                $user
                         ]
                     );
             }
 
             /*
-            |--------------------------------------------------------------------------
-            | ROLLBACK SAVING PAYMENT
-            |--------------------------------------------------------------------------
-            */
-
-            $this->CashIn_model
-                ->delete_saving_payment_by_cash_in(
-                    $cashIn,
-                    $plant,
-                    $this->session->userdata('username')
-                );
-
-            /*
-            |--------------------------------------------------------------------------
-            | DELETE DETAIL
-            |--------------------------------------------------------------------------
+            ==========================================================
+            | STEP 2
+            | SOFT DELETE SAVING ALLOCATION
+            ==========================================================
             */
 
             $this->db
-                ->where('CASH_IN', $cashIn)
-                ->where('PLANT', $plant)
-                ->delete(
-                    'abc_mst_cash_in_detail'
+                ->where(
+                    'CASH_IN',
+                    $cashInNo
+                )
+                ->where(
+                    'PLANT',
+                    $plant
+                )
+                ->where(
+                    'DELETED IS NULL',
+                    null,
+                    false
+                )
+                ->update(
+                    'abc_mst_cash_in_saving',
+                    [
+                        'DELETED' =>
+                            date(
+                                'Y-m-d H:i:s'
+                            ),
+
+                        'DELETED_BY' =>
+                            $user
+                    ]
                 );
 
             /*
-            |--------------------------------------------------------------------------
-            | DELETE HEADER
-            |--------------------------------------------------------------------------
+            ==========================================================
+            | STEP 3
+            | RECALCULATE SAVING REMAIN
+            ==========================================================
+            |
+            | Jangan sekadar:
+            |
+            | REMAIN = REMAIN + OFFSET
+            |
+            | Lebih aman hitung ulang berdasarkan seluruh allocation
+            | Cash In yang masih aktif.
+            ==========================================================
+            */
+
+            $savingNos = [];
+
+            foreach ($savingDetails as $detail) {
+
+                if (!empty($detail['SV_NO'])) {
+
+                    $savingNos[] =
+                        $detail['SV_NO'];
+                }
+            }
+
+            $savingNos =
+                array_values(
+                    array_unique(
+                        $savingNos
+                    )
+                );
+
+            foreach ($savingNos as $svNo) {
+
+                /*
+                ------------------------------------------------------
+                | LOCK SAVING
+                ------------------------------------------------------
+                */
+
+                $saving = $this->db
+                    ->where(
+                        'SV_NO',
+                        $svNo
+                    )
+                    ->where(
+                        'PLANT',
+                        $plant
+                    )
+                    ->where(
+                        'DELETED IS NULL',
+                        null,
+                        false
+                    )
+                    ->get(
+                        'abc_mst_saving'
+                    )
+                    ->row_array();
+
+                if (!$saving) {
+                    continue;
+                }
+
+                /*
+                ------------------------------------------------------
+                | HITUNG TOTAL OFFSET AKTIF
+                ------------------------------------------------------
+                */
+
+                $offsetRow =
+                    $this->db
+                        ->select(
+                            'COALESCE(SUM(AMOUNT_OFFSET),0) AS TOTAL_OFFSET',
+                            false
+                        )
+                        ->from(
+                            'abc_mst_cash_in_saving'
+                        )
+                        ->where(
+                            'SV_NO',
+                            $svNo
+                        )
+                        ->where(
+                            'PLANT',
+                            $plant
+                        )
+                        ->where(
+                            'DELETED IS NULL',
+                            null,
+                            false
+                        )
+                        ->get()
+                        ->row_array();
+
+                $totalOffset =
+                    round(
+                        (float)(
+                            $offsetRow['TOTAL_OFFSET']
+                            ?? 0
+                        ),
+                        2
+                    );
+
+                /*
+                ------------------------------------------------------
+                | REMAIN BARU
+                ------------------------------------------------------
+                */
+
+                $amount =
+                    round(
+                        (float)$saving['AMOUNT'],
+                        2
+                    );
+
+                $newRemain =
+                    round(
+                        $amount - $totalOffset,
+                        2
+                    );
+
+                if ($newRemain < 0) {
+                    $newRemain = 0;
+                }
+
+                /*
+                ------------------------------------------------------
+                | STATUS
+                ------------------------------------------------------
+                */
+
+                if ($newRemain <= 0) {
+
+                    $savingStatus =
+                        'PAID';
+
+                } elseif (
+                    $newRemain < $amount
+                ) {
+
+                    $savingStatus =
+                        'PARTIAL';
+
+                } else {
+
+                    $savingStatus =
+                        'OPEN';
+                }
+
+                /*
+                ------------------------------------------------------
+                | UPDATE SAVING
+                ------------------------------------------------------
+                */
+
+                $this->db
+                    ->where(
+                        'SV_NO',
+                        $svNo
+                    )
+                    ->where(
+                        'PLANT',
+                        $plant
+                    )
+                    ->update(
+                        'abc_mst_saving',
+                        [
+                            'REMAIN' =>
+                                $newRemain,
+
+                            'STATUS' =>
+                                $savingStatus,
+
+                            'UPDATED_AT' =>
+                                date(
+                                    'Y-m-d H:i:s'
+                                ),
+
+                            'UPDATED_BY' =>
+                                $user
+                        ]
+                    );
+            }
+
+            /*
+            ==========================================================
+            | STEP 4
+            | SOFT DELETE SALES DETAIL
+            ==========================================================
             */
 
             $this->db
-                ->where('CASH_IN', $cashIn)
-                ->where('PLANT', $plant)
-                ->delete(
-                    'abc_mst_cash_in'
+                ->where(
+                    'CASH_IN',
+                    $cashInNo
+                )
+                ->where(
+                    'PLANT',
+                    $plant
+                )
+                ->where(
+                    'DELETED IS NULL',
+                    null,
+                    false
+                )
+                ->update(
+                    'abc_mst_cash_in_detail',
+                    [
+                        'DELETED' =>
+                            date(
+                                'Y-m-d H:i:s'
+                            ),
+
+                        'UPDATED_AT' =>
+                            date(
+                                'Y-m-d H:i:s'
+                            ),
+
+                        'UPDATED_BY' =>
+                            $user
+                    ]
                 );
 
             /*
-            |--------------------------------------------------------------------------
-            | CHECK
-            |--------------------------------------------------------------------------
+            ==========================================================
+            | STEP 5
+            | DELETE / ROLLBACK DEPOSIT
+            ==========================================================
             */
 
-            if(
+            if (
+                method_exists(
+                    $this->CashIn_model,
+                    'delete_deposit_by_cash_in'
+                )
+            ) {
+
+                $this->CashIn_model
+                    ->delete_deposit_by_cash_in(
+                        $cashInNo
+                    );
+            }
+
+            /*
+            ==========================================================
+            | STEP 6
+            | SOFT DELETE CASH IN HEADER
+            ==========================================================
+            */
+
+            $this->db
+                ->where(
+                    'CASH_IN',
+                    $cashInNo
+                )
+                ->where(
+                    'PLANT',
+                    $plant
+                )
+                ->update(
+                    'abc_mst_cash_in',
+                    [
+                        'DELETED' =>
+                            date(
+                                'Y-m-d H:i:s'
+                            )
+                    ]
+                );
+
+            /*
+            ==========================================================
+            | CHECK TRANSACTION
+            ==========================================================
+            */
+
+            if (
                 $this->db->trans_status()
                 === FALSE
-            ){
+            ) {
 
                 throw new Exception(
-                    'Gagal menghapus cash in'
+                    'Gagal menghapus Cash In'
                 );
             }
 
             /*
-            |--------------------------------------------------------------------------
+            ==========================================================
             | COMMIT
-            |--------------------------------------------------------------------------
+            ==========================================================
             */
 
             $this->db->trans_commit();
 
             echo json_encode([
-
                 'status'  => true,
-
-                'message' => 'Cash in berhasil dihapus'
-
+                'message' => 'Cash In berhasil dihapus'
             ]);
 
-        }catch(Exception $e){
+        } catch (Exception $e) {
 
             $this->db->trans_rollback();
 
             echo json_encode([
-
                 'status'  => false,
-
                 'message' => $e->getMessage()
-
             ]);
         }
     }
