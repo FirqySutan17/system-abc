@@ -47,21 +47,96 @@ class CashIn_model extends CI_Model {
                 )
             ) AS TOTAL_DEPOSIT,
 
-            NOT EXISTS (
+            (
+                NOT EXISTS (
 
-                SELECT 1
+                    /*
+                    |--------------------------------------------------------------------------
+                    | NEWER ACTIVE CASH IN VIA SALES
+                    |--------------------------------------------------------------------------
+                    */
 
-                FROM abc_mst_cash_in_detail d2
+                    SELECT 1
 
-                INNER JOIN abc_mst_cash_in c2
-                    ON c2.CASH_IN = d2.CASH_IN
-                    AND c2.PLANT = d2.PLANT
+                    FROM abc_mst_cash_in c2
 
-                WHERE d2.SALES = d.SALES
+                    WHERE c2.PLANT = c.PLANT
+                    AND c2.CUSTOMER = c.CUSTOMER
+                    AND c2.DELETED IS NULL
+                    AND c2.CREATED_AT > c.CREATED_AT
 
-                AND d2.CASH_IN != c.CASH_IN
+                    AND EXISTS (
 
-                AND c2.CREATED_AT > c.CREATED_AT
+                        SELECT 1
+
+                        FROM abc_mst_cash_in_detail d_old
+
+                        WHERE d_old.CASH_IN = c.CASH_IN
+                            AND d_old.PLANT = c.PLANT
+                            AND d_old.DELETED IS NULL
+
+                            AND EXISTS (
+
+                                SELECT 1
+
+                                FROM abc_mst_cash_in_detail d_new
+
+                                WHERE d_new.CASH_IN = c2.CASH_IN
+                                AND d_new.PLANT = c2.PLANT
+                                AND d_new.SALES = d_old.SALES
+                                AND d_new.DELETED IS NULL
+
+                            )
+
+                    )
+
+                )
+
+                AND
+
+                /*
+                |--------------------------------------------------------------------------
+                | NEWER ACTIVE CASH IN VIA SAVING
+                |--------------------------------------------------------------------------
+                */
+
+                NOT EXISTS (
+
+                    SELECT 1
+
+                    FROM abc_mst_cash_in c2
+
+                    WHERE c2.PLANT = c.PLANT
+                    AND c2.CUSTOMER = c.CUSTOMER
+                    AND c2.DELETED IS NULL
+                    AND c2.CREATED_AT > c.CREATED_AT
+
+                    AND EXISTS (
+
+                        SELECT 1
+
+                        FROM abc_mst_cash_in_saving s_old
+
+                        WHERE s_old.CASH_IN = c.CASH_IN
+                            AND s_old.PLANT = c.PLANT
+                            AND s_old.DELETED IS NULL
+
+                            AND EXISTS (
+
+                                SELECT 1
+
+                                FROM abc_mst_cash_in_saving s_new
+
+                                WHERE s_new.CASH_IN = c2.CASH_IN
+                                AND s_new.PLANT = c2.PLANT
+                                AND s_new.SALES = s_old.SALES
+                                AND s_new.DELETED IS NULL
+
+                            )
+
+                    )
+
+                )
 
             ) AS IS_LATEST
 
@@ -1315,14 +1390,14 @@ class CashIn_model extends CI_Model {
 
     public function insert_customer_deposit($data)
     {
-        return $this->db->insert('mst_customer_deposit', $data);
+        return $this->db->insert('abc_mst_customer_deposit', $data);
     }
 
     public function use_deposit($id, $amount)
     {
         $this->db->set('REMAIN', "REMAIN - {$amount}", false)
                 ->where('ID', $id)
-                ->update('mst_customer_deposit');
+                ->update('abc_mst_customer_deposit');
     }
 
     public function get_available_deposit($customer, $plant)
@@ -1332,20 +1407,43 @@ class CashIn_model extends CI_Model {
             ->where('PLANT', $plant)
             ->where('REMAIN >', 0)
             ->order_by('CREATED_AT', 'ASC') // FIFO deposit
-            ->get('mst_customer_deposit')
+            ->get('abc_mst_customer_deposit')
             ->result_array();
     }
 
     public function get_total_deposit($customer, $plant)
     {
         return $this->db->select_sum('REMAIN')
-            ->from('mst_customer_deposit')
+            ->from('abc_mst_customer_deposit')
             ->where('CUSTOMER', $customer)
             ->where('PLANT', $plant)
             ->where('REMAIN >', 0)
             ->get()
             ->row()
             ->REMAIN ?? 0;
+    }
+
+    public function delete_customer_deposit_by_cash_in(
+        $cashInNo,
+        $plant,
+        $deletedBy = null
+    ) {
+        $data = [
+            'DELETED' => date('Y-m-d H:i:s')
+        ];
+
+        if ($deletedBy) {
+            $data['DELETED_BY'] = $deletedBy;
+        }
+
+        return $this->db
+            ->where('CASH_IN', $cashInNo)
+            ->where('PLANT', $plant)
+            ->where('DELETED IS NULL', null, false)
+            ->update(
+                'abc_mst_customer_deposit',
+                $data
+            );
     }
 
     public function get_invoice_remain_batch($salesList, $plant)
@@ -1390,7 +1488,7 @@ class CashIn_model extends CI_Model {
     // {
     //     $this->db->set('REMAIN','REMAIN+USED_AMOUNT',false)
     //             ->where('CASH_IN',$cashIn)
-    //             ->update('mst_customer_deposit');
+    //             ->update('abc_mst_customer_deposit');
     // }
 
     public function delete_cash_in_details($cashIn,$plant){
@@ -1412,7 +1510,7 @@ class CashIn_model extends CI_Model {
     {
         $this->db->set('REMAIN', 'AMOUNT', false);
         $this->db->where('CASH_IN', $cashIn);
-        $this->db->update('mst_customer_deposit');
+        $this->db->update('abc_mst_customer_deposit');
     }
 
     public function recalc_invoice($sales, $plant)
@@ -1473,12 +1571,12 @@ class CashIn_model extends CI_Model {
     public function delete_deposit_by_cash_in($cashIn)
     {
         $this->db->where('CASH_IN', $cashIn);
-        $this->db->delete('mst_customer_deposit');
+        $this->db->delete('abc_mst_customer_deposit');
     }
 
     public function delete_deposit_by_cashin($cashIn){
         $this->db->where('CASH_IN',$cashIn)
-                ->delete('mst_customer_deposit');
+                ->delete('abc_mst_customer_deposit');
     }
 
     public function get_fifo_open_invoices($customer, $plant)
@@ -1630,7 +1728,7 @@ class CashIn_model extends CI_Model {
     {
         return $this->db
             ->where('CASH_IN_REF', $cashIn) // kolom referensi saat deposit dipakai
-            ->count_all_results('mst_customer_deposit_usage') > 0;
+            ->count_all_results('abc_mst_customer_deposit_usage') > 0;
     }
 
     public function deposit_has_remain($cashIn)
@@ -1638,7 +1736,7 @@ class CashIn_model extends CI_Model {
         return $this->db
             ->where('CASH_IN', $cashIn)
             ->where('REMAIN < AMOUNT', null, false)
-            ->count_all_results('mst_customer_deposit') > 0;
+            ->count_all_results('abc_mst_customer_deposit') > 0;
     }
 
     public function rebuild_customer_payment_history($customer, $plant)
@@ -1661,7 +1759,7 @@ class CashIn_model extends CI_Model {
         ========================= */
         $this->db->where('CUSTOMER', $customer)
                 ->where('PLANT', $plant)
-                ->delete('mst_customer_deposit');
+                ->delete('abc_mst_customer_deposit');
 
 
         /* =========================
@@ -1739,7 +1837,7 @@ class CashIn_model extends CI_Model {
             4B. SISA UANG → DEPOSIT
             ========================= */
             if ($amount > 0) {
-                $this->db->insert('mst_customer_deposit', [
+                $this->db->insert('abc_mst_customer_deposit', [
                     'CUSTOMER'   => $customer,
                     'PLANT'      => $plant,
                     'CASH_IN'    => $cashInNo,
@@ -1805,7 +1903,7 @@ class CashIn_model extends CI_Model {
 
     public function get_open_deposits_fifo($customer, $plant)
     {
-        return $this->db->from('mst_customer_deposit')
+        return $this->db->from('abc_mst_customer_deposit')
             ->where('CUSTOMER', $customer)
             ->where('PLANT', $plant)
             ->where('REMAIN >', 0)
@@ -1817,7 +1915,7 @@ class CashIn_model extends CI_Model {
     {
         $this->db->set('REMAIN', "REMAIN - {$amount}", false)
             ->where('ID', $id)
-            ->update('mst_customer_deposit');
+            ->update('abc_mst_customer_deposit');
     }
 
     public function sales_has_payment($sales, $plant)
@@ -2306,10 +2404,29 @@ class CashIn_model extends CI_Model {
      */
     public function get_saving_total_by_sales($sales, $plant)
     {
-        $rows = $this->get_saving_rows_by_sales(
-            $sales,
-            $plant
-        );
+        $rows = $this->db
+            ->select('
+                SV_NO,
+                PLANT,
+                SV_DATE,
+                CUSTOMER,
+                RELATED,
+                SALES,
+                AMOUNT,
+                REMAIN,
+                REMARK,
+                STATUS,
+                CREATED_AT
+            ')
+            ->from('abc_mst_saving')
+            ->where('SALES', $sales)
+            ->where('PLANT', $plant)
+            ->where('RELATED', 'SALES')
+            ->where('DELETED IS NULL', null, false)
+            ->order_by('CREATED_AT', 'ASC')
+            ->order_by('SV_NO', 'ASC')
+            ->get()
+            ->result_array();
 
         if (!is_array($rows)) {
             $rows = [];
@@ -2388,6 +2505,10 @@ class CashIn_model extends CI_Model {
                 $sales,
                 $plant
             );
+
+        if (!is_array($savingRows)) {
+            $savingRows = [];
+        }
 
         $remaining =
             $amount;
@@ -2609,60 +2730,57 @@ class CashIn_model extends CI_Model {
                 $savingStatus = 'OPEN';
             }
 
-            $this->db
+            $updated = $this->db
                 ->where('SV_NO', $svNo)
                 ->where('PLANT', $plant)
-            ->where(
-                'DELETED IS NULL',
-                null,
-                false
-            )
-            ->update(
-                'abc_mst_saving',
-                [
-                    'REMAIN' =>
-                        $remainAfter,
+                ->where(
+                    'DELETED IS NULL',
+                    null,
+                    false
+                )
+                ->update(
+                    'abc_mst_saving',
+                    [
+                        'REMAIN' =>
+                            $remainAfter,
 
-                    'STATUS' =>
-                        $savingStatus,
+                        'STATUS' =>
+                            $savingStatus,
 
-                    'UPDATED_AT' =>
-                        date('Y-m-d H:i:s'),
+                        'UPDATED_AT' =>
+                            date('Y-m-d H:i:s'),
 
-                    'UPDATED_BY' =>
-                        $user
-                ]
-            );
+                        'UPDATED_BY' =>
+                            $user
+                    ]
+                );
 
-            if ($this->db->affected_rows() < 0) {
-
+            if (!$updated) {
                 throw new Exception(
-                    'Gagal update Saving '
-                    . $svNo
+                    'Gagal update Saving ' . $svNo
                 );
             }
-
-            return [
-
-                'allocated' =>
-                    round(
-                        $allocatedTotal,
-                        2
-                    ),
-
-                'remaining' =>
-                    round(
-                        max(
-                            $remaining,
-                            0
-                        ),
-                        2
-                    ),
-
-                'details' =>
-                    $details
-            ];
         }
+
+        return [
+            'allocated' =>
+                round(
+                    $allocatedTotal,
+                    2
+                ),
+
+            'remaining' =>
+                round(
+                    max(
+                        $remaining,
+                        0
+                    ),
+                    2
+                ),
+
+            'details' =>
+                $details
+        ];
     }
 
     /**

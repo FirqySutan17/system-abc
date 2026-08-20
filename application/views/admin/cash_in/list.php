@@ -76,7 +76,7 @@
                             class="btn btn-light w-100"
                             id="btnResetFilter">
 
-                            Atur Ulang
+                            Reset
 
                         </button>
 
@@ -1192,7 +1192,7 @@
 
         order : 'CASHIN_DATE',
 
-        dir   : 'ASC'
+        dir   : 'DESC'
     };
 
     function cleanNumber(value) 
@@ -1331,8 +1331,7 @@
         const totalInput =
             getTotalCashIn();
 
-        let allocated =
-            0;
+        let allocated = 0;
 
         $('#detailTable tbody tr').each(
             function() {
@@ -1354,12 +1353,6 @@
         allocated =
             roundMoney(allocated);
 
-        /*
-        ============================================================
-        REMAINING CASH IN
-        ============================================================
-        */
-
         let remaining =
             roundMoney(
                 totalInput - allocated
@@ -1369,19 +1362,12 @@
             remaining = 0;
         }
 
-        /*
-        ============================================================
-        DEPOSIT
-        ============================================================
-        */
-
-        const deposit =
-            remaining;
+        const deposit = remaining;
 
         /*
-        ============================================================
-        DISPLAY
-        ============================================================
+        |--------------------------------------------------------------------------
+        | SUMMARY
+        |--------------------------------------------------------------------------
         */
 
         $('#summaryTotalInput')
@@ -1404,127 +1390,11 @@
                 formatRupiah(deposit)
             );
 
-        /*
-        ============================================================
-        GRAND TOTAL
-        ============================================================
-        */
-
         $('#grandTotal')
             .val(
-                formatRupiah(allocated)
+                formatMoney(allocated)
             );
     }
-
-    $(document).on(
-        'keyup change',
-        '.pay-input',
-        function(){
-
-            updateDetailRow($(this));
-
-            updateSummary();
-
-        }
-    );
-
-    function updateDetailRow(el)
-    {
-        let tr = el.closest('tr');
-
-        let outstanding =
-            roundMoney(
-                cleanNumber(
-                    tr.find('.outstanding-value').val()
-                )
-            );
-
-        let bayar =
-            roundMoney(
-                cleanNumber(
-                    tr.find('.pay-input').val()
-                )
-            );
-
-        /*
-        |--------------------------------------------------------------------------
-        | LIMIT PAYMENT
-        |--------------------------------------------------------------------------
-        */
-
-        if(bayar > outstanding){
-
-            bayar = outstanding;
-
-            tr.find('.pay-input').val(
-                formatRupiah(bayar)
-            );
-
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | SISA
-        |--------------------------------------------------------------------------
-        */
-
-        let sisa =
-            roundMoney(
-                Math.max(
-                    outstanding - bayar,
-                    0
-                )
-            );
-
-        tr.find('.remaining-text').html(
-            'Rp ' + formatRupiah(sisa)
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | STATUS
-        |--------------------------------------------------------------------------
-        */
-
-        let status = 'UNPAID';
-        let badge  = 'bg-secondary';
-
-        if(bayar > 0){
-
-            status = 'PARTIAL';
-            badge  = 'bg-primary';
-
-        }
-
-        if(
-            bayar >= outstanding &&
-            outstanding > 0
-        ){
-
-            status = 'FULL';
-            badge  = 'bg-success';
-
-        }
-
-        tr.find('.status-cell').html(
-            `
-                <span class="badge ${badge}">
-                    ${status}
-                </span>
-            `
-        );
-    }
-
-    $('.mode-card input').change(function(){
-
-        $('.mode-card')
-            .removeClass('active');
-
-        $(this)
-            .closest('.mode-card')
-            .addClass('active');
-
-    });
 
     /*
     |--------------------------------------------------------------------------
@@ -1532,32 +1402,13 @@
     |--------------------------------------------------------------------------
     */
     
-    function normalizeMoney(value)
-    {
-        if (
-            value === null ||
-            value === undefined ||
-            value === ''
-        ) {
-            return 0;
-        }
-    
-        let number = Number(value);
-    
-        if (!Number.isFinite(number)) {
-            return 0;
-        }
-    
-        return Math.round(number);
-    }
-    
     function formatRupiah(value) {
 
         return 'Rp ' + formatMoney(value);
     }
 
-    function getTotalCashIn() {
-
+    function getTotalCashIn()
+    {
         return roundMoney(
             $('#cashInAmount').val()
         );
@@ -1846,16 +1697,11 @@
 
                 runFIFOAllocation();
 
-            }
-            /*
-            |--------------------------------------------------------------------------
-            | MANUAL
-            |--------------------------------------------------------------------------
-            */
+            } else {
 
-            else {
-
-                renderManualInvoices();
+                renderEmptyDetail(
+                    'Silahkan pilih invoice'
+                );
 
             }
 
@@ -2102,8 +1948,12 @@
             </tr>
         `);
 
-        $('#detailTable tbody').append(row);
+        $('#detailTable tbody')
+            .find('.empty-row')
+            .remove();
 
+        $('#detailTable tbody')
+            .append(row);
 
         /*
         |--------------------------------------------------------------------------
@@ -2175,6 +2025,50 @@
                         )
                     );
 
+                /*
+                |--------------------------------------------------------------------------
+                | HITUNG TOTAL BAYAR SEMUA INVOICE
+                |--------------------------------------------------------------------------
+                */
+
+                let totalDetailBayar = 0;
+
+                $('#detailTable tbody tr').each(
+                    function() {
+
+                        totalDetailBayar +=
+                            cleanNumber(
+                                $(this)
+                                    .find('.bayar-input')
+                                    .val()
+                            );
+
+                    }
+                );
+
+                totalDetailBayar =
+                    roundMoney(totalDetailBayar);
+
+                /*
+                |--------------------------------------------------------------------------
+                | DETAIL MENJADI SUMBER CASH IN
+                |--------------------------------------------------------------------------
+                */
+
+                if (
+                    cashInSource !== 'HEADER'
+                ) {
+
+                    cashInSource = 'DETAIL';
+
+                    $('#cashInAmount')
+                        .val(
+                            formatMoney(
+                                totalDetailBayar
+                            )
+                        );
+                }
+
                 updateSummary();
             }
         );
@@ -2231,6 +2125,39 @@
 
                 row.remove();
 
+                if (cashInSource !== 'HEADER') {
+
+                    let totalDetailBayar = 0;
+
+                    $('#detailTable tbody tr').each(
+                        function() {
+
+                            totalDetailBayar +=
+                                cleanNumber(
+                                    $(this)
+                                        .find('.bayar-input')
+                                        .val()
+                                );
+
+                        }
+                    );
+
+                    totalDetailBayar =
+                        roundMoney(totalDetailBayar);
+
+                    $('#cashInAmount')
+                        .val(
+                            formatMoney(
+                                totalDetailBayar
+                            )
+                        );
+
+                    cashInSource =
+                        totalDetailBayar > 0
+                            ? 'DETAIL'
+                            : 'NONE';
+                }
+
                 updateSummary();
             }
         );
@@ -2251,49 +2178,6 @@
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
-    }
-
-    function validateCashInBeforeSubmit() {
-
-        const totalInput =
-            getTotalCashIn();
-
-        let totalBayar =
-            0;
-
-        $('#detailTable tbody tr')
-            .each(function() {
-
-                totalBayar +=
-                    cleanNumber(
-                        $(this)
-                            .find('.bayar-input')
-                            .val()
-                    );
-            });
-
-        totalBayar =
-            roundMoney(totalBayar);
-
-        if (totalBayar <= 0) {
-
-            alert(
-                'Belum ada nominal pembayaran.'
-            );
-
-            return false;
-        }
-
-        if (totalBayar > totalInput) {
-
-            alert(
-                'Total Bayar melebihi Total Cash In.'
-            );
-
-            return false;
-        }
-
-        return true;
     }
 
     function collectCashInDetails() {
@@ -2454,6 +2338,8 @@
 
         const form =
             $('#fCashInAdd')[0];
+        
+        cashInSource = 'NONE';
 
         if (form) {
             form.reset();
@@ -2564,81 +2450,140 @@
 
     });
 
+    function isInvoiceAlreadySelected(sales)
+    {
+        let exists = false;
+
+        $('#detailTable tbody tr').each(
+            function() {
+
+                const currentSales =
+                    $(this).attr('data-sales');
+
+                if (
+                    String(currentSales)
+                    ===
+                    String(sales)
+                ) {
+
+                    exists = true;
+
+                    return false;
+                }
+            }
+        );
+
+        return exists;
+    }
+
     function loadInvoicePicker()
     {
+        const plant =
+            $('#plantAdd').val();
+
+        const customer =
+            $('#hiddenCustomerAdd').val();
+
+        const search =
+            $('#searchInvoice').val();
+
+        if (!customer) {
+
+            alert(
+                'Pilih customer terlebih dahulu'
+            );
+
+            return;
+        }
+
         $.get(
-
             '<?= base_url("cashin/load_sales_picker"); ?>',
-
             {
-
-                plant   : $('#plantAdd').val(),
+                plant:
+                    plant,
 
                 customer:
-                    $('#hiddenCustomerAdd').val(),
+                    customer,
 
-                search  :
-                    $('#searchInvoice').val()
-
+                search:
+                    search
             },
+            function(rows) {
 
-            function(rows){
-                // console.log('LOAD SALES PICKER:', rows);
-            
-
-                let tbody =
+                const tbody =
                     $('#invoiceListBody');
 
                 tbody.html('');
 
-                /*
-                |--------------------------------------------------------------------------
-                | EMPTY
-                |--------------------------------------------------------------------------
-                */
-
-                if(rows.length === 0){
+                if (!Array.isArray(rows)) {
 
                     tbody.html(`
-
                         <tr>
-
                             <td
                                 colspan="7"
-                                class="text-center text-muted py-4">
-
-                                Tidak ada invoice outstanding
-
+                                class="text-center text-danger py-4"
+                            >
+                                Format data invoice tidak valid
                             </td>
-
                         </tr>
-
                     `);
 
                     return;
                 }
 
-                /*
-                |--------------------------------------------------------------------------
-                | LOOP
-                |--------------------------------------------------------------------------
-                */
+                if (rows.length === 0) {
 
-                rows.forEach(function(r){
-                    
-                    // console.log('INVOICE:', {
-                    //     SALES: r.SALES,
-                    //     TOTAL: r.TOTAL,
-                    //     TOTAL_TYPE: typeof r.TOTAL,
-                    //     TOTAL_NUMBER: Number(r.TOTAL),
-                    //     TOTAL_FORMATTED: formatRupiah(Number(r.TOTAL)),
-                
-                    //     TOTAL_PAID: r.TOTAL_PAID,
-                    //     OUTSTANDING: r.OUTSTANDING
-                    // });
+                    tbody.html(`
+                        <tr>
+                            <td
+                                colspan="7"
+                                class="text-center text-muted py-4"
+                            >
+                                Tidak ada invoice outstanding
+                            </td>
+                        </tr>
+                    `);
 
-                    let tr = `
+                    return;
+                }
 
+                rows.forEach(function(r) {
+
+                    const salesAmount =
+                        roundMoney(
+                            r.SALES_AMOUNT || 0
+                        );
+
+                    const salesRemain =
+                        roundMoney(
+                            r.SALES_REMAIN || 0
+                        );
+
+                    const savingAmount =
+                        roundMoney(
+                            r.SAVING_AMOUNT || 0
+                        );
+
+                    const savingRemain =
+                        roundMoney(
+                            r.SAVING_REMAIN || 0
+                        );
+
+                    const grandOutstanding =
+                        roundMoney(
+                            r.GRAND_OUTSTANDING ||
+                            (
+                                salesRemain +
+                                savingRemain
+                            )
+                        );
+
+                    const selected =
+                        isInvoiceAlreadySelected(
+                            r.SALES
+                        );
+
+                    const tr = `
                         <tr>
 
                             <!-- CHECK -->
@@ -2648,90 +2593,109 @@
                                     type="checkbox"
                                     class="pickInvoice"
 
-                                    data-sales="${r.SALES}"
+                                    data-sales="${escapeHtml(r.SALES)}"
 
-                                    data-customer="${r.CUSTOMER}"
+                                    data-customer="${escapeHtml(r.CUSTOMER || '')}"
 
-                                    data-customer-name="${r.CUSTOMER_NAME}"
+                                    data-customer-name="${escapeHtml(r.CUSTOMER_NAME || '')}"
 
-                                    data-total="${r.TOTAL}"
+                                    data-sales-amount="${salesAmount}"
 
-                                    data-paid="${r.TOTAL_PAID}"
+                                    data-sales-remain="${salesRemain}"
 
-                                    data-outstanding="${r.OUTSTANDING}"
+                                    data-saving-amount="${savingAmount}"
 
-                                    data-date="${r.SALES_DATE}">
+                                    data-saving-remain="${savingRemain}"
+
+                                    data-grand-outstanding="${grandOutstanding}"
+
+                                    data-date="${escapeHtml(r.SALES_DATE || '')}"
+
+                                    ${selected ? 'disabled' : ''}
+                                >
 
                             </td>
 
                             <!-- SALES -->
                             <td>
-
-                                <div class="fw-semibold text-primary">
-
-                                    #${r.SALES}
-
-                                </div>
-
+                                <strong class="text-primary">
+                                    #${escapeHtml(r.SALES)}
+                                </strong>
                             </td>
 
-                            <!-- CUSTOMER -->
-                            <td>
-
-                                ${r.CUSTOMER_NAME || '-'}
-
-                            </td>
-
-                            <!-- TOTAL -->
+                            <!-- SALES AMOUNT -->
                             <td class="text-end">
-
-                                Rp ${formatRupiah(
-                                    normalizeMoney(r.TOTAL)
-                                )}
-                            
+                                ${formatRupiah(salesAmount)}
                             </td>
 
-                            <!-- PAID -->
+                            <!-- SAVING -->
                             <td class="text-end">
-
-                                Rp ${formatRupiah(
-                                    normalizeMoney(r.TOTAL_PAID)
-                                )}
-                            
+                                ${formatRupiah(savingRemain)}
                             </td>
 
-                            <!-- OUTSTANDING -->
+                            <!-- GRAND OUTSTANDING -->
                             <td class="text-end">
-
-                                <div class="fw-bold text-danger">
-                            
-                                    Rp ${formatRupiah(
-                                        normalizeMoney(r.OUTSTANDING)
+                                <strong>
+                                    ${formatRupiah(
+                                        grandOutstanding
                                     )}
-                            
-                                </div>
-                            
+                                </strong>
                             </td>
 
                             <!-- DATE -->
                             <td class="text-center">
+                                ${formatDate(
+                                    r.SALES_DATE
+                                )}
+                            </td>
 
-                                ${formatDate(r.SALES_DATE)}
+                            <!-- STATUS -->
+                            <td class="text-center">
+
+                                ${
+                                    grandOutstanding > 0
+                                        ? `
+                                            <span class="badge bg-warning text-dark">
+                                                OPEN
+                                            </span>
+                                        `
+                                        : `
+                                            <span class="badge bg-success">
+                                                PAID
+                                            </span>
+                                        `
+                                }
 
                             </td>
 
                         </tr>
-
                     `;
 
                     tbody.append(tr);
-
                 });
 
             },
-
             'json'
-        );
+        )
+        .fail(function(xhr) {
+
+            console.error(
+                'Gagal load invoice picker:',
+                xhr.responseText
+            );
+
+            $('#invoiceListBody')
+                .html(`
+                    <tr>
+                        <td
+                            colspan="7"
+                            class="text-center text-danger py-4"
+                        >
+                            Gagal mengambil data invoice
+                        </td>
+                    </tr>
+                `);
+        });
     }
 
     function toggleCashInMode()
@@ -2761,8 +2725,8 @@
         */
 
         $('#cashInAmount')
-            .prop('readonly', true)
-            .css('background', '#efefef');
+            .prop('readonly', false)
+            .css('background', '');
 
         /*
         |--------------------------------------------------------------------------
@@ -2790,116 +2754,113 @@
         }
     );
 
-    $('#btnChooseInvoice').click(function(){
+    $('#btnChooseInvoice')
+    .off('click.cashInChoose')
+    .on(
+        'click.cashInChoose',
+        function() {
 
-        $('.pickInvoice:checked').each(function(){
+            const checked =
+                $('.pickInvoice:checked');
 
-            let sales =
-                $(this).data('sales');
+            if (!checked.length) {
 
-            /*
-            |--------------------------------------------------------------------------
-            | PREVENT DUPLICATE
-            |--------------------------------------------------------------------------
-            */
+                alert(
+                    'Pilih minimal satu invoice.'
+                );
 
-            let exists = false;
+                return;
+            }
 
-            $('#detailTable tbody tr').each(function(){
+            checked.each(function() {
 
-                let currentSales =
-                    $(this)
-                        .find('[name="DETAIL[][SALES]"]')
-                        .val();
+                const checkbox =
+                    $(this);
 
-                if(currentSales === sales){
+                const sales =
+                    checkbox.data('sales');
 
-                    exists = true;
-
+                if (
+                    isInvoiceAlreadySelected(
+                        sales
+                    )
+                ) {
+                    return;
                 }
 
+                const invoice = {
+
+                    SALES:
+                        sales,
+
+                    CUSTOMER_NAME:
+                        checkbox.data(
+                            'customer-name'
+                        ),
+
+                    SALES_AMOUNT:
+                        roundMoney(
+                            checkbox.data(
+                                'sales-amount'
+                            )
+                        ),
+
+                    SALES_REMAIN:
+                        roundMoney(
+                            checkbox.data(
+                                'sales-remain'
+                            )
+                        ),
+
+                    SAVING_AMOUNT:
+                        roundMoney(
+                            checkbox.data(
+                                'saving-amount'
+                            )
+                        ),
+
+                    SAVING_REMAIN:
+                        roundMoney(
+                            checkbox.data(
+                                'saving-remain'
+                            )
+                        ),
+
+                    GRAND_OUTSTANDING:
+                        roundMoney(
+                            checkbox.data(
+                                'grand-outstanding'
+                            )
+                        ),
+
+                    BAYAR:
+                        0,
+
+                    REMAIN_AFTER:
+                        roundMoney(
+                            checkbox.data(
+                                'grand-outstanding'
+                            )
+                        ),
+
+                    REMARK:
+                        ''
+                };
+
+                window.CASH_IN_INVOICES.push(
+                    invoice
+                );
+
+                addDetailRow(
+                    invoice,
+                    false
+                );
             });
 
-            if(exists){
+            $('#modalPickInvoice')
+                .modal('hide');
 
-                return;
-
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | ADD ROW
-            |--------------------------------------------------------------------------
-            */
-
-            addDetailRow({
-                SALES:
-                    $(this).data('sales'),
-
-                CUSTOMER_NAME:
-                    $(this).data('customer-name'),
-
-                SALES_AMOUNT:
-                    $(this).data('sales-amount'),
-
-                SALES_REMAIN:
-                    $(this).data('sales-remain'),
-
-                SAVING_AMOUNT:
-                    $(this).data('saving-amount'),
-
-                SAVING_REMAIN:
-                    $(this).data('saving-remain'),
-
-                GRAND_OUTSTANDING:
-                    $(this).data('grand-outstanding'),
-
-                BAYAR:
-                    0,
-
-                REMAIN_AFTER:
-                    $(this).data('grand-outstanding'),
-
-                REMARK:
-                    ''
-
-            }, false);
-
-        });
-
-        /*
-        |--------------------------------------------------------------------------
-        | CLOSE
-        |--------------------------------------------------------------------------
-        */
-
-        $('#modalPickInvoice')
-            .modal('hide');
-
-    });
-
-    $(document).on(
-        'input',
-        '#cashInAmount',
-        function(){
-    
             updateSummary();
-    
-            let mode =
-                $('input[name="MODE_CASH_IN"]:checked').val();
-    
-            if(mode !== 'FIFO'){
-                return;
-            }
-    
-            clearTimeout(fifoTimer);
-    
-            fifoTimer = setTimeout(function(){
-    
-                runFIFOAllocation();
-    
-            }, 300);
-    
         }
     );
     
@@ -2920,18 +2881,22 @@
         }
     );
 
+    $(document).off(
+        'change.cashInMode',
+        'input[name="MODE_CASH_IN"]'
+    );
+
     $(document).on(
         'change.cashInMode',
         'input[name="MODE_CASH_IN"]',
         function () {
 
-            const mode =
-                $(this).val();
+            const mode = $(this).val();
 
             /*
-            --------------------------------------------------------
-            | Update card active
-            --------------------------------------------------------
+            |--------------------------------------------------------------------------
+            | ACTIVE CARD
+            |--------------------------------------------------------------------------
             */
 
             $('.mode-card')
@@ -2942,42 +2907,46 @@
                 .addClass('active');
 
             /*
-            --------------------------------------------------------
-            | Toggle input Cash In
-            --------------------------------------------------------
+            |--------------------------------------------------------------------------
+            | TOGGLE CASH IN
+            |--------------------------------------------------------------------------
             */
 
             toggleCashInMode();
 
             /*
-            --------------------------------------------------------
-            | Render invoice
-            --------------------------------------------------------
+            |--------------------------------------------------------------------------
+            | CLEAR DETAIL
+            |--------------------------------------------------------------------------
             */
 
-            $('#detailTable tbody').empty();
+            $('#detailTable tbody')
+                .empty();
 
-            if (
-                !window.CASH_IN_INVOICES ||
-                window.CASH_IN_INVOICES.length === 0
-            ) {
-
-                loadCashInInvoices();
-
-                return;
-            }
+            /*
+            |--------------------------------------------------------------------------
+            | MODE
+            |--------------------------------------------------------------------------
+            */
 
             if (mode === 'FIFO') {
+
+                $('#btnPickInvoice')
+                    .hide();
 
                 runFIFOAllocation();
 
             } else {
 
-                renderManualInvoices();
+                $('#btnPickInvoice')
+                    .show();
 
+                renderEmptyDetail(
+                    'Silahkan pilih invoice'
+                );
+
+                updateSummary();
             }
-
-            updateSummary();
         }
     );
 
@@ -3140,20 +3109,43 @@
                 $('input[name="MODE_CASH_IN"]:checked')
                     .val();
 
+            const totalInput =
+                cleanNumber(
+                    $(this).val()
+                );
+
             /*
-            --------------------------------------------------------
-            Jangan format ulang value di setiap input secara agresif.
-            Ini mencegah masalah cursor / 5000 -> 5.
-            --------------------------------------------------------
+            |--------------------------------------------------------------------------
+            | HEADER MENJADI SUMBER CASH IN
+            |--------------------------------------------------------------------------
             */
+
+            if (totalInput > 0) {
+
+                cashInSource = 'HEADER';
+
+            } else {
+
+                cashInSource = 'NONE';
+            }
 
             if (mode === 'FIFO') {
 
-                runFIFOAllocation();
+                clearTimeout(fifoTimer);
+
+                fifoTimer = setTimeout(
+                    function() {
+
+                        runFIFOAllocation();
+
+                    },
+                    300
+                );
 
             } else {
 
                 recalculateManualAllocation();
+
             }
 
             updateSummary();
@@ -3355,6 +3347,8 @@
 
             $('#cashInAmount')
                 .val('');
+
+            cashInSource = 'NONE';
 
             /*
             --------------------------------------------------------
@@ -3640,18 +3634,6 @@
 
         rows.forEach(function(row){
 
-            /*
-            |--------------------------------------------------------------------------
-            | STATUS BADGE
-            |--------------------------------------------------------------------------
-            */
-
-            let statusBadge = `
-                <span class="badge bg-warning">
-                    OPEN
-                </span>
-            `;
-
             if(row.STATUS === 'PAID'){
 
                 statusBadge = `
@@ -3682,24 +3664,6 @@
             | ACTION
             |--------------------------------------------------------------------------
             */
-
-            let actionBtn = `
-
-                <div class="btn-group btn-group-sm">
-
-                    <!-- PDF -->
-                    <button
-                        class="btn btn-outline-primary btnPdf"
-                        data-cashin="${row.CASH_IN}"
-                        data-plant="${row.PLANT}">
-
-                        Slip
-
-                    </button>
-
-                </div>
-
-            `;
 
             let tr = `
 
@@ -4097,12 +4061,10 @@
     $('#cashInDetailTableEdit').on('click', '.pickInvoiceBtn', function(){
         alert('Invoice tidak dapat diganti pada mode edit');
     });
-
-    let CURRENT_ALLOCATED = 0;
     
-    let fifoRequest = null;
-    let fifoRequestId = 0;
     let fifoTimer = null;
+    let cashInSource = 'NONE';
+    let cashInSubmitting = false;
 
     $(function(){
         loadPage(1);
@@ -4113,15 +4075,15 @@
 
                 e.preventDefault();
 
-                /*
-                ========================================================
-                | VALIDASI
-                ========================================================
-                */
+                if (cashInSubmitting) {
+                    return;
+                }
 
                 if (!validateCashInForm()) {
                     return;
                 }
+
+                cashInSubmitting = true;
 
 
                 /*
@@ -4214,34 +4176,6 @@
                     }
                 );
 
-
-                /*
-                ========================================================
-                | DEBUG
-                ========================================================
-                */
-
-                console.log(
-                    '=== CASH IN SUBMIT ==='
-                );
-
-                console.log({
-                    totalInput:
-                        totalInput,
-
-                    mode:
-                        $(
-                            'input[name="MODE_CASH_IN"]:checked'
-                        ).val(),
-
-                    customer:
-                        $('#hiddenCustomerAdd').val(),
-
-                    details:
-                        details
-                });
-
-
                 /*
                 ========================================================
                 | BUTTON
@@ -4289,22 +4223,12 @@
                 .done(
                     function (response) {
 
-                        console.log(
-                            '=== CREATE RESPONSE ==='
-                        );
-
-                        console.log(response);
-
-
-                        if (
-                            response.status
-                        ) {
+                        if (response.status) {
 
                             alert(
                                 response.message ||
                                 'Cash In berhasil disimpan.'
                             );
-
 
                             /*
                             ------------------------------------------------
@@ -4315,7 +4239,6 @@
                             $('#CashInAdd')
                                 .modal('hide');
 
-
                             /*
                             ------------------------------------------------
                             | RESET FORM
@@ -4324,20 +4247,13 @@
 
                             resetCashInAddForm();
 
-
                             /*
                             ------------------------------------------------
                             | RELOAD LIST
                             ------------------------------------------------
                             */
 
-                            if (
-                                typeof loadData ===
-                                'function'
-                            ) {
-
-                                loadData();
-                            }
+                            loadPage(1);
 
                         } else {
 
@@ -4367,6 +4283,8 @@
                 )
                 .always(
                     function () {
+
+                        cashInSubmitting = false;
 
                         btn
                             .prop('disabled', false)

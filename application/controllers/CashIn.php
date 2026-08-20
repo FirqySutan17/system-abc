@@ -2163,17 +2163,19 @@ class CashIn extends MY_Controller {
             ==========================================================
             */
 
-            if (
-                method_exists(
-                    $this->CashIn_model,
-                    'delete_deposit_by_cash_in'
-                )
-            ) {
-
+            $depositDeleted =
                 $this->CashIn_model
-                    ->delete_deposit_by_cash_in(
-                        $cashInNo
+                    ->delete_customer_deposit_by_cash_in(
+                        $cashInNo,
+                        $plant,
+                        $user
                     );
+
+            if ($depositDeleted === false) {
+
+                throw new Exception(
+                    'Gagal menghapus Deposit Cash In'
+                );
             }
 
             /*
