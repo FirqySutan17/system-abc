@@ -2246,17 +2246,19 @@ class CashIn extends MY_Controller {
 
     public function print_pdf()
     {
-        $cash_in =
+        $cash_in = trim(
             $this->input->get(
                 'cash_in',
                 true
-            );
+            )
+        );
 
-        $plant =
+        $plant = trim(
             $this->input->get(
                 'plant',
                 true
-            );
+            )
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -2264,15 +2266,15 @@ class CashIn extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
-        if(
-            !$cash_in ||
-            !$plant
-        ){
-
+        if (
+            $cash_in === ''
+            ||
+            $plant === ''
+        ) {
             show_error(
                 'Parameter CASH IN atau PLANT tidak lengkap'
             );
-
+            return;
         }
 
         /*
@@ -2282,43 +2284,22 @@ class CashIn extends MY_Controller {
         */
 
         $header = $this->db
-
             ->select('
-
                 c.CASH_IN,
-
                 c.PLANT,
-
                 plant.CODE_NAME AS PLANT_NAME,
-
-                cust.FULL_NAME,
-
+                cust.FULL_NAME AS CUSTOMER_NAME,
                 c.CUSTOMER,
-
                 c.CASHIN_DATE,
-
                 c.PEMBAYARAN,
-
                 c.BON,
-
                 c.SLIP_NO,
-
                 c.NO_REK,
-
                 c.AMOUNT,
-
+                c.STATUS,
                 c.REMARK
-
             ')
-
             ->from('abc_mst_cash_in c')
-
-            /*
-            |--------------------------------------------------------------------------
-            | PLANT
-            |--------------------------------------------------------------------------
-            */
-
             ->join(
                 'abc_cd_code plant',
                 "
@@ -2327,13 +2308,6 @@ class CashIn extends MY_Controller {
                 ",
                 'left'
             )
-
-            /*
-            |--------------------------------------------------------------------------
-            | CUSTOMER
-            |--------------------------------------------------------------------------
-            */
-
             ->join(
                 'abc_cd_customer cust',
                 "
@@ -2341,112 +2315,261 @@ class CashIn extends MY_Controller {
                 ",
                 'left'
             )
-
-            /*
-            |--------------------------------------------------------------------------
-            | FILTER
-            |--------------------------------------------------------------------------
-            */
-
             ->where(
                 'c.CASH_IN',
                 $cash_in
             )
-
             ->where(
                 'c.PLANT',
                 $plant
             )
-
             ->where(
                 'c.DELETED IS NULL',
                 null,
                 false
             )
-
             ->get()
-
             ->row();
 
-        /*
-        |--------------------------------------------------------------------------
-        | NOT FOUND
-        |--------------------------------------------------------------------------
-        */
-
-        if(!$header){
-
+        if (!$header) {
             show_error(
-                'Data cash in tidak ditemukan'
+                'Data Cash In tidak ditemukan'
             );
-
+            return;
         }
 
         /*
         |--------------------------------------------------------------------------
-        | DETAIL
+        | SALES ALLOCATION
         |--------------------------------------------------------------------------
         */
 
-        $detail = $this->db
-
+        $salesRows = $this->db
             ->select('
-
-                d.SEQ_NO,
-
                 d.SALES,
-
-                d.AMOUNT_INVOICE,
-
-                d.AMOUNT_OFFSET,
-
-                (
-                    d.AMOUNT_INVOICE
-                    -
-                    d.AMOUNT_OFFSET
-                ) AS REMAINING
-
+                MAX(d.AMOUNT_INVOICE) AS AMOUNT_INVOICE,
+                SUM(d.AMOUNT_OFFSET) AS SALES_PAID
             ')
-
-            ->from('abc_mst_cash_in_detail d')
-
+            ->from(
+                'abc_mst_cash_in_detail d'
+            )
             ->where(
                 'd.CASH_IN',
                 $cash_in
             )
-
             ->where(
                 'd.PLANT',
                 $plant
             )
-
             ->where(
                 'd.DELETED IS NULL',
                 null,
                 false
             )
-
-            ->order_by(
-                'd.SEQ_NO',
-                'ASC'
+            ->group_by(
+                'd.SALES'
             )
-
             ->get()
-
-            ->result();
+            ->result_array();
 
         /*
         |--------------------------------------------------------------------------
-        | DATA
+        | SAVING ALLOCATION
+        |--------------------------------------------------------------------------
+        |
+        | Saving tidak ditampilkan ke customer.
+        | Hanya digabung ke total paid per invoice.
+        |--------------------------------------------------------------------------
+        */
+
+        $savingRows = $this->db
+            ->select('
+                cs.SALES,
+                SUM(cs.AMOUNT_OFFSET) AS SAVING_PAID
+            ')
+            ->from(
+                'abc_mst_cash_in_saving cs'
+            )
+            ->where(
+                'cs.CASH_IN',
+                $cash_in
+            )
+            ->where(
+                'cs.PLANT',
+                $plant
+            )
+            ->where(
+                'cs.DELETED IS NULL',
+                null,
+                false
+            )
+            ->group_by(
+                'cs.SALES'
+            )
+            ->get()
+            ->result_array();
+
+        /*
+        |--------------------------------------------------------------------------
+        | MAP SAVING
+        |--------------------------------------------------------------------------
+        */
+
+        $savingMap = [];
+
+        foreach ($savingRows as $row) {
+
+            $savingMap[
+                $row['SALES']
+            ] =
+                round(
+                    (float)$row['SAVING_PAID'],
+                    2
+                );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | FINAL CUSTOMER DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        $detail = [];
+
+        foreach ($salesRows as $row) {
+
+            $sales =
+                $row['SALES'];
+
+            $amountInvoice =
+                round(
+                    (float)$row['AMOUNT_INVOICE'],
+                    2
+                );
+
+            $salesPaid =
+                round(
+                    (float)$row['SALES_PAID'],
+                    2
+                );
+
+            $savingPaid =
+                round(
+                    (float)(
+                        $savingMap[$sales]
+                        ?? 0
+                    ),
+                    2
+                );
+
+            /*
+            |--------------------------------------------------------------------------
+            | CUSTOMER PAID
+            |--------------------------------------------------------------------------
+            */
+
+            $paidAmount =
+                round(
+                    $salesPaid
+                    +
+                    $savingPaid,
+                    2
+                );
+
+            /*
+            |--------------------------------------------------------------------------
+            | REMAINING OUTSTANDING
+            |--------------------------------------------------------------------------
+            */
+
+            $remaining =
+                round(
+                    max(
+                        $amountInvoice
+                        -
+                        $paidAmount,
+                        0
+                    ),
+                    2
+                );
+
+            $detail[] = (object)[
+
+                'SALES' =>
+                    $sales,
+
+                'AMOUNT_INVOICE' =>
+                    $amountInvoice,
+
+                'PAID_AMOUNT' =>
+                    $paidAmount,
+
+                'REMAINING' =>
+                    $remaining
+            ];
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | TOTAL APPLIED
+        |--------------------------------------------------------------------------
+        */
+
+        $totalApplied = 0;
+
+        foreach ($detail as $row) {
+
+            $totalApplied +=
+                $row->PAID_AMOUNT;
+        }
+
+        $totalApplied =
+            round(
+                $totalApplied,
+                2
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | EXCESS
+        |--------------------------------------------------------------------------
+        |
+        | Ini bukan "DP" di sisi customer.
+        | Hanya menunjukkan bagian Cash In yang belum terpakai
+        | terhadap outstanding yang ditampilkan di slip.
+        |--------------------------------------------------------------------------
+        */
+
+        $excessAmount =
+            round(
+                max(
+                    (float)$header->AMOUNT
+                    -
+                    $totalApplied,
+                    0
+                ),
+                2
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATA VIEW
         |--------------------------------------------------------------------------
         */
 
         $data = [
 
-            'header' => $header,
+            'header' =>
+                $header,
 
-            'detail' => $detail
+            'detail' =>
+                $detail,
 
+            'totalApplied' =>
+                $totalApplied,
+
+            'excessAmount' =>
+                $excessAmount
         ];
 
         /*
@@ -2455,15 +2578,12 @@ class CashIn extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
-        $html = $this->load->view(
-
-            'admin/cash_in/pdf_template',
-
-            $data,
-
-            true
-
-        );
+        $html =
+            $this->load->view(
+                'admin/cash_in/pdf_template',
+                $data,
+                true
+            );
 
         /*
         |--------------------------------------------------------------------------
@@ -2473,7 +2593,9 @@ class CashIn extends MY_Controller {
 
         $this->load->library('pdf');
 
-        $this->pdf->loadHtml($html);
+        $this->pdf->loadHtml(
+            $html
+        );
 
         $this->pdf->setPaper(
             'A4',
@@ -2489,13 +2611,10 @@ class CashIn extends MY_Controller {
         */
 
         $this->pdf->stream(
-
             "CASH_IN_{$cash_in}.pdf",
-
             [
                 'Attachment' => false
             ]
-
         );
     }
 

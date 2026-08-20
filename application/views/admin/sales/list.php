@@ -271,15 +271,32 @@
 </style>
 
 <!-- MODAL ADD SALES -->
-<div class="modal fade" id="salesAdd" tabindex="-1" aria-hidden="true">
+<div
+    class="modal fade"
+    id="salesAdd"
+    tabindex="-1"
+    aria-hidden="true">
+
     <div class="modal-dialog modal-xl">
-        <form id="fsalesAdd" enctype="multipart/form-data">
+
+        <form
+            id="fsalesAdd"
+            enctype="multipart/form-data">
 
             <div class="modal-content border-0 shadow-lg">
 
+                <!-- ====================================================== -->
+                <!-- HEADER MODAL -->
+                <!-- ====================================================== -->
+
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title fw-bold" style="color: #fff">
+
+                    <h5
+                        class="modal-title fw-bold"
+                        style="color:#fff;">
+
                         SALES - TAMBAH
+
                     </h5>
 
                     <button
@@ -287,28 +304,46 @@
                         class="btn-close btn-close-white"
                         data-bs-dismiss="modal">
                     </button>
+
                 </div>
+
+
+                <!-- ====================================================== -->
+                <!-- MODAL BODY -->
+                <!-- ====================================================== -->
 
                 <div class="modal-body">
 
-                    <!-- ========================================= -->
-                    <!-- HEADER -->
-                    <!-- ========================================= -->
+
+                    <!-- ================================================== -->
+                    <!-- INFORMASI SALES -->
+                    <!-- ================================================== -->
 
                     <div class="card border-0 shadow-sm mb-4">
 
                         <div class="card-header bg-light fw-bold">
+
                             INFORMASI SALES
+
                         </div>
+
 
                         <div class="card-body sales-card">
 
                             <div class="row g-3">
 
+
+                                <!-- ====================================== -->
                                 <!-- PLANT -->
+                                <!-- ====================================== -->
+
                                 <div class="col-md-4">
-                                    <label class="form-label fw-semibold">
+
+                                    <label
+                                        class="form-label fw-semibold">
+
                                         Plant *
+
                                     </label>
 
                                     <select
@@ -317,12 +352,21 @@
                                         class="form-select"
                                         required>
                                     </select>
+
                                 </div>
 
+
+                                <!-- ====================================== -->
                                 <!-- SALES -->
+                                <!-- ====================================== -->
+
                                 <div class="col-md-4">
-                                    <label class="form-label fw-semibold">
+
+                                    <label
+                                        class="form-label fw-semibold">
+
                                         No. Sales
+
                                     </label>
 
                                     <input
@@ -330,12 +374,21 @@
                                         class="form-control bg-light"
                                         readonly
                                         placeholder="AUTO GENERATE">
+
                                 </div>
 
+
+                                <!-- ====================================== -->
                                 <!-- DATE -->
+                                <!-- ====================================== -->
+
                                 <div class="col-md-4">
-                                    <label class="form-label fw-semibold">
+
+                                    <label
+                                        class="form-label fw-semibold">
+
                                         Tanggal *
+
                                     </label>
 
                                     <input
@@ -343,12 +396,21 @@
                                         name="SALES_DATE"
                                         class="form-control"
                                         required>
+
                                 </div>
 
+
+                                <!-- ====================================== -->
                                 <!-- CUSTOMER -->
+                                <!-- ====================================== -->
+
                                 <div class="col-md-4">
-                                    <label class="form-label fw-semibold">
+
+                                    <label
+                                        class="form-label fw-semibold">
+
                                         Customer *
+
                                     </label>
 
                                     <select
@@ -357,21 +419,43 @@
                                         required>
                                     </select>
 
+
                                     <input
                                         type="hidden"
                                         name="CUSTOMER"
                                         id="hiddenCustomerAdd">
+
                                 </div>
 
-                                <!-- PAYMENT -->
+
+                                <!-- ====================================== -->
+                                <!-- PEMBAYARAN -->
+                                <!-- ====================================== -->
+
                                 <div class="col-md-4">
-                                    <label class="form-label fw-semibold d-block">
+
+                                    <label
+                                        class="form-label fw-semibold d-block">
+
                                         Pembayaran
+
                                     </label>
 
-                                    <div class="mt-2" style="display: flex; width: 100%; padding-top: 10px">
 
-                                        <div class="form-check form-check-inline">
+                                    <div
+                                        class="mt-2"
+                                        style="
+                                            display:flex;
+                                            width:100%;
+                                            padding-top:10px;
+                                        ">
+
+
+                                        <!-- CASH -->
+
+                                        <div
+                                            class="form-check form-check-inline">
+
                                             <input
                                                 class="form-check-input"
                                                 type="radio"
@@ -379,35 +463,69 @@
                                                 value="CASH"
                                                 checked>
 
-                                            <label class="form-check-label">
+                                            <label
+                                                class="form-check-label">
+
                                                 CASH
+
                                             </label>
+
                                         </div>
 
-                                        <div class="form-check form-check-inline">
+
+                                        <!-- TRANSFER -->
+
+                                        <div
+                                            class="form-check form-check-inline">
+
                                             <input
                                                 class="form-check-input"
                                                 type="radio"
                                                 name="PEMBAYARAN"
                                                 value="TRANSFER">
 
-                                            <label class="form-check-label">
+                                            <label
+                                                class="form-check-label">
+
                                                 TRANSFER
+
                                             </label>
+
                                         </div>
 
                                     </div>
+
                                 </div>
 
-                                <!-- JENIS PAY -->
-                                <div class="col-md-3">
-                                    <label class="form-label fw-semibold d-block">
+
+                                <!-- ====================================== -->
+                                <!-- JENIS PAYMENT -->
+                                <!-- ====================================== -->
+
+                                <div class="col-md-4">
+
+                                    <label
+                                        class="form-label fw-semibold d-block">
+
                                         Jenis Pembayaran
+
                                     </label>
 
-                                    <div class="mt-2" style="display: flex; width: 100%; padding-top: 10px">
 
-                                        <div class="form-check form-check-inline">
+                                    <div
+                                        class="mt-2"
+                                        style="
+                                            display:flex;
+                                            width:100%;
+                                            padding-top:10px;
+                                        ">
+
+
+                                        <!-- LUNAS -->
+
+                                        <div
+                                            class="form-check form-check-inline">
+
                                             <input
                                                 class="form-check-input"
                                                 type="radio"
@@ -415,30 +533,52 @@
                                                 value="LUNAS"
                                                 checked>
 
-                                            <label class="form-check-label">
+                                            <label
+                                                class="form-check-label">
+
                                                 LUNAS
+
                                             </label>
+
                                         </div>
 
-                                        <div class="form-check form-check-inline">
+
+                                        <!-- TEMPO -->
+
+                                        <div
+                                            class="form-check form-check-inline">
+
                                             <input
                                                 class="form-check-input"
                                                 type="radio"
                                                 name="JENIS_PAY"
                                                 value="TEMPO">
 
-                                            <label class="form-check-label">
+                                            <label
+                                                class="form-check-label">
+
                                                 TEMPO
+
                                             </label>
+
                                         </div>
 
                                     </div>
+
                                 </div>
 
+
+                                <!-- ====================================== -->
                                 <!-- NOTA -->
+                                <!-- ====================================== -->
+
                                 <div class="col-md-4">
-                                    <label class="form-label fw-semibold">
+
+                                    <label
+                                        class="form-label fw-semibold">
+
                                         No. Nota
+
                                     </label>
 
                                     <input
@@ -446,25 +586,115 @@
                                         name="NOTA"
                                         class="form-control"
                                         placeholder="Opsional..">
+
                                 </div>
 
-                                <!-- ATTACH -->
+
+                                <!-- ====================================== -->
+                                <!-- MODAL -->
+                                <!-- ====================================== -->
+
+                                <div class="col-md-4">
+
+                                    <label
+                                        class="form-label fw-semibold">
+
+                                        Modal
+
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="MODAL"
+                                        id="modalAdd"
+                                        class="form-control rupiah-input text-end"
+                                        value="0"
+                                        placeholder="0">
+
+                                    <small
+                                        class="text-muted">
+
+                                        Nilai modal / cost internal.
+
+                                    </small>
+
+                                </div>
+
+
+                                <!-- ====================================== -->
+                                <!-- BIAYA -->
+                                <!-- ====================================== -->
+
+                                <div class="col-md-4">
+
+                                    <label
+                                        class="form-label fw-semibold">
+
+                                        Biaya
+
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="BIAYA"
+                                        id="biayaAdd"
+                                        class="form-control rupiah-input text-end"
+                                        value="0"
+                                        placeholder="0">
+
+                                    <small
+                                        class="text-muted">
+
+                                        Tambahan biaya customer,
+                                        misalnya jasa potong ayam.
+
+                                    </small>
+
+                                </div>
+
+
+                                <!-- ====================================== -->
+                                <!-- ATTACHMENT -->
+                                <!-- ====================================== -->
+
                                 <div class="col-md-8">
-                                    <label class="form-label fw-semibold">
+
+                                    <label
+                                        class="form-label fw-semibold">
+
                                         Attachment
+
                                     </label>
 
                                     <input
                                         type="file"
                                         name="ATTACHMENT"
                                         class="form-control"
-                                        accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx">
+                                        accept="
+                                            .jpg,
+                                            .jpeg,
+                                            .png,
+                                            .pdf,
+                                            .doc,
+                                            .docx,
+                                            .xls,
+                                            .xlsx
+                                        ">
+
                                 </div>
 
+
+                                <!-- ====================================== -->
                                 <!-- REMARK -->
+                                <!-- ====================================== -->
+
                                 <div class="col-md-12">
-                                    <label class="form-label fw-semibold">
+
+                                    <label
+                                        class="form-label fw-semibold">
+
                                         Remark
+
                                     </label>
 
                                     <textarea
@@ -472,24 +702,39 @@
                                         class="form-control"
                                         placeholder="Opsional.."
                                         rows="2"></textarea>
+
                                 </div>
 
                             </div>
 
                         </div>
+
                     </div>
 
-                    <!-- ========================================= -->
-                    <!-- DETAIL -->
-                    <!-- ========================================= -->
+
+
+                    <!-- ================================================== -->
+                    <!-- DETAIL ITEM -->
+                    <!-- ================================================== -->
 
                     <div class="card border-0 shadow-sm">
 
-                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+
+                        <div
+                            class="
+                                card-header
+                                bg-light
+                                d-flex
+                                justify-content-between
+                                align-items-center
+                            ">
 
                             <span class="fw-bold">
+
                                 DETAIL ITEM
+
                             </span>
+
 
                             <button
                                 type="button"
@@ -497,150 +742,609 @@
                                 id="addDetailRowAdd">
 
                                 <i class="fa fa-plus me-1"></i>
+
                                 Tambah Item
 
                             </button>
 
                         </div>
 
+
                         <div class="card-body">
+
 
                             <div class="table-responsive">
 
-                                <table class="table table-bordered align-middle" id="salesDetailTableAdd">
+                                <table
+                                    class="
+                                        table
+                                        table-bordered
+                                        align-middle
+                                    "
+                                    id="salesDetailTableAdd">
+
+
                                     <thead class="table-light">
+
                                         <tr>
-                                            <th width="30%" class="text-center">
+
+
+                                            <!-- MATERIAL -->
+
+                                            <th
+                                                width="25%"
+                                                class="text-center">
+
                                                 MATERIAL
+
                                             </th>
-                                            <th width="15%" class="text-center">
-                                                JUMLAH
+
+
+                                            <!-- BASIS -->
+
+                                            <th
+                                                width="12%"
+                                                class="text-center">
+
+                                                BASIS
+
                                             </th>
-                                            <th width="15%" class="text-center">
+
+
+                                            <!-- EKOR -->
+
+                                            <th
+                                                width="13%"
+                                                class="text-center">
+
+                                                EKOR
+
+                                            </th>
+
+
+                                            <!-- BERAT -->
+
+                                            <th
+                                                width="13%"
+                                                class="text-center">
+
                                                 BERAT
+
                                             </th>
-                                            <th width="18%" class="text-center">
-                                                HARGA / KG
+
+
+                                            <!-- HARGA -->
+
+                                            <th
+                                                width="17%"
+                                                class="text-center">
+
+                                                HARGA
+
                                             </th>
-                                            <th width="18%" class="text-center">
+
+
+                                            <!-- TOTAL -->
+
+                                            <th
+                                                width="16%"
+                                                class="text-center">
+
                                                 TOTAL
+
                                             </th>
-                                            <th width="4%" class="text-center">
+
+
+                                            <!-- ACTION -->
+
+                                            <th
+                                                width="4%"
+                                                class="text-center">
+
                                                 #
+
                                             </th>
+
                                         </tr>
+
                                     </thead>
 
-                                    <tbody></tbody>
+
+                                    <tbody>
+
+                                        <!--
+                                            Row akan di-generate oleh JS
+                                            menggunakan addDetailRow()
+                                        -->
+
+                                    </tbody>
 
                                 </table>
 
                             </div>
 
-                            <div class="text-end mt-3">
 
-                                <h4 class="fw-bold text-primary mb-0">
-                                    GRAND TOTAL :
-                                    <span id="grandTotalDisplay">
+                            <!-- BASE SALES -->
+
+                            <div
+                                class="
+                                    text-end
+                                    mt-3
+                                ">
+
+                                <div
+                                    class="
+                                        fw-semibold
+                                        text-muted
+                                    ">
+
+                                    BASE SALES
+
+                                </div>
+
+
+                                <h4
+                                    class="
+                                        fw-bold
+                                        text-primary
+                                        mb-0
+                                    ">
+
+                                    Rp
+
+                                    <span
+                                        id="grandTotalDisplay">
+
                                         0
+
                                     </span>
+
                                 </h4>
 
                             </div>
 
                         </div>
+
                     </div>
 
-                    <!-- SAVING -->
-                    <div class="card border-0 shadow-sm mb-4 mt-3">
-                        <div class="card-header bg-light fw-bold">
-                            <i class="ti ti-pig-money me-2"></i>
+
+
+                    <!-- ================================================== -->
+                    <!-- CUSTOMER SAVING -->
+                    <!-- ================================================== -->
+
+                    <div
+                        class="
+                            card
+                            border-0
+                            shadow-sm
+                            mb-4
+                            mt-3
+                        ">
+
+
+                        <div
+                            class="card-header bg-light fw-bold">
+
+                            <i
+                                class="
+                                    ti
+                                    ti-pig-money
+                                    me-2
+                                "></i>
+
                             CUSTOMER SAVING
+
                         </div>
+
+
                         <div class="card-body">
-                            <p class="section-description mb-3">
-                                Tambahkan tabungan customer apabila ada potongan yang akan disimpan sebagai saldo/tabungan.
+
+
+                            <p
+                                class="
+                                    section-description
+                                    mb-3
+                                ">
+
+                                Masukkan nominal tabungan customer
+                                dan pilih basis perhitungannya.
+                                Rate akan dihitung otomatis berdasarkan
+                                total ekor atau total berat Sales.
+
                             </p>
+
+
                             <div class="table-responsive">
-                                <table class="table saving-table table-bordered align-middle" id="savingTableAdd">
+
+
+                                <table
+                                    class="
+                                        table
+                                        saving-table
+                                        table-bordered
+                                        align-middle
+                                    "
+                                    id="savingTableAdd">
+
+
                                     <thead>
+
                                         <tr>
-                                            <th style="width:35%">Customer</th>
-                                            <th style="width:20%">Saving Amount</th>
-                                            <th>Remark</th>
+
+
+                                            <th
+                                                style="width:27%">
+
+                                                Customer
+
+                                            </th>
+
+
+                                            <th
+                                                style="width:18%">
+
+                                                Saving Amount
+
+                                            </th>
+
+
+                                            <th
+                                                style="width:15%">
+
+                                                Basis
+
+                                            </th>
+
+
+                                            <th
+                                                style="width:15%">
+
+                                                Rate
+
+                                            </th>
+
+
+                                            <th>
+
+                                                Remark
+
+                                            </th>
+
                                         </tr>
+
                                     </thead>
-                                    <tbody></tbody>
+
+
+                                    <tbody>
+
+                                        <!--
+                                            Saving row akan dibuat
+                                            oleh JavaScript.
+                                        -->
+
+                                    </tbody>
+
                                 </table>
+
                             </div>
-                            <div class="saving-footer mt-3">
-                                <div class="saving-total">
-                                    <span>Total Saving</span>
-                                    <strong id="savingGrandTotalAdd">Rp 0</strong>
+
+
+                            <div
+                                class="
+                                    saving-footer
+                                    mt-3
+                                ">
+
+                                <div
+                                    class="
+                                        saving-total
+                                    ">
+
+                                    <span>
+
+                                        Total Saving
+
+                                    </span>
+
+
+                                    <strong
+                                        id="savingGrandTotalAdd">
+
+                                        Rp 0
+
+                                    </strong>
+
                                 </div>
+
                             </div>
+
                         </div>
+
                     </div>
 
+
+
+                    <!-- ================================================== -->
                     <!-- PAYMENT SUMMARY -->
-                    <div class="card border-0 shadow-sm mb-3">
-                        <div class="card-header bg-light fw-bold">
-                            <i class="ti ti-cash-banknote me-2"></i>
+                    <!-- ================================================== -->
+
+                    <div
+                        class="
+                            card
+                            border-0
+                            shadow-sm
+                            mb-3
+                        ">
+
+
+                        <div
+                            class="card-header bg-light fw-bold">
+
+                            <i
+                                class="
+                                    ti
+                                    ti-cash-banknote
+                                    me-2
+                                "></i>
+
                             PAYMENT SUMMARY
+
                         </div>
+
+
                         <div class="card-body">
-                            <p class="section-description mb-3">
-                                Ringkasan pembayaran customer. Total pembayaran terdiri dari nilai penjualan (Sales) dan nominal tabungan (Saving).
+
+
+                            <p
+                                class="
+                                    section-description
+                                    mb-3
+                                ">
+
+                                Ringkasan nilai transaksi customer.
+                                Grand Outstanding terdiri dari
+                                Sales dan Saving.
+
                             </p>
-                            <div class="table-responsive">
-                                <table class="table payment-table table-bordered align-middle" id="paymentSummaryTableAdd">
-                                    <thead>
-                                        <tr>
-                                            <th style="width:40%">Customer</th>
-                                            <th class="text-end">Sales</th>
-                                            <th class="text-end">Saving</th>
-                                            <th class="text-end">Total Payment</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                            <div class="payment-footer mt-4">
-                                <div class="payment-summary-box">
-                                    <div class="payment-row">
-                                        <span>Discount</span>
+
+
+                            <div
+                                class="
+                                    payment-footer
+                                    mt-2
+                                ">
+
+
+                                <div
+                                    class="
+                                        payment-summary-box
+                                    ">
+
+
+                                    <!-- ================================== -->
+                                    <!-- BASE SALES -->
+                                    <!-- ================================== -->
+
+                                    <div
+                                        class="
+                                            payment-row
+                                        ">
+
+                                        <span>
+
+                                            Base Sales
+
+                                        </span>
+
+
+                                        <strong
+                                            id="grandSalesAdd">
+
+                                            Rp 0
+
+                                        </strong>
+
+                                    </div>
+
+
+                                    <!-- ================================== -->
+                                    <!-- BIAYA -->
+                                    <!-- ================================== -->
+
+                                    <div
+                                        class="
+                                            payment-row
+                                        ">
+
+                                        <span>
+
+                                            Biaya
+
+                                        </span>
+
+
+                                        <strong
+                                            id="grandBiayaAdd">
+
+                                            Rp 0
+
+                                        </strong>
+
+                                    </div>
+
+
+                                    <!-- ================================== -->
+                                    <!-- DISCOUNT -->
+                                    <!-- ================================== -->
+
+                                    <div
+                                        class="
+                                            payment-row
+                                        ">
+
+                                        <span>
+
+                                            Discount
+
+                                        </span>
+
+
                                         <div>
+
                                             <input
                                                 id="discountAdd"
+                                                name="DISCOUNT"
                                                 type="text"
-                                                class="form-control rupiah-input text-end"
+                                                class="
+                                                    form-control
+                                                    rupiah-input
+                                                    text-end
+                                                "
                                                 value="0">
 
-                                            <input type="hidden" id="grandSavingAddHidden"/>
-                                            
                                         </div>
+
                                     </div>
-                                    <div class="payment-row">
-                                        <span>Total Sales</span>
-                                        <strong id="grandSalesAdd">Rp 0</strong>
+
+
+                                    <!-- ================================== -->
+                                    <!-- ROUNDING -->
+                                    <!-- ================================== -->
+
+                                    <div
+                                        class="
+                                            payment-row
+                                        ">
+
+                                        <span>
+
+                                            Pembulatan
+
+                                        </span>
+
+
+                                        <div>
+
+                                            <input
+                                                id="roundingAdd"
+                                                name="ROUNDING"
+                                                type="text"
+                                                class="
+                                                    form-control
+                                                    rupiah-input
+                                                    text-end
+                                                "
+                                                value="0"
+                                                placeholder="0">
+
+                                        </div>
+
                                     </div>
-                                    <div class="payment-row">
-                                        <span>Total Saving</span>
-                                        <strong id="grandSavingAdd">Rp 0</strong>
-                                    </div>
+
+
                                     <hr>
-                                    <div class="payment-row payment-grand">
-                                        <span>Grand Payment</span>
-                                        <strong id="grandPaymentAdd">Rp 0</strong>
+
+
+                                    <!-- ================================== -->
+                                    <!-- SALES AMOUNT -->
+                                    <!-- ================================== -->
+
+                                    <div
+                                        class="
+                                            payment-row
+                                        ">
+
+                                        <span>
+
+                                            Sales Amount
+
+                                        </span>
+
+
+                                        <strong
+                                            id="salesComponentAdd">
+
+                                            Rp 0
+
+                                        </strong>
+
                                     </div>
+
+
+                                    <!-- ================================== -->
+                                    <!-- SAVING -->
+                                    <!-- ================================== -->
+
+                                    <div
+                                        class="
+                                            payment-row
+                                        ">
+
+                                        <span>
+
+                                            Total Saving
+
+                                        </span>
+
+
+                                        <strong
+                                            id="grandSavingAdd">
+
+                                            Rp 0
+
+                                        </strong>
+
+                                    </div>
+
+
+                                    <hr>
+
+
+                                    <!-- ================================== -->
+                                    <!-- GRAND OUTSTANDING -->
+                                    <!-- ================================== -->
+
+                                    <div
+                                        class="
+                                            payment-row
+                                            payment-grand
+                                        ">
+
+                                        <span>
+
+                                            Grand Outstanding
+
+                                        </span>
+
+
+                                        <strong
+                                            id="grandPaymentAdd">
+
+                                            Rp 0
+
+                                        </strong>
+
+                                    </div>
+
                                 </div>
+
                             </div>
+
                         </div>
+
                     </div>
 
                 </div>
 
+
+
+                <!-- ====================================================== -->
+                <!-- FOOTER -->
+                <!-- ====================================================== -->
+
                 <div class="modal-footer">
+
 
                     <button
                         type="button"
@@ -651,11 +1355,13 @@
 
                     </button>
 
+
                     <button
                         type="submit"
                         class="btn btn-primary">
 
                         <i class="fa fa-save me-1"></i>
+
                         Simpan Sales
 
                     </button>
@@ -665,7 +1371,9 @@
             </div>
 
         </form>
+
     </div>
+
 </div>
 
 <!-- MODAL EDIT SALES -->
@@ -1136,7 +1844,13 @@
 </div>
 
 <script>
-    var state = { page: 1, limit: 10, search: '', order: 'SALES', dir: 'ASC' };
+    var state = {
+        page: 1,
+        limit: 10,
+        search: '',
+        order: 'CREATED_AT',
+        dir: 'DESC'
+    };
 
     const salesState = {
         savingRowAdd: null,
@@ -1174,23 +1888,54 @@
     }
 
     function syncSavingRowAdd() {
-        let customerId = $('#hiddenCustomerAdd').val();
+
+        let customerId =
+            $('#hiddenCustomerAdd').val();
 
         if (!customerId) {
+
             salesState.savingRowAdd = null;
+
             renderSavingTableAdd();
+
             refreshPaymentSummaryAdd();
+
             return;
         }
 
         salesState.savingRowAdd = {
-            customer: customerId,
-            customer_name: getCustomerLabel('#customerAdd'),
-            saving: salesState.savingRowAdd ? salesState.savingRowAdd.saving : 0,
-            remark: salesState.savingRowAdd ? salesState.savingRowAdd.remark : ''
+
+            customer:
+                customerId,
+
+            customer_name:
+                getCustomerLabel(
+                    '#customerAdd'
+                ),
+
+            saving:
+                salesState.savingRowAdd
+                    ? salesState.savingRowAdd.saving
+                    : 0,
+
+            basis:
+                salesState.savingRowAdd
+                    ? salesState.savingRowAdd.basis
+                    : 'BERAT',
+
+            rate:
+                0,
+
+            remark:
+                salesState.savingRowAdd
+                    ? salesState.savingRowAdd.remark
+                    : ''
         };
 
+        updateSavingRateAdd();
+
         renderSavingTableAdd();
+
         refreshPaymentSummaryAdd();
     }
 
@@ -1214,44 +1959,224 @@
     }
 
     function renderSavingTableAdd() {
-        let tbody = $('#savingTableAdd tbody');
+
+        let tbody =
+            $('#savingTableAdd tbody');
+
         tbody.empty();
 
-        if (!salesState.savingRowAdd) {
+        if (
+            !salesState.savingRowAdd
+        ) {
+
             tbody.append(`
+
                 <tr>
-                    <td colspan="3" class="text-center text-muted py-3">
+
+                    <td
+                        colspan="5"
+                        class="text-center text-muted py-3">
+
                         Pilih customer terlebih dahulu
+
                     </td>
+
                 </tr>
+
             `);
-            $('#savingGrandTotalAdd').text('Rp 0');
+
+            $('#savingGrandTotalAdd')
+                .text('Rp 0');
+
             return;
         }
 
-        let row = salesState.savingRowAdd;
+        let row =
+            salesState.savingRowAdd;
 
         tbody.append(`
+
             <tr>
-                <td>${row.customer_name}</td>
+
+                <!-- CUSTOMER -->
                 <td>
-                    <input
-                        type="text"
-                        class="form-control rupiah-input saving-input-add text-end"
-                        value="${formatRupiah(row.saving)}">
+
+                    ${row.customer_name || '-'}
+
                 </td>
+
+
+                <!-- SAVING AMOUNT -->
                 <td>
+
                     <input
                         type="text"
-                        class="form-control saving-remark-add"
+                        class="
+                            form-control
+                            rupiah-input
+                            saving-input-add
+                            text-end
+                        "
+                        value="${formatRupiah(
+                            row.saving || 0
+                        )}">
+
+                </td>
+
+
+                <!-- BASIS -->
+                <td>
+
+                    <select
+                        class="form-select saving-basis-add">
+
+                        <option
+                            value="EKOR"
+                            ${row.basis === 'EKOR'
+                                ? 'selected'
+                                : ''}>
+
+                            EKOR
+
+                        </option>
+
+                        <option
+                            value="BERAT"
+                            ${row.basis === 'BERAT'
+                                ? 'selected'
+                                : ''}>
+
+                            BERAT
+
+                        </option>
+
+                    </select>
+
+                </td>
+
+
+                <!-- RATE -->
+                <td>
+
+                    <input
+                        type="text"
+                        class="
+                            form-control
+                            saving-rate-add
+                            text-end
+                            bg-light
+                        "
+                        value="${formatRupiah(
+                            row.rate || 0
+                        )}"
+                        readonly>
+
+                </td>
+
+
+                <!-- REMARK -->
+                <td>
+
+                    <input
+                        type="text"
+                        class="
+                            form-control
+                            saving-remark-add
+                        "
                         value="${row.remark || ''}">
+
                 </td>
+
             </tr>
+
         `);
 
-        $('#savingGrandTotalAdd').text(
-            'Rp ' + formatRupiah(row.saving || 0)
-        );
+        $('#savingGrandTotalAdd')
+            .text(
+                'Rp ' +
+                formatRupiah(
+                    row.saving || 0
+                )
+            );
+    }
+
+    function updateSavingRateAdd() {
+
+        if (
+            !salesState.savingRowAdd
+        ) {
+            return;
+        }
+
+        let totalQty = 0;
+
+        let totalWeight = 0;
+
+        $('#salesDetailTableAdd tbody tr')
+            .each(function () {
+
+                totalQty +=
+                    parseDecimalID(
+                        $(this)
+                            .find('.jumlah')
+                            .val()
+                    );
+
+                totalWeight +=
+                    parseDecimalID(
+                        $(this)
+                            .find('.berat')
+                            .val()
+                    );
+
+            });
+
+        totalQty =
+            parseFloat(
+                totalQty.toFixed(2)
+            );
+
+        totalWeight =
+            parseFloat(
+                totalWeight.toFixed(2)
+            );
+
+        let saving =
+            parseRupiah(
+                salesState.savingRowAdd.saving || 0
+            );
+
+        let basis =
+            salesState.savingRowAdd.basis
+            || 'BERAT';
+
+        let denominator =
+            basis === 'EKOR'
+                ? totalQty
+                : totalWeight;
+
+        let rate = 0;
+
+        if (
+            denominator > 0
+            &&
+            saving > 0
+        ) {
+
+            rate =
+                Math.round(
+                    saving / denominator
+                );
+
+        }
+
+        salesState.savingRowAdd.rate =
+            rate;
+
+        $('#savingTableAdd .saving-rate-add')
+            .val(
+                formatRupiah(rate)
+            );
     }
 
     function renderSavingTableEdit() {
@@ -1316,41 +2241,129 @@
     }
 
     function refreshPaymentSummaryAdd() {
-        let salesTotal = getSalesGrandTotalAdd();
-        let savingTotal = salesState.savingRowAdd
-            ? parseFloat(salesState.savingRowAdd.saving || 0)
-            : 0;
 
-        let tbody = $('#paymentSummaryTableAdd tbody');
-        tbody.empty();
+        let baseSales =
+            getSalesGrandTotalAdd();
 
-        if (!salesState.savingRowAdd) {
-            tbody.append(`
-                <tr>
-                    <td colspan="4" class="text-center text-muted py-3">
-                        Pilih customer terlebih dahulu
-                    </td>
-                </tr>
-            `);
-        } else {
-            tbody.append(`
-                <tr>
-                    <td>${salesState.savingRowAdd.customer_name}</td>
-                    <td class="text-end">${formatRupiah(salesTotal)}</td>
-                    <td class="text-end">${formatRupiah(savingTotal)}</td>
-                    <td class="text-end">${formatRupiah(salesTotal + savingTotal)}</td>
-                </tr>
-            `);
+        let biaya =
+            parseRupiah(
+                $('#biayaAdd').val() || 0
+            );
+
+        let discount =
+            parseRupiah(
+                $('#discountAdd').val() || 0
+            );
+
+        let rounding =
+            parseRupiah(
+                $('#roundingAdd').val() || 0
+            );
+
+        let savingTotal =
+            salesState.savingRowAdd
+                ? parseRupiah(
+                    salesState.savingRowAdd.saving
+                    || 0
+                )
+                : 0;
+
+        let salesComponent =
+            baseSales
+            +
+            biaya
+            -
+            discount
+            +
+            rounding;
+
+        if (salesComponent < 0) {
+
+            salesComponent = 0;
         }
 
-        let discount = parseRupiah($('#discountAdd').val() || 0);
-        let grandPayment = salesTotal + savingTotal - discount;
+        let grandOutstanding =
+            salesComponent
+            +
+            savingTotal;
 
-        $("#grandSavingAddHidden").val(savingTotal);
+        /*
+        |--------------------------------------------------------------------------
+        | BASE SALES
+        |--------------------------------------------------------------------------
+        */
 
-        $('#grandSalesAdd').text('Rp ' + formatRupiah(salesTotal));
-        $('#grandSavingAdd').text('Rp ' + formatRupiah(savingTotal));
-        $('#grandPaymentAdd').text('Rp ' + formatRupiah(grandPayment));
+        $('#grandSalesAdd')
+            .text(
+                'Rp ' +
+                formatRupiah(
+                    baseSales
+                )
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | BIAYA
+        |--------------------------------------------------------------------------
+        */
+
+        $('#grandBiayaAdd')
+            .text(
+                'Rp ' +
+                formatRupiah(
+                    biaya
+                )
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | SALES COMPONENT
+        |--------------------------------------------------------------------------
+        */
+
+        $('#salesComponentAdd')
+            .text(
+                'Rp ' +
+                formatRupiah(
+                    salesComponent
+                )
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | SAVING
+        |--------------------------------------------------------------------------
+        */
+
+        $('#grandSavingAdd')
+            .text(
+                'Rp ' +
+                formatRupiah(
+                    savingTotal
+                )
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | GRAND OUTSTANDING
+        |--------------------------------------------------------------------------
+        */
+
+        $('#grandPaymentAdd')
+            .text(
+                'Rp ' +
+                formatRupiah(
+                    grandOutstanding
+                )
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | UPDATE RATE
+        |--------------------------------------------------------------------------
+        */
+
+        updateSavingRateAdd();
     }
 
     function refreshPaymentSummaryEdit() {
@@ -1392,19 +2405,38 @@
         $('#grandPaymentEdit').text(formatCurrencyID(grandPayment));
     }
 
-    function buildSavingPayload(mode) {
-        let row = mode === 'edit'
-            ? salesState.savingRowEdit
-            : salesState.savingRowAdd;
+    function buildSavingPayload(mode)
+    {
+        let row =
+            mode === 'edit'
+                ? salesState.savingRowEdit
+                : salesState.savingRowAdd;
 
-        if (!row || !row.customer) {
+        if (
+            !row ||
+            !row.customer
+        ) {
             return [];
         }
 
         return [{
-            CUSTOMER: row.customer,
-            SAVING_AMOUNT: parseFloat(row.saving || 0),
-            REMARK: row.remark || ''
+
+            CUSTOMER:
+                row.customer,
+
+            SAVING_AMOUNT:
+                parseRupiah(
+                    row.saving || 0
+                ),
+
+            BASIS:
+                row.basis
+                || 'BERAT',
+
+            REMARK:
+                row.remark
+                || ''
+
         }];
     }
 
@@ -1577,6 +2609,196 @@
         loadPage(1);
     });
 
+    $(document).on(
+        'click',
+        '.flagBtn',
+        function () {
+
+            const sales =
+                $(this).data('sales');
+
+            const plant =
+                $(this).data('plant');
+
+            Swal.fire({
+
+                title:
+                    'Flag Sales',
+
+                input:
+                    'textarea',
+
+                inputLabel:
+                    'Alasan Flag',
+
+                inputPlaceholder:
+                    'Masukkan alasan kenapa Sales ini perlu diperiksa...',
+
+                inputAttributes: {
+                    'aria-label':
+                        'Alasan Flag'
+                },
+
+                showCancelButton:
+                    true,
+
+                confirmButtonText:
+                    'Flag Sales',
+
+                cancelButtonText:
+                    'Batal',
+
+                inputValidator:
+                    function (value) {
+
+                        if (
+                            !value ||
+                            !value.trim()
+                        ) {
+
+                            return 'Alasan wajib diisi';
+
+                        }
+
+                        return null;
+                    }
+
+            }).then(
+                function (result) {
+
+                    if (
+                        !result.isConfirmed
+                    ) {
+                        return;
+                    }
+
+                    $.post(
+                        "<?= base_url('sales/flag'); ?>",
+                        {
+
+                            sales:
+                                sales,
+
+                            plant:
+                                plant,
+
+                            reason:
+                                result.value
+
+                        },
+                        function (res) {
+
+                            if (res.status) {
+
+                                showToast(
+                                    'success',
+                                    res.message
+                                );
+
+                                loadPage(
+                                    state.page
+                                );
+
+                            } else {
+
+                                showToast(
+                                    'error',
+                                    res.message
+                                );
+
+                            }
+
+                        },
+                        'json'
+                    );
+
+                }
+            );
+        }
+    );
+
+    $(document).on(
+        'click',
+        '.unflagBtn',
+        function () {
+
+            const sales =
+                $(this).data('sales');
+
+            const plant =
+                $(this).data('plant');
+
+            Swal.fire({
+
+                title:
+                    'Hapus Flag?',
+
+                text:
+                    `Flag pada Sales ${sales} akan dihapus.`,
+
+                icon:
+                    'question',
+
+                showCancelButton:
+                    true,
+
+                confirmButtonText:
+                    'Ya, hapus Flag',
+
+                cancelButtonText:
+                    'Batal'
+
+            }).then(
+                function (result) {
+
+                    if (
+                        !result.isConfirmed
+                    ) {
+                        return;
+                    }
+
+                    $.post(
+                        "<?= base_url('sales/unflag'); ?>",
+                        {
+
+                            sales:
+                                sales,
+
+                            plant:
+                                plant
+
+                        },
+                        function (res) {
+
+                            if (res.status) {
+
+                                showToast(
+                                    'success',
+                                    res.message
+                                );
+
+                                loadPage(
+                                    state.page
+                                );
+
+                            } else {
+
+                                showToast(
+                                    'error',
+                                    res.message
+                                );
+
+                            }
+
+                        },
+                        'json'
+                    );
+
+                }
+            );
+        }
+    );
+
     let ajaxListRequest = null;
 
     function loadPage(page = 1) {
@@ -1605,6 +2827,24 @@
                         OPEN
                     </span>
                 `;
+
+                let flagBadge = '';
+
+                if (Number(row.FLAG) === 1) {
+
+                    flagBadge = `
+                        <div class="mt-1">
+                            <span
+                                class="badge bg-danger"
+                                title="${row.FLAG_REASON || 'Data perlu diperiksa'}">
+
+                                FLAGGED
+
+                            </span>
+                        </div>
+                    `;
+
+                }
 
                 if(row.STATUS === 'PAID'){
 
@@ -1765,6 +3005,8 @@
 
                             ${statusBadge}
 
+                            ${flagBadge}
+
                         </td>
 
                         <!-- TOTAL -->
@@ -1802,6 +3044,32 @@
                                     Slip
 
                                 </button>
+
+                                ${Number(row.FLAG) === 1
+
+                                    ? `
+                                        <button
+                                            class="btn btn-outline-secondary unflagBtn"
+                                            data-sales="${row.SALES}"
+                                            data-plant="${row.PLANT}"
+                                            title="${row.FLAG_REASON || 'Flagged'}">
+
+                                            Unflag
+
+                                        </button>
+                                    `
+
+                                    : `
+                                        <button
+                                            class="btn btn-outline-danger flagBtn"
+                                            data-sales="${row.SALES}"
+                                            data-plant="${row.PLANT}">
+
+                                            Flag
+
+                                        </button>
+                                    `
+                                }
 
                                 <!-- EDIT -->
                                 <button
@@ -2102,22 +3370,51 @@
 
     function recalcRow(tr)
     {
-        let berat = parseFloat(
-            clearFormat(
+        let jumlah =
+            parseDecimalID(
+                tr.find('.jumlah').val()
+            ) || 0;
+
+        let berat =
+            parseDecimalID(
                 tr.find('.berat').val()
-            )
-        ) || 0;
+            ) || 0;
 
-        let harga = parseFloat(
-            clearFormat(
+        let harga =
+            parseRupiah(
                 tr.find('.harga').val()
-            )
-        ) || 0;
+            ) || 0;
 
-        let total = berat * harga;
+        let basis =
+            tr.find('.calc-basis').val()
+            || 'BERAT';
+
+        let total = 0;
+
+        if (
+            basis === 'EKOR'
+        ) {
+
+            total =
+                jumlah * harga;
+
+        } else {
+
+            total =
+                berat * harga;
+        }
+
+        total =
+            Math.round(
+                total
+            );
 
         tr.find('.total')
-            .val(formatRupiah(total));
+            .val(
+                formatRupiah(
+                    total
+                )
+            );
 
         recalcGrandTotal();
     }
@@ -2227,54 +3524,136 @@
 
     function addDetailRow()
     {
-        let tbody = $('#salesDetailTableAdd tbody');
+        let tbody =
+            $('#salesDetailTableAdd tbody');
 
         let html = `
+
             <tr>
 
+                <!-- MATERIAL -->
                 <td>
-                    <select class="form-select material-select"></select>
-                    <div class="stock-preview mt-1"></div>
+
+                    <select
+                        class="
+                            form-select
+                            material-select
+                        ">
+                    </select>
+
+                    <div
+                        class="
+                            stock-preview
+                            mt-1
+                        ">
+                    </div>
+
                 </td>
 
+
+                <!-- BASIS -->
                 <td>
+
+                    <select
+                        class="
+                            form-select
+                            calc-basis
+                        ">
+
+                        <option value="BERAT">
+                            BERAT
+                        </option>
+
+                        <option value="EKOR">
+                            EKOR
+                        </option>
+
+                    </select>
+
+                </td>
+
+
+                <!-- EKOR -->
+                <td>
+
                     <input
                         type="text"
-                        class="form-control jumlah decimal-input text-end"
+                        class="
+                            form-control
+                            jumlah
+                            decimal-input
+                            text-end
+                        "
                         value="0"
                         placeholder="0,00">
+
                 </td>
 
+
+                <!-- BERAT -->
                 <td>
+
                     <input
                         type="text"
-                        class="form-control berat decimal-input text-end"
+                        class="
+                            form-control
+                            berat
+                            decimal-input
+                            text-end
+                        "
                         value="0"
                         placeholder="0,00">
+
                 </td>
 
+
+                <!-- HARGA -->
                 <td>
+
                     <input
                         type="text"
-                        class="form-control harga rupiah-input text-end"
+                        class="
+                            form-control
+                            harga
+                            rupiah-input
+                            text-end
+                        "
                         value="0"
                         placeholder="0">
+
                 </td>
 
+
+                <!-- TOTAL -->
                 <td>
+
                     <input
                         type="text"
-                        class="form-control total text-end bg-light fw-bold"
+                        class="
+                            form-control
+                            total
+                            text-end
+                            bg-light
+                            fw-bold
+                        "
                         readonly
                         value="0">
+
                 </td>
 
+
+                <!-- DELETE -->
                 <td class="text-center">
 
                     <button
                         type="button"
-                        class="btn btn-danger btn-sm removeRow">
-                        X
+                        class="
+                            btn
+                            btn-danger
+                            btn-sm
+                            removeRow
+                        ">
+
                         <i class="fa fa-trash"></i>
 
                     </button>
@@ -2282,59 +3661,125 @@
                 </td>
 
             </tr>
+
         `;
 
         tbody.append(html);
 
-        let tr = tbody.find('tr').last();
+        let tr =
+            tbody
+                .find('tr')
+                .last();
 
-        let selectedPlant = $("#plantAdd option:selected").val();
+        let selectedPlant =
+            $('#plantAdd option:selected')
+                .val();
 
-        let $materialSelectAdd = tr.find('.material-select');
+        let $materialSelectAdd =
+            tr.find(
+                '.material-select'
+            );
 
         $materialSelectAdd.select2({
 
-            theme:'bootstrap-5',
+            theme:
+                'bootstrap-5',
 
-            width:'100%',
+            width:
+                '100%',
 
-            dropdownParent: $('#salesAdd .modal-body'),
+            dropdownParent:
+                $('#salesAdd .modal-body'),
 
-            placeholder:'-- PILIH MATERIAL --',
+            placeholder:
+                '-- PILIH MATERIAL --',
 
-            ajax:{
+            ajax: {
 
-                url:'<?= base_url("sales/get_material"); ?>',
+                url:
+                    '<?= base_url("sales/get_material"); ?>',
 
-                dataType:'json',
+                dataType:
+                    'json',
 
-                delay:300,
+                delay:
+                    300,
 
-                data:params => ({
-                    q:params.term,
-                    plant:selectedPlant
-                }),
+                data:
+                    params => ({
 
-                processResults:data => ({
-                    results:data
-                })
+                        q:
+                            params.term,
+
+                        plant:
+                            selectedPlant
+
+                    }),
+
+                processResults:
+                    data => ({
+
+                        results:
+                            data
+
+                    })
+
             }
+
         });
 
-        $materialSelectAdd.on('select2:select', function (e) {
-            let data = e.params.data || {};
-            let $select = $(this);
-            let $option = $select.find('option[value="' + data.id + '"]');
+        $materialSelectAdd.on(
+            'select2:select',
+            function (e) {
 
-            if (!$option.length) {
-                $option = $(new Option(data.text, data.id, false, true));
-                $select.append($option);
+                let data =
+                    e.params.data
+                    || {};
+
+                let $select =
+                    $(this);
+
+                let $option =
+                    $select.find(
+                        'option[value="' +
+                        data.id +
+                        '"]'
+                    );
+
+                if (
+                    !$option.length
+                ) {
+
+                    $option =
+                        $(new Option(
+                            data.text,
+                            data.id,
+                            false,
+                            true
+                        ));
+
+                    $select.append(
+                        $option
+                    );
+                }
+
+                $option.attr(
+                    'data-bw',
+                    data.bw ?? ''
+                );
+
+                $option.attr(
+                    'data-qty',
+                    data.qty ?? ''
+                );
+
+                renderMaterialStockPreview(
+                    tr,
+                    selectedPlant,
+                    data.id
+                );
             }
-
-            $option.attr('data-bw', data.bw ?? '');
-            $option.attr('data-qty', data.qty ?? '');
-            renderMaterialStockPreview(tr, selectedPlant, data.id);
-        });
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -2342,21 +3787,34 @@
         |--------------------------------------------------------------------------
         */
 
-        let defaultMaterial = new Option(
-            '01220021 - COMMON MATERIAL',
-            '01220021',
-            true,
-            true
+        let defaultMaterial =
+            new Option(
+                '01220021 - COMMON MATERIAL',
+                '01220021',
+                true,
+                true
+            );
+
+        tr.find(
+            '.material-select'
+        )
+            .append(
+                defaultMaterial
+            )
+            .val(
+                '01220021'
+            )
+            .trigger(
+                'change'
+            );
+
+        renderMaterialStockPreview(
+            tr,
+            selectedPlant,
+            '01220021'
         );
 
-        tr.find('.material-select')
-            .append(defaultMaterial)
-            .val('01220021')
-            .trigger('change');
-
-        renderMaterialStockPreview(tr, selectedPlant, '01220021');
-
-        recalcGrandTotal();
+        recalcRow(tr);
     }
 
     function addDetailRowEdit(data = {})
@@ -2541,52 +3999,104 @@
 
             let DETAIL = [];
 
-            $('#salesDetailTableAdd tbody tr').each(function () {
+            $('#salesDetailTableAdd tbody tr')
+                .each(function () {
 
-                let material = $(this)
-                    .find('.material-select')
-                    .val();
+                    let material =
+                        $(this)
+                            .find('.material-select')
+                            .val();
 
-                let jumlah = parseDecimalID(
-                    $(this).find('.jumlah').val()
-                );
+                    let calcBasis =
+                        $(this)
+                            .find('.calc-basis')
+                            .val();
 
-                let berat = parseDecimalID(
-                    $(this).find('.berat').val()
-                );
+                    let jumlah =
+                        parseDecimalID(
+                            $(this)
+                                .find('.jumlah')
+                                .val()
+                        );
 
-                let harga = parseRupiah(
-                    $(this).find('.harga').val()
-                );
+                    let berat =
+                        parseDecimalID(
+                            $(this)
+                                .find('.berat')
+                                .val()
+                        );
 
-                let total = parseRupiah(
-                    $(this).find('.total').val()
-                );
+                    let harga =
+                        parseRupiah(
+                            $(this)
+                                .find('.harga')
+                                .val()
+                        );
 
-                if (!material) {
-                    return;
-                }
+                    let total =
+                        parseRupiah(
+                            $(this)
+                                .find('.total')
+                                .val()
+                        );
 
-                if (berat <= 0) {
+                    if (!material) {
+                        return;
+                    }
 
-                    alert('Berat wajib diisi');
+                    if (
+                        !['EKOR', 'BERAT']
+                            .includes(calcBasis)
+                    ) {
 
-                    throw 'invalid';
-                }
+                        alert(
+                            'Basis perhitungan harus dipilih.'
+                        );
 
-                DETAIL.push({
+                        throw 'invalid';
+                    }
 
-                    MATERIAL : material,
+                    if (jumlah <= 0) {
 
-                    JUMLAH : jumlah,
+                        alert(
+                            'Jumlah/Ekor wajib diisi.'
+                        );
 
-                    BERAT : berat,
+                        throw 'invalid';
+                    }
 
-                    HARGA : harga,
+                    if (berat <= 0) {
 
-                    TOTAL : total
+                        alert(
+                            'Berat wajib diisi.'
+                        );
+
+                        throw 'invalid';
+                    }
+
+                    DETAIL.push({
+
+                        MATERIAL:
+                            material,
+
+                        CALC_BASIS:
+                            calcBasis,
+
+                        JUMLAH:
+                            jumlah,
+
+                        BERAT:
+                            berat,
+
+                        HARGA:
+                            harga,
+
+                        TOTAL:
+                            total
+
+                    });
+
                 });
-            });
 
             if (DETAIL.length === 0) {
 
@@ -2619,17 +4129,37 @@
 
             formData.set(
                 'SAVINGS',
-                JSON.stringify(buildSavingPayload('add'))
+                JSON.stringify(
+                    buildSavingPayload('add')
+                )
             );
 
             formData.set(
-                'TOTAL_SAVING',
-                parseRupiah($('#grandSavingAddHidden').val() || 0)
+                'MODAL',
+                parseRupiah(
+                    $('#modalAdd').val() || 0
+                )
+            );
+
+            formData.set(
+                'BIAYA',
+                parseRupiah(
+                    $('#biayaAdd').val() || 0
+                )
             );
 
             formData.set(
                 'DISCOUNT',
-                parseRupiah($('#discountAdd').val() || 0)
+                parseRupiah(
+                    $('#discountAdd').val() || 0
+                )
+            );
+
+            formData.set(
+                'ROUNDING',
+                parseRupiah(
+                    $('#roundingAdd').val() || 0
+                )
             );
 
             $.ajax({
@@ -3021,17 +4551,67 @@
         syncSavingRowAdd();
     });
 
-    $(document).on('input', '.saving-input-add', function () {
-        let val = parseRupiah($(this).val());
-        $(this).val(formatRupiah(val));
+    $(document).on(
+        'input',
+        '.saving-input-add',
+        function () {
 
-        if (salesState.savingRowAdd) {
-            salesState.savingRowAdd.saving = val;
+            let val =
+                parseRupiah(
+                    $(this).val()
+                );
+
+            $(this).val(
+                formatRupiah(
+                    val
+                )
+            );
+
+            if (
+                salesState.savingRowAdd
+            ) {
+
+                salesState
+                    .savingRowAdd
+                    .saving = val;
+
+            }
+
+            updateSavingRateAdd();
+
+            $('#savingGrandTotalAdd')
+                .text(
+                    'Rp ' +
+                    formatRupiah(val)
+                );
+
+            refreshPaymentSummaryAdd();
+
         }
+    );
 
-        $('#savingGrandTotalAdd').text('Rp ' + formatRupiah(val));
-        refreshPaymentSummaryAdd();
-    });
+    $(document).on(
+        'change',
+        '.saving-basis-add',
+        function () {
+
+            if (
+                !salesState.savingRowAdd
+            ) {
+                return;
+            }
+
+            salesState
+                .savingRowAdd
+                .basis =
+                    $(this).val();
+
+            updateSavingRateAdd();
+
+            refreshPaymentSummaryAdd();
+
+        }
+    );
 
     $(document).on('input', '#discountAdd', function () {
         let val = parseRupiah($(this).val());
@@ -3039,11 +4619,24 @@
         refreshPaymentSummaryAdd();
     });
 
-    $(document).on('input', '.saving-remark-add', function () {
-        if (salesState.savingRowAdd) {
-            salesState.savingRowAdd.remark = $(this).val();
+    $(document).on(
+        'input',
+        '.saving-remark-add',
+        function () {
+
+            if (
+                salesState.savingRowAdd
+            ) {
+
+                salesState
+                    .savingRowAdd
+                    .remark =
+                        $(this).val();
+
+            }
+
         }
-    });
+    );
 
     $(document).on('input', '.saving-input-edit', function () {
         let val = parseRupiah($(this).val());
@@ -3073,4 +4666,43 @@
         let val = parseRupiah($(this).val());
         $(this).val(formatRupiah(val));
     });
+
+    $(document).on(
+        'input change',
+        '#salesDetailTableAdd .jumlah, ' +
+        '#salesDetailTableAdd .berat, ' +
+        '#salesDetailTableAdd .harga, ' +
+        '#salesDetailTableAdd .calc-basis',
+        function () {
+
+            let row =
+                $(this).closest('tr');
+
+            recalcRow(row);
+
+            updateSavingRateAdd();
+
+        }
+    );
+
+    $(document).on(
+        'input',
+        '#modalAdd, #biayaAdd, #discountAdd, #roundingAdd',
+        function () {
+
+            let val =
+                parseRupiah(
+                    $(this).val()
+                );
+
+            $(this).val(
+                formatRupiah(
+                    val
+                )
+            );
+
+            refreshPaymentSummaryAdd();
+
+        }
+    );
 </script>

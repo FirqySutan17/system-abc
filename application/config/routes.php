@@ -232,4 +232,7 @@ $route['closing-process'] = 'ReportClosingProcess/index';
 
 $route['closing-process/run'] = 'ReportClosingProcess/run_process';
 
+$route['sales/flag']   = 'Sales/flag_sales';
+$route['sales/unflag'] = 'Sales/unflag_sales';
+
 

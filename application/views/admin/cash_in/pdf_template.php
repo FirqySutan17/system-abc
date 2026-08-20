@@ -6,50 +6,68 @@
     <meta charset="utf-8">
 
     <title>
-        CASH IN
+        CASH IN SLIP
     </title>
 
     <style>
 
         body{
             font-family: DejaVu Sans;
-            font-size: 10px;
+            font-size: 9px;
             color:#000;
         }
 
         table{
             width:100%;
-            border-collapse: collapse;
+            border-collapse:collapse;
         }
 
         .header-table td{
-            vertical-align: top;
+            border:none;
+            vertical-align:middle;
         }
 
-        .doc-title{
-            font-size:18px;
+        .title{
+            text-align:center;
+            font-size:20px;
             font-weight:bold;
-            text-align:right;
+        }
+
+        .subtitle{
+            text-align:center;
+            font-size:11px;
+            color:#555;
+            margin-top:4px;
+        }
+
+        .info-table{
+            margin-top:15px;
         }
 
         .info-table td{
-            padding:4px 6px;
+            padding:4px 5px;
+            vertical-align:top;
         }
 
-        .info-label{
-            width:110px;
+        .label{
+            width:100px;
             font-weight:bold;
         }
 
-        .detail-table th,
-        .detail-table td{
-            border:1px solid #000;
-            padding:6px;
+        .detail-table{
+            margin-top:20px;
         }
 
         .detail-table th{
-            background:#efefef;
+            border:1px solid #000;
+            background:#eeeeee;
+            padding:6px;
             text-align:center;
+        }
+
+        .detail-table td{
+            border:1px solid #000;
+            padding:6px;
         }
 
         .text-right{
@@ -60,41 +78,29 @@
             text-align:center;
         }
 
-        .total-box{
-            margin-top:12px;
-            width:40%;
-            float:right;
+        .summary{
+            width:45%;
+            margin-top:15px;
+            margin-left:auto;
         }
 
-        .total-box td{
-            padding:5px;
+        .summary td{
             border:1px solid #000;
+            padding:6px;
+        }
+
+        .summary-label{
+            font-weight:bold;
         }
 
         .remark{
-            margin-top:30px;
-            clear:both;
+            margin-top:25px;
         }
 
         .footer{
-            margin-top:60px;
-        }
-
-        .header-table{
-            margin-bottom: 20px;
-        }
-
-        .title{
-            text-align: center;
-            font-size: 22px;
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
-
-        .subtitle{
-            text-align: center;
-            font-size: 12px;
-            color: #666;
+            margin-top:55px;
+            font-size:8px;
+            color:#555;
         }
 
     </style>
@@ -102,11 +108,18 @@
 </head>
 
 <?php
-$logo = FCPATH . 'assets/img/abc-trans.png';
 
-$logo64 = file_exists($logo)
-    ? 'data:image/png;base64,' . base64_encode(file_get_contents($logo))
-    : '';
+$logo =
+    FCPATH . 'assets/img/abc-trans.png';
+
+$logo64 =
+    file_exists($logo)
+        ? 'data:image/png;base64,'
+            . base64_encode(
+                file_get_contents($logo)
+            )
+        : '';
+
 ?>
 
 <body>
@@ -119,56 +132,58 @@ $logo64 = file_exists($logo)
 
     <tr>
 
-            <td width="70" style="border:none;">
+        <td width="80">
 
-                <?php if($logo64): ?>
+            <?php if($logo64): ?>
 
-                    <img src="<?= $logo64 ?>" height="60">
+                <img
+                    src="<?= $logo64 ?>"
+                    height="55">
 
-                <?php endif; ?>
+            <?php endif; ?>
 
-            </td>
+        </td>
 
-            <td style="border:none;">
+        <td>
 
-                <div class="title">
-                    PT. Abadi Bersama Cerah
-                </div>
+            <div class="title">
+                PT. Abadi Bersama Cerah
+            </div>
 
-                <div class="subtitle">
-                    CASH IN SLIP
-                </div>
+            <div class="subtitle">
+                CASH IN SLIP
+            </div>
 
-            </td>
+        </td>
 
-        </tr>
+    </tr>
 
 </table>
 
 <hr>
 
 <!-- ====================================================== -->
-<!-- INFO -->
+<!-- INFORMATION -->
 <!-- ====================================================== -->
 
-<table
-    class="info-table"
-    style="margin-top:15px;">
+<table class="info-table">
 
     <tr>
 
-        <td class="info-label">
+        <td class="label">
             Plant
         </td>
 
-        <td colspan="3">
+        <td>
 
             :
-            <?= $header->PLANT_NAME; ?>
+            <?= htmlspecialchars(
+                $header->PLANT_NAME ?: '-'
+            ); ?>
 
         </td>
 
-        <td class="info-label">
+        <td class="label">
             Cash In Date
         </td>
 
@@ -177,7 +192,9 @@ $logo64 = file_exists($logo)
             :
             <?= date(
                 'd-M-Y',
-                strtotime($header->CASHIN_DATE)
+                strtotime(
+                    $header->CASHIN_DATE
+                )
             ); ?>
 
         </td>
@@ -186,27 +203,34 @@ $logo64 = file_exists($logo)
 
     <tr>
 
-        <td class="info-label">
+        <td class="label">
             Customer
         </td>
 
-        <td colspan="3">
+        <td>
 
             :
-            <?= $header->CUSTOMER; ?>
+            <?= htmlspecialchars(
+                $header->CUSTOMER
+            ); ?>
+
             -
-            <?= $header->FULL_NAME; ?>
+            <?= htmlspecialchars(
+                $header->CUSTOMER_NAME
+            ); ?>
 
         </td>
 
-        <td class="info-label">
+        <td class="label">
             Cash In No
         </td>
 
         <td>
 
             :
-            #<?= $header->CASH_IN; ?>
+            #<?= htmlspecialchars(
+                $header->CASH_IN
+            ); ?>
 
         </td>
 
@@ -214,51 +238,70 @@ $logo64 = file_exists($logo)
 
     <tr>
 
-        <td class="info-label">
+        <td class="label">
             Pembayaran
         </td>
 
-        <td colspan="3">
+        <td>
 
             :
-            <?= $header->PEMBAYARAN ?: '-'; ?>
+            <?= htmlspecialchars(
+                $header->PEMBAYARAN ?: '-'
+            ); ?>
 
         </td>
 
-        <td class="info-label">
+        <td class="label">
+            Status
+        </td>
+
+        <td>
+
+            :
+            <?= htmlspecialchars(
+                $header->STATUS ?: '-'
+            ); ?>
+
+        </td>
+
+        <!-- <td class="label">
             Slip No
         </td>
 
         <td>
 
             :
-            <?= $header->SLIP_NO ?: '-'; ?>
+            <?= htmlspecialchars(
+                $header->SLIP_NO ?: '-'
+            ); ?>
 
-        </td>
+        </td> -->
 
     </tr>
 
     <tr>
 
-        <td class="info-label">
+        <td class="label">
             No Bon
         </td>
 
         <td>
 
             :
-            <?= $header->BON ?: '-'; ?>
+            <?= htmlspecialchars(
+                $header->BON ?: '-'
+            ); ?>
 
         </td>
+
+        
 
     </tr>
 
 </table>
 
-<br>
-
 <!-- ====================================================== -->
-<!-- DETAIL -->
+<!-- INVOICE DETAIL -->
 <!-- ====================================================== -->
 
 <table class="detail-table">
@@ -272,18 +315,18 @@ $logo64 = file_exists($logo)
             </th>
 
             <th width="25%">
-                Sales
+                Sales / Invoice
             </th>
 
-            <th width="23%">
-                Invoice Amount
+            <th width="25%">
+                Outstanding
             </th>
 
-            <th width="23%">
+            <th width="22%">
                 Paid Amount
             </th>
 
-            <th width="24%">
+            <th width="23%">
                 Remaining
             </th>
 
@@ -294,22 +337,27 @@ $logo64 = file_exists($logo)
     <tbody>
 
         <?php
+
         $no = 1;
 
-        foreach($detail as $d):
+        foreach(
+            $detail
+            as $d
+        ):
+
         ?>
 
             <tr>
 
                 <td class="text-center">
-
                     <?= $no++; ?>
-
                 </td>
 
                 <td>
 
-                    #<?= $d->SALES; ?>
+                    #<?= htmlspecialchars(
+                        $d->SALES
+                    ); ?>
 
                 </td>
 
@@ -329,7 +377,7 @@ $logo64 = file_exists($logo)
 
                     Rp
                     <?= number_format(
-                        $d->AMOUNT_OFFSET,
+                        $d->PAID_AMOUNT,
                         0,
                         ',',
                         '.'
@@ -353,30 +401,41 @@ $logo64 = file_exists($logo)
 
         <?php endforeach; ?>
 
+        <?php if(empty($detail)): ?>
+
+            <tr>
+
+                <td
+                    colspan="5"
+                    class="text-center">
+
+                    Tidak ada outstanding invoice.
+
+                </td>
+
+            </tr>
+
+        <?php endif; ?>
+
     </tbody>
 
 </table>
 
 <!-- ====================================================== -->
-<!-- TOTAL -->
+<!-- SUMMARY -->
 <!-- ====================================================== -->
 
-<table class="total-box">
+<table class="summary">
 
     <tr>
 
-        <td width="50%">
-
-            <b>
-                Total Cash In
-            </b>
-
+        <td class="summary-label">
+            Total Cash In
         </td>
 
-        <td width="50%" class="text-right">
+        <td class="text-right">
 
             <b>
-
                 Rp
                 <?= number_format(
                     $header->AMOUNT,
@@ -384,12 +443,88 @@ $logo64 = file_exists($logo)
                     ',',
                     '.'
                 ); ?>
-
             </b>
 
         </td>
 
     </tr>
+
+    <tr>
+
+        <td class="summary-label">
+            Total Applied
+        </td>
+
+        <td class="text-right">
+
+            <b>
+                Rp
+                <?= number_format(
+                    $totalApplied,
+                    0,
+                    ',',
+                    '.'
+                ); ?>
+            </b>
+
+        </td>
+
+    </tr>
+
+    <tr>
+
+        <td class="summary-label">
+            Remaining Outstanding
+        </td>
+
+        <td class="text-right">
+
+            <b>
+                Rp
+                <?= number_format(
+                    array_sum(
+                        array_map(
+                            function($row){
+                                return $row->REMAINING;
+                            },
+                            $detail
+                        )
+                    ),
+                    0,
+                    ',',
+                    '.'
+                ); ?>
+            </b>
+
+        </td>
+
+    </tr>
+
+    <?php if($excessAmount > 0): ?>
+
+        <tr>
+
+            <td class="summary-label">
+                Excess Amount
+            </td>
+
+            <td class="text-right">
+
+                <b>
+                    Rp
+                    <?= number_format(
+                        $excessAmount,
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
+                </b>
+
+            </td>
+
+        </tr>
+
+    <?php endif; ?>
 
 </table>
 
@@ -400,12 +535,16 @@ $logo64 = file_exists($logo)
 <div class="remark">
 
     <b>
-        Remark :
+        Remark
     </b>
 
     <br><br>
 
-    <?= $header->REMARK ?: '-'; ?>
+    <?= nl2br(
+        htmlspecialchars(
+            $header->REMARK ?: '-'
+        )
+    ); ?>
 
 </div>
 
@@ -416,9 +555,12 @@ $logo64 = file_exists($logo)
 <div class="footer">
 
     Printed At :
-    <?= date('d-M-Y H:i:s'); ?>
+    <?= date(
+        'd-M-Y H:i:s'
+    ); ?>
 
 </div>
 
 </body>
+
 </html>

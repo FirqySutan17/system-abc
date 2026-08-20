@@ -1928,54 +1928,54 @@ class CashIn_model extends CI_Model {
             ->count_all_results('abc_mst_cash_in_detail') > 0;
     }
 
-    public function delete_dp_by_sales($sales, $plant)
-    {
-        // Ambil semua header yang terpengaruh
-        $headers = $this->db
-            ->select('CASH_IN')
-            ->from('abc_mst_cash_in_detail')
-            ->where('SALES', $sales)
-            ->where('PLANT', $plant)
-            ->where('ORG_SLIP_NO', 'AUTO_DP')
-            ->group_by('CASH_IN')
-            ->get()
-            ->result_array();
+    // public function delete_dp_by_sales($sales, $plant)
+    // {
+    //     // Ambil semua header yang terpengaruh
+    //     $headers = $this->db
+    //         ->select('CASH_IN')
+    //         ->from('abc_mst_cash_in_detail')
+    //         ->where('SALES', $sales)
+    //         ->where('PLANT', $plant)
+    //         ->where('ORG_SLIP_NO', 'AUTO_DP')
+    //         ->group_by('CASH_IN')
+    //         ->get()
+    //         ->result_array();
 
-        if (!$headers) return;
+    //     if (!$headers) return;
 
-        // Hapus semua AUTO DP detail sekaligus
-        $this->db->where('SALES', $sales)
-            ->where('PLANT', $plant)
-            ->where('ORG_SLIP_NO', 'AUTO_DP')
-            ->delete('abc_mst_cash_in_detail');
+    //     // Hapus semua AUTO DP detail sekaligus
+    //     $this->db->where('SALES', $sales)
+    //         ->where('PLANT', $plant)
+    //         ->where('ORG_SLIP_NO', 'AUTO_DP')
+    //         ->delete('abc_mst_cash_in_detail');
 
-        foreach ($headers as $h) {
-            $cashIn = $h['CASH_IN'];
+    //     foreach ($headers as $h) {
+    //         $cashIn = $h['CASH_IN'];
 
-            // Cek sisa detail
-            $remain = $this->db
-                ->where('CASH_IN', $cashIn)
-                ->where('PLANT', $plant)
-                ->count_all_results('abc_mst_cash_in_detail');
+    //         // Cek sisa detail
+    //         $remain = $this->db
+    //             ->where('CASH_IN', $cashIn)
+    //             ->where('PLANT', $plant)
+    //             ->count_all_results('abc_mst_cash_in_detail');
 
-            if ($remain == 0) {
-                $this->db->where('CASH_IN', $cashIn)
-                    ->where('PLANT', $plant)
-                    ->delete('abc_mst_cash_in');
-            } else {
-                $total = $this->db
-                    ->select_sum('AMOUNT_OFFSET')
-                    ->where('CASH_IN', $cashIn)
-                    ->where('PLANT', $plant)
-                    ->get('abc_mst_cash_in_detail')
-                    ->row()->AMOUNT_OFFSET ?? 0;
+    //         if ($remain == 0) {
+    //             $this->db->where('CASH_IN', $cashIn)
+    //                 ->where('PLANT', $plant)
+    //                 ->delete('abc_mst_cash_in');
+    //         } else {
+    //             $total = $this->db
+    //                 ->select_sum('AMOUNT_OFFSET')
+    //                 ->where('CASH_IN', $cashIn)
+    //                 ->where('PLANT', $plant)
+    //                 ->get('abc_mst_cash_in_detail')
+    //                 ->row()->AMOUNT_OFFSET ?? 0;
 
-                $this->db->where('CASH_IN', $cashIn)
-                    ->where('PLANT', $plant)
-                    ->update('abc_mst_cash_in', ['AMOUNT' => $total]);
-            }
-        }
-    }
+    //             $this->db->where('CASH_IN', $cashIn)
+    //                 ->where('PLANT', $plant)
+    //                 ->update('abc_mst_cash_in', ['AMOUNT' => $total]);
+    //         }
+    //     }
+    // }
 
     // public function reduce_invoice_remain($sales, $plant, $amount)
     // {

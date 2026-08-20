@@ -5,7 +5,9 @@
 
 <meta charset="utf-8">
 
-<title>SALES <?= $header->SALES; ?></title>
+<title>
+    SALES <?= $header->SALES; ?>
+</title>
 
 <style>
 
@@ -16,34 +18,35 @@
 
 html,
 body {
-
     width: 241.3mm;
-    height: 139.7mm;
-
     margin: 0;
     padding: 0;
 
     font-family: "Courier New", monospace;
     font-size: 10px;
-
     color: #000;
-
 }
 
 body {
-
     overflow: hidden;
-
 }
 
 .print-area {
-
     width: 205mm;
 
     margin-left: 18mm;
-    margin-top: 10mm;
+    margin-top: 7mm;
 
+    /*
+    |----------------------------------------
+    | Tinggi area cetak aman
+    |----------------------------------------
+    */
+    height: 125mm;
+
+    overflow: hidden;
 }
+
 
 /*
 |--------------------------------------------------------------------------
@@ -80,6 +83,12 @@ th {
 
 }
 
+.left {
+
+    text-align: left;
+
+}
+
 .bold {
 
     font-weight: bold;
@@ -91,6 +100,7 @@ th {
     white-space: nowrap;
 
 }
+
 
 /*
 |--------------------------------------------------------------------------
@@ -144,6 +154,7 @@ th {
 
 }
 
+
 /*
 |--------------------------------------------------------------------------
 | DETAIL
@@ -151,30 +162,23 @@ th {
 */
 
 .detail {
-
-    margin-top: 10mm;
-
+    margin-top: 6mm;
 }
 
 .detail th {
-
-    border-bottom: 1px solid #000;
-
+    border-bottom:
+        1px solid #000;
     padding-bottom: 2mm;
-
     font-weight: normal;
-
 }
 
 .detail td {
-
-    padding-top: 1.5mm;
-
+    padding-top: 1mm;
 }
 
 /*
 |--------------------------------------------------------------------------
-| TOTAL
+| DETAIL TOTAL
 |--------------------------------------------------------------------------
 */
 
@@ -184,6 +188,25 @@ th {
 
     font-weight: bold;
 
+    border-top:
+        1px solid #000;
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| SAVING
+|--------------------------------------------------------------------------
+*/
+
+.saving {
+    margin-top: 2mm;
+}
+
+.saving-title {
+    font-weight: bold;
+    margin-bottom: 1mm;
 }
 
 /*
@@ -193,13 +216,9 @@ th {
 */
 
 .summary {
-
-    width: 75mm;
-
+    width: 80mm;
     margin-left: auto;
-
-    margin-top: 5mm;
-
+    margin-top: 2mm;
 }
 
 .summary td {
@@ -210,6 +229,49 @@ th {
 
 }
 
+.summary .separator td {
+
+    border-top:
+        1px solid #000;
+
+    padding-top: 2mm;
+
+}
+
+.summary .grand td {
+
+    border-top:
+        2px solid #000;
+
+    padding-top: 2mm;
+
+    font-weight: bold;
+
+}
+
+.summary .outstanding-header td {
+
+    border-top:
+        1px solid #000;
+
+    padding-top: 2mm;
+
+    font-weight: bold;
+
+}
+
+.summary .outstanding-total td {
+
+    border-top:
+        2px solid #000;
+
+    padding-top: 2mm;
+
+    font-weight: bold;
+
+}
+
+
 /*
 |--------------------------------------------------------------------------
 | SAY
@@ -218,9 +280,12 @@ th {
 
 .say {
 
-    margin-top: 5mm;
+    margin-top: 4mm;
+
+    line-height: 1.4;
 
 }
+
 
 /*
 |--------------------------------------------------------------------------
@@ -230,11 +295,12 @@ th {
 
 .bank {
 
-    margin-top: 4mm;
+    margin-top: 3mm;
 
-    line-height: 1.5;
+    line-height: 1.4;
 
 }
+
 
 /*
 |--------------------------------------------------------------------------
@@ -243,14 +309,16 @@ th {
 */
 
 .signature {
-
-    margin-top: 6mm;
-
+    margin-top: 3mm;
 }
 
 .signature-space {
+    height: 8mm;
+}
 
-    height: 15mm;
+.small {
+
+    font-size: 8px;
 
 }
 
@@ -258,19 +326,27 @@ th {
 
 </head>
 
+
 <body>
 
 <div class="print-area">
 
+
+    <!-- ====================================================== -->
     <!-- HEADER -->
+    <!-- ====================================================== -->
 
     <table class="header">
 
         <tr>
 
+
+            <!-- COMPANY -->
+
             <td class="company">
 
-                Pangkalan Ayam<br>
+                Pangkalan Ayam
+                <br>
 
                 <strong>
                     PT. ABADI BERSAMA CERAH
@@ -278,14 +354,22 @@ th {
 
                 <br>
 
-                Jakarta Timur
+                <?= strtoupper(
+                    $header->PLANT_NAME
+                    ?: 'PLANT'
+                ); ?>
 
             </td>
+
+
+            <!-- TITLE -->
 
             <td class="invoice">
 
                 <div class="title">
+
                     INVOICES
+
                 </div>
 
                 <div class="invoice-no">
@@ -295,6 +379,9 @@ th {
                 </div>
 
             </td>
+
+
+            <!-- INFO -->
 
             <td class="info">
 
@@ -313,11 +400,14 @@ th {
                         <td>
                             <?= date(
                                 'd/m/Y',
-                                strtotime($header->SALES_DATE)
+                                strtotime(
+                                    $header->SALES_DATE
+                                )
                             ); ?>
                         </td>
 
                     </tr>
+
 
                     <tr>
 
@@ -330,10 +420,13 @@ th {
                         </td>
 
                         <td>
-                            <?= date('H:i:s'); ?>
+                            <?= date(
+                                'H:i:s'
+                            ); ?>
                         </td>
 
                     </tr>
+
 
                     <tr>
 
@@ -346,9 +439,34 @@ th {
                         </td>
 
                         <td>
+
                             <?= strtoupper(
                                 $header->CUSTOMER_NAME
+                                ?: $header->CUSTOMER
                             ); ?>
+
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>
+                            Pembayaran
+                        </td>
+
+                        <td>
+                            :
+                        </td>
+
+                        <td>
+
+                            <?= strtoupper(
+                                $header->JENIS_PAY
+                                ?: '-'
+                            ); ?>
+
                         </td>
 
                     </tr>
@@ -362,13 +480,20 @@ th {
     </table>
 
 
+    <!-- ====================================================== -->
     <!-- DETAIL -->
+    <!-- ====================================================== -->
 
     <?php
 
-    $totalQty    = 0;
-    $totalBerat  = 0;
-    $grandTotal  = 0;
+    $totalQty =
+        0;
+
+    $totalBerat =
+        0;
+
+    $baseSales =
+        0;
 
     ?>
 
@@ -378,58 +503,133 @@ th {
 
             <tr>
 
-                <th width="45%" align="left">
+                <th
+                    width="38%"
+                    class="left">
+
                     Keterangan
+
                 </th>
 
-                <th width="10%" class="center">
+                <th
+                    width="9%"
+                    class="center">
+
+                    Basis
+
+                </th>
+
+                <th
+                    width="9%"
+                    class="center">
+
                     Ekor
+
                 </th>
 
-                <th width="12%" class="center">
+                <th
+                    width="11%"
+                    class="center">
+
                     Berat
+
                 </th>
 
-                <th width="13%" class="right">
+                <th
+                    width="13%"
+                    class="right">
+
                     Price
+
                 </th>
 
-                <th width="20%" class="right">
+                <th
+                    width="20%"
+                    class="right">
+
                     Jumlah(Rp)
+
                 </th>
 
             </tr>
 
         </thead>
 
+
         <tbody>
 
-        <?php foreach ($detail as $d): ?>
+
+        <?php foreach (
+            $detail
+            as $d
+        ): ?>
 
             <?php
 
-            $qty   = (float) $d->JUMLAH;
-            $berat = (float) $d->BERAT;
-            $harga = (float) $d->HARGA;
-            $total = (float) $d->TOTAL;
+            $qty =
+                (float) (
+                    $d->JUMLAH
+                    ?? 0
+                );
 
-            $totalQty   += $qty;
-            $totalBerat += $berat;
-            $grandTotal += $total;
+            $berat =
+                (float) (
+                    $d->BERAT
+                    ?? 0
+                );
+
+            $harga =
+                (float) (
+                    $d->HARGA
+                    ?? 0
+                );
+
+            $total =
+                (float) (
+                    $d->TOTAL
+                    ?? 0
+                );
+
+            $totalQty +=
+                $qty;
+
+            $totalBerat +=
+                $berat;
+
+            $baseSales +=
+                $total;
 
             ?>
 
+
             <tr>
+
+                <!-- MATERIAL -->
 
                 <td>
 
                     <?= $d->MATERIAL; ?>
+
                     -
+
                     <?= strtoupper(
                         $d->MATERIAL_NAME
+                        ?: ''
                     ); ?>
 
                 </td>
+
+
+                <!-- BASIS -->
+
+                <td class="center">
+
+                    <?= $d->CALC_BASIS ?: '-'; ?>
+
+                </td>
+
+
+                <!-- QTY -->
 
                 <td class="center">
 
@@ -442,6 +642,9 @@ th {
 
                 </td>
 
+
+                <!-- WEIGHT -->
+
                 <td class="center">
 
                     <?= number_format(
@@ -453,6 +656,9 @@ th {
 
                 </td>
 
+
+                <!-- PRICE -->
+
                 <td class="right">
 
                     <?= number_format(
@@ -463,6 +669,9 @@ th {
                     ); ?>
 
                 </td>
+
+
+                <!-- TOTAL -->
 
                 <td class="right">
 
@@ -480,9 +689,11 @@ th {
         <?php endforeach; ?>
 
 
-        <!-- TOTAL DETAIL -->
+        <!-- DETAIL TOTAL -->
 
         <tr class="detail-total">
+
+            <td></td>
 
             <td></td>
 
@@ -513,7 +724,7 @@ th {
             <td class="right">
 
                 <?= number_format(
-                    $grandTotal,
+                    $baseSales,
                     0,
                     ',',
                     '.'
@@ -528,26 +739,184 @@ th {
     </table>
 
 
+    <!-- ====================================================== -->
+    <!-- SAVING -->
+    <!-- ====================================================== -->
+
+    <?php if (
+        !empty($saving)
+    ): ?>
+
+
+        <div class="saving">
+
+
+            <div class="saving-title">
+
+                CUSTOMER SAVING
+
+            </div>
+
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th
+                            width="32%"
+                            class="left">
+
+                            Saving No
+
+                        </th>
+
+                        <th
+                            width="15%"
+                            class="center">
+
+                            Basis
+
+                        </th>
+
+                        <th
+                            width="20%"
+                            class="right">
+
+                            Rate
+
+                        </th>
+
+                        <th
+                            width="18%"
+                            class="right">
+
+                            Amount
+
+                        </th>
+
+                        <th
+                            width="15%"
+                            class="right">
+
+                            Remain
+
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                <?php foreach (
+                    $saving
+                    as $sv
+                ): ?>
+
+                    <tr>
+
+                        <td>
+
+                            <?= $sv->SV_NO; ?>
+
+                        </td>
+
+                        <td class="center">
+
+                            <?= $sv->BASIS ?: '-'; ?>
+
+                        </td>
+
+                        <td class="right">
+
+                            <?= number_format(
+                                $sv->RATE,
+                                0,
+                                ',',
+                                '.'
+                            ); ?>
+
+                            <?php if (
+                                $sv->BASIS === 'EKOR'
+                            ): ?>
+
+                                /Ekor
+
+                            <?php else: ?>
+
+                                /Kg
+
+                            <?php endif; ?>
+
+                        </td>
+
+                        <td class="right">
+
+                            <?= number_format(
+                                $sv->AMOUNT,
+                                0,
+                                ',',
+                                '.'
+                            ); ?>
+
+                        </td>
+
+                        <td class="right">
+
+                            <?= number_format(
+                                $sv->REMAIN,
+                                0,
+                                ',',
+                                '.'
+                            ); ?>
+
+                        </td>
+
+                    </tr>
+
+                <?php endforeach; ?>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    <?php endif; ?>
+
+
+    <!-- ====================================================== -->
     <!-- SUMMARY -->
+    <!-- ====================================================== -->
 
     <div class="summary">
 
         <table>
 
+
+            <!-- BASE SALES -->
+
             <tr>
 
                 <td>
-                    Subtotal
+
+                    Base Sales
+
                 </td>
 
                 <td width="30">
+
                     IDR
+
                 </td>
 
                 <td class="right">
 
                     <?= number_format(
-                        $grandTotal,
+                        $summary['base_sales'],
                         0,
                         ',',
                         '.'
@@ -557,20 +926,304 @@ th {
 
             </tr>
 
+
+            <!-- BIAYA -->
+
+            <?php if (
+                $summary['biaya'] > 0
+            ): ?>
+
+            <tr>
+
+                <td>
+
+                    Biaya
+
+                </td>
+
+                <td>
+
+                    IDR
+
+                </td>
+
+                <td class="right">
+
+                    +<?= number_format(
+                        $summary['biaya'],
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
+
+                </td>
+
+            </tr>
+
+            <?php endif; ?>
+
+
+            <!-- DISCOUNT -->
+
+            <?php if (
+                $summary['discount'] > 0
+            ): ?>
+
+            <tr>
+
+                <td>
+
+                    Discount
+
+                </td>
+
+                <td>
+
+                    IDR
+
+                </td>
+
+                <td class="right">
+
+                    -<?= number_format(
+                        $summary['discount'],
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
+
+                </td>
+
+            </tr>
+
+            <?php endif; ?>
+
+
+            <!-- ROUNDING -->
+
+            <?php if (
+                $summary['rounding'] > 0
+            ): ?>
+
+            <tr>
+
+                <td>
+
+                    Pembulatan
+
+                </td>
+
+                <td>
+
+                    IDR
+
+                </td>
+
+                <td class="right">
+
+                    +<?= number_format(
+                        $summary['rounding'],
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
+
+                </td>
+
+            </tr>
+
+            <?php endif; ?>
+
+
+            <!-- TOTAL SALES -->
+
             <tr>
 
                 <td class="bold">
-                    Total
+
+                    Total Sales
+
                 </td>
 
                 <td class="bold">
+
                     IDR
+
                 </td>
 
                 <td class="right bold">
 
                     <?= number_format(
-                        $grandTotal,
+                        $summary['sales_amount'],
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
+
+                </td>
+
+            </tr>
+
+
+            <!-- SAVING -->
+
+            <?php if (
+                $summary['total_saving'] > 0
+            ): ?>
+
+            <tr>
+
+                <td>
+
+                    Customer Saving
+
+                </td>
+
+                <td>
+
+                    IDR
+
+                </td>
+
+                <td class="right">
+
+                    +<?= number_format(
+                        $summary['total_saving'],
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
+
+                </td>
+
+            </tr>
+
+            <?php endif; ?>
+
+
+            <!-- GRAND TOTAL -->
+
+            <tr class="grand">
+
+                <td>
+
+                    Grand Total
+
+                </td>
+
+                <td>
+
+                    IDR
+
+                </td>
+
+                <td class="right">
+
+                    <?= number_format(
+                        $summary['grand_total'],
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
+
+                </td>
+
+            </tr>
+
+
+            <!-- OUTSTANDING -->
+
+            <tr class="outstanding-header">
+
+                <td colspan="3">
+
+                    OUTSTANDING
+
+                </td>
+
+            </tr>
+
+
+            <!-- SALES OUTSTANDING -->
+
+            <tr>
+
+                <td>
+
+                    Outstanding Sales
+
+                </td>
+
+                <td>
+
+                    IDR
+
+                </td>
+
+                <td class="right">
+
+                    <?= number_format(
+                        $summary['outstanding_sales'],
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
+
+                </td>
+
+            </tr>
+
+
+            <!-- SAVING OUTSTANDING -->
+
+            <tr>
+
+                <td>
+
+                    Outstanding Saving
+
+                </td>
+
+                <td>
+
+                    IDR
+
+                </td>
+
+                <td class="right">
+
+                    <?= number_format(
+                        $summary['outstanding_saving'],
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
+
+                </td>
+
+            </tr>
+
+
+            <!-- TOTAL OUTSTANDING -->
+
+            <tr class="outstanding-total">
+
+                <td>
+
+                    Total Outstanding
+
+                </td>
+
+                <td>
+
+                    IDR
+
+                </td>
+
+                <td class="right">
+
+                    <?= number_format(
+                        $summary['total_outstanding'],
                         0,
                         ',',
                         '.'
@@ -585,20 +1238,28 @@ th {
     </div>
 
 
+    <!-- ====================================================== -->
     <!-- SAY -->
+    <!-- ====================================================== -->
 
     <div class="say">
 
         Say :
+
         <?= ucwords(
-            terbilang($grandTotal)
+            terbilang(
+                $summary['grand_total']
+            )
         ); ?>
+
         Rupiah
 
     </div>
 
 
+    <!-- ====================================================== -->
     <!-- BANK -->
+    <!-- ====================================================== -->
 
     <div class="bank">
 
@@ -615,7 +1276,9 @@ th {
     </div>
 
 
+    <!-- ====================================================== -->
     <!-- SIGNATURE -->
+    <!-- ====================================================== -->
 
     <div class="signature">
 
@@ -626,7 +1289,10 @@ th {
                 <td width="60%">
 
                     Jakarta,
-                    <?= date('d/m/Y'); ?>
+
+                    <?= date(
+                        'd/m/Y'
+                    ); ?>
 
                 </td>
 
@@ -638,13 +1304,21 @@ th {
 
             </tr>
 
+
             <tr>
 
                 <td></td>
 
-                <td class="center signature-space"></td>
+                <td
+                    class="
+                        center
+                        signature-space
+                    ">
+
+                </td>
 
             </tr>
+
 
             <tr>
 

@@ -1822,9 +1822,14 @@
         const sales =
             data.SALES;
 
+        // const salesAmount =
+        //     roundMoney(
+        //         data.SALES_AMOUNT || 0
+        //     );
+
         const salesAmount =
             roundMoney(
-                data.SALES_AMOUNT || 0
+                data.SALES_REMAIN || 0
             );
 
         const savingRemain =
@@ -2070,6 +2075,13 @@
                 }
 
                 updateSummary();
+
+                if (
+                    $('input[name="MODE_CASH_IN"]:checked').val()
+                    === 'MANUAL'
+                ) {
+                    updateManualValidationState();
+                }
             }
         );
 
@@ -2549,9 +2561,14 @@
 
                 rows.forEach(function(r) {
 
+                    // const salesAmount =
+                    //     roundMoney(
+                    //         r.SALES_AMOUNT || 0
+                    //     );
+
                     const salesAmount =
                         roundMoney(
-                            r.SALES_AMOUNT || 0
+                            r.SALES_REMAIN || 0
                         );
 
                     const salesRemain =
@@ -3101,6 +3118,62 @@
         updateSummary();
     }
 
+    function updateManualValidationState() {
+
+        const totalInput =
+            getTotalCashIn();
+
+        let totalBayar = 0;
+
+        $('#detailTable tbody .bayar-input').each(function () {
+
+            totalBayar +=
+                cleanNumber(
+                    $(this).val()
+                );
+
+        });
+
+        totalBayar =
+            roundMoney(totalBayar);
+
+        const invalid =
+            totalBayar > totalInput;
+
+        $('#btnSaveCashIn')
+            .prop('disabled', invalid);
+
+        $('#summaryAllocated')
+            .toggleClass(
+                'text-danger',
+                invalid
+            );
+
+        if (invalid) {
+
+            $('#summaryRemaining')
+                .text(
+                    '-' +
+                    formatRupiah(
+                        totalBayar - totalInput
+                    )
+                )
+                .addClass('text-danger');
+
+            $('#summaryDeposit')
+                .text('0')
+                .addClass('text-danger');
+
+        } else {
+
+            $('#summaryRemaining')
+                .removeClass('text-danger');
+
+            $('#summaryDeposit')
+                .removeClass('text-danger');
+        }
+    }
+
     $('#cashInAmount').on(
         'input',
         function() {
@@ -3254,26 +3327,57 @@
             }
         );
 
+        updateSummary();
+
         /*
-        ============================================================
-        JIKA MANUAL TOTAL MELEBIHI CASH IN
-        ============================================================
+        |--------------------------------------------------------------------------
+        | VALIDASI MANUAL VS CASH IN
+        |--------------------------------------------------------------------------
         */
 
-        if (totalManual > totalInput) {
+        const manualExceeded =
+            totalManual > totalInput;
 
-            const excess =
-                roundMoney(
-                    totalManual - totalInput
+        const excess =
+            roundMoney(
+                totalManual - totalInput
+            );
+
+        $('#btnSaveCashIn')
+            .prop(
+                'disabled',
+                manualExceeded
+            );
+
+        if (manualExceeded) {
+
+            $('#summaryAllocated')
+                .addClass('text-danger');
+
+            $('#summaryRemaining')
+                .addClass('text-danger')
+                .text(
+                    '-' +
+                    formatRupiah(excess)
                 );
 
-            console.warn(
-                'Manual allocation melebihi Cash In:',
-                excess
-            );
-        }
+            $('#summaryDeposit')
+                .addClass('text-danger')
+                .text(
+                    'Rp 0'
+                );
 
-        updateSummary();
+        } else {
+
+            $('#summaryAllocated')
+                .removeClass('text-danger');
+
+            $('#summaryRemaining')
+                .removeClass('text-danger');
+
+            $('#summaryDeposit')
+                .removeClass('text-danger');
+        }
     }
 
     function getInvoiceStatusHtml(
@@ -3517,7 +3621,7 @@
 
         ajaxListRequest = $.get(
 
-            '<?= base_url("cashin/load_data"); ?>',
+            '<?= base_url("cash-in/load_data"); ?>',
 
             {
 

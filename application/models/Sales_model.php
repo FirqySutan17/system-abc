@@ -11,10 +11,8 @@ class Sales_model extends CI_Model {
     public function get_data(
         $limit,
         $start,
-        $role_id,
-        $plants,
         $filters = [],
-        $order = 'SALES_DATE',
+        $order = 'CREATED_AT',
         $dir = 'DESC'
     )
     {
@@ -35,12 +33,14 @@ class Sales_model extends CI_Model {
             'CREATED_AT' => 's.CREATED_AT'
         ];
 
-        $order = $allowedOrder[$order]
+        $order =
+            $allowedOrder[$order]
             ?? 's.SALES_DATE';
 
-        $dir = strtoupper($dir) === 'ASC'
-            ? 'ASC'
-            : 'DESC';
+        $dir =
+            strtoupper($dir) === 'ASC'
+                ? 'ASC'
+                : 'DESC';
 
         /*
         |--------------------------------------------------------------------------
@@ -68,6 +68,14 @@ class Sales_model extends CI_Model {
 
             s.STATUS,
 
+            s.FLAG,
+
+            s.FLAG_REASON,
+
+            s.FLAGGED_AT,
+
+            s.FLAGGED_BY,
+
             s.REMARK,
 
             s.NOTA,
@@ -92,21 +100,48 @@ class Sales_model extends CI_Model {
         |--------------------------------------------------------------------------
         */
 
-        $this->db->from('abc_mst_sales s');
+        $this->db->from(
+            'abc_mst_sales s'
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
 
         $this->db->join(
             'abc_mst_sales_detail d',
-            'd.SALES = s.SALES
-            AND d.PLANT = s.PLANT',
-            'left'
+            '
+                d.SALES = s.SALES
+                AND d.PLANT = s.PLANT
+                AND d.DELETED IS NULL
+            ',
+            'left',
+            false
         );
+
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT
+        |--------------------------------------------------------------------------
+        */
 
         $this->db->join(
             'abc_cd_code cc',
-            "cc.CODE = s.PLANT
-            AND cc.HEAD_CODE='PLANT'",
-            'left'
+            "
+                cc.CODE = s.PLANT
+                AND cc.HEAD_CODE = 'PLANT'
+            ",
+            'left',
+            false
         );
+
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER
+        |--------------------------------------------------------------------------
+        */
 
         $this->db->join(
             'abc_cd_customer c',
@@ -114,11 +149,23 @@ class Sales_model extends CI_Model {
             'left'
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | MATERIAL
+        |--------------------------------------------------------------------------
+        */
+
         $this->db->join(
             'abc_cd_material m',
             'm.MATERIAL = d.MATERIAL',
             'left'
         );
+
+        /*
+        |--------------------------------------------------------------------------
+        | DELETED SALES
+        |--------------------------------------------------------------------------
+        */
 
         $this->db->where(
             's.DELETED IS NULL',
@@ -128,33 +175,16 @@ class Sales_model extends CI_Model {
 
         /*
         |--------------------------------------------------------------------------
-        | ROLE FILTER
-        |--------------------------------------------------------------------------
-        */
-
-        if ($role_id !== 1) {
-
-            if (empty($plants)) {
-                return [];
-            }
-
-            $this->db->where_in(
-                's.PLANT',
-                $plants
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
         | SEARCH
         |--------------------------------------------------------------------------
         */
 
         if (!empty($filters['search'])) {
 
-            $search = trim(
-                $filters['search']
-            );
+            $search =
+                trim(
+                    $filters['search']
+                );
 
             $this->db->group_start();
 
@@ -197,7 +227,7 @@ class Sales_model extends CI_Model {
 
         /*
         |--------------------------------------------------------------------------
-        | DATE
+        | DATE FROM
         |--------------------------------------------------------------------------
         */
 
@@ -208,6 +238,12 @@ class Sales_model extends CI_Model {
                 $filters['date_from']
             );
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATE TO
+        |--------------------------------------------------------------------------
+        */
 
         if (!empty($filters['date_to'])) {
 
@@ -239,6 +275,12 @@ class Sales_model extends CI_Model {
             $dir
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | LIMIT
+        |--------------------------------------------------------------------------
+        */
+
         $this->db->limit(
             $limit,
             $start
@@ -250,12 +292,12 @@ class Sales_model extends CI_Model {
     }
 
     public function count_data(
-        $role_id,
-        $plants,
         $filters = []
     )
     {
-        $this->db->from('abc_mst_sales s');
+        $this->db->from(
+            'abc_mst_sales s'
+        );
 
         $this->db->join(
             'abc_cd_customer c',
@@ -263,18 +305,11 @@ class Sales_model extends CI_Model {
             'left'
         );
 
-        $this->db->join(
-            'abc_mst_sales_detail d',
-            'd.SALES = s.SALES
-            AND d.PLANT = s.PLANT',
-            'left'
-        );
-
-        $this->db->join(
-            'abc_cd_material m',
-            'm.MATERIAL = d.MATERIAL',
-            'left'
-        );
+        /*
+        |--------------------------------------------------------------------------
+        | DELETED
+        |--------------------------------------------------------------------------
+        */
 
         $this->db->where(
             's.DELETED IS NULL',
@@ -284,33 +319,16 @@ class Sales_model extends CI_Model {
 
         /*
         |--------------------------------------------------------------------------
-        | ROLE
-        |--------------------------------------------------------------------------
-        */
-
-        if ($role_id !== 1) {
-
-            if (empty($plants)) {
-                return 0;
-            }
-
-            $this->db->where_in(
-                's.PLANT',
-                $plants
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
         | SEARCH
         |--------------------------------------------------------------------------
         */
 
         if (!empty($filters['search'])) {
 
-            $search = trim(
-                $filters['search']
-            );
+            $search =
+                trim(
+                    $filters['search']
+                );
 
             $this->db->group_start();
 
@@ -353,7 +371,7 @@ class Sales_model extends CI_Model {
 
         /*
         |--------------------------------------------------------------------------
-        | DATE
+        | DATE FROM
         |--------------------------------------------------------------------------
         */
 
@@ -365,6 +383,12 @@ class Sales_model extends CI_Model {
             );
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | DATE TO
+        |--------------------------------------------------------------------------
+        */
+
         if (!empty($filters['date_to'])) {
 
             $this->db->where(
@@ -373,7 +397,26 @@ class Sales_model extends CI_Model {
             );
         }
 
-        return $this->db->count_all_results();
+        /*
+        |--------------------------------------------------------------------------
+        | COUNT DISTINCT SALES
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->select(
+            'COUNT(DISTINCT CONCAT(s.PLANT, "|", s.SALES)) AS TOTAL',
+            false
+        );
+
+        $row =
+            $this->db
+                ->get()
+                ->row_array();
+
+        return (int) (
+            $row['TOTAL']
+            ?? 0
+        );
     }
 
     public function get_user_plants($username)
@@ -820,14 +863,39 @@ class Sales_model extends CI_Model {
             ->result_array();
     }
 
-    public function get_sales_detail_rows($plant, $sales)
+    public function get_sales_detail_rows(
+        $plant,
+        $sales
+    )
     {
         return $this->db
-            ->select('PLANT, MATERIAL, JUMLAH, BERAT')
-            ->from('abc_mst_sales_detail')
-            ->where('PLANT', $plant)
-            ->where('SALES', $sales)
+
+            ->select(
+                'PLANT, MATERIAL, JUMLAH, BERAT'
+            )
+
+            ->from(
+                'abc_mst_sales_detail'
+            )
+
+            ->where(
+                'PLANT',
+                $plant
+            )
+
+            ->where(
+                'SALES',
+                $sales
+            )
+
+            ->where(
+                'DELETED IS NULL',
+                null,
+                false
+            )
+
             ->get()
+
             ->result_array();
     }
 
@@ -1339,12 +1407,26 @@ class Sales_model extends CI_Model {
         return true;
     }
 
-    public function delete_company_stock_card_by_reference($referenceNo, $referenceType)
+    public function delete_company_stock_card_by_reference(
+        $referenceNo,
+        $referenceType
+    )
     {
         return $this->db
-            ->where('REFERENCE_NO', $referenceNo)
-            ->where('REFERENCE_TYPE', $referenceType)
-            ->delete('abc_trx_company_stock_card');
+
+            ->where(
+                'REFERENCE_NO',
+                $referenceNo
+            )
+
+            ->where(
+                'REFERENCE_TYPE',
+                $referenceType
+            )
+
+            ->delete(
+                'abc_trx_company_stock_card'
+            );
     }
 
     private function generate_company_stock_card_no()
@@ -1420,23 +1502,79 @@ class Sales_model extends CI_Model {
         return $this->db->insert_batch('abc_mst_saving', $rows);
     }
 
-    public function delete_saving_by_sales($sales, $plant, $deletedBy = null)
+    public function delete_saving_by_sales(
+        $sales,
+        $plant,
+        $deletedBy = null
+    )
     {
         $data = [
-            'DELETED' => date('Y-m-d H:i:s')
+
+            'DELETED' =>
+                date('Y-m-d H:i:s')
+
         ];
 
         if ($deletedBy) {
-            $data['DELETED_BY'] = $deletedBy;
+
+            $data['DELETED_BY'] =
+                $deletedBy;
         }
 
         return $this->db
-            ->where('PLANT', $plant)
-            ->where('RELATED', 'SALES')
-            ->group_start()
-                ->where('REMARK', 'AUTO FROM SALES ' . $sales)
-                ->or_like('REMARK', 'AUTO FROM SALES ' . $sales, 'before')
-            ->group_end()
-            ->update('abc_mst_saving', $data);
+
+            ->where(
+                'PLANT',
+                $plant
+            )
+
+            ->where(
+                'SALES',
+                $sales
+            )
+
+            ->where(
+                'RELATED',
+                'SALES'
+            )
+
+            ->where(
+                'DELETED IS NULL',
+                null,
+                false
+            )
+
+            ->update(
+                'abc_mst_saving',
+                $data
+            );
+    }
+
+    public function is_saving_used_by_cash_in(
+        $sales,
+        $plant
+    )
+    {
+        $count =
+            $this->db
+                ->from(
+                    'abc_mst_cash_in_saving'
+                )
+                ->where(
+                    'SALES',
+                    $sales
+                )
+                ->where(
+                    'PLANT',
+                    $plant
+                )
+                ->where(
+                    'DELETED IS NULL',
+                    null,
+                    false
+                )
+                ->count_all_results();
+
+        return $count > 0;
     }
 }
