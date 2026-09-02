@@ -705,15 +705,7 @@ class Sales extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
-        $modal =
-            round(
-                (float) str_replace(
-                    ',',
-                    '',
-                    $data['MODAL'] ?? 0
-                ),
-                2
-            );
+        $modal = 0;
 
         $biaya =
             round(
@@ -751,17 +743,6 @@ class Sales extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
-        if ($modal < 0) {
-
-            echo json_encode([
-                'status'  => false,
-                'message' =>
-                    'Modal tidak boleh negatif'
-            ]);
-
-            return;
-        }
-
         if ($biaya < 0) {
 
             echo json_encode([
@@ -794,79 +775,6 @@ class Sales extends MY_Controller {
 
             return;
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | PARSE SAVING
-        |--------------------------------------------------------------------------
-        |
-        | Saving dihitung dari payload server.
-        | Jangan percaya TOTAL_SAVING dari browser.
-        |
-        */
-
-        try {
-
-            $savings =
-                $this->parseSavingPayload(
-                    $data['SAVINGS'] ?? '[]',
-                    $customer
-                );
-
-            if (!is_array($savings)) {
-                $savings = [];
-            }
-
-        } catch (Exception $e) {
-
-            echo json_encode([
-                'status'  => false,
-                'message' =>
-                    $e->getMessage()
-            ]);
-
-            return;
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | TOTAL SAVING
-        |--------------------------------------------------------------------------
-        */
-
-        $totalSaving = 0;
-
-        foreach ($savings as $saving) {
-
-            $savingAmount =
-                round(
-                    (float) (
-                        $saving['SAVING_AMOUNT']
-                        ?? 0
-                    ),
-                    2
-                );
-
-            if ($savingAmount < 0) {
-
-                echo json_encode([
-                    'status'  => false,
-                    'message' =>
-                        'Nominal Saving tidak boleh negatif'
-                ]);
-
-                return;
-            }
-
-            $totalSaving +=
-                $savingAmount;
-        }
-
-        $totalSaving =
-            round(
-                $totalSaving,
-                2
-            );
 
         /*
         |--------------------------------------------------------------------------
@@ -1249,6 +1157,90 @@ class Sales extends MY_Controller {
 
             return;
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | CALCULATE MODAL / EKOR
+        |--------------------------------------------------------------------------
+        |
+        | Modal = Base Sales / Total Ekor
+        |
+        */
+
+        if ($totalQty > 0) {
+
+            $modal =
+                round(
+                    $baseSales /
+                    $totalQty,
+                    2
+                );
+
+        } else {
+
+            $modal = 0;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | PARSE SAVING
+        |--------------------------------------------------------------------------
+        |
+        | Saving dihitung berdasarkan:
+        | - Total Ekor jika basis EKOR
+        | - Total Berat jika basis BERAT
+        |
+        */
+
+        try {
+
+            $savings =
+                $this->parseSavingPayload(
+                    $data['SAVINGS'] ?? '[]',
+                    $customer,
+                    $totalQty,
+                    $totalWeight
+                );
+
+            if (!is_array($savings)) {
+                $savings = [];
+            }
+
+        } catch (Exception $e) {
+
+            $this->db->trans_rollback();
+
+            echo json_encode([
+                'status'  => false,
+                'message' =>
+                    $e->getMessage()
+            ]);
+
+            return;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | TOTAL SAVING
+        |--------------------------------------------------------------------------
+        */
+
+        $totalSaving = 0;
+
+        foreach ($savings as $saving) {
+
+            $totalSaving +=
+                (float) (
+                    $saving['SAVING_AMOUNT']
+                    ?? 0
+                );
+        }
+
+        $totalSaving =
+            round(
+                $totalSaving,
+                2
+            );
 
         /*
         |--------------------------------------------------------------------------
@@ -1755,7 +1747,9 @@ class Sales extends MY_Controller {
 
     private function parseSavingPayload(
         $raw,
-        $customer
+        $customer,
+        $totalQty = 0,
+        $totalWeight = 0
     )
     {
         $rows =
@@ -1788,32 +1782,6 @@ class Sales extends MY_Controller {
 
             /*
             |--------------------------------------------------------------------------
-            | SAVING AMOUNT
-            |--------------------------------------------------------------------------
-            */
-
-            $amount =
-                round(
-                    $this->parseDecimalID(
-                        $row['SAVING_AMOUNT']
-                        ?? 0
-                    ),
-                    2
-                );
-
-            if ($amount < 0) {
-
-                throw new Exception(
-                    'Saving tidak boleh negatif'
-                );
-            }
-
-            if ($amount <= 0) {
-                continue;
-            }
-
-            /*
-            |--------------------------------------------------------------------------
             | SAVING BASIS
             |--------------------------------------------------------------------------
             */
@@ -1840,6 +1808,59 @@ class Sales extends MY_Controller {
                 throw new Exception(
                     'Basis Saving harus EKOR atau BERAT'
                 );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | SAVING RATE
+            |--------------------------------------------------------------------------
+            */
+
+            $rate =
+                round(
+                    $this->parseDecimalID(
+                        $row['SAVING_RATE']
+                        ?? 0
+                    ),
+                    2
+                );
+
+            if ($rate < 0) {
+
+                throw new Exception(
+                    'Saving rate tidak boleh negatif'
+                );
+            }
+
+            if ($rate <= 0) {
+                continue;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | CALCULATE SAVING AMOUNT
+            |--------------------------------------------------------------------------
+            */
+
+            if ($basis === 'EKOR') {
+
+                $amount =
+                    round(
+                        $totalQty * $rate,
+                        2
+                    );
+
+            } else {
+
+                $amount =
+                    round(
+                        $totalWeight * $rate,
+                        2
+                    );
+            }
+
+            if ($amount <= 0) {
+                continue;
             }
 
             $result[] = [

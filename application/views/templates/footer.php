@@ -22,16 +22,16 @@
       });
   });
 
-  function formatRupiah(val) {
-      if (val === null || val === undefined) return '0';
+//   function formatRupiah(val) {
+//       if (val === null || val === undefined) return '0';
 
-      // paksa jadi string dulu
-      val = val.toString();
+//       // paksa jadi string dulu
+//       val = val.toString();
 
-      return val
-          .replace(/[^0-9]/g, '')
-          .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  }
+//       return val
+//           .replace(/[^0-9]/g, '')
+//           .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+//   }
 
 </script>
 </body>

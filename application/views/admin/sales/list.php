@@ -594,7 +594,7 @@
                                 <!-- MODAL -->
                                 <!-- ====================================== -->
 
-                                <div class="col-md-4">
+                                <!-- <div class="col-md-4">
 
                                     <label
                                         class="form-label fw-semibold">
@@ -618,8 +618,7 @@
 
                                     </small>
 
-                                </div>
-
+                                </div> -->
 
                                 <!-- ====================================== -->
                                 <!-- BIAYA -->
@@ -940,20 +939,16 @@
 
                         <div class="card-body">
 
-
                             <p
                                 class="
                                     section-description
                                     mb-3
                                 ">
-
-                                Masukkan nominal tabungan customer
+                                Masukkan nominal tabungan per satuan
                                 dan pilih basis perhitungannya.
-                                Rate akan dihitung otomatis berdasarkan
-                                total ekor atau total berat Sales.
-
+                                Total saving akan dihitung otomatis
+                                berdasarkan total ekor atau total berat Sales.
                             </p>
-
 
                             <div class="table-responsive">
 
@@ -967,54 +962,31 @@
                                     "
                                     id="savingTableAdd">
 
-
                                     <thead>
-
                                         <tr>
 
-
-                                            <th
-                                                style="width:27%">
-
+                                            <th style="width:27%">
                                                 Customer
-
                                             </th>
 
-
-                                            <th
-                                                style="width:18%">
-
-                                                Saving Amount
-
-                                            </th>
-
-
-                                            <th
-                                                style="width:15%">
-
+                                            <th style="width:15%">
                                                 Basis
-
                                             </th>
 
-
-                                            <th
-                                                style="width:15%">
-
-                                                Rate
-
+                                            <th style="width:18%">
+                                                Saving / Satuan
                                             </th>
 
+                                            <th style="width:18%">
+                                                Total Saving
+                                            </th>
 
                                             <th>
-
                                                 Remark
-
                                             </th>
 
                                         </tr>
-
                                     </thead>
-
 
                                     <tbody>
 
@@ -1147,6 +1119,23 @@
 
                                     </div>
 
+                                    <!-- ================================== -->
+                                    <!-- MODAL / EKOR -->
+                                    <!-- ================================== -->
+
+                                    <div
+                                        class="
+                                            payment-row
+                                        ">
+                                        <span>
+                                            Modal / Ekor
+                                        </span>
+
+                                        <strong
+                                            id="modalPerEkorAdd">
+                                            Rp 0
+                                        </strong>
+                                    </div>
 
                                     <!-- ================================== -->
                                     <!-- BIAYA -->
@@ -1913,18 +1902,44 @@
                     '#customerAdd'
                 ),
 
+            /*
+            |--------------------------------------------------------------------------
+            | TOTAL SAVING
+            |--------------------------------------------------------------------------
+            */
+
             saving:
                 salesState.savingRowAdd
                     ? salesState.savingRowAdd.saving
                     : 0,
+
+            /*
+            |--------------------------------------------------------------------------
+            | BASIS
+            |--------------------------------------------------------------------------
+            */
 
             basis:
                 salesState.savingRowAdd
                     ? salesState.savingRowAdd.basis
                     : 'BERAT',
 
+            /*
+            |--------------------------------------------------------------------------
+            | RATE / SATUAN
+            |--------------------------------------------------------------------------
+            */
+
             rate:
-                0,
+                salesState.savingRowAdd
+                    ? salesState.savingRowAdd.rate
+                    : 0,
+
+            /*
+            |--------------------------------------------------------------------------
+            | REMARK
+            |--------------------------------------------------------------------------
+            */
 
             remark:
                 salesState.savingRowAdd
@@ -1932,7 +1947,7 @@
                     : ''
         };
 
-        updateSavingRateAdd();
+        recalcSavingAdd();
 
         renderSavingTableAdd();
 
@@ -1995,38 +2010,16 @@
             salesState.savingRowAdd;
 
         tbody.append(`
-
             <tr>
 
                 <!-- CUSTOMER -->
                 <td>
-
                     ${row.customer_name || '-'}
-
-                </td>
-
-
-                <!-- SAVING AMOUNT -->
-                <td>
-
-                    <input
-                        type="text"
-                        class="
-                            form-control
-                            rupiah-input
-                            saving-input-add
-                            text-end
-                        "
-                        value="${formatRupiah(
-                            row.saving || 0
-                        )}">
-
                 </td>
 
 
                 <!-- BASIS -->
                 <td>
-
                     <select
                         class="form-select saving-basis-add">
 
@@ -2035,9 +2028,7 @@
                             ${row.basis === 'EKOR'
                                 ? 'selected'
                                 : ''}>
-
                             EKOR
-
                         </option>
 
                         <option
@@ -2045,38 +2036,50 @@
                             ${row.basis === 'BERAT'
                                 ? 'selected'
                                 : ''}>
-
                             BERAT
-
                         </option>
 
                     </select>
-
                 </td>
 
 
-                <!-- RATE -->
+                <!-- SAVING / SATUAN -->
                 <td>
-
                     <input
                         type="text"
                         class="
                             form-control
+                            rupiah-input
                             saving-rate-add
                             text-end
-                            bg-light
                         "
                         value="${formatRupiah(
                             row.rate || 0
                         )}"
-                        readonly>
+                        placeholder="0">
+                </td>
 
+
+                <!-- TOTAL SAVING -->
+                <td>
+                    <input
+                        type="text"
+                        class="
+                            form-control
+                            saving-total-add
+                            text-end
+                            bg-light
+                            fw-bold
+                        "
+                        value="${formatRupiah(
+                            row.saving || 0
+                        )}"
+                        readonly>
                 </td>
 
 
                 <!-- REMARK -->
                 <td>
-
                     <input
                         type="text"
                         class="
@@ -2084,11 +2087,9 @@
                             saving-remark-add
                         "
                         value="${row.remark || ''}">
-
                 </td>
 
             </tr>
-
         `);
 
         $('#savingGrandTotalAdd')
@@ -2100,16 +2101,92 @@
             );
     }
 
-    function updateSavingRateAdd() {
+    // function updateSavingRateAdd() {
 
-        if (
-            !salesState.savingRowAdd
-        ) {
+    //     if (
+    //         !salesState.savingRowAdd
+    //     ) {
+    //         return;
+    //     }
+
+    //     let totalQty = 0;
+
+    //     let totalWeight = 0;
+
+    //     $('#salesDetailTableAdd tbody tr')
+    //         .each(function () {
+
+    //             totalQty +=
+    //                 parseDecimalID(
+    //                     $(this)
+    //                         .find('.jumlah')
+    //                         .val()
+    //                 );
+
+    //             totalWeight +=
+    //                 parseDecimalID(
+    //                     $(this)
+    //                         .find('.berat')
+    //                         .val()
+    //                 );
+
+    //         });
+
+    //     totalQty =
+    //         parseFloat(
+    //             totalQty.toFixed(2)
+    //         );
+
+    //     totalWeight =
+    //         parseFloat(
+    //             totalWeight.toFixed(2)
+    //         );
+
+    //     let saving =
+    //         parseRupiah(
+    //             salesState.savingRowAdd.saving || 0
+    //         );
+
+    //     let basis =
+    //         salesState.savingRowAdd.basis
+    //         || 'BERAT';
+
+    //     let denominator =
+    //         basis === 'EKOR'
+    //             ? totalQty
+    //             : totalWeight;
+
+    //     let rate = 0;
+
+    //     if (
+    //         denominator > 0
+    //         &&
+    //         saving > 0
+    //     ) {
+
+    //         rate =
+    //             Math.round(
+    //                 saving / denominator
+    //             );
+
+    //     }
+
+    //     salesState.savingRowAdd.rate =
+    //         rate;
+
+    //     $('#savingTableAdd .saving-rate-add')
+    //         .val(
+    //             formatRupiah(rate)
+    //         );
+    // }
+
+    function recalcSavingAdd()
+    {
+        if (!salesState.savingRowAdd) {
             return;
         }
 
         let totalQty = 0;
-
         let totalWeight = 0;
 
         $('#salesDetailTableAdd tbody tr')
@@ -2120,14 +2197,14 @@
                         $(this)
                             .find('.jumlah')
                             .val()
-                    );
+                    ) || 0;
 
                 totalWeight +=
                     parseDecimalID(
                         $(this)
                             .find('.berat')
                             .val()
-                    );
+                    ) || 0;
 
             });
 
@@ -2141,41 +2218,61 @@
                 totalWeight.toFixed(2)
             );
 
-        let saving =
+        let basis =
+            salesState
+                .savingRowAdd
+                .basis || 'BERAT';
+
+        let rate =
             parseRupiah(
-                salesState.savingRowAdd.saving || 0
+                salesState
+                    .savingRowAdd
+                    .rate || 0
             );
 
-        let basis =
-            salesState.savingRowAdd.basis
-            || 'BERAT';
-
-        let denominator =
+        let quantity =
             basis === 'EKOR'
                 ? totalQty
                 : totalWeight;
 
-        let rate = 0;
+        let totalSaving =
+            quantity * rate;
 
-        if (
-            denominator > 0
-            &&
-            saving > 0
-        ) {
+        totalSaving =
+            Math.round(
+                totalSaving
+            );
 
-            rate =
-                Math.round(
-                    saving / denominator
-                );
+        /*
+        |--------------------------------------------------------------------------
+        | SAVE STATE
+        |--------------------------------------------------------------------------
+        */
 
-        }
+        salesState
+            .savingRowAdd
+            .saving =
+                totalSaving;
 
-        salesState.savingRowAdd.rate =
-            rate;
+        /*
+        |--------------------------------------------------------------------------
+        | UPDATE TOTAL SAVING
+        |--------------------------------------------------------------------------
+        */
 
-        $('#savingTableAdd .saving-rate-add')
+        $('#savingGrandTotalAdd')
+            .text(
+                'Rp ' +
+                formatRupiah(
+                    totalSaving
+                )
+            );
+
+        $('#savingTableAdd .saving-total-add')
             .val(
-                formatRupiah(rate)
+                formatRupiah(
+                    totalSaving
+                )
             );
     }
 
@@ -2245,6 +2342,43 @@
         let baseSales =
             getSalesGrandTotalAdd();
 
+        let totalQty = 0;
+
+        $('#salesDetailTableAdd tbody tr')
+            .each(function () {
+
+                let qtyValue =
+                    $(this)
+                        .find('.jumlah')
+                        .val();
+
+                qtyValue =
+                    String(qtyValue || '')
+                        .trim()
+                        .replace(',', '.');
+
+                totalQty +=
+                    parseFloat(qtyValue) || 0;
+
+            });
+
+        totalQty =
+            parseFloat(
+                totalQty.toFixed(2)
+            );
+
+        
+
+        let modalPerEkor = 0;
+
+        if (totalQty > 0) {
+
+            modalPerEkor =
+                baseSales /
+                totalQty;
+
+        }
+
         let biaya =
             parseRupiah(
                 $('#biayaAdd').val() || 0
@@ -2287,6 +2421,21 @@
             +
             savingTotal;
 
+        console.log(
+            'FORMAT MODAL:',
+            formatRupiah(modalPerEkor)
+        );
+
+        console.log(
+            'MODAL ELEMENT COUNT:',
+            $('#modalPerEkorAdd').length
+        );
+
+        console.log(
+            'MODAL ELEMENT:',
+            $('#modalPerEkorAdd')[0]
+        );
+
         /*
         |--------------------------------------------------------------------------
         | BASE SALES
@@ -2298,6 +2447,20 @@
                 'Rp ' +
                 formatRupiah(
                     baseSales
+                )
+            );
+
+        /*
+        |--------------------------------------------------------------------------
+        | MODAL / EKOR
+        |--------------------------------------------------------------------------
+        */
+
+        $('#modalPerEkorAdd')
+            .text(
+                'Rp ' +
+                formatRupiah(
+                    modalPerEkor
                 )
             );
 
@@ -2356,14 +2519,6 @@
                     grandOutstanding
                 )
             );
-
-        /*
-        |--------------------------------------------------------------------------
-        | UPDATE RATE
-        |--------------------------------------------------------------------------
-        */
-
-        updateSavingRateAdd();
     }
 
     function refreshPaymentSummaryEdit() {
@@ -2420,13 +2575,17 @@
         }
 
         return [{
-
             CUSTOMER:
                 row.customer,
 
             SAVING_AMOUNT:
                 parseRupiah(
                     row.saving || 0
+                ),
+
+            SAVING_RATE:
+                parseRupiah(
+                    row.rate || 0
                 ),
 
             BASIS:
@@ -2436,7 +2595,6 @@
             REMARK:
                 row.remark
                 || ''
-
         }];
     }
 
@@ -4099,10 +4257,51 @@
                 });
 
             if (DETAIL.length === 0) {
-
                 alert('Detail item tidak boleh kosong');
-
                 return;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | CALCULATE MODAL / EKOR
+            |--------------------------------------------------------------------------
+            */
+
+            let baseSales = 0;
+            let totalEkor = 0;
+
+            DETAIL.forEach(function (row) {
+
+                baseSales +=
+                    parseFloat(
+                        row.TOTAL || 0
+                    );
+
+                totalEkor +=
+                    parseFloat(
+                        row.JUMLAH || 0
+                    );
+
+            });
+
+            baseSales =
+                Math.round(
+                    baseSales
+                );
+
+            totalEkor =
+                parseFloat(
+                    totalEkor.toFixed(2)
+                );
+
+            let modalPerEkor = 0;
+
+            if (totalEkor > 0) {
+
+                modalPerEkor =
+                    baseSales /
+                    totalEkor;
+
             }
 
             let formData = new FormData(this);
@@ -4136,9 +4335,7 @@
 
             formData.set(
                 'MODAL',
-                parseRupiah(
-                    $('#modalAdd').val() || 0
-                )
+                modalPerEkor
             );
 
             formData.set(
@@ -4484,15 +4681,20 @@
         return parseFloat(val) || 0;
     }
 
-    function formatRupiah(value){
+    function formatRupiah(value) {
 
-        value = parseFloat(value || 0);
+        value =
+            parseFloat(
+                value || 0
+            );
 
         if (isNaN(value)) {
             value = 0;
         }
 
-        value = Math.round(value).toString();
+        value =
+            Math.round(value)
+                .toString();
 
         return value.replace(
             /\B(?=(\d{3})+(?!\d))/g,
@@ -4553,7 +4755,7 @@
 
     $(document).on(
         'input',
-        '.saving-input-add',
+        '.saving-rate-add',
         function () {
 
             let val =
@@ -4573,17 +4775,12 @@
 
                 salesState
                     .savingRowAdd
-                    .saving = val;
+                    .rate =
+                        val;
 
             }
 
-            updateSavingRateAdd();
-
-            $('#savingGrandTotalAdd')
-                .text(
-                    'Rp ' +
-                    formatRupiah(val)
-                );
+            recalcSavingAdd();
 
             refreshPaymentSummaryAdd();
 
@@ -4606,7 +4803,7 @@
                 .basis =
                     $(this).val();
 
-            updateSavingRateAdd();
+            recalcSavingAdd();
 
             refreshPaymentSummaryAdd();
 
@@ -4679,15 +4876,14 @@
                 $(this).closest('tr');
 
             recalcRow(row);
-
-            updateSavingRateAdd();
-
+            recalcSavingAdd();
+            refreshPaymentSummaryAdd();
         }
     );
 
     $(document).on(
         'input',
-        '#modalAdd, #biayaAdd, #discountAdd, #roundingAdd',
+        '#biayaAdd, #discountAdd, #roundingAdd',
         function () {
 
             let val =

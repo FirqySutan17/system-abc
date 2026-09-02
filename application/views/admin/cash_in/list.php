@@ -4306,7 +4306,7 @@
                 $.ajax({
 
                     url:
-                        '<?= base_url("cashin/create"); ?>',
+                        '<?= base_url("cash-in/create"); ?>',
 
                     type:
                         'POST',
