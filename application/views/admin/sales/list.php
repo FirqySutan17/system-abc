@@ -1659,15 +1659,19 @@
 
                                         <tr>
 
-                                            <th width="30%" class="text-center">
+                                            <th width="25%" class="text-center">
                                                 MATERIAL
                                             </th>
 
-                                            <th width="15%" class="text-center">
+                                            <th width="12%" class="text-center">
+                                                BASIS
+                                            </th>
+
+                                            <th width="13%" class="text-center">
                                                 JUMLAH
                                             </th>
 
-                                            <th width="15%" class="text-center">
+                                            <th width="13%" class="text-center">
                                                 BERAT
                                             </th>
 
@@ -1727,8 +1731,10 @@
                                 <table class="table saving-table table-bordered align-middle" id="savingTableEdit">
                                     <thead>
                                         <tr>
-                                            <th style="width:35%">Customer</th>
-                                            <th style="width:20%">Saving Amount</th>
+                                            <th style="width:30%">Customer</th>
+                                            <th style="width:15%">Basis</th>
+                                            <th style="width:20%">Saving / Satuan</th>
+                                            <th style="width:20%">Total Saving</th>
                                             <th>Remark</th>
                                         </tr>
                                     </thead>
@@ -1750,50 +1756,135 @@
                             <i class="ti ti-cash-banknote me-2"></i>
                             PAYMENT SUMMARY
                         </div>
+
                         <div class="card-body">
+
                             <div class="table-responsive">
-                                <table class="table payment-table table-bordered align-middle" id="paymentSummaryTableEdit">
+                                <table
+                                    class="table payment-table table-bordered align-middle"
+                                    id="paymentSummaryTableEdit">
+
                                     <thead>
                                         <tr>
                                             <th style="width:40%">Customer</th>
-                                            <th class="text-end">Sales</th>
+                                            <th class="text-end">Sales Component</th>
                                             <th class="text-end">Saving</th>
-                                            <th class="text-end">Total Payment</th>
+                                            <th class="text-end">Grand Outstanding</th>
                                         </tr>
                                     </thead>
+
                                     <tbody></tbody>
+
                                 </table>
                             </div>
+
+
                             <div class="payment-footer mt-4">
+
                                 <div class="payment-summary-box">
+
+                                    <!-- BASE SALES -->
+                                    <div class="payment-row">
+                                        <span>Base Sales</span>
+                                        <strong id="grandSalesEdit">
+                                            Rp 0
+                                        </strong>
+                                    </div>
+
+
+                                    <!-- MODAL / EKOR -->
+                                    <div class="payment-row">
+                                        <span>Modal / Ekor</span>
+                                        <strong id="modalPerEkorEdit">
+                                            Rp 0
+                                        </strong>
+                                    </div>
+
+
+                                    <!-- BIAYA -->
+                                    <div class="payment-row">
+                                        <span>Biaya</span>
+
+                                        <div>
+                                            <input
+                                                id="biayaEdit"
+                                                type="text"
+                                                class="form-control rupiah-input text-end"
+                                                value="0">
+                                        </div>
+                                    </div>
+
+
+                                    <!-- DISCOUNT -->
                                     <div class="payment-row">
                                         <span>Discount</span>
+
                                         <div>
                                             <input
                                                 id="discountEdit"
                                                 type="text"
                                                 class="form-control rupiah-input text-end"
                                                 value="0">
-
-                                            <input type="hidden" id="grandSavingEditHidden"/>
-                                            
                                         </div>
                                     </div>
+
+
+                                    <!-- ROUNDING -->
                                     <div class="payment-row">
-                                        <span>Total Sales</span>
-                                        <strong id="grandSalesEdit">Rp 0</strong>
+                                        <span>Rounding</span>
+
+                                        <div>
+                                            <input
+                                                id="roundingEdit"
+                                                type="text"
+                                                class="form-control rupiah-input text-end"
+                                                value="0">
+                                        </div>
                                     </div>
+
+
+                                    <!-- SALES COMPONENT -->
+                                    <div class="payment-row">
+                                        <span>Sales Component</span>
+
+                                        <strong id="salesComponentEdit">
+                                            Rp 0
+                                        </strong>
+                                    </div>
+
+
+                                    <hr>
+
+
+                                    <!-- SAVING -->
                                     <div class="payment-row">
                                         <span>Total Saving</span>
-                                        <strong id="grandSavingEdit">Rp 0</strong>
+
+                                        <strong id="grandSavingEdit">
+                                            Rp 0
+                                        </strong>
                                     </div>
-                                    <hr>
+
+
+                                    <!-- GRAND OUTSTANDING -->
                                     <div class="payment-row payment-grand">
-                                        <span>Grand Payment</span>
-                                        <strong id="grandPaymentEdit">Rp 0</strong>
+                                        <span>Grand Outstanding</span>
+
+                                        <strong id="grandPaymentEdit">
+                                            Rp 0
+                                        </strong>
                                     </div>
+
+
+                                    <input
+                                        type="hidden"
+                                        id="grandSavingEditHidden"
+                                        value="0">
+
                                 </div>
+
                             </div>
+
                         </div>
                     </div>
 
@@ -1954,22 +2045,54 @@
         refreshPaymentSummaryAdd();
     }
 
-    function syncSavingRowEdit(customerId, customerName, savingAmount, remark) {
+    function syncSavingRowEdit(
+        customerId,
+        customerName,
+        savingAmount,
+        savingBasis,
+        savingRate,
+        remark
+    ) {
         if (!customerId) {
+
             salesState.savingRowEdit = null;
+
             renderSavingTableEdit();
+
             refreshPaymentSummaryEdit();
+
             return;
         }
 
         salesState.savingRowEdit = {
-            customer: customerId,
-            customer_name: customerName || customerId,
-            saving: parseFloat(savingAmount || 0),
-            remark: remark || ''
+
+            customer:
+                customerId,
+
+            customer_name:
+                customerName || customerId,
+
+            saving:
+                parseFloat(
+                    savingAmount || 0
+                ),
+
+            basis:
+                savingBasis || 'BERAT',
+
+            rate:
+                parseFloat(
+                    savingRate || 0
+                ),
+
+            remark:
+                remark || ''
         };
 
+        recalcSavingEdit();
+
         renderSavingTableEdit();
+
         refreshPaymentSummaryEdit();
     }
 
@@ -2276,45 +2399,200 @@
             );
     }
 
-    function renderSavingTableEdit() {
-        let tbody = $('#savingTableEdit tbody');
+    function renderSavingTableEdit()
+    {
+        let tbody =
+            $('#savingTableEdit tbody');
+
         tbody.empty();
 
         if (!salesState.savingRowEdit) {
+
             tbody.append(`
                 <tr>
-                    <td colspan="3" class="text-center text-muted py-3">
+                    <td
+                        colspan="5"
+                        class="text-center text-muted py-3">
                         Customer belum dipilih
                     </td>
                 </tr>
             `);
-            $('#savingGrandTotalEdit').text('Rp 0');
+
+            $('#savingGrandTotalEdit')
+                .text('Rp 0');
+
             return;
         }
 
-        let row = salesState.savingRowEdit;
+        let row =
+            salesState.savingRowEdit;
 
         tbody.append(`
             <tr>
-                <td>${row.customer_name}</td>
+
+                <!-- CUSTOMER -->
                 <td>
-                    <input
-                        type="text"
-                        class="form-control rupiah-input saving-input-edit text-end"
-                        value="${formatRupiah(row.saving)}">
+                    ${row.customer_name || '-'}
                 </td>
+
+                <!-- BASIS -->
+                <td>
+                    <select
+                        class="form-select saving-basis-edit">
+
+                        <option
+                            value="EKOR"
+                            ${row.basis === 'EKOR'
+                                ? 'selected'
+                                : ''}>
+                            EKOR
+                        </option>
+
+                        <option
+                            value="BERAT"
+                            ${row.basis === 'BERAT'
+                                ? 'selected'
+                                : ''}>
+                            BERAT
+                        </option>
+
+                    </select>
+                </td>
+
+                <!-- SAVING / SATUAN -->
                 <td>
                     <input
                         type="text"
-                        class="form-control saving-remark-edit"
+                        class="
+                            form-control
+                            rupiah-input
+                            saving-rate-edit
+                            text-end
+                        "
+                        value="${formatRupiah(
+                            row.rate || 0
+                        )}"
+                        placeholder="0">
+                </td>
+
+                <!-- TOTAL SAVING -->
+                <td>
+                    <input
+                        type="text"
+                        class="
+                            form-control
+                            saving-total-edit
+                            text-end
+                            bg-light
+                            fw-bold
+                        "
+                        value="${formatRupiah(
+                            row.saving || 0
+                        )}"
+                        readonly>
+                </td>
+
+                <!-- REMARK -->
+                <td>
+                    <input
+                        type="text"
+                        class="
+                            form-control
+                            saving-remark-edit
+                        "
                         value="${row.remark || ''}">
                 </td>
+
             </tr>
         `);
 
-        $('#savingGrandTotalEdit').text(
-            'Rp ' + formatRupiah(row.saving || 0)
-        );
+        $('#savingGrandTotalEdit')
+            .text(
+                'Rp ' +
+                formatRupiah(
+                    row.saving || 0
+                )
+            );
+    }
+
+    function recalcSavingEdit()
+    {
+        if (!salesState.savingRowEdit) {
+            return;
+        }
+
+        let totalQty = 0;
+        let totalWeight = 0;
+
+        $('#salesDetailTableEdit tbody tr')
+            .each(function () {
+
+                totalQty +=
+                    parseDecimalID(
+                        $(this)
+                            .find('.jumlah')
+                            .val()
+                    ) || 0;
+
+                totalWeight +=
+                    parseDecimalID(
+                        $(this)
+                            .find('.berat')
+                            .val()
+                    ) || 0;
+
+            });
+
+        totalQty =
+            parseFloat(
+                totalQty.toFixed(2)
+            );
+
+        totalWeight =
+            parseFloat(
+                totalWeight.toFixed(2)
+            );
+
+        let basis =
+            salesState.savingRowEdit.basis
+            || 'BERAT';
+
+        let rate =
+            parseRupiah(
+                salesState.savingRowEdit.rate
+                || 0
+            );
+
+        let quantity =
+            basis === 'EKOR'
+                ? totalQty
+                : totalWeight;
+
+        let totalSaving =
+            quantity * rate;
+
+        totalSaving =
+            Math.round(
+                totalSaving
+            );
+
+        salesState.savingRowEdit.saving =
+            totalSaving;
+
+        $('#savingGrandTotalEdit')
+            .text(
+                'Rp ' +
+                formatRupiah(
+                    totalSaving
+                )
+            );
+
+        $('#savingTableEdit .saving-total-edit')
+            .val(
+                formatRupiah(
+                    totalSaving
+                )
+            );
     }
 
     function getSalesGrandTotalAdd() {
@@ -2522,42 +2800,239 @@
     }
 
     function refreshPaymentSummaryEdit() {
-        let salesTotal = getSalesGrandTotalEdit();
-        let savingTotal = salesState.savingRowEdit
-            ? parseFloat(salesState.savingRowEdit.saving || 0)
-            : 0;
 
-        let tbody = $('#paymentSummaryTableEdit tbody');
+        /*
+        |--------------------------------------------------------------------------
+        | BASE SALES
+        |--------------------------------------------------------------------------
+        */
+
+        let baseSales =
+            getSalesGrandTotalEdit();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | TOTAL QTY
+        |--------------------------------------------------------------------------
+        */
+
+        let totalQty = 0;
+
+        $('#salesDetailTableEdit tbody tr')
+            .each(function () {
+
+                totalQty +=
+                    parseDecimalID(
+                        $(this)
+                            .find('.jumlah')
+                            .val()
+                    ) || 0;
+
+            });
+
+        totalQty =
+            parseFloat(
+                totalQty.toFixed(2)
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | MODAL / EKOR
+        |--------------------------------------------------------------------------
+        */
+
+        let modalPerEkor = 0;
+
+        if (totalQty > 0) {
+
+            modalPerEkor =
+                baseSales /
+                totalQty;
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | BIAYA
+        |--------------------------------------------------------------------------
+        */
+
+        let biaya =
+            parseRupiah(
+                $('#biayaEdit').val() || 0
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | DISCOUNT
+        |--------------------------------------------------------------------------
+        */
+
+        let discount =
+            parseRupiah(
+                $('#discountEdit').val() || 0
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | ROUNDING
+        |--------------------------------------------------------------------------
+        */
+
+        let rounding =
+            parseRupiah(
+                $('#roundingEdit').val() || 0
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SAVING
+        |--------------------------------------------------------------------------
+        */
+
+        let savingTotal =
+            salesState.savingRowEdit
+                ? parseRupiah(
+                    salesState.savingRowEdit.saving || 0
+                )
+                : 0;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SALES COMPONENT
+        |--------------------------------------------------------------------------
+        */
+
+        let salesComponent =
+            baseSales
+            +
+            biaya
+            -
+            discount
+            +
+            rounding;
+
+
+        if (salesComponent < 0) {
+
+            salesComponent = 0;
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | GRAND OUTSTANDING
+        |--------------------------------------------------------------------------
+        */
+
+        let grandOutstanding =
+            salesComponent
+            +
+            savingTotal;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PAYMENT TABLE
+        |--------------------------------------------------------------------------
+        */
+
+        let tbody =
+            $('#paymentSummaryTableEdit tbody');
+
         tbody.empty();
 
+
         if (!salesState.savingRowEdit) {
+
             tbody.append(`
                 <tr>
-                    <td colspan="4" class="text-center text-muted py-3">
+                    <td
+                        colspan="4"
+                        class="text-center text-muted py-3">
+
                         Customer belum dipilih
+
                     </td>
                 </tr>
             `);
+
         } else {
+
             tbody.append(`
                 <tr>
-                    <td>${salesState.savingRowEdit.customer_name}</td>
-                    <td class="text-end">${formatCurrencyID(salesTotal)}</td>
-                    <td class="text-end">${formatCurrencyID(savingTotal)}</td>
-                    <td class="text-end">${formatCurrencyID(salesTotal + savingTotal)}</td>
+
+                    <td>
+                        ${salesState.savingRowEdit.customer_name}
+                    </td>
+
+                    <td class="text-end">
+                        ${formatCurrencyID(salesComponent)}
+                    </td>
+
+                    <td class="text-end">
+                        ${formatCurrencyID(savingTotal)}
+                    </td>
+
+                    <td class="text-end">
+                        ${formatCurrencyID(grandOutstanding)}
+                    </td>
+
                 </tr>
             `);
+
         }
 
-        let discount = parseRupiah($('#discountEdit').val() || 0);
-        let grandPayment = salesTotal + savingTotal - discount;
-        console.log(grandPayment, discount, salesTotal, savingTotal);
 
-        $("#grandSavingEditHidden").val(savingTotal);
+        /*
+        |--------------------------------------------------------------------------
+        | SUMMARY DISPLAY
+        |--------------------------------------------------------------------------
+        */
 
-        $('#grandSalesEdit').text(formatCurrencyID(salesTotal));
-        $('#grandSavingEdit').text(formatCurrencyID(savingTotal));
-        $('#grandPaymentEdit').text(formatCurrencyID(grandPayment));
+        $('#grandSalesEdit')
+            .text(
+                formatCurrencyID(baseSales)
+            );
+
+
+        $('#modalPerEkorEdit')
+            .text(
+                formatCurrencyID(
+                    Math.round(modalPerEkor)
+                )
+            );
+
+
+        $('#salesComponentEdit')
+            .text(
+                formatCurrencyID(salesComponent)
+            );
+
+
+        $('#grandSavingEdit')
+            .text(
+                formatCurrencyID(savingTotal)
+            );
+
+
+        $('#grandPaymentEdit')
+            .text(
+                formatCurrencyID(grandOutstanding)
+            );
+
+
+        $('#grandSavingEditHidden')
+            .val(savingTotal);
+
     }
 
     function buildSavingPayload(mode)
@@ -3579,15 +4054,39 @@
 
     function recalcRowEdit(tr)
     {
-        let berat = parseNumber(
-            tr.find('.berat').val()
-        );
+        let basis =
+            tr.find('.calc-basis').val()
+            || 'BERAT';
 
-        let harga = parseNumber(
-            tr.find('.harga').val()
-        );
+        let jumlah =
+            parseNumber(
+                tr.find('.jumlah').val()
+            );
 
-        let total = berat * harga;
+        let berat =
+            parseNumber(
+                tr.find('.berat').val()
+            );
+
+        let harga =
+            parseNumber(
+                tr.find('.harga').val()
+            );
+
+        let total = 0;
+
+        if (basis === 'EKOR') {
+
+            total =
+                jumlah *
+                harga;
+
+        } else {
+
+            total =
+                berat *
+                harga;
+        }
 
         tr.find('.total').val(
             formatCurrencyID(total)
@@ -3643,21 +4142,53 @@
 
     $(document).on(
         'keyup change',
-        '#salesDetailTableEdit .jumlah, \
-        #salesDetailTableEdit .berat, \
-        #salesDetailTableEdit .harga',
+        '#salesDetailTableEdit .jumlah, ' +
+        '#salesDetailTableEdit .berat, ' +
+        '#salesDetailTableEdit .harga, ' +
+        '#salesDetailTableEdit .calc-basis',
         function(){
 
-            let tr = $(this).closest('tr');
+            let tr =
+                $(this).closest('tr');
 
             recalcRowEdit(tr);
+
+            recalcSavingEdit();
+
+            refreshPaymentSummaryEdit();
         }
     );
 
-    $(document).on('click', '.removeRow', function(){
-        $(this).closest('tr').remove();
-        recalcGrandTotal();
-    });
+    $(document).on(
+        'click',
+        '.removeRow',
+        function () {
+
+            let row =
+                $(this).closest('tr');
+
+            let table =
+                row.closest('table').attr('id');
+
+            row.remove();
+
+            if (
+                table === 'salesDetailTableEdit'
+            ) {
+
+                recalcGrandTotalEdit();
+
+                recalcSavingEdit();
+
+                refreshPaymentSummaryEdit();
+
+            } else {
+
+                recalcGrandTotal();
+
+            }
+        }
+    );
 
     $(document).on('change', '.method', function () {
         let row = $(this).closest('tr');
@@ -3979,14 +4510,38 @@
     {
         let tbody = $('#salesDetailTableEdit tbody');
 
+        let basis =
+            data.calc_basis ||
+            data.basis ||
+            'BERAT';
+
         let html = `
             <tr>
 
+                <!-- MATERIAL -->
                 <td>
                     <select class="form-select material-select"></select>
                     <div class="stock-preview mt-1"></div>
                 </td>
 
+                <!-- BASIS -->
+                <td>
+                    <select class="form-select calc-basis">
+                        <option
+                            value="EKOR"
+                            ${basis === 'EKOR' ? 'selected' : ''}>
+                            EKOR
+                        </option>
+
+                        <option
+                            value="BERAT"
+                            ${basis === 'BERAT' ? 'selected' : ''}>
+                            BERAT
+                        </option>
+                    </select>
+                </td>
+
+                <!-- JUMLAH -->
                 <td>
                     <input
                         type="text"
@@ -3995,6 +4550,7 @@
                         placeholder="0,00">
                 </td>
 
+                <!-- BERAT -->
                 <td>
                     <input
                         type="text"
@@ -4003,6 +4559,7 @@
                         placeholder="0,00">
                 </td>
 
+                <!-- HARGA -->
                 <td>
                     <input
                         type="text"
@@ -4011,6 +4568,7 @@
                         placeholder="0">
                 </td>
 
+                <!-- TOTAL -->
                 <td>
                     <input
                         type="text"
@@ -4019,16 +4577,13 @@
                         value="${formatCurrencyID(data.total || 0)}">
                 </td>
 
+                <!-- ACTION -->
                 <td class="text-center">
-
                     <button
                         type="button"
                         class="btn btn-danger btn-sm removeRow">
-
                         X
-
                     </button>
-
                 </td>
 
             </tr>
@@ -4038,69 +4593,119 @@
 
         let tr = tbody.find('tr').last();
 
-        let selectedPlant = $('#PLANT_EDIT').val() || '';
+        let selectedPlant =
+            $('#PLANT_EDIT').val() || '';
 
-        let $materialSelectEdit = tr.find('.material-select');
+        let $materialSelectEdit =
+            tr.find('.material-select');
 
         $materialSelectEdit.select2({
 
-            theme:'bootstrap-5',
+            theme: 'bootstrap-5',
 
-            width:'100%',
+            width: '100%',
 
-            dropdownParent: $('#salesEdit .modal-body'),
+            dropdownParent:
+                $('#salesEdit .modal-body'),
 
-            placeholder:'-- PILIH MATERIAL --',
+            placeholder:
+                '-- PILIH MATERIAL --',
 
-            minimumInputLength:2,
+            minimumInputLength: 2,
 
-            ajax:{
-                url:'<?= base_url("sales/get_material"); ?>',
-                dataType:'json',
-                delay:300,
-                data:params => ({
-                    q:params.term,
-                    plant:selectedPlant
+            ajax: {
+                url:
+                    '<?= base_url("sales/get_material"); ?>',
+
+                dataType: 'json',
+
+                delay: 300,
+
+                data: params => ({
+                    q: params.term,
+                    plant: selectedPlant
                 }),
-                processResults:data => ({
-                    results:data
+
+                processResults: data => ({
+                    results: data
                 })
             }
+
         });
 
-        $materialSelectEdit.on('select2:select', function (e) {
-            let data = e.params.data || {};
-            let $select = $(this);
-            let $option = $select.find('option[value="' + data.id + '"]');
+        $materialSelectEdit.on(
+            'select2:select',
+            function (e) {
 
-            if (!$option.length) {
-                $option = $(new Option(data.text, data.id, false, true));
-                $select.append($option);
+                let data =
+                    e.params.data || {};
+
+                let $select =
+                    $(this);
+
+                let $option =
+                    $select.find(
+                        'option[value="' +
+                        data.id +
+                        '"]'
+                    );
+
+                if (!$option.length) {
+
+                    $option =
+                        $(new Option(
+                            data.text,
+                            data.id,
+                            false,
+                            true
+                        ));
+
+                    $select.append(
+                        $option
+                    );
+                }
+
+                $option.attr(
+                    'data-bw',
+                    data.bw ?? ''
+                );
+
+                $option.attr(
+                    'data-qty',
+                    data.qty ?? ''
+                );
+
+                renderMaterialStockPreview(
+                    tr,
+                    selectedPlant,
+                    data.id
+                );
             }
+        );
 
-            $option.attr('data-bw', data.bw ?? '');
-            $option.attr('data-qty', data.qty ?? '');
-            renderMaterialStockPreview(tr, selectedPlant, data.id);
-        });
+        if (data.material) {
 
-        if(data.material){
-
-            let opt = new Option(
-                data.material_text,
-                data.material,
-                true,
-                true
-            );
+            let opt =
+                new Option(
+                    data.material_text,
+                    data.material,
+                    true,
+                    true
+                );
 
             tr.find('.material-select')
                 .append(opt)
                 .val(data.material)
                 .trigger('change');
 
-            renderMaterialStockPreview(tr, selectedPlant, data.material);
+            renderMaterialStockPreview(
+                tr,
+                selectedPlant,
+                data.material
+            );
         }
 
-        recalcGrandTotalEdit();
+        recalcRowEdit(tr);
     }
 
     function loadDefaultCustomer(selector) {
@@ -4481,6 +5086,10 @@
                         material: row.MATERIAL,
                         material_text:
                             row.MATERIAL + ' - ' + row.MATERIAL_NAME,
+
+                        calc_basis:
+                            row.CALC_BASIS || 'BERAT',
+
                         jumlah: row.JUMLAH,
                         berat: row.BERAT,
                         harga: row.HARGA,
@@ -4489,22 +5098,62 @@
                 });
 
                 let savingAmount = 0;
+                let savingBasis = 'BERAT';
+                let savingRate = 0;
                 let savingRemark = '';
 
                 if (resp.saving) {
-                    savingAmount = parseFloat(resp.saving.AMOUNT || 0);
-                    savingRemark = extractSavingRemark(resp.saving.REMARK || '');
+
+                    savingAmount =
+                        parseFloat(
+                            resp.saving.AMOUNT || 0
+                        );
+
+                    savingBasis =
+                        resp.saving.BASIS
+                        || 'BERAT';
+
+                    savingRate =
+                        parseFloat(
+                            resp.saving.RATE || 0
+                        );
+
+                    savingRemark =
+                        extractSavingRemark(
+                            resp.saving.REMARK || ''
+                        );
                 }
 
                 syncSavingRowEdit(
                     h.CUSTOMER,
                     h.CUSTOMER_NAME + ' - ' + h.CUSTOMER,
                     savingAmount,
+                    savingBasis,
+                    savingRate,
                     savingRemark
                 );
 
-                $('#discountEdit').val(formatRupiahEdit(h.DISCOUNT || 0));
-                $('#grandSavingEditHidden').val(formatRupiahEdit(savingAmount));
+                $('#biayaEdit').val(
+                    formatRupiahEdit(
+                        h.BIAYA || 0
+                    )
+                );
+
+                $('#discountEdit').val(
+                    formatRupiahEdit(
+                        h.DISCOUNT || 0
+                    )
+                );
+
+                $('#roundingEdit').val(
+                    formatRupiahEdit(
+                        h.ROUNDING || 0
+                    )
+                );
+
+                $('#grandSavingEditHidden').val(
+                    formatRupiahEdit(savingAmount)
+                );
 
                 refreshPaymentSummaryEdit();
 
@@ -4514,90 +5163,306 @@
         });
 
         $('#fsalesEdit').submit(function (e) {
+
             e.preventDefault();
 
             let DETAIL = [];
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | DETAIL
+            |--------------------------------------------------------------------------
+            */
+
             $('#salesDetailTableEdit tbody tr').each(function () {
 
-                let material = $(this)
-                    .find('.material-select')
-                    .val();
+                let material =
+                    $(this)
+                        .find('.material-select')
+                        .val();
 
-                let jumlah = parseDecimalID(
-                    $(this).find('.jumlah').val()
-                );
 
-                let berat = parseDecimalID(
-                    $(this).find('.berat').val()
-                );
+                let calcBasis =
+                    $(this)
+                        .find('.calc-basis')
+                        .val();
 
-                let harga = parseRupiah(
-                    $(this).find('.harga').val()
-                );
 
-                let total = parseRupiah(
-                    $(this).find('.total').val()
-                );
+                let jumlah =
+                    parseDecimalID(
+                        $(this)
+                            .find('.jumlah')
+                            .val()
+                    );
+
+
+                let berat =
+                    parseDecimalID(
+                        $(this)
+                            .find('.berat')
+                            .val()
+                    );
+
+
+                let harga =
+                    parseRupiah(
+                        $(this)
+                            .find('.harga')
+                            .val()
+                    );
+
+
+                let total =
+                    parseRupiah(
+                        $(this)
+                            .find('.total')
+                            .val()
+                    );
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | VALIDATION
+                |--------------------------------------------------------------------------
+                */
 
                 if (!material) {
                     return;
                 }
 
+
+                if (
+                    !['EKOR', 'BERAT']
+                        .includes(calcBasis)
+                ) {
+
+                    alert(
+                        'Basis perhitungan harus dipilih.'
+                    );
+
+                    throw 'invalid';
+
+                }
+
+
+                if (jumlah <= 0) {
+
+                    alert(
+                        'Jumlah/Ekor wajib diisi.'
+                    );
+
+                    throw 'invalid';
+
+                }
+
+
+                if (berat <= 0) {
+
+                    alert(
+                        'Berat wajib diisi.'
+                    );
+
+                    throw 'invalid';
+
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | PUSH DETAIL
+                |--------------------------------------------------------------------------
+                */
+
                 DETAIL.push({
 
-                    MATERIAL : material,
+                    MATERIAL:
+                        material,
 
-                    JUMLAH : jumlah,
+                    CALC_BASIS:
+                        calcBasis,
 
-                    BERAT : berat,
+                    JUMLAH:
+                        jumlah,
 
-                    HARGA : harga,
+                    BERAT:
+                        berat,
 
-                    TOTAL : total
+                    HARGA:
+                        harga,
+
+                    TOTAL:
+                        total
+
                 });
+
             });
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | VALIDATION DETAIL
+            |--------------------------------------------------------------------------
+            */
+
             if (!DETAIL.length) {
-                alert('Detail tidak boleh kosong');
+
+                alert(
+                    'Detail tidak boleh kosong'
+                );
+
                 return;
+
             }
 
-            let formData = new FormData(this);
-            formData.append('SALES', $('#SALES_EDIT').val());
-            formData.append('BAYAR_AWAL', $('#BAYAR_AWAL_EDIT').val());
-            formData.append('CUSTOMER', $('#hiddenCustomerEdit').val());
-            formData.append('DETAIL', JSON.stringify(DETAIL));
-            formData.append(
-                'SAVINGS',
-                JSON.stringify(buildSavingPayload('edit'))
+
+            /*
+            |--------------------------------------------------------------------------
+            | FORM DATA
+            |--------------------------------------------------------------------------
+            */
+
+            let formData =
+                new FormData(this);
+
+
+            formData.set(
+                'SALES',
+                $('#SALES_EDIT').val()
             );
+
+
+            formData.set(
+                'BAYAR_AWAL',
+                $('#BAYAR_AWAL_EDIT').val()
+            );
+
+
+            formData.set(
+                'CUSTOMER',
+                $('#hiddenCustomerEdit').val()
+            );
+
+
+            formData.set(
+                'DETAIL',
+                JSON.stringify(DETAIL)
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | SAVING
+            |--------------------------------------------------------------------------
+            */
+
+            formData.set(
+                'SAVINGS',
+                JSON.stringify(
+                    buildSavingPayload('edit')
+                )
+            );
+
 
             formData.set(
                 'TOTAL_SAVING_EDIT',
-                parseRupiah($('#grandSavingEditHidden').val() || 0)
+                parseRupiah(
+                    $('#grandSavingEditHidden').val() || 0
+                )
             );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | BIAYA
+            |--------------------------------------------------------------------------
+            */
+
+            formData.set(
+                'BIAYA',
+                parseRupiah(
+                    $('#biayaEdit').val() || 0
+                )
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | DISCOUNT
+            |--------------------------------------------------------------------------
+            */
 
             formData.set(
                 'DISCOUNT',
-                parseRupiah($('#discountEdit').val() || 0)
+                parseRupiah(
+                    $('#discountEdit').val() || 0
+                )
             );
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | ROUNDING
+            |--------------------------------------------------------------------------
+            */
+
+            formData.set(
+                'ROUNDING',
+                parseRupiah(
+                    $('#roundingEdit').val() || 0
+                )
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | AJAX
+            |--------------------------------------------------------------------------
+            */
+
             $.ajax({
-                url: '<?= base_url("sales/update"); ?>',
-                method: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                dataType: 'json',
-                success: function (resp) {
-                    alert(resp.message);
-                    if (resp.status) {
-                        $('#salesEdit').modal('hide');
-                        loadPage(state.page);
+
+                url:
+                    '<?= base_url("sales/update"); ?>',
+
+                method:
+                    'POST',
+
+                data:
+                    formData,
+
+                processData:
+                    false,
+
+                contentType:
+                    false,
+
+                dataType:
+                    'json',
+
+                success:
+                    function (resp) {
+
+                        alert(
+                            resp.message
+                        );
+
+
+                        if (resp.status) {
+
+                            $('#salesEdit')
+                                .modal('hide');
+
+                            loadPage(
+                                state.page
+                            );
+
+                        }
+
                     }
-                }
+
             });
+
         });
 
         $(document).on(
@@ -4835,29 +5700,94 @@
         }
     );
 
-    $(document).on('input', '.saving-input-edit', function () {
-        let val = parseRupiah($(this).val());
-        $(this).val(formatRupiah(val));
+    $(document).on(
+        'input',
+        '.saving-rate-edit',
+        function () {
 
-        if (salesState.savingRowEdit) {
-            salesState.savingRowEdit.saving = val;
+            let val =
+                parseRupiah(
+                    $(this).val()
+                );
+
+            $(this).val(
+                formatRupiah(val)
+            );
+
+            if (
+                salesState.savingRowEdit
+            ) {
+
+                salesState
+                    .savingRowEdit
+                    .rate = val;
+
+            }
+
+            recalcSavingEdit();
+
+            refreshPaymentSummaryEdit();
         }
+    );
 
-        $('#savingGrandTotalEdit').text('Rp ' + formatRupiah(val));
-        refreshPaymentSummaryEdit();
-    });
+    $(document).on(
+        'change',
+        '.saving-basis-edit',
+        function () {
 
-    $(document).on('input', '#discountEdit', function () {
-        let val = parseRupiah($(this).val());
-        $(this).val(formatRupiah(val));
-        refreshPaymentSummaryEdit();
-    });
+            if (
+                !salesState.savingRowEdit
+            ) {
+                return;
+            }
 
-    $(document).on('input', '.saving-remark-edit', function () {
-        if (salesState.savingRowEdit) {
-            salesState.savingRowEdit.remark = $(this).val();
+            salesState
+                .savingRowEdit
+                .basis =
+                    $(this).val();
+
+            recalcSavingEdit();
+
+            refreshPaymentSummaryEdit();
         }
-    });
+    );
+
+    $(document).on(
+        'input',
+        '#biayaEdit, #discountEdit, #roundingEdit',
+        function () {
+
+            let val =
+                parseRupiah(
+                    $(this).val()
+                );
+
+            $(this).val(
+                formatRupiah(val)
+            );
+
+            refreshPaymentSummaryEdit();
+
+        }
+    );
+
+    $(document).on(
+        'input',
+        '.saving-remark-edit',
+        function () {
+
+            if (
+                salesState.savingRowEdit
+            ) {
+
+                salesState
+                    .savingRowEdit
+                    .remark =
+                        $(this).val();
+
+            }
+        }
+    );
 
     $(document).on('input','#BAYAR_AWAL_EDIT', function(){
         let val = parseRupiah($(this).val());

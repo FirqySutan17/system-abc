@@ -784,7 +784,9 @@ class Sales_model extends CI_Model {
 
                 s.ATTACHMENT_TYPE,
 
+                s.BIAYA,
                 s.DISCOUNT,
+                s.ROUNDING,
 
                 cc.CODE_NAME AS PLANT_NAME
 
@@ -833,6 +835,8 @@ class Sales_model extends CI_Model {
                 d.MATERIAL,
 
                 m.MATERIAL_NAME,
+
+                d.CALC_BASIS,
 
                 d.JUMLAH,
 

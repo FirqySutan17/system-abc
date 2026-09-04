@@ -2321,26 +2321,26 @@ class Sales extends MY_Controller {
         $username = $this->session
             ->userdata('username');
 
+
         /*
         |--------------------------------------------------------------------------
-        | VALIDATION
+        | VALIDATION SALES / PLANT
         |--------------------------------------------------------------------------
         */
 
         if (
-            $sales == '' ||
-            $plant == ''
+            $sales === '' ||
+            $plant === ''
         ) {
 
             echo json_encode([
-
                 'status' => false,
-
                 'message' => 'Sales / Plant tidak valid'
             ]);
 
             return;
         }
+
 
         /*
         |--------------------------------------------------------------------------
@@ -2354,14 +2354,14 @@ class Sales extends MY_Controller {
         ) {
 
             echo json_encode([
-
                 'status' => false,
-
-                'message' => 'Customer dan Tanggal wajib diisi'
+                'message' =>
+                    'Customer dan Tanggal wajib diisi'
             ]);
 
             return;
         }
+
 
         /*
         |--------------------------------------------------------------------------
@@ -2369,23 +2369,24 @@ class Sales extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
-        $header = $this->Sales_model
-            ->get_sales_header(
-                $sales,
-                $plant
-            );
+        $header =
+            $this->Sales_model
+                ->get_sales_header(
+                    $sales,
+                    $plant
+                );
 
         if (!$header) {
 
             echo json_encode([
-
                 'status' => false,
-
-                'message' => 'Data sales tidak ditemukan'
+                'message' =>
+                    'Data sales tidak ditemukan'
             ]);
 
             return;
         }
+
 
         /*
         |--------------------------------------------------------------------------
@@ -2393,144 +2394,453 @@ class Sales extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
-        $detailRows = json_decode(
-            $data['DETAIL'] ?? '[]',
-            true
-        );
+        $detailRows =
+            json_decode(
+                $data['DETAIL'] ?? '[]',
+                true
+            );
 
-        if (empty($detailRows)) {
+        if (
+            !is_array($detailRows) ||
+            empty($detailRows)
+        ) {
 
             echo json_encode([
-
                 'status' => false,
-
-                'message' => 'Detail item tidak boleh kosong'
+                'message' =>
+                    'Detail item tidak boleh kosong'
             ]);
 
             return;
         }
 
+
         /*
         |--------------------------------------------------------------------------
-        | REVERSE OLD STOCK
+        | FINANCIAL INPUT
         |--------------------------------------------------------------------------
         */
 
-        $oldDetailRows = $this->Sales_model
-            ->get_sales_detail_rows($plant, $sales);
+        $biaya =
+            round(
+                (float) str_replace(
+                    ',',
+                    '',
+                    $data['BIAYA'] ?? 0
+                ),
+                2
+            );
+
+        $discount =
+            round(
+                (float) str_replace(
+                    ',',
+                    '',
+                    $data['DISCOUNT'] ?? 0
+                ),
+                2
+            );
+
+        $rounding =
+            round(
+                (float) str_replace(
+                    ',',
+                    '',
+                    $data['ROUNDING'] ?? 0
+                ),
+                2
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDATION FINANCIAL INPUT
+        |--------------------------------------------------------------------------
+        */
+
+        if ($biaya < 0) {
+
+            echo json_encode([
+                'status' => false,
+                'message' =>
+                    'Biaya tidak boleh negatif'
+            ]);
+
+            return;
+        }
+
+
+        if ($discount < 0) {
+
+            echo json_encode([
+                'status' => false,
+                'message' =>
+                    'Discount tidak boleh negatif'
+            ]);
+
+            return;
+        }
+
+
+        if ($rounding < 0) {
+
+            echo json_encode([
+                'status' => false,
+                'message' =>
+                    'Pembulatan tidak boleh negatif'
+            ]);
+
+            return;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PAYMENT TYPE
+        |--------------------------------------------------------------------------
+        */
+
+        $jenisPay =
+            strtoupper(
+                trim(
+                    $data['JENIS_PAY_EDIT']
+                    ?? $data['JENIS_PAY']
+                    ?? 'LUNAS'
+                )
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | GET OLD DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        $oldDetailRows =
+            $this->Sales_model
+                ->get_sales_detail_rows(
+                    $plant,
+                    $sales
+                );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | REVERSE OLD STOCK ROWS
+        |--------------------------------------------------------------------------
+        */
 
         $reverseStockRows = [];
 
-        foreach ($oldDetailRows as $oldRow) {
+        foreach (
+            $oldDetailRows
+            as $oldRow
+        ) {
+
             $reverseStockRows[] = [
-                'PLANT' => $plant,
-                'MATERIAL' => $oldRow['MATERIAL'],
-                'QTY_OUT' => (float)($oldRow['JUMLAH'] ?? 0),
-                'BW_OUT' => (float)($oldRow['BERAT'] ?? 0)
+
+                'PLANT' =>
+                    $plant,
+
+                'MATERIAL' =>
+                    $oldRow['MATERIAL'],
+
+                'QTY_OUT' =>
+                    (float) (
+                        $oldRow['JUMLAH']
+                        ?? 0
+                    ),
+
+                'BW_OUT' =>
+                    (float) (
+                        $oldRow['BERAT']
+                        ?? 0
+                    )
             ];
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | TRANSACTION
-        |--------------------------------------------------------------------------
-        */
-
-        $this->db->trans_start();
 
         /*
         |--------------------------------------------------------------------------
-        | DETAIL LOOP
+        | DETAIL CALCULATION
         |--------------------------------------------------------------------------
         */
 
-        $rows  = [];
+        $rows = [];
 
-        $seq   = 1;
+        $seq = 1;
 
-        $grand = 0;
+        $baseSales = 0;
 
-        foreach ($detailRows as $row) {
+        $totalQty = 0;
 
-            $material = trim(
-                $row['MATERIAL'] ?? ''
-            );
+        $totalWeight = 0;
 
-            if ($material == '') {
-                continue;
-            }
 
-            $jumlah = (float) str_replace(
-                ',',
-                '',
-                $row['JUMLAH'] ?? 0
-            );
-
-            $berat = (float) str_replace(
-                ',',
-                '',
-                $row['BERAT'] ?? 0
-            );
-
-            $harga = (float) str_replace(
-                ',',
-                '',
-                $row['HARGA'] ?? 0
-            );
+        foreach (
+            $detailRows
+            as $row
+        ) {
 
             /*
             |--------------------------------------------------------------------------
-            | VALIDATION DETAIL
+            | MATERIAL
+            |--------------------------------------------------------------------------
+            */
+
+            $material =
+                trim(
+                    $row['MATERIAL']
+                    ?? ''
+                );
+
+
+            if ($material === '') {
+                continue;
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | NUMERIC VALUES
+            |--------------------------------------------------------------------------
+            */
+
+            $jumlah =
+                (float) str_replace(
+                    ',',
+                    '',
+                    $row['JUMLAH']
+                    ?? 0
+                );
+
+            $berat =
+                (float) str_replace(
+                    ',',
+                    '',
+                    $row['BERAT']
+                    ?? 0
+                );
+
+            $harga =
+                (float) str_replace(
+                    ',',
+                    '',
+                    $row['HARGA']
+                    ?? 0
+                );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | CALCULATION BASIS
+            |--------------------------------------------------------------------------
+            */
+
+            $calcBasis =
+                strtoupper(
+                    trim(
+                        $row['CALC_BASIS']
+                        ?? ''
+                    )
+                );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | VALIDATION BASIS
+            |--------------------------------------------------------------------------
+            */
+
+            if (
+                !in_array(
+                    $calcBasis,
+                    [
+                        'EKOR',
+                        'BERAT'
+                    ],
+                    true
+                )
+            ) {
+
+                echo json_encode([
+                    'status' => false,
+                    'message' =>
+                        'Basis perhitungan detail material ' .
+                        $material .
+                        ' harus EKOR atau BERAT'
+                ]);
+
+                return;
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | VALIDATION JUMLAH
+            |--------------------------------------------------------------------------
+            */
+
+            if ($jumlah <= 0) {
+
+                echo json_encode([
+                    'status' => false,
+                    'message' =>
+                        'Jumlah/Ekor harus lebih dari 0 untuk material ' .
+                        $material
+                ]);
+
+                return;
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | VALIDATION BERAT
             |--------------------------------------------------------------------------
             */
 
             if ($berat <= 0) {
-                continue;
+
+                echo json_encode([
+                    'status' => false,
+                    'message' =>
+                        'Berat harus lebih dari 0 untuk material ' .
+                        $material
+                ]);
+
+                return;
             }
+
 
             /*
             |--------------------------------------------------------------------------
-            | TOTAL
+            | VALIDATION HARGA
             |--------------------------------------------------------------------------
             */
 
-            $total = $berat * $harga;
+            if ($harga < 0) {
 
-            $grand += $total;
+                echo json_encode([
+                    'status' => false,
+                    'message' =>
+                        'Harga tidak boleh negatif untuk material ' .
+                        $material
+                ]);
+
+                return;
+            }
+
 
             /*
             |--------------------------------------------------------------------------
-            | DETAIL ARRAY
+            | TOTAL QTY / WEIGHT
+            |--------------------------------------------------------------------------
+            */
+
+            $totalQty +=
+                $jumlah;
+
+            $totalWeight +=
+                $berat;
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | CALCULATE DETAIL TOTAL
+            |--------------------------------------------------------------------------
+            */
+
+            if ($calcBasis === 'EKOR') {
+
+                $total =
+                    round(
+                        $jumlah * $harga,
+                        2
+                    );
+
+            } else {
+
+                $total =
+                    round(
+                        $berat * $harga,
+                        2
+                    );
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | BASE SALES
+            |--------------------------------------------------------------------------
+            */
+
+            $baseSales +=
+                $total;
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | DETAIL ROW
             |--------------------------------------------------------------------------
             */
 
             $rows[] = [
 
-                'PLANT'      => $plant,
+                'PLANT' =>
+                    $plant,
 
-                'SALES'      => $sales,
+                'SALES' =>
+                    $sales,
 
-                'SEQ_NO'     => $seq++,
+                'SEQ_NO' =>
+                    $seq++,
 
-                'CUSTOMER'   => trim(
-                    $data['CUSTOMER']
-                ),
+                'CUSTOMER' =>
+                    trim(
+                        $data['CUSTOMER']
+                    ),
 
-                'MATERIAL'   => $material,
+                'MATERIAL' =>
+                    $material,
 
-                'JUMLAH'     => $jumlah,
+                /*
+                | Legacy METHOD
+                | Tidak digunakan
+                */
 
-                'BERAT'      => $berat,
+                'METHOD' =>
+                    null,
 
-                'HARGA'      => $harga,
+                /*
+                | Calculation basis
+                */
 
-                'TOTAL'      => $total,
+                'CALC_BASIS' =>
+                    $calcBasis,
 
-                'CREATED_AT' => date('Y-m-d H:i:s'),
+                'JUMLAH' =>
+                    $jumlah,
 
-                'CREATED_BY' => $username
+                'BERAT' =>
+                    $berat,
+
+                'HARGA' =>
+                    $harga,
+
+                'TOTAL' =>
+                    $total,
+
+                'CREATED_AT' =>
+                    date(
+                        'Y-m-d H:i:s'
+                    ),
+
+                'CREATED_BY' =>
+                    $username
             ];
         }
+
 
         /*
         |--------------------------------------------------------------------------
@@ -2540,52 +2850,226 @@ class Sales extends MY_Controller {
 
         if (empty($rows)) {
 
-            $this->db->trans_rollback();
-
             echo json_encode([
-
                 'status' => false,
-
-                'message' => 'Detail sales tidak valid'
+                'message' =>
+                    'Detail sales tidak valid'
             ]);
 
             return;
         }
 
+
         /*
         |--------------------------------------------------------------------------
-        | PAYMENT
+        | NEW STOCK ROWS
         |--------------------------------------------------------------------------
         */
 
-        $jenisPay = strtoupper(
-            trim(
-                $data['JENIS_PAY_EDIT'] ?? 'LUNAS'
-            )
-        );
+        $newStockRows = [];
 
-        if ($jenisPay === 'TEMPO') {
+        foreach (
+            $rows
+            as $row
+        ) {
 
-            $status = 'OPEN';
+            $newStockRows[] = [
 
-            $dp = 0;
+                'PLANT' =>
+                    $row['PLANT'],
 
-            $remain = $grand;
+                'MATERIAL' =>
+                    $row['MATERIAL'],
+
+                'QTY_OUT' =>
+                    (float) (
+                        $row['JUMLAH']
+                        ?? 0
+                    ),
+
+                'BW_OUT' =>
+                    (float) (
+                        $row['BERAT']
+                        ?? 0
+                    )
+            ];
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | CALCULATE MODAL / EKOR
+        |--------------------------------------------------------------------------
+        */
+
+        if ($totalQty > 0) {
+
+            $modal =
+                round(
+                    $baseSales /
+                    $totalQty,
+                    2
+                );
 
         } else {
 
-            /*
-            |--------------------------------------------------------------------------
-            | LUNAS
-            |--------------------------------------------------------------------------
-            */
-
-            $status = 'PAID';
-
-            $dp = $grand;
-
-            $remain = 0;
+            $modal = 0;
         }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PARSE SAVING
+        |--------------------------------------------------------------------------
+        */
+
+        try {
+
+            $savings =
+                $this->parseSavingPayload(
+                    $data['SAVINGS'] ?? '[]',
+                    trim(
+                        $data['CUSTOMER']
+                    ),
+                    $totalQty,
+                    $totalWeight
+                );
+
+            if (!is_array($savings)) {
+                $savings = [];
+            }
+
+        } catch (Exception $e) {
+
+            echo json_encode([
+                'status' => false,
+                'message' =>
+                    $e->getMessage()
+            ]);
+
+            return;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | TOTAL SAVING
+        |--------------------------------------------------------------------------
+        */
+
+        $totalSaving = 0;
+
+        foreach (
+            $savings
+            as $saving
+        ) {
+
+            $totalSaving +=
+                (float) (
+                    $saving['SAVING_AMOUNT']
+                    ?? 0
+                );
+        }
+
+        $totalSaving =
+            round(
+                $totalSaving,
+                2
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SALES COMPONENT
+        |--------------------------------------------------------------------------
+        |
+        | Base Sales
+        | + Biaya
+        | - Discount
+        | + Rounding
+        |
+        */
+
+        $salesComponent =
+            round(
+                $baseSales
+                +
+                $biaya
+                -
+                $discount
+                +
+                $rounding,
+                2
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDATE SALES COMPONENT
+        |--------------------------------------------------------------------------
+        */
+
+        if ($salesComponent < 0) {
+
+            echo json_encode([
+                'status' => false,
+                'message' =>
+                    'Total Sales setelah Discount tidak boleh negatif'
+            ]);
+
+            return;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | GRAND AMOUNT
+        |--------------------------------------------------------------------------
+        */
+
+        $grandAmount =
+            round(
+                $salesComponent
+                +
+                $totalSaving,
+                2
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PAYMENT STATUS
+        |--------------------------------------------------------------------------
+        |
+        | TEMPO:
+        | REMAIN = Sales Component
+        |
+        | LUNAS:
+        | REMAIN = 0
+        |
+        | Saving memiliki REMAIN sendiri.
+        |
+        */
+
+        if (
+            $jenisPay === 'TEMPO'
+        ) {
+
+            $status =
+                'OPEN';
+
+            $remain =
+                $salesComponent;
+
+        } else {
+
+            $status =
+                'PAID';
+
+            $remain =
+                0;
+        }
+
 
         /*
         |--------------------------------------------------------------------------
@@ -2593,49 +3077,109 @@ class Sales extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
-        $grand = $grand + $data['TOTAL_SAVING_EDIT'];
-
         $headerUpdate = [
 
-            'CUSTOMER' => trim(
-                $data['CUSTOMER']
-            ),
+            'CUSTOMER' =>
+                trim(
+                    $data['CUSTOMER']
+                ),
 
-            'SALES_DATE' => date(
-                'Y-m-d H:i:s',
-                strtotime(
-                    $data['SALES_DATE']
-                )
-            ),
+            'SALES_DATE' =>
+                date(
+                    'Y-m-d H:i:s',
+                    strtotime(
+                        $data['SALES_DATE']
+                    )
+                ),
 
-            'PEMBAYARAN' => trim(
-                $data['PEMBAYARAN_EDIT']
-            ),
+            'PEMBAYARAN' =>
+                trim(
+                    $data['PEMBAYARAN_EDIT']
+                    ?? $data['PEMBAYARAN']
+                    ?? ''
+                ),
 
-            'JENIS_PAY' => $jenisPay,
+            'JENIS_PAY' =>
+                $jenisPay,
 
-            'NOTA' => trim(
-                $data['NOTA'] ?? ''
-            ),
+            'NOTA' =>
+                trim(
+                    $data['NOTA']
+                    ?? ''
+                ),
 
-            'REMARK' => trim(
-                $data['REMARK'] ?? ''
-            ),
+            'REMARK' =>
+                trim(
+                    $data['REMARK']
+                    ?? ''
+                ),
 
-            'AMOUNT' => $grand,
+            /*
+            |--------------------------------------------------------------------------
+            | FINAL AMOUNT
+            |--------------------------------------------------------------------------
+            */
 
-            'DISCOUNT' => $data['DISCOUNT'] ?? 0,
+            'AMOUNT' =>
+                $grandAmount,
 
-            'DP_AMOUNT' => $dp,
+            /*
+            |--------------------------------------------------------------------------
+            | INTERNAL FINANCIAL
+            |--------------------------------------------------------------------------
+            */
 
-            'REMAIN' => $remain,
+            'MODAL' =>
+                $modal,
 
-            'STATUS' => $status,
+            'BIAYA' =>
+                $biaya,
 
-            'UPDATED_AT' => date('Y-m-d H:i:s'),
+            'DISCOUNT' =>
+                $discount,
 
-            'UPDATED_BY' => $username
+            'ROUNDING' =>
+                $rounding,
+
+            /*
+            |--------------------------------------------------------------------------
+            | LEGACY DP
+            |--------------------------------------------------------------------------
+            */
+
+            'DP_AMOUNT' =>
+                0,
+
+            /*
+            |--------------------------------------------------------------------------
+            | SALES COMPONENT ONLY
+            |--------------------------------------------------------------------------
+            */
+
+            'REMAIN' =>
+                $remain,
+
+            'STATUS' =>
+                $status,
+
+            'UPDATED_AT' =>
+                date(
+                    'Y-m-d H:i:s'
+                ),
+
+            'UPDATED_BY' =>
+                $username
         ];
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | TRANSACTION
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->trans_start();
+
 
         /*
         |--------------------------------------------------------------------------
@@ -2645,13 +3189,16 @@ class Sales extends MY_Controller {
 
         if (
             isset($_FILES['ATTACHMENT']) &&
-            !empty($_FILES['ATTACHMENT']['name'])
+            !empty(
+                $_FILES['ATTACHMENT']['name']
+            )
         ) {
 
             $uploadPath =
                 FCPATH .
                 'uploads/sales/' .
-                date('Y') . '/' .
+                date('Y') .
+                '/' .
                 $plant;
 
             if (!is_dir($uploadPath)) {
@@ -2665,42 +3212,52 @@ class Sales extends MY_Controller {
 
             $config = [
 
-                'upload_path' => $uploadPath,
+                'upload_path' =>
+                    $uploadPath,
 
                 'allowed_types' =>
                     'jpg|jpeg|png|pdf|doc|docx|xls|xlsx',
 
-                'max_size' => 5120,
+                'max_size' =>
+                    5120,
 
                 'file_name' =>
-                    $sales . '_' . time(),
+                    $sales .
+                    '_' .
+                    time(),
 
-                'overwrite' => false
+                'overwrite' =>
+                    false
             ];
+
 
             $this->load->library(
                 'upload',
                 $config
             );
 
+
             if (
                 !$this->upload
-                    ->do_upload('ATTACHMENT')
+                    ->do_upload(
+                        'ATTACHMENT'
+                    )
             ) {
 
                 $this->db->trans_rollback();
 
                 echo json_encode([
-
                     'status' => false,
-
-                    'message' => strip_tags(
-                        $this->upload->display_errors()
-                    )
+                    'message' =>
+                        strip_tags(
+                            $this->upload
+                                ->display_errors()
+                        )
                 ]);
 
                 return;
             }
+
 
             /*
             |--------------------------------------------------------------------------
@@ -2719,27 +3276,45 @@ class Sales extends MY_Controller {
                     $header['ATTACHMENT_PATH'];
 
                 if (
-                    file_exists($oldFile)
+                    file_exists(
+                        $oldFile
+                    )
                 ) {
 
-                    unlink($oldFile);
+                    unlink(
+                        $oldFile
+                    );
                 }
             }
 
-            $file = $this->upload->data();
 
-            $headerUpdate['ATTACHMENT_NAME']
-                = $file['client_name'];
+            $file =
+                $this->upload->data();
 
-            $headerUpdate['ATTACHMENT_PATH']
-                = 'uploads/sales/' .
-                date('Y') . '/' .
-                $plant . '/' .
+
+            $headerUpdate[
+                'ATTACHMENT_NAME'
+            ] =
+                $file['client_name'];
+
+
+            $headerUpdate[
+                'ATTACHMENT_PATH'
+            ] =
+                'uploads/sales/' .
+                date('Y') .
+                '/' .
+                $plant .
+                '/' .
                 $file['file_name'];
 
-            $headerUpdate['ATTACHMENT_TYPE']
-                = $file['file_type'];
+
+            $headerUpdate[
+                'ATTACHMENT_TYPE'
+            ] =
+                $file['file_type'];
         }
+
 
         /*
         |--------------------------------------------------------------------------
@@ -2747,12 +3322,26 @@ class Sales extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
-        $this->Sales_model
-            ->update_sales_header(
-                $plant,
-                $sales,
-                $headerUpdate
-            );
+        if (
+            !$this->Sales_model
+                ->update_sales_header(
+                    $plant,
+                    $sales,
+                    $headerUpdate
+                )
+        ) {
+
+            $this->db->trans_rollback();
+
+            echo json_encode([
+                'status' => false,
+                'message' =>
+                    'Gagal update header sales'
+            ]);
+
+            return;
+        }
+
 
         /*
         |--------------------------------------------------------------------------
@@ -2761,10 +3350,82 @@ class Sales extends MY_Controller {
         */
 
         if (!empty($reverseStockRows)) {
-            $this->Sales_model->delete_company_stock_card_by_reference($sales, 'SALES');
-            $this->Sales_model->restore_company_stock_for_sales($reverseStockRows, $username);
-            $this->Sales_model->insert_company_stock_card_reversal($reverseStockRows, $sales, 'SALES', $header['SALES_DATE'], $username);
+
+            /*
+            | Soft delete old stock card
+            */
+
+            if (
+                !$this->Sales_model
+                    ->delete_company_stock_card_by_reference(
+                        $sales,
+                        'SALES'
+                    )
+            ) {
+
+                $this->db->trans_rollback();
+
+                echo json_encode([
+                    'status' => false,
+                    'message' =>
+                        'Gagal membatalkan kartu stock Sales'
+                ]);
+
+                return;
+            }
+
+
+            /*
+            | Restore company stock
+            */
+
+            if (
+                !$this->Sales_model
+                    ->restore_company_stock_for_sales(
+                        $reverseStockRows,
+                        $username
+                    )
+            ) {
+
+                $this->db->trans_rollback();
+
+                echo json_encode([
+                    'status' => false,
+                    'message' =>
+                        'Gagal mengembalikan stock Sales'
+                ]);
+
+                return;
+            }
+
+
+            /*
+            | Insert reversal stock card
+            */
+
+            if (
+                !$this->Sales_model
+                    ->insert_company_stock_card_reversal(
+                        $reverseStockRows,
+                        $sales,
+                        'SALES',
+                        $header['SALES_DATE'],
+                        $username
+                    )
+            ) {
+
+                $this->db->trans_rollback();
+
+                echo json_encode([
+                    'status' => false,
+                    'message' =>
+                        'Gagal mencatat reversal kartu stock'
+                ]);
+
+                return;
+            }
         }
+
 
         /*
         |--------------------------------------------------------------------------
@@ -2772,57 +3433,98 @@ class Sales extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
-        $this->Sales_model
-            ->delete_sales_detail(
-                $plant,
-                $sales
-            );
+        if (
+            !$this->Sales_model
+                ->delete_sales_detail(
+                    $plant,
+                    $sales
+                )
+        ) {
+
+            $this->db->trans_rollback();
+
+            echo json_encode([
+                'status' => false,
+                'message' =>
+                    'Gagal menghapus detail Sales lama'
+            ]);
+
+            return;
+        }
+
 
         /*
         |--------------------------------------------------------------------------
-        | NEW STOCK VALIDATION
+        | VALIDATE NEW STOCK
         |--------------------------------------------------------------------------
         */
 
-        $newStockRows = [];
+        foreach (
+            $newStockRows
+            as $stockRow
+        ) {
 
-        foreach ($rows as $row) {
-            $newStockRows[] = [
-                'PLANT' => $row['PLANT'],
-                'MATERIAL' => $row['MATERIAL'],
-                'QTY_OUT' => (float)($row['JUMLAH'] ?? 0),
-                'BW_OUT' => (float)($row['BERAT'] ?? 0)
-            ];
-        }
+            $stock =
+                $this->Sales_model
+                    ->get_company_stock(
+                        $stockRow['PLANT'],
+                        $stockRow['MATERIAL']
+                    );
 
-        foreach ($newStockRows as $stockRow) {
-            $stock = $this->Sales_model->get_company_stock($stockRow['PLANT'], $stockRow['MATERIAL']);
-
-            if (($stock['STATUS'] ?? '') === 'NOT_FOUND') {
-                $this->db->trans_rollback();
-
-                echo json_encode([
-                    'status' => false,
-                    'message' => 'Stok tidak ditemukan untuk material ' . $stockRow['MATERIAL']
-                ]);
-
-                return;
-            }
 
             if (
-                (float)($stock['QTY'] ?? 0) < (float)($stockRow['QTY_OUT'] ?? 0) ||
-                (float)($stock['BW'] ?? 0) < (float)($stockRow['BW_OUT'] ?? 0)
+                ($stock['STATUS'] ?? '')
+                === 'NOT_FOUND'
             ) {
+
                 $this->db->trans_rollback();
 
                 echo json_encode([
                     'status' => false,
-                    'message' => 'Stok tidak mencukupi untuk material ' . $stockRow['MATERIAL']
+                    'message' =>
+                        'Stok tidak ditemukan untuk material ' .
+                        $stockRow['MATERIAL']
+                ]);
+
+                return;
+            }
+
+
+            if (
+                (float) (
+                    $stock['QTY']
+                    ?? 0
+                )
+                <
+                (float) (
+                    $stockRow['QTY_OUT']
+                    ?? 0
+                )
+                ||
+                (float) (
+                    $stock['BW']
+                    ?? 0
+                )
+                <
+                (float) (
+                    $stockRow['BW_OUT']
+                    ?? 0
+                )
+            ) {
+
+                $this->db->trans_rollback();
+
+                echo json_encode([
+                    'status' => false,
+                    'message' =>
+                        'Stok tidak mencukupi untuk material ' .
+                        $stockRow['MATERIAL']
                 ]);
 
                 return;
             }
         }
+
 
         /*
         |--------------------------------------------------------------------------
@@ -2830,10 +3532,24 @@ class Sales extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
-        $this->Sales_model
-            ->insert_sales_detail_batch(
-                $rows
-            );
+        if (
+            !$this->Sales_model
+                ->insert_sales_detail_batch(
+                    $rows
+                )
+        ) {
+
+            $this->db->trans_rollback();
+
+            echo json_encode([
+                'status' => false,
+                'message' =>
+                    'Gagal menyimpan detail Sales'
+            ]);
+
+            return;
+        }
+
 
         /*
         |--------------------------------------------------------------------------
@@ -2841,8 +3557,54 @@ class Sales extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
-        $this->Sales_model->update_company_stock_for_sales($newStockRows, $username);
-        $this->Sales_model->insert_company_stock_card($newStockRows, $sales, 'SALES', $header['SALES_DATE'], $username);
+        if (
+            !$this->Sales_model
+                ->update_company_stock_for_sales(
+                    $newStockRows,
+                    $username
+                )
+        ) {
+
+            $this->db->trans_rollback();
+
+            echo json_encode([
+                'status' => false,
+                'message' =>
+                    'Gagal mengurangi stock Sales'
+            ]);
+
+            return;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | INSERT NEW STOCK CARD
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            !$this->Sales_model
+                ->insert_company_stock_card(
+                    $newStockRows,
+                    $sales,
+                    'SALES',
+                    $headerUpdate['SALES_DATE'],
+                    $username
+                )
+        ) {
+
+            $this->db->trans_rollback();
+
+            echo json_encode([
+                'status' => false,
+                'message' =>
+                    'Gagal mencatat kartu stock Sales'
+            ]);
+
+            return;
+        }
+
 
         /*
         |--------------------------------------------------------------------------
@@ -2852,31 +3614,60 @@ class Sales extends MY_Controller {
 
         try {
 
-            $this->Sales_model->delete_saving_by_sales(
-                $sales,
-                $plant,
-                $username
-            );
-
-            $savings = $this->parseSavingPayload(
-                $data['SAVINGS'] ?? '[]',
-                trim($data['CUSTOMER'])
-            );
-
-            $savingRows = $this->buildSavingRecords(
-                $sales,
-                $plant,
-                trim($data['CUSTOMER']),
-                $headerUpdate['SALES_DATE'],
-                $savings,
-                $username
-            );
+            /*
+            | Soft delete old Saving
+            */
 
             if (
-                !empty($savingRows) &&
-                !$this->Sales_model->insert_saving_batch($savingRows)
+                !$this->Sales_model
+                    ->delete_saving_by_sales(
+                        $sales,
+                        $plant,
+                        $username
+                    )
             ) {
-                throw new Exception('Gagal menyimpan data Saving');
+
+                throw new Exception(
+                    'Gagal menghapus Saving lama'
+                );
+            }
+
+
+            /*
+            | Build new Saving
+            */
+
+            $savingRows =
+                $this->buildSavingRecords(
+                    $sales,
+                    $plant,
+                    trim(
+                        $data['CUSTOMER']
+                    ),
+                    $headerUpdate['SALES_DATE'],
+                    $savings,
+                    $totalQty,
+                    $totalWeight,
+                    $username
+                );
+
+
+            /*
+            | Insert new Saving
+            */
+
+            if (
+                !empty($savingRows)
+                &&
+                !$this->Sales_model
+                    ->insert_saving_batch(
+                        $savingRows
+                    )
+            ) {
+
+                throw new Exception(
+                    'Gagal menyimpan data Saving'
+                );
             }
 
         } catch (Exception $e) {
@@ -2884,16 +3675,18 @@ class Sales extends MY_Controller {
             $this->db->trans_rollback();
 
             echo json_encode([
-                'status'  => false,
-                'message' => $e->getMessage()
+                'status' => false,
+                'message' =>
+                    $e->getMessage()
             ]);
 
             return;
         }
 
+
         /*
         |--------------------------------------------------------------------------
-        | COMMIT
+        | TRANSACTION STATUS
         |--------------------------------------------------------------------------
         */
 
@@ -2905,22 +3698,34 @@ class Sales extends MY_Controller {
             $this->db->trans_rollback();
 
             echo json_encode([
-
                 'status' => false,
-
-                'message' => 'Gagal update sales'
+                'message' =>
+                    'Gagal update sales'
             ]);
 
             return;
         }
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | COMMIT
+        |--------------------------------------------------------------------------
+        */
+
         $this->db->trans_commit();
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | RESPONSE
+        |--------------------------------------------------------------------------
+        */
+
         echo json_encode([
-
             'status' => true,
-
-            'message' => 'Sales berhasil diupdate'
+            'message' =>
+                'Sales berhasil diupdate'
         ]);
     }
 
