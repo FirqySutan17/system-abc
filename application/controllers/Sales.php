@@ -160,55 +160,123 @@ class Sales extends MY_Controller {
 
         $html = '<ul class="pagination pagination-sm mb-0">';
 
-        $range = 2; // jumlah halaman kiri & kanan dari halaman aktif
-        $start = max(1, $current - $range);
-        $end   = min($pages, $current + $range);
+        $range = 2;
+
+        $start = max(
+            1,
+            $current - $range
+        );
+
+        $end = min(
+            $pages,
+            $current + $range
+        );
 
         // ===== PREV BUTTON =====
         if ($current > 1) {
-            $html .= '<li class="page-item">
-                        <a class="page-link" href="javascript:void(0)" onclick="loadPage('.($current-1).')">«</a>
-                    </li>';
+
+            $html .= '
+                <li class="page-item">
+                    <a
+                        class="page-link"
+                        href="javascript:void(0)"
+                        onclick="loadPage('.($current - 1).')"
+                    >
+                        «
+                    </a>
+                </li>
+            ';
         }
 
         // ===== FIRST PAGE + DOTS =====
         if ($start > 1) {
-            $html .= '<li class="page-item">
-                        <a class="page-link" href="javascript:void(0)" onclick="loadPage(1)">1</a>
-                    </li>';
+
+            $html .= '
+                <li class="page-item">
+                    <a
+                        class="page-link"
+                        href="javascript:void(0)"
+                        onclick="loadPage(1)"
+                    >
+                        1
+                    </a>
+                </li>
+            ';
 
             if ($start > 2) {
-                $html .= '<li class="page-item disabled"><span class="page-link">…</span></li>';
+
+                $html .= '
+                    <li class="page-item disabled">
+                        <span class="page-link">…</span>
+                    </li>
+                ';
             }
         }
 
         // ===== MIDDLE PAGES =====
         for ($i = $start; $i <= $end; $i++) {
-            $active = ($i == $current) ? 'active' : '';
-            $html .= '<li class="page-item '.$active.'">
-                        <a class="page-link" href="javascript:void(0)" onclick="loadPage('.$i.')">'.$i.'</a>
-                    </li>';
+
+            $active =
+                ($i == $current)
+                ? 'active'
+                : '';
+
+            $html .= '
+                <li class="page-item '.$active.'">
+                    <a
+                        class="page-link"
+                        href="javascript:void(0)"
+                        onclick="loadPage('.$i.')"
+                    >
+                        '.$i.'
+                    </a>
+                </li>
+            ';
         }
 
         // ===== LAST PAGE + DOTS =====
         if ($end < $pages) {
+
             if ($end < $pages - 1) {
-                $html .= '<li class="page-item disabled"><span class="page-link">…</span></li>';
+
+                $html .= '
+                    <li class="page-item disabled">
+                        <span class="page-link">…</span>
+                    </li>
+                ';
             }
 
-            $html .= '<li class="page-item">
-                        <a class="page-link" href="javascript:void(0)" onclick="loadPage('.$pages.')">'.$pages.'</a>
-                    </li>';
+            $html .= '
+                <li class="page-item">
+                    <a
+                        class="page-link"
+                        href="javascript:void(0)"
+                        onclick="loadPage('.$pages.')"
+                    >
+                        '.$pages.'
+                    </a>
+                </li>
+            ';
         }
 
         // ===== NEXT BUTTON =====
         if ($current < $pages) {
-            $html .= '<li class="page-item">
-                        <a class="page-link" href="javascript:void(0)" onclick="loadPage('.($current+1).')">»</a>
-                    </li>';
+
+            $html .= '
+                <li class="page-item">
+                    <a
+                        class="page-link"
+                        href="javascript:void(0)"
+                        onclick="loadPage('.($current + 1).')"
+                    >
+                        »
+                    </a>
+                </li>
+            ';
         }
 
         $html .= '</ul>';
+
         return $html;
     }
 
@@ -1752,11 +1820,10 @@ class Sales extends MY_Controller {
         $totalWeight = 0
     )
     {
-        $rows =
-            json_decode(
-                $raw ?? '[]',
-                true
-            );
+        $rows = json_decode(
+            $raw,
+            true
+        );
 
         if (!is_array($rows)) {
             return [];
@@ -1766,118 +1833,144 @@ class Sales extends MY_Controller {
 
         foreach ($rows as $row) {
 
-            $cust =
-                trim(
-                    $row['CUSTOMER']
-                    ?? ''
-                );
-
-            if (
-                $cust === ''
-                ||
-                $cust !== $customer
-            ) {
+            if (!is_array($row)) {
                 continue;
             }
 
             /*
             |--------------------------------------------------------------------------
-            | SAVING BASIS
+            | CUSTOMER
             |--------------------------------------------------------------------------
             */
 
-            $basis =
-                strtoupper(
-                    trim(
-                        $row['BASIS']
-                        ?? ''
-                    )
-                );
+            $rowCustomer = trim(
+                (string)($row['CUSTOMER'] ?? $customer)
+            );
 
-            if (
-                !in_array(
-                    $basis,
-                    [
-                        'EKOR',
-                        'BERAT'
-                    ],
-                    true
-                )
-            ) {
+            if ($rowCustomer === '') {
+                $rowCustomer = $customer;
+            }
 
+            if ($rowCustomer !== $customer) {
                 throw new Exception(
-                    'Basis Saving harus EKOR atau BERAT'
+                    'Customer Saving tidak sesuai dengan Customer Sales.'
                 );
             }
 
             /*
             |--------------------------------------------------------------------------
-            | SAVING RATE
+            | BASIS
             |--------------------------------------------------------------------------
             */
 
-            $rate =
-                round(
-                    $this->parseDecimalID(
-                        $row['SAVING_RATE']
-                        ?? 0
-                    ),
-                    2
+            $basis = strtoupper(
+                trim(
+                    (string)($row['BASIS'] ?? '')
+                )
+            );
+
+            if (!in_array(
+                $basis,
+                ['EKOR', 'BERAT', 'BON'],
+                true
+            )) {
+                throw new Exception(
+                    'Basis Saving tidak valid.'
                 );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | RATE
+            |--------------------------------------------------------------------------
+            */
+
+            $rate = $this->parseDecimalID(
+                $row['SAVING_RATE'] ?? 0
+            );
 
             if ($rate < 0) {
-
                 throw new Exception(
-                    'Saving rate tidak boleh negatif'
+                    'Saving Rate tidak boleh negatif.'
                 );
-            }
-
-            if ($rate <= 0) {
-                continue;
             }
 
             /*
             |--------------------------------------------------------------------------
-            | CALCULATE SAVING AMOUNT
+            | AMOUNT
             |--------------------------------------------------------------------------
             */
+
+            $amount = 0;
 
             if ($basis === 'EKOR') {
 
                 $amount =
-                    round(
-                        $totalQty * $rate,
-                        2
-                    );
+                    (float)$totalQty *
+                    (float)$rate;
+
+            } elseif ($basis === 'BERAT') {
+
+                $amount =
+                    (float)$totalWeight *
+                    (float)$rate;
 
             } else {
 
-                $amount =
-                    round(
-                        $totalWeight * $rate,
-                        2
-                    );
+                /*
+                |--------------------------------------------------------------------------
+                | BON
+                |--------------------------------------------------------------------------
+                | BON menggunakan nominal Saving yang diinput user.
+                */
+
+                $amount = $this->parseDecimalID(
+                    $row['SAVING_AMOUNT'] ?? 0
+                );
             }
+
+            if ($amount < 0) {
+                throw new Exception(
+                    'Total Saving tidak boleh negatif.'
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | SKIP ZERO
+            |--------------------------------------------------------------------------
+            */
 
             if ($amount <= 0) {
                 continue;
             }
 
+            /*
+            |--------------------------------------------------------------------------
+            | RESULT
+            |--------------------------------------------------------------------------
+            */
+
             $result[] = [
 
                 'CUSTOMER' =>
-                    $cust,
+                    $rowCustomer,
 
                 'SAVING_AMOUNT' =>
                     $amount,
+
+                'SAVING_RATE' =>
+                    $rate,
 
                 'BASIS' =>
                     $basis,
 
                 'REMARK' =>
                     trim(
-                        $row['REMARK']
-                        ?? ''
+                        (string)(
+                            $row['REMARK']
+                            ?? ''
+                        )
                     )
             ];
         }
@@ -1902,85 +1995,6 @@ class Sales extends MY_Controller {
 
         /*
         |--------------------------------------------------------------------------
-        | TOTAL SAVING
-        |--------------------------------------------------------------------------
-        */
-
-        $amount =
-            round(
-                array_sum(
-                    array_column(
-                        $savings,
-                        'SAVING_AMOUNT'
-                    )
-                ),
-                2
-            );
-
-        if ($amount <= 0) {
-            return [];
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | BASIS SAVING
-        |--------------------------------------------------------------------------
-        |
-        | Satu Sales hanya boleh menggunakan satu basis Saving.
-        |
-        */
-
-        $basisList = [];
-
-        foreach ($savings as $saving) {
-
-            $basis =
-                strtoupper(
-                    trim(
-                        $saving['BASIS']
-                        ?? ''
-                    )
-                );
-
-            if (
-                !in_array(
-                    $basis,
-                    [
-                        'EKOR',
-                        'BERAT'
-                    ],
-                    true
-                )
-            ) {
-
-                throw new Exception(
-                    'Basis Saving harus EKOR atau BERAT'
-                );
-            }
-
-            $basisList[] = $basis;
-        }
-
-        $basisList =
-            array_values(
-                array_unique(
-                    $basisList
-                )
-            );
-
-        if (count($basisList) > 1) {
-
-            throw new Exception(
-                'Dalam satu Sales, basis Saving harus sama'
-            );
-        }
-
-        $basis =
-            $basisList[0]
-            ?? null;
-
-        /*
-        |--------------------------------------------------------------------------
         | TOTAL QTY / WEIGHT
         |--------------------------------------------------------------------------
         */
@@ -1997,59 +2011,6 @@ class Sales extends MY_Controller {
                 2
             );
 
-        if ($basis === 'EKOR') {
-
-            if ($totalQty <= 0) {
-
-                throw new Exception(
-                    'Total ekor tidak valid untuk perhitungan Saving'
-                );
-            }
-
-            $rate =
-                round(
-                    $amount / $totalQty,
-                    2
-                );
-
-        } else {
-
-            if ($totalWeight <= 0) {
-
-                throw new Exception(
-                    'Total berat tidak valid untuk perhitungan Saving'
-                );
-            }
-
-            $rate =
-                round(
-                    $amount / $totalWeight,
-                    2
-                );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | USER REMARK
-        |--------------------------------------------------------------------------
-        */
-
-        $remarks =
-            array_filter(
-                array_column(
-                    $savings,
-                    'REMARK'
-                )
-            );
-
-        $userRemark =
-            !empty($remarks)
-                ? implode(
-                    '; ',
-                    $remarks
-                )
-                : '';
-
         /*
         |--------------------------------------------------------------------------
         | SYSTEM REMARK
@@ -2060,90 +2021,263 @@ class Sales extends MY_Controller {
             'AUTO FROM SALES ' .
             $salesNo;
 
-        $finalRemark =
-            $userRemark !== ''
-                ? $userRemark .
-                    ' | ' .
-                    $systemRemark
-                : $systemRemark;
+        /*
+        |--------------------------------------------------------------------------
+        | GENERATE FIRST SAVING NO
+        |--------------------------------------------------------------------------
+        |
+        | Karena semua row akan di-insert menggunakan insert_batch(),
+        | generate_saving_no() tidak boleh dipanggil berulang kali
+        | sebelum insert karena bisa menghasilkan nomor yang sama.
+        |
+        */
+
+        $firstSvNo =
+            $this->Sales_model
+                ->generate_saving_no();
+
+        $svPrefix =
+            substr(
+                $firstSvNo,
+                0,
+                -4
+            );
+
+        $svSeq =
+            (int)substr(
+                $firstSvNo,
+                -4
+            );
+
+        $records = [];
 
         /*
         |--------------------------------------------------------------------------
-        | SAVING RECORD
+        | BUILD SAVING RECORD PER ROW
         |--------------------------------------------------------------------------
         */
 
-        return [[
+        foreach ($savings as $saving) {
 
-            'SV_NO' =>
-                $this->Sales_model
-                    ->generate_saving_no(),
-
-            'PLANT' =>
-                $plant,
-
-            'SV_DATE' =>
-                date(
-                    'Y-m-d',
-                    strtotime(
-                        $salesDate
+            $basis =
+                strtoupper(
+                    trim(
+                        (string)(
+                            $saving['BASIS']
+                            ?? ''
+                        )
                     )
-                ),
+                );
 
-            'CUSTOMER' =>
-                $customer,
-
-            'RELATED' =>
-                'SALES',
-
-            'RECEIVE' =>
-                null,
-
-            'SALES' =>
-                $salesNo,
-
-            /*
-            | Total Saving
-            */
-            'AMOUNT' =>
-                $amount,
-
-            /*
-            | New Saving metadata
-            */
-            'BASIS' =>
+            if (!in_array(
                 $basis,
-
-            'RATE' =>
-                $rate,
-
-            'TOTAL_QTY' =>
-                $totalQty,
-
-            'TOTAL_WEIGHT' =>
-                $totalWeight,
+                [
+                    'EKOR',
+                    'BERAT',
+                    'BON'
+                ],
+                true
+            )) {
+                throw new Exception(
+                    'Basis Saving tidak valid.'
+                );
+            }
 
             /*
-            | Current outstanding Saving
+            |--------------------------------------------------------------------------
+            | AMOUNT
+            |--------------------------------------------------------------------------
             */
-            'REMAIN' =>
-                $amount,
 
-            'REMARK' =>
-                $finalRemark,
+            $amount =
+                round(
+                    (float)(
+                        $saving['SAVING_AMOUNT']
+                        ?? 0
+                    ),
+                    2
+                );
 
-            'STATUS' =>
-                'OPEN',
+            if ($amount <= 0) {
+                continue;
+            }
 
-            'CREATED_AT' =>
-                date(
-                    'Y-m-d H:i:s'
-                ),
+            /*
+            |--------------------------------------------------------------------------
+            | RATE
+            |--------------------------------------------------------------------------
+            */
 
-            'CREATED_BY' =>
-                $username
+            if ($basis === 'EKOR') {
 
-        ]];
+                if ($totalQty <= 0) {
+
+                    throw new Exception(
+                        'Total ekor tidak valid untuk perhitungan Saving.'
+                    );
+                }
+
+                $rate =
+                    round(
+                        $amount / $totalQty,
+                        2
+                    );
+
+            } elseif ($basis === 'BERAT') {
+
+                if ($totalWeight <= 0) {
+
+                    throw new Exception(
+                        'Total berat tidak valid untuk perhitungan Saving.'
+                    );
+                }
+
+                $rate =
+                    round(
+                        $amount / $totalWeight,
+                        2
+                    );
+
+            } else {
+
+                /*
+                |--------------------------------------------------------------------------
+                | BON
+                |--------------------------------------------------------------------------
+                |
+                | BON menggunakan nominal langsung.
+                | Tidak memiliki rate per ekor / per kg.
+                |
+                */
+
+                $rate = 0;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | USER REMARK
+            |--------------------------------------------------------------------------
+            */
+
+            $userRemark =
+                trim(
+                    (string)(
+                        $saving['REMARK']
+                        ?? ''
+                    )
+                );
+
+            $finalRemark =
+                $userRemark !== ''
+                    ? $userRemark .
+                        ' | ' .
+                        $systemRemark
+                    : $systemRemark;
+
+            /*
+            |--------------------------------------------------------------------------
+            | SAVING NO
+            |--------------------------------------------------------------------------
+            */
+
+            $svNo =
+                $svPrefix .
+                str_pad(
+                    $svSeq,
+                    4,
+                    '0',
+                    STR_PAD_LEFT
+                );
+
+            $svSeq++;
+
+            /*
+            |--------------------------------------------------------------------------
+            | RECORD
+            |--------------------------------------------------------------------------
+            */
+
+            $records[] = [
+
+                'SV_NO' =>
+                    $svNo,
+
+                'PLANT' =>
+                    $plant,
+
+                'SV_DATE' =>
+                    date(
+                        'Y-m-d',
+                        strtotime(
+                            $salesDate
+                        )
+                    ),
+
+                'CUSTOMER' =>
+                    $customer,
+
+                'RELATED' =>
+                    'SALES',
+
+                'RECEIVE' =>
+                    null,
+
+                'SALES' =>
+                    $salesNo,
+
+                /*
+                |--------------------------------------------------------------------------
+                | Saving amount per row
+                |--------------------------------------------------------------------------
+                */
+
+                'AMOUNT' =>
+                    $amount,
+
+                /*
+                |--------------------------------------------------------------------------
+                | Saving metadata
+                |--------------------------------------------------------------------------
+                */
+
+                'BASIS' =>
+                    $basis,
+
+                'RATE' =>
+                    $rate,
+
+                'TOTAL_QTY' =>
+                    $totalQty,
+
+                'TOTAL_WEIGHT' =>
+                    $totalWeight,
+
+                /*
+                |--------------------------------------------------------------------------
+                | Current outstanding Saving
+                |--------------------------------------------------------------------------
+                */
+
+                'REMAIN' =>
+                    $amount,
+
+                'REMARK' =>
+                    $finalRemark,
+
+                'STATUS' =>
+                    'OPEN',
+
+                'CREATED_AT' =>
+                    date(
+                        'Y-m-d H:i:s'
+                    ),
+
+                'CREATED_BY' =>
+                    $username
+            ];
+        }
+
+        return $records;
     }
 
     private function parseDecimalID($value)
@@ -4080,6 +4214,12 @@ class Sales extends MY_Controller {
     {
         $this->load->helper('terbilang');
 
+        /*
+        |--------------------------------------------------------------------------
+        | PARAMETER
+        |--------------------------------------------------------------------------
+        */
+
         $sales =
             trim(
                 $this->input->get(
@@ -4096,9 +4236,10 @@ class Sales extends MY_Controller {
                 )
             );
 
+
         /*
         |--------------------------------------------------------------------------
-        | VALIDATION
+        | VALIDASI
         |--------------------------------------------------------------------------
         */
 
@@ -4114,9 +4255,10 @@ class Sales extends MY_Controller {
             return;
         }
 
+
         /*
         |--------------------------------------------------------------------------
-        | HEADER
+        | DATA HEADER
         |--------------------------------------------------------------------------
         */
 
@@ -4200,24 +4342,26 @@ class Sales extends MY_Controller {
 
                 ->row();
 
+
         /*
         |--------------------------------------------------------------------------
-        | NOT FOUND
+        | DATA TIDAK DITEMUKAN
         |--------------------------------------------------------------------------
         */
 
         if (!$header) {
 
             show_error(
-                'Data SALES tidak ditemukan'
+                'Data penjualan tidak ditemukan'
             );
 
             return;
         }
 
+
         /*
         |--------------------------------------------------------------------------
-        | DETAIL
+        | DATA DETAIL
         |--------------------------------------------------------------------------
         */
 
@@ -4278,9 +4422,10 @@ class Sales extends MY_Controller {
 
                 ->result();
 
+
         /*
         |--------------------------------------------------------------------------
-        | SAVING
+        | DATA TABUNGAN PELANGGAN
         |--------------------------------------------------------------------------
         */
 
@@ -4338,9 +4483,10 @@ class Sales extends MY_Controller {
 
                 ->result();
 
+
         /*
         |--------------------------------------------------------------------------
-        | CALCULATE DETAIL TOTAL
+        | HITUNG TOTAL DETAIL
         |--------------------------------------------------------------------------
         */
 
@@ -4353,6 +4499,7 @@ class Sales extends MY_Controller {
         $baseSales =
             0;
 
+
         foreach (
             $detail
             as $row
@@ -4364,24 +4511,35 @@ class Sales extends MY_Controller {
                     ?? 0
                 );
 
+
             $totalBerat +=
                 (float) (
                     $row->BERAT
                     ?? 0
                 );
 
+
             $baseSales +=
                 (float) (
                     $row->TOTAL
                     ?? 0
                 );
+
         }
+
 
         /*
         |--------------------------------------------------------------------------
-        | FINANCIAL COMPONENT
+        | KOMPONEN KEUANGAN
         |--------------------------------------------------------------------------
         */
+
+        $modal =
+            (float) (
+                $header->MODAL
+                ?? 0
+            );
+
 
         $biaya =
             (float) (
@@ -4389,11 +4547,13 @@ class Sales extends MY_Controller {
                 ?? 0
             );
 
+
         $discount =
             (float) (
                 $header->DISCOUNT
                 ?? 0
             );
+
 
         $rounding =
             (float) (
@@ -4401,10 +4561,14 @@ class Sales extends MY_Controller {
                 ?? 0
             );
 
+
         /*
         |--------------------------------------------------------------------------
-        | TOTAL SALES
+        | TOTAL PENJUALAN
         |--------------------------------------------------------------------------
+        |
+        | Modal TIDAK dimasukkan ke perhitungan.
+        |
         */
 
         $salesAmount =
@@ -4419,17 +4583,16 @@ class Sales extends MY_Controller {
                 2
             );
 
+
         /*
         |--------------------------------------------------------------------------
-        | TOTAL SAVING
+        | TOTAL TABUNGAN PELANGGAN
         |--------------------------------------------------------------------------
         */
 
         $totalSaving =
             0;
 
-        $savingRemain =
-            0;
 
         foreach (
             $saving
@@ -4442,12 +4605,8 @@ class Sales extends MY_Controller {
                     ?? 0
                 );
 
-            $savingRemain +=
-                (float) (
-                    $sv->REMAIN
-                    ?? 0
-                );
         }
+
 
         $totalSaving =
             round(
@@ -4455,16 +4614,14 @@ class Sales extends MY_Controller {
                 2
             );
 
-        $savingRemain =
-            round(
-                $savingRemain,
-                2
-            );
 
         /*
         |--------------------------------------------------------------------------
-        | GRAND TOTAL
+        | TOTAL AKHIR
         |--------------------------------------------------------------------------
+        |
+        | Total Akhir = Total Penjualan + Tabungan
+        |
         */
 
         $grandTotal =
@@ -4475,32 +4632,10 @@ class Sales extends MY_Controller {
                 2
             );
 
-        /*
-        |--------------------------------------------------------------------------
-        | OUTSTANDING
-        |--------------------------------------------------------------------------
-        */
-
-        $outstandingSales =
-            round(
-                (float) (
-                    $header->REMAIN
-                    ?? 0
-                ),
-                2
-            );
-
-        $totalOutstanding =
-            round(
-                $outstandingSales
-                +
-                $savingRemain,
-                2
-            );
 
         /*
         |--------------------------------------------------------------------------
-        | DATA
+        | DATA UNTUK VIEW
         |--------------------------------------------------------------------------
         */
 
@@ -4526,6 +4661,9 @@ class Sales extends MY_Controller {
                 'base_sales' =>
                     $baseSales,
 
+                'modal' =>
+                    $modal,
+
                 'biaya' =>
                     $biaya,
 
@@ -4542,22 +4680,16 @@ class Sales extends MY_Controller {
                     $totalSaving,
 
                 'grand_total' =>
-                    $grandTotal,
+                    $grandTotal
 
-                'outstanding_sales' =>
-                    $outstandingSales,
-
-                'outstanding_saving' =>
-                    $savingRemain,
-
-                'total_outstanding' =>
-                    $totalOutstanding
             ]
+
         ];
+
 
         /*
         |--------------------------------------------------------------------------
-        | PRINT VIEW
+        | TAMPILKAN PRINT VIEW
         |--------------------------------------------------------------------------
         */
 
@@ -4569,27 +4701,40 @@ class Sales extends MY_Controller {
 
     public function print_invoice_pdf()
     {
-        $sales =
-            $this->input->get(
-                'sales',
-                true
-            );
-
-        $plant =
-            $this->input->get(
-                'plant',
-                true
-            );
+        $this->load->helper('terbilang');
 
         /*
         |--------------------------------------------------------------------------
-        | VALIDATION
+        | PARAMETER
+        |--------------------------------------------------------------------------
+        */
+
+        $sales =
+            trim(
+                $this->input->get(
+                    'sales',
+                    true
+                )
+            );
+
+        $plant =
+            trim(
+                $this->input->get(
+                    'plant',
+                    true
+                )
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDASI
         |--------------------------------------------------------------------------
         */
 
         if (
-            !$sales ||
-            !$plant
+            empty($sales) ||
+            empty($plant)
         ) {
 
             show_error(
@@ -4599,28 +4744,28 @@ class Sales extends MY_Controller {
             return;
         }
 
+
         /*
         |--------------------------------------------------------------------------
-        | HEADER
+        | HEADER SALES
         |--------------------------------------------------------------------------
         */
 
         $header =
             $this->db
-
                 ->select('
 
                     s.SALES,
 
                     s.PLANT,
 
-                    aj.CODE_NAME AS PLANT_NAME,
+                    plant.CODE_NAME AS PLANT_NAME,
 
                     s.SALES_DATE,
 
                     s.CUSTOMER,
 
-                    c.FULL_NAME AS CUSTOMER_NAME,
+                    customer.FULL_NAME AS CUSTOMER_NAME,
 
                     s.JENIS_PAY,
 
@@ -4657,10 +4802,10 @@ class Sales extends MY_Controller {
                 */
 
                 ->join(
-                    'abc_cd_code aj',
+                    'abc_cd_code plant',
                     "
-                        aj.CODE = s.PLANT
-                        AND aj.HEAD_CODE = 'PLANT'
+                        plant.CODE = s.PLANT
+                        AND plant.HEAD_CODE = 'PLANT'
                     ",
                     'left',
                     false
@@ -4673,8 +4818,8 @@ class Sales extends MY_Controller {
                 */
 
                 ->join(
-                    'abc_cd_customer c',
-                    'c.CUST = s.CUSTOMER',
+                    'abc_cd_customer customer',
+                    'customer.CUST = s.CUSTOMER',
                     'left'
                 )
 
@@ -4704,24 +4849,26 @@ class Sales extends MY_Controller {
 
                 ->row();
 
+
         /*
         |--------------------------------------------------------------------------
-        | NOT FOUND
+        | DATA TIDAK DITEMUKAN
         |--------------------------------------------------------------------------
         */
 
         if (!$header) {
 
             show_error(
-                'Sales invoice tidak ditemukan'
+                'Faktur penjualan tidak ditemukan'
             );
 
             return;
         }
 
+
         /*
         |--------------------------------------------------------------------------
-        | PAYMENT INFO
+        | INFORMASI PEMBAYARAN
         |--------------------------------------------------------------------------
         */
 
@@ -4737,6 +4884,7 @@ class Sales extends MY_Controller {
                     ?: '-'
                 );
 
+
         /*
         |--------------------------------------------------------------------------
         | DETAIL SALES
@@ -4745,14 +4893,13 @@ class Sales extends MY_Controller {
 
         $detail =
             $this->db
-
                 ->select('
 
                     d.SEQ_NO,
 
                     d.MATERIAL,
 
-                    m.MATERIAL_NAME,
+                    material.MATERIAL_NAME,
 
                     d.CALC_BASIS,
 
@@ -4771,8 +4918,8 @@ class Sales extends MY_Controller {
                 )
 
                 ->join(
-                    'abc_cd_material m',
-                    'm.MATERIAL = d.MATERIAL',
+                    'abc_cd_material material',
+                    'material.MATERIAL = d.MATERIAL',
                     'left'
                 )
 
@@ -4801,15 +4948,15 @@ class Sales extends MY_Controller {
 
                 ->result();
 
+
         /*
         |--------------------------------------------------------------------------
-        | SAVING
+        | TABUNGAN PELANGGAN
         |--------------------------------------------------------------------------
         */
 
         $saving =
             $this->db
-
                 ->select('
 
                     SV_NO,
@@ -4864,9 +5011,10 @@ class Sales extends MY_Controller {
 
                 ->result();
 
+
         /*
         |--------------------------------------------------------------------------
-        | DETAIL SUMMARY
+        | TOTAL DETAIL
         |--------------------------------------------------------------------------
         */
 
@@ -4879,6 +5027,7 @@ class Sales extends MY_Controller {
         $baseSales =
             0;
 
+
         foreach (
             $detail
             as $row
@@ -4890,24 +5039,35 @@ class Sales extends MY_Controller {
                     ?? 0
                 );
 
+
             $totalBerat +=
                 (float) (
                     $row->BERAT
                     ?? 0
                 );
 
+
             $baseSales +=
                 (float) (
                     $row->TOTAL
                     ?? 0
                 );
+
         }
+
 
         /*
         |--------------------------------------------------------------------------
-        | FINANCIAL COMPONENT
+        | KOMPONEN KEUANGAN
         |--------------------------------------------------------------------------
         */
+
+        $modal =
+            (float) (
+                $header->MODAL
+                ?? 0
+            );
+
 
         $biaya =
             (float) (
@@ -4915,11 +5075,13 @@ class Sales extends MY_Controller {
                 ?? 0
             );
 
+
         $discount =
             (float) (
                 $header->DISCOUNT
                 ?? 0
             );
+
 
         $rounding =
             (float) (
@@ -4927,10 +5089,14 @@ class Sales extends MY_Controller {
                 ?? 0
             );
 
+
         /*
         |--------------------------------------------------------------------------
-        | TOTAL SALES
+        | TOTAL PENJUALAN
         |--------------------------------------------------------------------------
+        |
+        | Modal tidak masuk perhitungan.
+        |
         */
 
         $salesAmount =
@@ -4945,17 +5111,16 @@ class Sales extends MY_Controller {
                 2
             );
 
+
         /*
         |--------------------------------------------------------------------------
-        | TOTAL SAVING
+        | TOTAL TABUNGAN
         |--------------------------------------------------------------------------
         */
 
         $totalSaving =
             0;
 
-        $savingRemain =
-            0;
 
         foreach (
             $saving
@@ -4968,12 +5133,8 @@ class Sales extends MY_Controller {
                     ?? 0
                 );
 
-            $savingRemain +=
-                (float) (
-                    $sv->REMAIN
-                    ?? 0
-                );
         }
+
 
         $totalSaving =
             round(
@@ -4981,18 +5142,14 @@ class Sales extends MY_Controller {
                 2
             );
 
-        $savingRemain =
-            round(
-                $savingRemain,
-                2
-            );
 
         /*
         |--------------------------------------------------------------------------
-        | GRAND TOTAL
+        | TOTAL AKHIR
         |--------------------------------------------------------------------------
         |
-        | Sales + Saving
+        | Total Akhir =
+        | Total Penjualan + Tabungan Pelanggan
         |
         */
 
@@ -5004,33 +5161,6 @@ class Sales extends MY_Controller {
                 2
             );
 
-        /*
-        |--------------------------------------------------------------------------
-        | OUTSTANDING
-        |--------------------------------------------------------------------------
-        |
-        | Sales REMAIN
-        | +
-        | Saving REMAIN
-        |
-        */
-
-        $outstandingSales =
-            round(
-                (float) (
-                    $header->REMAIN
-                    ?? 0
-                ),
-                2
-            );
-
-        $totalOutstanding =
-            round(
-                $outstandingSales
-                +
-                $savingRemain,
-                2
-            );
 
         /*
         |--------------------------------------------------------------------------
@@ -5049,6 +5179,9 @@ class Sales extends MY_Controller {
             'base_sales' =>
                 $baseSales,
 
+            'modal' =>
+                $modal,
+
             'biaya' =>
                 $biaya,
 
@@ -5065,21 +5198,14 @@ class Sales extends MY_Controller {
                 $totalSaving,
 
             'grand_total' =>
-                $grandTotal,
+                $grandTotal
 
-            'outstanding_sales' =>
-                $outstandingSales,
-
-            'outstanding_saving' =>
-                $savingRemain,
-
-            'total_outstanding' =>
-                $totalOutstanding
         ];
+
 
         /*
         |--------------------------------------------------------------------------
-        | DATA
+        | DATA VIEW
         |--------------------------------------------------------------------------
         */
 
@@ -5096,7 +5222,9 @@ class Sales extends MY_Controller {
 
             'summary' =>
                 $summary
+
         ];
+
 
         /*
         |--------------------------------------------------------------------------
@@ -5111,6 +5239,7 @@ class Sales extends MY_Controller {
                 true
             );
 
+
         /*
         |--------------------------------------------------------------------------
         | PDF
@@ -5121,25 +5250,29 @@ class Sales extends MY_Controller {
             'pdf'
         );
 
+
         $this->pdf->loadHtml(
             $html
         );
+
 
         $this->pdf->setPaper(
             'A4',
             'portrait'
         );
 
+
         $this->pdf->render();
+
 
         /*
         |--------------------------------------------------------------------------
-        | STREAM
+        | TAMPILKAN PDF DI BROWSER
         |--------------------------------------------------------------------------
         */
 
         $this->pdf->stream(
-            "INVOICE_{$sales}.pdf",
+            "FAKTUR_PENJUALAN_{$sales}.pdf",
             [
                 'Attachment' => false
             ]

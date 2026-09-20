@@ -944,10 +944,10 @@
                                     section-description
                                     mb-3
                                 ">
-                                Masukkan nominal tabungan per satuan
-                                dan pilih basis perhitungannya.
-                                Total saving akan dihitung otomatis
-                                berdasarkan total ekor atau total berat Sales.
+                                Masukkan Saving dan pilih basis perhitungannya.
+                                Untuk basis EKOR atau BERAT, total Saving dihitung
+                                otomatis berdasarkan total Sales.
+                                Untuk basis BON, nominal Saving dimasukkan langsung.
                             </p>
 
                             <div class="table-responsive">
@@ -984,6 +984,9 @@
                                             <th>
                                                 Remark
                                             </th>
+                                            <th style="width:7%">
+                                                Action
+                                            </th>
 
                                         </tr>
                                     </thead>
@@ -999,8 +1002,19 @@
 
                                 </table>
 
-                            </div>
+                                <div class="mt-2">
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-outline-primary"
+                                        id="addSavingAdd">
 
+                                        <i class="fa fa-plus"></i>
+                                        Tambah Saving
+
+                                    </button>
+                                </div>
+
+                            </div>
 
                             <div
                                 class="
@@ -1719,9 +1733,19 @@
 
                     <!-- SAVING EDIT -->
                     <div class="card border-0 shadow-sm mb-4 mt-3">
-                        <div class="card-header bg-light fw-bold">
-                            <i class="ti ti-pig-money me-2"></i>
-                            CUSTOMER SAVING
+                        <div class="card-header bg-light fw-bold d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="ti ti-pig-money me-2"></i>
+                                CUSTOMER SAVING
+                            </div>
+
+                            <button
+                                type="button"
+                                class="btn btn-sm btn-primary"
+                                id="addSavingEdit">
+                                <i class="ti ti-plus me-1"></i>
+                                Tambah Saving
+                            </button>
                         </div>
                         <div class="card-body">
                             <p class="section-description mb-3">
@@ -1736,6 +1760,7 @@
                                             <th style="width:20%">Saving / Satuan</th>
                                             <th style="width:20%">Total Saving</th>
                                             <th>Remark</th>
+                                            <th style="width:7%">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody></tbody>
@@ -1933,8 +1958,8 @@
     };
 
     const salesState = {
-        savingRowAdd: null,
-        savingRowEdit: null
+        savingRowsAdd: [],
+        savingRowsEdit: []
     };
 
     function getCustomerLabel(selector) {
@@ -1967,14 +1992,14 @@
         return remark;
     }
 
-    function syncSavingRowAdd() {
-
+    function syncSavingRowAdd()
+    {
         let customerId =
             $('#hiddenCustomerAdd').val();
 
         if (!customerId) {
 
-            salesState.savingRowAdd = null;
+            salesState.savingRowsAdd = [];
 
             renderSavingTableAdd();
 
@@ -1983,60 +2008,66 @@
             return;
         }
 
-        salesState.savingRowAdd = {
+        let customerName =
+            getCustomerLabel('#customerAdd');
 
-            customer:
-                customerId,
+        /*
+        |----------------------------------------------------------------------
+        | Jika belum ada Saving
+        |----------------------------------------------------------------------
+        */
 
-            customer_name:
-                getCustomerLabel(
-                    '#customerAdd'
-                ),
+        if (
+            !Array.isArray(
+                salesState.savingRowsAdd
+            )
+            ||
+            salesState.savingRowsAdd.length === 0
+        ) {
 
-            /*
-            |--------------------------------------------------------------------------
-            | TOTAL SAVING
-            |--------------------------------------------------------------------------
-            */
+            salesState.savingRowsAdd = [
+                {
+                    customer:
+                        customerId,
 
-            saving:
-                salesState.savingRowAdd
-                    ? salesState.savingRowAdd.saving
-                    : 0,
+                    customer_name:
+                        customerName,
 
-            /*
-            |--------------------------------------------------------------------------
-            | BASIS
-            |--------------------------------------------------------------------------
-            */
+                    basis:
+                        'BERAT',
 
-            basis:
-                salesState.savingRowAdd
-                    ? salesState.savingRowAdd.basis
-                    : 'BERAT',
+                    rate:
+                        0,
 
-            /*
-            |--------------------------------------------------------------------------
-            | RATE / SATUAN
-            |--------------------------------------------------------------------------
-            */
+                    saving:
+                        0,
 
-            rate:
-                salesState.savingRowAdd
-                    ? salesState.savingRowAdd.rate
-                    : 0,
+                    remark:
+                        ''
+                }
+            ];
+
+        } else {
 
             /*
-            |--------------------------------------------------------------------------
-            | REMARK
-            |--------------------------------------------------------------------------
+            |------------------------------------------------------------------
+            | Jika Saving sudah ada, update customer
+            | pada seluruh row
+            |------------------------------------------------------------------
             */
 
-            remark:
-                salesState.savingRowAdd
-                    ? salesState.savingRowAdd.remark
-                    : ''
-        };
+            salesState.savingRowsAdd
+                .forEach(function (row) {
+
+                    row.customer =
+                        customerId;
+
+                    row.customer_name =
+                        customerName;
+
+                });
+
+        }
 
         recalcSavingAdd();
 
@@ -2055,173 +2086,199 @@
     ) {
         if (!customerId) {
 
-            salesState.savingRowEdit = null;
+            salesState.savingRowsEdit = [];
 
             renderSavingTableEdit();
-
             refreshPaymentSummaryEdit();
 
             return;
         }
 
-        salesState.savingRowEdit = {
+        /*
+        |--------------------------------------------------------------------------
+        | Jika Saving Edit belum ada
+        |--------------------------------------------------------------------------
+        */
 
-            customer:
-                customerId,
+        if (
+            !Array.isArray(
+                salesState.savingRowsEdit
+            )
+            ||
+            salesState.savingRowsEdit.length === 0
+        ) {
 
-            customer_name:
-                customerName || customerId,
+            salesState.savingRowsEdit = [
+                {
+                    customer:
+                        customerId,
 
-            saving:
-                parseFloat(
-                    savingAmount || 0
-                ),
+                    customer_name:
+                        customerName || customerId,
 
-            basis:
-                savingBasis || 'BERAT',
+                    saving:
+                        parseFloat(
+                            savingAmount || 0
+                        ),
 
-            rate:
-                parseFloat(
-                    savingRate || 0
-                ),
+                    basis:
+                        (
+                            savingBasis || 'BERAT'
+                        ).toUpperCase(),
 
-            remark:
-                remark || ''
-        };
+                    rate:
+                        parseFloat(
+                            savingRate || 0
+                        ),
+
+                    remark:
+                        remark || ''
+                }
+            ];
+
+        } else {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Jika Saving sudah ada
+            | Update customer pada seluruh row
+            |--------------------------------------------------------------------------
+            */
+
+            salesState.savingRowsEdit
+                .forEach(function (row) {
+
+                    row.customer =
+                        customerId;
+
+                    row.customer_name =
+                        customerName || customerId;
+
+                });
+        }
 
         recalcSavingEdit();
-
         renderSavingTableEdit();
-
         refreshPaymentSummaryEdit();
     }
 
-    function renderSavingTableAdd() {
-
-        let tbody =
-            $('#savingTableAdd tbody');
+    function renderSavingTableAdd()
+    {
+        let tbody = $('#savingTableAdd tbody');
 
         tbody.empty();
 
         if (
-            !salesState.savingRowAdd
+            !Array.isArray(salesState.savingRowsAdd)
+            ||
+            salesState.savingRowsAdd.length === 0
         ) {
-
-            tbody.append(`
-
-                <tr>
-
-                    <td
-                        colspan="5"
-                        class="text-center text-muted py-3">
-
-                        Pilih customer terlebih dahulu
-
-                    </td>
-
-                </tr>
-
-            `);
-
-            $('#savingGrandTotalAdd')
-                .text('Rp 0');
 
             return;
         }
 
-        let row =
-            salesState.savingRowAdd;
+        salesState.savingRowsAdd.forEach(function (row, index) {
 
-        tbody.append(`
-            <tr>
+            let basis =
+                (row.basis || 'BERAT').toUpperCase();
 
-                <!-- CUSTOMER -->
-                <td>
-                    ${row.customer_name || '-'}
-                </td>
+            let isBon =
+                basis === 'BON';
 
+            let rateValue =
+                isBon
+                    ? row.saving
+                    : row.rate;
 
-                <!-- BASIS -->
-                <td>
-                    <select
-                        class="form-select saving-basis-add">
+            let inputLabel =
+                isBon
+                    ? 'Nominal Saving'
+                    : 'Rate';
 
-                        <option
-                            value="EKOR"
-                            ${row.basis === 'EKOR'
-                                ? 'selected'
-                                : ''}>
-                            EKOR
-                        </option>
+            let inputClass =
+                isBon
+                    ? 'saving-bon-add'
+                    : 'saving-rate-add';
 
-                        <option
-                            value="BERAT"
-                            ${row.basis === 'BERAT'
-                                ? 'selected'
-                                : ''}>
-                            BERAT
-                        </option>
+            tbody.append(`
+                <tr data-saving-index="${index}">
 
-                    </select>
-                </td>
+                    <td>
+                        <input
+                            type="text"
+                            class="form-control form-control-sm"
+                            value="${row.customer_name || ''}"
+                            readonly
+                        >
+                    </td>
 
+                    <td>
+                        <select
+                            class="form-select form-select-sm saving-basis-add"
+                        >
+                            <option
+                                value="EKOR"
+                                ${basis === 'EKOR' ? 'selected' : ''}
+                            >
+                                EKOR
+                            </option>
 
-                <!-- SAVING / SATUAN -->
-                <td>
-                    <input
-                        type="text"
-                        class="
-                            form-control
-                            rupiah-input
-                            saving-rate-add
-                            text-end
-                        "
-                        value="${formatRupiah(
-                            row.rate || 0
-                        )}"
-                        placeholder="0">
-                </td>
+                            <option
+                                value="BERAT"
+                                ${basis === 'BERAT' ? 'selected' : ''}
+                            >
+                                BERAT
+                            </option>
 
+                            <option
+                                value="BON"
+                                ${basis === 'BON' ? 'selected' : ''}
+                            >
+                                BON
+                            </option>
+                        </select>
+                    </td>
 
-                <!-- TOTAL SAVING -->
-                <td>
-                    <input
-                        type="text"
-                        class="
-                            form-control
-                            saving-total-add
-                            text-end
-                            bg-light
-                            fw-bold
-                        "
-                        value="${formatRupiah(
-                            row.saving || 0
-                        )}"
-                        readonly>
-                </td>
+                    <td>
+                        <input
+                            type="text"
+                            class="form-control form-control-sm ${inputClass}"
+                            value="${formatRupiah(rateValue || 0)}"
+                            placeholder="${inputLabel}"
+                        >
+                    </td>
 
+                    <td>
+                        <input
+                            type="text"
+                            class="form-control form-control-sm saving-total-add"
+                            value="${formatRupiah(row.saving || 0)}"
+                            readonly
+                        >
+                    </td>
 
-                <!-- REMARK -->
-                <td>
-                    <input
-                        type="text"
-                        class="
-                            form-control
-                            saving-remark-add
-                        "
-                        value="${row.remark || ''}">
-                </td>
+                    <td>
+                        <input
+                            type="text"
+                            class="form-control form-control-sm saving-remark-add"
+                            value="${row.remark || ''}"
+                            placeholder="Remark"
+                        >
+                    </td>
 
-            </tr>
-        `);
+                    <td class="text-center">
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-danger remove-saving-add"
+                            data-index="${index}"
+                        >
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
 
-        $('#savingGrandTotalAdd')
-            .text(
-                'Rp ' +
-                formatRupiah(
-                    row.saving || 0
-                )
-            );
+                </tr>
+            `);
+        });
     }
 
     // function updateSavingRateAdd() {
@@ -2305,7 +2362,11 @@
 
     function recalcSavingAdd()
     {
-        if (!salesState.savingRowAdd) {
+        if (
+            !Array.isArray(
+                salesState.savingRowsAdd
+            )
+        ) {
             return;
         }
 
@@ -2341,60 +2402,112 @@
                 totalWeight.toFixed(2)
             );
 
-        let basis =
-            salesState
-                .savingRowAdd
-                .basis || 'BERAT';
+        let grandSaving = 0;
 
-        let rate =
-            parseRupiah(
-                salesState
-                    .savingRowAdd
-                    .rate || 0
-            );
+        salesState.savingRowsAdd
+            .forEach(function (row, index) {
 
-        let quantity =
-            basis === 'EKOR'
-                ? totalQty
-                : totalWeight;
+                let basis =
+                    (
+                        row.basis
+                        || 'BERAT'
+                    ).toUpperCase();
 
-        let totalSaving =
-            quantity * rate;
+                let amount = 0;
 
-        totalSaving =
+                /*
+                |--------------------------------------------------------------
+                | BON
+                |--------------------------------------------------------------
+                | Nominal Saving diinput langsung
+                */
+
+                if (basis === 'BON') {
+
+                    amount =
+                        parseRupiah(
+                            row.saving || 0
+                        );
+
+                }
+
+                /*
+                |--------------------------------------------------------------
+                | EKOR
+                |--------------------------------------------------------------
+                | Total Ekor x Rate
+                */
+
+                else if (basis === 'EKOR') {
+
+                    let rate =
+                        parseRupiah(
+                            row.rate || 0
+                        );
+
+                    amount =
+                        totalQty * rate;
+
+                    amount =
+                        Math.round(amount);
+
+                }
+
+                /*
+                |--------------------------------------------------------------
+                | BERAT
+                |--------------------------------------------------------------
+                | Total Berat x Rate
+                */
+
+                else {
+
+                    let rate =
+                        parseRupiah(
+                            row.rate || 0
+                        );
+
+                    amount =
+                        totalWeight * rate;
+
+                    amount =
+                        Math.round(amount);
+
+                }
+
+                row.saving =
+                    amount;
+
+                grandSaving +=
+                    amount;
+
+                /*
+                |--------------------------------------------------------------
+                | Update total pada row
+                |--------------------------------------------------------------
+                */
+
+                $('#savingTableAdd tbody tr')
+                    .eq(index)
+                    .find('.saving-total-add')
+                    .val(
+                        formatRupiah(
+                            amount
+                        )
+                    );
+
+            });
+
+        grandSaving =
             Math.round(
-                totalSaving
+                grandSaving
             );
-
-        /*
-        |--------------------------------------------------------------------------
-        | SAVE STATE
-        |--------------------------------------------------------------------------
-        */
-
-        salesState
-            .savingRowAdd
-            .saving =
-                totalSaving;
-
-        /*
-        |--------------------------------------------------------------------------
-        | UPDATE TOTAL SAVING
-        |--------------------------------------------------------------------------
-        */
 
         $('#savingGrandTotalAdd')
             .text(
                 'Rp ' +
                 formatRupiah(
-                    totalSaving
-                )
-            );
-
-        $('#savingTableAdd .saving-total-add')
-            .val(
-                formatRupiah(
-                    totalSaving
+                    grandSaving
                 )
             );
     }
@@ -2406,14 +2519,20 @@
 
         tbody.empty();
 
-        if (!salesState.savingRowEdit) {
+        if (
+            !Array.isArray(
+                salesState.savingRowsEdit
+            )
+            ||
+            salesState.savingRowsEdit.length === 0
+        ) {
 
             tbody.append(`
                 <tr>
                     <td
-                        colspan="5"
+                        colspan="6"
                         class="text-center text-muted py-3">
-                        Customer belum dipilih
+                        Belum ada Saving
                     </td>
                 </tr>
             `);
@@ -2424,105 +2543,203 @@
             return;
         }
 
-        let row =
-            salesState.savingRowEdit;
+        salesState.savingRowsEdit
+            .forEach(function (row, index) {
 
-        tbody.append(`
-            <tr>
+                let basis =
+                    (
+                        row.basis
+                        || 'BERAT'
+                    ).toUpperCase();
 
-                <!-- CUSTOMER -->
-                <td>
-                    ${row.customer_name || '-'}
-                </td>
+                let isBon =
+                    basis === 'BON';
 
-                <!-- BASIS -->
-                <td>
-                    <select
-                        class="form-select saving-basis-edit">
+                let inputValue =
+                    isBon
+                        ? row.saving
+                        : row.rate;
 
-                        <option
-                            value="EKOR"
-                            ${row.basis === 'EKOR'
-                                ? 'selected'
-                                : ''}>
-                            EKOR
-                        </option>
+                let inputPlaceholder =
+                    isBon
+                        ? 'Nominal Saving'
+                        : 'Rate';
 
-                        <option
-                            value="BERAT"
-                            ${row.basis === 'BERAT'
-                                ? 'selected'
-                                : ''}>
-                            BERAT
-                        </option>
+                let inputClass =
+                    isBon
+                        ? 'saving-bon-edit'
+                        : 'saving-rate-edit';
 
-                    </select>
-                </td>
+                tbody.append(`
+                    <tr data-saving-index="${index}">
 
-                <!-- SAVING / SATUAN -->
-                <td>
-                    <input
-                        type="text"
-                        class="
-                            form-control
-                            rupiah-input
-                            saving-rate-edit
-                            text-end
-                        "
-                        value="${formatRupiah(
-                            row.rate || 0
-                        )}"
-                        placeholder="0">
-                </td>
+                        <!-- CUSTOMER -->
+                        <td>
+                            ${row.customer_name || '-'}
+                        </td>
 
-                <!-- TOTAL SAVING -->
-                <td>
-                    <input
-                        type="text"
-                        class="
-                            form-control
-                            saving-total-edit
-                            text-end
-                            bg-light
-                            fw-bold
-                        "
-                        value="${formatRupiah(
-                            row.saving || 0
-                        )}"
-                        readonly>
-                </td>
+                        <!-- BASIS -->
+                        <td>
+                            <select
+                                class="
+                                    form-select
+                                    form-select-sm
+                                    saving-basis-edit
+                                ">
 
-                <!-- REMARK -->
-                <td>
-                    <input
-                        type="text"
-                        class="
-                            form-control
-                            saving-remark-edit
-                        "
-                        value="${row.remark || ''}">
-                </td>
+                                <option
+                                    value="EKOR"
+                                    ${
+                                        basis === 'EKOR'
+                                            ? 'selected'
+                                            : ''
+                                    }>
+                                    EKOR
+                                </option>
 
-            </tr>
-        `);
+                                <option
+                                    value="BERAT"
+                                    ${
+                                        basis === 'BERAT'
+                                            ? 'selected'
+                                            : ''
+                                    }>
+                                    BERAT
+                                </option>
+
+                                <option
+                                    value="BON"
+                                    ${
+                                        basis === 'BON'
+                                            ? 'selected'
+                                            : ''
+                                    }>
+                                    BON
+                                </option>
+
+                            </select>
+                        </td>
+
+                        <!-- RATE / NOMINAL -->
+                        <td>
+                            <input
+                                type="text"
+                                class="
+                                    form-control
+                                    form-control-sm
+                                    rupiah-input
+                                    ${inputClass}
+                                    text-end
+                                "
+                                value="${formatRupiah(
+                                    inputValue || 0
+                                )}"
+                                placeholder="${inputPlaceholder}">
+                        </td>
+
+                        <!-- TOTAL SAVING -->
+                        <td>
+                            <input
+                                type="text"
+                                class="
+                                    form-control
+                                    form-control-sm
+                                    saving-total-edit
+                                    text-end
+                                    bg-light
+                                    fw-bold
+                                "
+                                value="${formatRupiah(
+                                    row.saving || 0
+                                )}"
+                                readonly>
+                        </td>
+
+                        <!-- REMARK -->
+                        <td>
+                            <input
+                                type="text"
+                                class="
+                                    form-control
+                                    form-control-sm
+                                    saving-remark-edit
+                                "
+                                value="${row.remark || ''}"
+                                placeholder="Remark">
+                        </td>
+
+                        <!-- DELETE -->
+                        <td class="text-center">
+                            <button
+                                type="button"
+                                class="
+                                    btn
+                                    btn-sm
+                                    btn-danger
+                                    remove-saving-edit
+                                "
+                                data-index="${index}">
+
+                                <i class="fa fa-trash"></i>
+
+                            </button>
+                        </td>
+
+                    </tr>
+                `);
+
+            });
+
+        /*
+        |--------------------------------------------------------------------------
+        | GRAND TOTAL
+        |--------------------------------------------------------------------------
+        */
+
+        let grandSaving = 0;
+
+        salesState.savingRowsEdit
+            .forEach(function (row) {
+
+                grandSaving +=
+                    parseRupiah(
+                        row.saving || 0
+                    );
+
+            });
+
+        grandSaving =
+            Math.round(
+                grandSaving
+            );
 
         $('#savingGrandTotalEdit')
             .text(
                 'Rp ' +
                 formatRupiah(
-                    row.saving || 0
+                    grandSaving
                 )
             );
     }
 
     function recalcSavingEdit()
     {
-        if (!salesState.savingRowEdit) {
+        if (
+            !Array.isArray(
+                salesState.savingRowsEdit
+            )
+        ) {
             return;
         }
 
         let totalQty = 0;
         let totalWeight = 0;
+
+        /*
+        |--------------------------------------------------------------------------
+        | TOTAL EKOR & BERAT DARI DETAIL
+        |--------------------------------------------------------------------------
+        */
 
         $('#salesDetailTableEdit tbody tr')
             .each(function () {
@@ -2553,44 +2770,134 @@
                 totalWeight.toFixed(2)
             );
 
-        let basis =
-            salesState.savingRowEdit.basis
-            || 'BERAT';
+        /*
+        |--------------------------------------------------------------------------
+        | HITUNG SETIAP SAVING
+        |--------------------------------------------------------------------------
+        */
 
-        let rate =
-            parseRupiah(
-                salesState.savingRowEdit.rate
-                || 0
-            );
+        let grandSaving = 0;
 
-        let quantity =
-            basis === 'EKOR'
-                ? totalQty
-                : totalWeight;
+        salesState.savingRowsEdit
+            .forEach(function (row, index) {
 
-        let totalSaving =
-            quantity * rate;
+                let basis =
+                    (
+                        row.basis
+                        || 'BERAT'
+                    ).toUpperCase();
 
-        totalSaving =
+                let amount = 0;
+
+                /*
+                |--------------------------------------------------------------------------
+                | BON
+                |--------------------------------------------------------------------------
+                | Nominal Saving langsung dari input
+                */
+
+                if (basis === 'BON') {
+
+                    amount =
+                        parseRupiah(
+                            row.saving || 0
+                        );
+
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | EKOR
+                |--------------------------------------------------------------------------
+                | Total Ekor x Rate
+                */
+
+                else if (basis === 'EKOR') {
+
+                    let rate =
+                        parseRupiah(
+                            row.rate || 0
+                        );
+
+                    amount =
+                        totalQty * rate;
+
+                    amount =
+                        Math.round(
+                            amount
+                        );
+
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | BERAT
+                |--------------------------------------------------------------------------
+                | Total Berat x Rate
+                */
+
+                else {
+
+                    let rate =
+                        parseRupiah(
+                            row.rate || 0
+                        );
+
+                    amount =
+                        totalWeight * rate;
+
+                    amount =
+                        Math.round(
+                            amount
+                        );
+
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | SIMPAN HASIL KE STATE
+                |--------------------------------------------------------------------------
+                */
+
+                row.saving =
+                    amount;
+
+                grandSaving +=
+                    amount;
+
+                /*
+                |--------------------------------------------------------------------------
+                | UPDATE TOTAL PADA ROW
+                |--------------------------------------------------------------------------
+                */
+
+                $('#savingTableEdit tbody tr')
+                    .eq(index)
+                    .find('.saving-total-edit')
+                    .val(
+                        formatRupiah(
+                            amount
+                        )
+                    );
+
+            });
+
+        /*
+        |--------------------------------------------------------------------------
+        | GRAND TOTAL SAVING
+        |--------------------------------------------------------------------------
+        */
+
+        grandSaving =
             Math.round(
-                totalSaving
+                grandSaving
             );
-
-        salesState.savingRowEdit.saving =
-            totalSaving;
 
         $('#savingGrandTotalEdit')
             .text(
                 'Rp ' +
                 formatRupiah(
-                    totalSaving
-                )
-            );
-
-        $('#savingTableEdit .saving-total-edit')
-            .val(
-                formatRupiah(
-                    totalSaving
+                    grandSaving
                 )
             );
     }
@@ -2672,13 +2979,30 @@
                 $('#roundingAdd').val() || 0
             );
 
-        let savingTotal =
-            salesState.savingRowAdd
-                ? parseRupiah(
-                    salesState.savingRowAdd.saving
-                    || 0
-                )
-                : 0;
+        let savingTotal = 0;
+
+        if (
+            Array.isArray(
+                salesState.savingRowsAdd
+            )
+        ) {
+
+            salesState.savingRowsAdd
+                .forEach(function (row) {
+
+                    savingTotal +=
+                        parseRupiah(
+                            row.saving || 0
+                        );
+
+                });
+
+        }
+
+        savingTotal =
+            Math.round(
+                savingTotal
+            );
 
         let salesComponent =
             baseSales
@@ -2799,8 +3123,8 @@
             );
     }
 
-    function refreshPaymentSummaryEdit() {
-
+    function refreshPaymentSummaryEdit()
+    {
         /*
         |--------------------------------------------------------------------------
         | BASE SALES
@@ -2892,16 +3216,34 @@
 
         /*
         |--------------------------------------------------------------------------
-        | SAVING
+        | TOTAL SAVING
         |--------------------------------------------------------------------------
         */
 
-        let savingTotal =
-            salesState.savingRowEdit
-                ? parseRupiah(
-                    salesState.savingRowEdit.saving || 0
-                )
-                : 0;
+        let savingTotal = 0;
+
+        if (
+            Array.isArray(
+                salesState.savingRowsEdit
+            )
+        ) {
+
+            salesState.savingRowsEdit
+                .forEach(function (row) {
+
+                    savingTotal +=
+                        parseRupiah(
+                            row.saving || 0
+                        );
+
+                });
+
+        }
+
+        savingTotal =
+            Math.round(
+                savingTotal
+            );
 
 
         /*
@@ -2920,157 +3262,325 @@
             rounding;
 
 
-        if (salesComponent < 0) {
-
-            salesComponent = 0;
-
-        }
-
-
         /*
         |--------------------------------------------------------------------------
-        | GRAND OUTSTANDING
+        | GRAND PAYMENT
         |--------------------------------------------------------------------------
         */
 
-        let grandOutstanding =
+        let grandPayment =
             salesComponent
             +
             savingTotal;
 
+        // Render Payment Summary Table
+        let summaryTbody = $('#paymentSummaryTableEdit tbody');
+        summaryTbody.empty();
 
-        /*
-        |--------------------------------------------------------------------------
-        | PAYMENT TABLE
-        |--------------------------------------------------------------------------
-        */
+        if (
+            Array.isArray(salesState.savingRowsEdit) &&
+            salesState.savingRowsEdit.length > 0
+        ) {
+            let groupedSaving = {};
 
-        let tbody =
-            $('#paymentSummaryTableEdit tbody');
+            salesState.savingRowsEdit.forEach(function(row) {
+                let customer = row.customer || '';
+                let customerName = row.customer_name || customer || '-';
 
-        tbody.empty();
+                if (!groupedSaving[customer]) {
+                    groupedSaving[customer] = {
+                        customer_name: customerName,
+                        saving: 0
+                    };
+                }
 
+                groupedSaving[customer].saving += parseRupiah(row.saving || 0);
+            });
 
-        if (!salesState.savingRowEdit) {
+            Object.keys(groupedSaving).forEach(function(customer) {
+                let saving = Math.round(groupedSaving[customer].saving);
+                let grandOutstanding = Math.round(salesComponent + saving);
 
-            tbody.append(`
-                <tr>
-                    <td
-                        colspan="4"
-                        class="text-center text-muted py-3">
-
-                        Customer belum dipilih
-
-                    </td>
-                </tr>
-            `);
-
+                summaryTbody.append(`
+                    <tr>
+                        <td>${groupedSaving[customer].customer_name}</td>
+                        <td class="text-end">Rp ${formatRupiah(salesComponent)}</td>
+                        <td class="text-end">Rp ${formatRupiah(saving)}</td>
+                        <td class="text-end fw-bold">Rp ${formatRupiah(grandOutstanding)}</td>
+                    </tr>
+                `);
+            });
         } else {
-
-            tbody.append(`
+            summaryTbody.append(`
                 <tr>
-
-                    <td>
-                        ${salesState.savingRowEdit.customer_name}
+                    <td colspan="4" class="text-center text-muted py-3">
+                        Belum ada Saving
                     </td>
-
-                    <td class="text-end">
-                        ${formatCurrencyID(salesComponent)}
-                    </td>
-
-                    <td class="text-end">
-                        ${formatCurrencyID(savingTotal)}
-                    </td>
-
-                    <td class="text-end">
-                        ${formatCurrencyID(grandOutstanding)}
-                    </td>
-
                 </tr>
             `);
-
         }
 
-
         /*
         |--------------------------------------------------------------------------
-        | SUMMARY DISPLAY
+        | BASE SALES
         |--------------------------------------------------------------------------
         */
 
         $('#grandSalesEdit')
             .text(
-                formatCurrencyID(baseSales)
-            );
-
-
-        $('#modalPerEkorEdit')
-            .text(
-                formatCurrencyID(
-                    Math.round(modalPerEkor)
+                'Rp ' +
+                formatRupiah(
+                    baseSales
                 )
             );
 
 
-        $('#salesComponentEdit')
+        /*
+        |--------------------------------------------------------------------------
+        | MODAL / EKOR
+        |--------------------------------------------------------------------------
+        */
+
+        $('#modalPerEkorEdit')
             .text(
-                formatCurrencyID(salesComponent)
+                'Rp ' +
+                formatRupiah(
+                    modalPerEkor
+                )
             );
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | BIAYA
+        |--------------------------------------------------------------------------
+        */
+
+        $('#grandBiayaEdit')
+            .text(
+                'Rp ' +
+                formatRupiah(
+                    biaya
+                )
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | DISCOUNT
+        |--------------------------------------------------------------------------
+        */
+
+        $('#grandDiscountEdit')
+            .text(
+                'Rp ' +
+                formatRupiah(
+                    discount
+                )
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | ROUNDING
+        |--------------------------------------------------------------------------
+        */
+
+        $('#grandRoundingEdit')
+            .text(
+                'Rp ' +
+                formatRupiah(
+                    rounding
+                )
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SALES COMPONENT
+        |--------------------------------------------------------------------------
+        */
+
+        $('#salesComponentEdit')
+            .text(
+                'Rp ' +
+                formatRupiah(
+                    salesComponent
+                )
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SAVING
+        |--------------------------------------------------------------------------
+        */
 
         $('#grandSavingEdit')
             .text(
-                formatCurrencyID(savingTotal)
+                'Rp ' +
+                formatRupiah(
+                    savingTotal
+                )
             );
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | GRAND PAYMENT
+        |--------------------------------------------------------------------------
+        */
 
         $('#grandPaymentEdit')
             .text(
-                formatCurrencyID(grandOutstanding)
+                'Rp ' +
+                formatRupiah(
+                    grandPayment
+                )
             );
 
 
-        $('#grandSavingEditHidden')
-            .val(savingTotal);
+        /*
+        |--------------------------------------------------------------------------
+        | HIDDEN SAVING
+        |--------------------------------------------------------------------------
+        */
 
+        $('#grandSavingEditHidden')
+            .val(
+                savingTotal
+            );
     }
 
     function buildSavingPayload(mode)
     {
-        let row =
-            mode === 'edit'
-                ? salesState.savingRowEdit
-                : salesState.savingRowAdd;
+        /*
+        |--------------------------------------------------------------------------
+        | EDIT
+        |--------------------------------------------------------------------------
+        | Kirim seluruh Saving Rows
+        |--------------------------------------------------------------------------
+        */
+
+        if (mode === 'edit') {
+
+            if (
+                !Array.isArray(
+                    salesState.savingRowsEdit
+                )
+            ) {
+                return [];
+            }
+
+            return salesState.savingRowsEdit
+                .filter(function (row) {
+
+                    return (
+                        row
+                        &&
+                        row.customer
+                    );
+
+                })
+                .map(function (row) {
+
+                    let basis =
+                        (
+                            row.basis
+                            || 'BERAT'
+                        ).toUpperCase();
+
+                    return {
+
+                        CUSTOMER:
+                            row.customer,
+
+                        SAVING_AMOUNT:
+                            parseRupiah(
+                                row.saving || 0
+                            ),
+
+                        SAVING_RATE:
+                            basis === 'BON'
+                                ? 0
+                                : parseRupiah(
+                                    row.rate || 0
+                                ),
+
+                        BASIS:
+                            basis,
+
+                        REMARK:
+                            row.remark
+                            || ''
+
+                    };
+
+                });
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | ADD
+        |--------------------------------------------------------------------------
+        | Jangan ubah logic Add
+        |--------------------------------------------------------------------------
+        */
 
         if (
-            !row ||
-            !row.customer
+            !Array.isArray(
+                salesState.savingRowsAdd
+            )
         ) {
             return [];
         }
 
-        return [{
-            CUSTOMER:
-                row.customer,
+        return salesState.savingRowsAdd
+            .filter(function (row) {
 
-            SAVING_AMOUNT:
-                parseRupiah(
-                    row.saving || 0
-                ),
+                return (
+                    row
+                    &&
+                    row.customer
+                );
 
-            SAVING_RATE:
-                parseRupiah(
-                    row.rate || 0
-                ),
+            })
+            .map(function (row) {
 
-            BASIS:
-                row.basis
-                || 'BERAT',
+                let basis =
+                    (
+                        row.basis
+                        || 'BERAT'
+                    ).toUpperCase();
 
-            REMARK:
-                row.remark
-                || ''
-        }];
+                return {
+
+                    CUSTOMER:
+                        row.customer,
+
+                    SAVING_AMOUNT:
+                        parseRupiah(
+                            row.saving || 0
+                        ),
+
+                    SAVING_RATE:
+                        basis === 'BON'
+                            ? 0
+                            : parseRupiah(
+                                row.rate || 0
+                            ),
+
+                    BASIS:
+                        basis,
+
+                    REMARK:
+                        row.remark
+                        || ''
+
+                };
+
+            });
     }
 
     function initPlantSelect2() {
@@ -3530,6 +4040,21 @@
                 |--------------------------------------------------------------------------
                 */
 
+                let receiveNo = row.RECEIVE || '';
+
+                if (!receiveNo) {
+
+                    let receiveMatch = String(
+                        row.REMARK || ''
+                    ).match(
+                        /AUTO FROM RECEIVE\s+([A-Z0-9]+)/i
+                    );
+
+                    if (receiveMatch) {
+                        receiveNo = receiveMatch[1];
+                    }
+                }
+
                 let tr = `
 
                     <tr>
@@ -3553,6 +4078,22 @@
                             <small class="text-muted">
                                 ${row.NOTA || '-'}
                             </small>
+
+                            ${
+                                receiveNo
+                                ? `
+                                    <div class="mt-1">
+                                        <small class="text-muted">
+                                            FROM RECEIVE
+                                        </small>
+                                    </div>
+
+                                    <small class="text-muted">
+                                        ${receiveNo}
+                                    </small>
+                                `
+                                : ''
+                            }
 
                         </td>
 
@@ -3849,19 +4390,14 @@
             syncSavingRowEdit(
                 value,
                 getCustomerLabel('#customerEdit'),
-                salesState.savingRowEdit ? salesState.savingRowEdit.saving : 0,
-                salesState.savingRowEdit ? salesState.savingRowEdit.remark : ''
+                0,
+                'BERAT',
+                0,
+                ''
             );
 
         });
     }
-
-    $('#customerAdd').on('change', function () {
-        $('#hiddenCustomerAdd').val(
-            $(this).val()
-        );
-        syncSavingRowAdd();
-    });
 
     function setDefaultCustomer(selector, custId, custName) {
         let opt = new Option(
@@ -4992,7 +5528,8 @@
 
                         $('#grandTotalDisplay').html('0');
 
-                        salesState.savingRowAdd = null;
+                        salesState.savingRowsAdd = [];
+
                         renderSavingTableAdd();
                         refreshPaymentSummaryAdd();
 
@@ -5027,7 +5564,7 @@
             $('#salesDetailTableEdit tbody').empty();
             $('#attachmentPreviewEdit').html('');
             $('#grandTotalDisplayEdit').text('0');
-            salesState.savingRowEdit = null;
+            salesState.savingRowsEdit = [];
 
             $.get('<?= base_url("sales/edit"); ?>', { sales: sales, plant: plant }, function(resp){
 
@@ -5097,41 +5634,59 @@
                     });
                 });
 
-                let savingAmount = 0;
-                let savingBasis = 'BERAT';
-                let savingRate = 0;
-                let savingRemark = '';
+                salesState.savingRowsEdit = [];
 
-                if (resp.saving) {
+                if (
+                    Array.isArray(resp.saving)
+                    &&
+                    resp.saving.length
+                ) {
 
-                    savingAmount =
-                        parseFloat(
-                            resp.saving.AMOUNT || 0
-                        );
+                    resp.saving.forEach(function (row) {
 
-                    savingBasis =
-                        resp.saving.BASIS
-                        || 'BERAT';
+                        let basis =
+                            (
+                                row.BASIS
+                                || 'BERAT'
+                            ).toUpperCase();
 
-                    savingRate =
-                        parseFloat(
-                            resp.saving.RATE || 0
-                        );
+                        salesState.savingRowsEdit.push({
 
-                    savingRemark =
-                        extractSavingRemark(
-                            resp.saving.REMARK || ''
-                        );
+                            customer:
+                                row.CUSTOMER
+                                || h.CUSTOMER,
+
+                            customer_name:
+                                h.CUSTOMER_NAME
+                                ? h.CUSTOMER_NAME + ' - ' + h.CUSTOMER
+                                : h.CUSTOMER,
+
+                            basis:
+                                basis,
+
+                            rate:
+                                parseFloat(
+                                    row.RATE || 0
+                                ),
+
+                            saving:
+                                parseFloat(
+                                    row.AMOUNT || 0
+                                ),
+
+                            remark:
+                                extractSavingRemark(
+                                    row.REMARK || ''
+                                )
+
+                        });
+
+                    });
                 }
 
-                syncSavingRowEdit(
-                    h.CUSTOMER,
-                    h.CUSTOMER_NAME + ' - ' + h.CUSTOMER,
-                    savingAmount,
-                    savingBasis,
-                    savingRate,
-                    savingRemark
-                );
+                renderSavingTableEdit();
+                recalcSavingEdit();
+                refreshPaymentSummaryEdit();
 
                 $('#biayaEdit').val(
                     formatRupiahEdit(
@@ -5149,10 +5704,6 @@
                     formatRupiahEdit(
                         h.ROUNDING || 0
                     )
-                );
-
-                $('#grandSavingEditHidden').val(
-                    formatRupiahEdit(savingAmount)
                 );
 
                 refreshPaymentSummaryEdit();
@@ -5623,87 +6174,21 @@
         '.saving-rate-add',
         function () {
 
-            let val =
-                parseRupiah(
-                    $(this).val()
+            let index =
+                parseInt(
+                    $(this)
+                        .closest('tr')
+                        .attr('data-saving-index'),
+                    10
                 );
 
-            $(this).val(
-                formatRupiah(
-                    val
-                )
-            );
-
             if (
-                salesState.savingRowAdd
-            ) {
-
-                salesState
-                    .savingRowAdd
-                    .rate =
-                        val;
-
-            }
-
-            recalcSavingAdd();
-
-            refreshPaymentSummaryAdd();
-
-        }
-    );
-
-    $(document).on(
-        'change',
-        '.saving-basis-add',
-        function () {
-
-            if (
-                !salesState.savingRowAdd
+                isNaN(index)
+                ||
+                !salesState.savingRowsAdd[index]
             ) {
                 return;
             }
-
-            salesState
-                .savingRowAdd
-                .basis =
-                    $(this).val();
-
-            recalcSavingAdd();
-
-            refreshPaymentSummaryAdd();
-
-        }
-    );
-
-    $(document).on('input', '#discountAdd', function () {
-        let val = parseRupiah($(this).val());
-        $(this).val(formatRupiah(val));
-        refreshPaymentSummaryAdd();
-    });
-
-    $(document).on(
-        'input',
-        '.saving-remark-add',
-        function () {
-
-            if (
-                salesState.savingRowAdd
-            ) {
-
-                salesState
-                    .savingRowAdd
-                    .remark =
-                        $(this).val();
-
-            }
-
-        }
-    );
-
-    $(document).on(
-        'input',
-        '.saving-rate-edit',
-        function () {
 
             let val =
                 parseRupiah(
@@ -5714,15 +6199,284 @@
                 formatRupiah(val)
             );
 
+            salesState
+                .savingRowsAdd[index]
+                .rate = val;
+
+            recalcSavingAdd();
+
+            refreshPaymentSummaryAdd();
+        }
+    );
+
+
+    $(document).on(
+        'input',
+        '.saving-bon-add',
+        function () {
+
+            let index =
+                parseInt(
+                    $(this)
+                        .closest('tr')
+                        .attr('data-saving-index'),
+                    10
+                );
+
             if (
-                salesState.savingRowEdit
+                isNaN(index)
+                ||
+                !salesState.savingRowsAdd[index]
             ) {
-
-                salesState
-                    .savingRowEdit
-                    .rate = val;
-
+                return;
             }
+
+            let val =
+                parseRupiah(
+                    $(this).val()
+                );
+
+            $(this).val(
+                formatRupiah(val)
+            );
+
+            salesState
+                .savingRowsAdd[index]
+                .saving = val;
+
+            recalcSavingAdd();
+
+            refreshPaymentSummaryAdd();
+        }
+    );
+
+
+    $(document).on(
+        'change',
+        '.saving-basis-add',
+        function () {
+
+            let index =
+                parseInt(
+                    $(this)
+                        .closest('tr')
+                        .attr('data-saving-index'),
+                    10
+                );
+
+            if (
+                isNaN(index)
+                ||
+                !salesState.savingRowsAdd[index]
+            ) {
+                return;
+            }
+
+            salesState
+                .savingRowsAdd[index]
+                .basis = $(this).val();
+
+            recalcSavingAdd();
+
+            renderSavingTableAdd();
+
+            refreshPaymentSummaryAdd();
+        }
+    );
+
+
+    $(document).on(
+        'input',
+        '.saving-remark-add',
+        function () {
+
+            let index =
+                parseInt(
+                    $(this)
+                        .closest('tr')
+                        .attr('data-saving-index'),
+                    10
+                );
+
+            if (
+                isNaN(index)
+                ||
+                !salesState.savingRowsAdd[index]
+            ) {
+                return;
+            }
+
+            salesState
+                .savingRowsAdd[index]
+                .remark = $(this).val();
+        }
+    );
+
+    $(document).on('input', '#discountAdd', function () {
+        let val = parseRupiah($(this).val());
+        $(this).val(formatRupiah(val));
+        refreshPaymentSummaryAdd();
+    });
+
+    $(document).on(
+        'click',
+        '#addSavingAdd',
+        function () {
+
+            let customerId =
+                $('#hiddenCustomerAdd').val();
+
+            if (!customerId) {
+
+                alert(
+                    'Customer wajib dipilih terlebih dahulu'
+                );
+
+                return;
+            }
+
+            let customerName =
+                getCustomerLabel(
+                    '#customerAdd'
+                );
+
+            salesState.savingRowsAdd.push({
+
+                customer:
+                    customerId,
+
+                customer_name:
+                    customerName,
+
+                basis:
+                    'BERAT',
+
+                rate:
+                    0,
+
+                saving:
+                    0,
+
+                remark:
+                    ''
+
+            });
+
+            recalcSavingAdd();
+
+            renderSavingTableAdd();
+
+            refreshPaymentSummaryAdd();
+        }
+    );
+
+    $(document).on(
+        'click',
+        '.remove-saving-add',
+        function () {
+
+            let index =
+                parseInt(
+                    $(this)
+                        .closest('tr')
+                        .attr('data-saving-index'),
+                    10
+                );
+
+            if (isNaN(index)) {
+                return;
+            }
+
+            salesState
+                .savingRowsAdd
+                .splice(
+                    index,
+                    1
+                );
+
+            recalcSavingAdd();
+
+            renderSavingTableAdd();
+
+            refreshPaymentSummaryAdd();
+        }
+    );
+
+    $(document).on(
+        'input',
+        '.saving-rate-edit',
+        function () {
+
+            let row =
+                $(this).closest('tr');
+
+            let index =
+                parseInt(
+                    row.attr('data-saving-index'),
+                    10
+                );
+
+            if (
+                isNaN(index)
+                ||
+                !salesState.savingRowsEdit[index]
+            ) {
+                return;
+            }
+
+            let val =
+                parseRupiah(
+                    $(this).val()
+                );
+
+            $(this).val(
+                formatRupiah(val)
+            );
+
+            salesState
+                .savingRowsEdit[index]
+                .rate = val;
+
+            recalcSavingEdit();
+
+            refreshPaymentSummaryEdit();
+        }
+    );
+
+    $(document).on(
+        'input',
+        '.saving-bon-edit',
+        function () {
+
+            let row =
+                $(this).closest('tr');
+
+            let index =
+                parseInt(
+                    row.attr('data-saving-index'),
+                    10
+                );
+
+            if (
+                isNaN(index)
+                ||
+                !salesState.savingRowsEdit[index]
+            ) {
+                return;
+            }
+
+            let val =
+                parseRupiah(
+                    $(this).val()
+                );
+
+            $(this).val(
+                formatRupiah(val)
+            );
+
+            salesState
+                .savingRowsEdit[index]
+                .saving = val;
 
             recalcSavingEdit();
 
@@ -5735,18 +6489,163 @@
         '.saving-basis-edit',
         function () {
 
+            let row =
+                $(this).closest('tr');
+
+            let index =
+                parseInt(
+                    row.attr('data-saving-index'),
+                    10
+                );
+
             if (
-                !salesState.savingRowEdit
+                isNaN(index)
+                ||
+                !salesState.savingRowsEdit[index]
+            ) {
+                return;
+            }
+
+            let basis =
+                (
+                    $(this).val()
+                    || 'BERAT'
+                ).toUpperCase();
+
+            salesState
+                .savingRowsEdit[index]
+                .basis = basis;
+
+            /*
+            |--------------------------------------------------------------------------
+            | Jika pindah ke BON
+            | Rate tidak digunakan
+            |--------------------------------------------------------------------------
+            */
+
+            if (basis === 'BON') {
+
+                salesState
+                    .savingRowsEdit[index]
+                    .rate = 0;
+
+            }
+
+            recalcSavingEdit();
+
+            renderSavingTableEdit();
+
+            refreshPaymentSummaryEdit();
+        }
+    );
+
+    $(document).on(
+        'input',
+        '.saving-remark-edit',
+        function () {
+
+            let row =
+                $(this).closest('tr');
+
+            let index =
+                parseInt(
+                    row.attr('data-saving-index'),
+                    10
+                );
+
+            if (
+                isNaN(index)
+                ||
+                !salesState.savingRowsEdit[index]
             ) {
                 return;
             }
 
             salesState
-                .savingRowEdit
-                .basis =
-                    $(this).val();
+                .savingRowsEdit[index]
+                .remark = $(this).val();
+        }
+    );
+
+    $(document).on(
+        'click',
+        '.remove-saving-edit',
+        function () {
+
+            let index =
+                parseInt(
+                    $(this)
+                        .closest('tr')
+                        .attr('data-saving-index'),
+                    10
+                );
+
+            if (isNaN(index)) {
+                return;
+            }
+
+            salesState
+                .savingRowsEdit
+                .splice(
+                    index,
+                    1
+                );
 
             recalcSavingEdit();
+
+            renderSavingTableEdit();
+
+            refreshPaymentSummaryEdit();
+        }
+    );
+
+    $(document).on(
+        'click',
+        '#addSavingEdit',
+        function () {
+
+            let customerId =
+                $('#hiddenCustomerEdit').val();
+
+            if (!customerId) {
+
+                alert(
+                    'Customer wajib dipilih terlebih dahulu'
+                );
+
+                return;
+            }
+
+            let customerName =
+                getCustomerLabel(
+                    '#customerEdit'
+                );
+
+            salesState.savingRowsEdit.push({
+
+                customer:
+                    customerId,
+
+                customer_name:
+                    customerName,
+
+                basis:
+                    'BERAT',
+
+                rate:
+                    0,
+
+                saving:
+                    0,
+
+                remark:
+                    ''
+
+            });
+
+            recalcSavingEdit();
+
+            renderSavingTableEdit();
 
             refreshPaymentSummaryEdit();
         }
@@ -5771,23 +6670,6 @@
         }
     );
 
-    $(document).on(
-        'input',
-        '.saving-remark-edit',
-        function () {
-
-            if (
-                salesState.savingRowEdit
-            ) {
-
-                salesState
-                    .savingRowEdit
-                    .remark =
-                        $(this).val();
-
-            }
-        }
-    );
 
     $(document).on('input','#BAYAR_AWAL_EDIT', function(){
         let val = parseRupiah($(this).val());
