@@ -9,19 +9,8 @@
     Faktur <?= $header->SALES; ?>
 </title>
 
-<style>
 
-/*
-|--------------------------------------------------------------------------
-| UKURAN KERTAS
-|--------------------------------------------------------------------------
-|
-| Epson LX-310
-|
-| Lebar  : 9.5 inch = 241.3 mm
-| Tinggi : 11 inch  = 279.4 mm
-|
-*/
+<style>
 
 @page {
 
@@ -53,71 +42,27 @@ body {
     padding:
         0;
 
-    font-family:
-        "Courier New",
-        Courier,
-        monospace;
-
-    font-size:
-        10px;
-
-    color:
-        #000;
-
-    font-weight:
-        bold;
-
+    font-family: "Courier New", monospace;
+    font-size: 10px;
+    color: #000;
 }
-
 
 body {
-
-    overflow:
-        hidden;
-
+    overflow: hidden;
 }
-
-
-/*
-|--------------------------------------------------------------------------
-| SEMUA TEKS BOLD
-|--------------------------------------------------------------------------
-*/
-
-* {
-
-    font-weight:
-        bold !important;
-
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| AREA CETAK
-|--------------------------------------------------------------------------
-|
-| KONFIGURASI INI DIPERTAHANKAN
-| DARI HASIL PRINT YANG SUDAH BAGUS
-|
-*/
 
 .print-area {
+    width: 205mm;
 
-    width:
-        203mm;
+    margin-left: 18mm;
+    margin-top: 7mm;
 
-    margin-left:
-        13mm;
-
-    margin-right:
-        0;
-
-    margin-top:
-        7mm;
-
-    min-height:
-        260mm;
+    /*
+    |----------------------------------------
+    | Tinggi area cetak aman
+    |----------------------------------------
+    */
+    height: 125mm;
 
     overflow:
         hidden;
@@ -136,8 +81,7 @@ table {
     width:
         100%;
 
-    border-collapse:
-        collapse;
+    border-collapse: collapse;
 
 }
 
@@ -148,22 +92,11 @@ th {
     padding:
         0;
 
-    vertical-align:
-        top;
-
-    font-weight:
-        bold;
+    vertical-align: top;
 
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| ALIGNMENT
-|--------------------------------------------------------------------------
-*/
-
-.left {
+.center {
 
     text-align:
         left;
@@ -219,19 +152,16 @@ th {
 
 .company {
 
-    width:
-        30%;
+    width: 30%;
 
-    line-height:
-        1.5;
+    line-height: 1.5;
 
 }
 
 
 .invoice {
 
-    width:
-        40%;
+    width: 40%;
 
     text-align:
         center;
@@ -241,8 +171,7 @@ th {
 
 .info {
 
-    width:
-        30%;
+    width: 30%;
 
 }
 
@@ -263,8 +192,7 @@ th {
 
 .invoice-no {
 
-    margin-top:
-        3px;
+    margin-top: 3px;
 
     font-weight:
         bold;
@@ -274,115 +202,25 @@ th {
 
 /*
 |--------------------------------------------------------------------------
-| INFORMASI HEADER
-|--------------------------------------------------------------------------
-*/
-
-.info-table {
-
-    width:
-        100%;
-
-}
-
-
-.info-table td {
-
-    padding-bottom:
-        1px;
-
-}
-
-
-.info-label {
-
-    width:
-        70px;
-
-}
-
-
-.info-colon {
-
-    width:
-        10px;
-
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| GARIS PEMBATAS
-|--------------------------------------------------------------------------
-*/
-
-.separator-line {
-
-    border-bottom:
-        1px solid #000;
-
-    margin-top:
-        6mm;
-
-    margin-bottom:
-        3mm;
-
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| DETAIL PENJUALAN
+| DETAIL
 |--------------------------------------------------------------------------
 */
 
 .detail {
-
-    width:
-        100%;
-
-    table-layout:
-        fixed;
-
+    margin-top: 6mm;
 }
-
 
 .detail th {
 
     border-bottom:
         1px solid #000;
-
-    padding-bottom:
-        2mm;
-
-    font-weight:
-        bold;
-
+    padding-bottom: 2mm;
+    font-weight: normal;
 }
-
 
 .detail td {
-
-    padding-top:
-        1mm;
-
-    padding-bottom:
-        0.5mm;
-
-    font-weight:
-        bold;
-
-    overflow:
-        hidden;
-
-    word-wrap:
-        break-word;
-
-    overflow-wrap:
-        break-word;
-
+    padding-top: 1mm;
 }
-
 
 /*
 |--------------------------------------------------------------------------
@@ -393,39 +231,11 @@ th {
 |
 */
 
-.col-material {
+.detail-total td {
 
-    width:
-        40%;
+    padding-top: 3mm;
 
-}
-
-
-.col-basis {
-
-    width:
-        9%;
-
-}
-
-
-.col-qty {
-
-    width:
-        8%;
-
-}
-
-
-.col-weight {
-
-    width:
-        11%;
-
-}
-
-
-.col-price {
+    font-weight: bold;
 
     width:
         14%;
@@ -438,28 +248,26 @@ th {
     width:
         18%;
 
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| TOTAL DETAIL
-|--------------------------------------------------------------------------
-*/
-
-.detail-total td {
-
-    padding-top:
-        3mm;
-
-    border-top:
-        1px solid #000;
-
     font-weight:
         bold;
 
 }
 
+
+/*
+|--------------------------------------------------------------------------
+| SAVING
+|--------------------------------------------------------------------------
+*/
+
+.saving {
+    margin-top: 2mm;
+}
+
+.saving-title {
+    font-weight: bold;
+    margin-bottom: 1mm;
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -468,54 +276,21 @@ th {
 */
 
 .summary {
-
-    width:
-        88mm;
-
-    margin-left:
-        auto;
-
-    margin-right:
-        0;
-
-    margin-top:
-        4mm;
-
+    width: 80mm;
+    margin-left: auto;
+    margin-top: 2mm;
 }
-
-
-.summary table {
-
-    width:
-        100%;
-
-}
-
 
 .summary td {
 
     padding-top:
         1mm;
 
-    padding-bottom:
-        1mm;
-
-    white-space:
-        nowrap;
-
-    font-weight:
-        bold;
+    padding-bottom: 1mm;
 
 }
 
-
-/*
-|--------------------------------------------------------------------------
-| GARIS TOTAL PENJUALAN
-|--------------------------------------------------------------------------
-*/
-
-.summary .separator-row td {
+.summary .separator td {
 
     border-top:
         1px solid #000;
@@ -524,13 +299,6 @@ th {
         2mm;
 
 }
-
-
-/*
-|--------------------------------------------------------------------------
-| TOTAL AKHIR
-|--------------------------------------------------------------------------
-*/
 
 .summary .grand td {
 
@@ -545,184 +313,76 @@ th {
 
 }
 
+.summary .outstanding-header td {
 
-/*
-|--------------------------------------------------------------------------
-| BAGIAN BAWAH
-|--------------------------------------------------------------------------
-*/
+    border-top:
+        1px solid #000;
 
-.bottom-section {
+    padding-top: 2mm;
 
-    width:
-        100%;
-
-    border-collapse:
-        collapse;
-
-    margin-top:
-        4mm;
+    font-weight: bold;
 
 }
 
+.summary .outstanding-total td {
 
-.bottom-left {
+    border-top:
+        2px solid #000;
 
-    width:
-        60%;
+    padding-top: 2mm;
 
-    vertical-align:
-        top;
-
-    padding:
-        0;
-
-}
-
-
-.bottom-right {
-
-    width:
-        40%;
-
-    vertical-align:
-        top;
-
-    padding:
-        0;
-
-    text-align:
-        center;
+    font-weight: bold;
 
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| TERBILANG
+| SAY
 |--------------------------------------------------------------------------
 */
 
 .say {
 
-    line-height:
-        1.4;
+    margin-top: 4mm;
 
-    font-weight:
-        bold;
+    line-height: 1.4;
 
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| PEMBAYARAN
-|--------------------------------------------------------------------------
-*/
-
-.bank {
-
-    margin-top:
-        3mm;
-
-    line-height:
-        1.4;
-
-    font-weight:
-        bold;
-
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| TANDA TANGAN
-|--------------------------------------------------------------------------
-*/
-
-.signature-space {
-
-    height:
-        12mm;
-
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| KETERANGAN
+| BANK
 |--------------------------------------------------------------------------
 */
 
 .remark {
 
-    margin-top:
-        4mm;
+    margin-top: 3mm;
 
-    line-height:
-        1.4;
-
-    font-weight:
-        bold;
+    line-height: 1.4;
 
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| PRINT
+| SIGNATURE
 |--------------------------------------------------------------------------
 */
 
-@media print {
+.signature {
+    margin-top: 3mm;
+}
 
-    html,
-    body {
+.signature-space {
+    height: 8mm;
+}
 
-        margin:
-            0 !important;
+.small {
 
-        padding:
-            0 !important;
-
-        width:
-            241.3mm !important;
-
-        font-weight:
-            bold !important;
-
-    }
-
-
-    * {
-
-        font-weight:
-            bold !important;
-
-    }
-
-
-    .print-area {
-
-        width:
-            203mm !important;
-
-        margin-left:
-            13mm !important;
-
-        margin-right:
-            0 !important;
-
-        margin-top:
-            7mm !important;
-
-        min-height:
-            260mm !important;
-
-        overflow:
-            hidden !important;
-
-    }
+    font-size: 8px;
 
 }
 
@@ -958,18 +618,16 @@ if (
 ?>
 
 
-<!-- ====================================================== -->
-<!-- HEADER -->
-<!-- ====================================================== -->
+    <!-- ====================================================== -->
+    <!-- HEADER -->
+    <!-- ====================================================== -->
 
 <table class="header">
 
     <tr>
 
 
-        <!-- ================================================== -->
-        <!-- PERUSAHAAN -->
-        <!-- ================================================== -->
+            <!-- COMPANY -->
 
         <td class="company">
 
@@ -999,15 +657,14 @@ if (
 
             <div class="title">
 
-                INVOICE
+                    INVOICES
 
             </div>
 
 
             <div class="invoice-no">
 
-                Nomor :
-                <?= $header->SALES; ?>
+                    No <?= $header->SALES; ?>
 
             </div>
 
@@ -1135,115 +792,84 @@ if (
 
                 </tr>
 
+                </table>
 
-                <!-- NOMOR NOTA -->
+            </td>
 
-                <tr>
+        </tr>
 
-                    <td class="info-label">
-
-                        Nomor Nota
-
-                    </td>
-
-                    <td class="info-colon">
-
-                        :
-
-                    </td>
-
-                    <td>
-
-                        <?= $header->NOTA ?: '-'; ?>
-
-                    </td>
-
-                </tr>
-
-
-            </table>
+    </table>
 
         </td>
 
-    </tr>
+    <!-- ====================================================== -->
+    <!-- DETAIL -->
+    <!-- ====================================================== -->
 
-</table>
+    <?php
 
+    $totalQty =
+        0;
 
-<!-- ====================================================== -->
-<!-- GARIS -->
-<!-- ====================================================== -->
+    $totalBerat =
+        0;
 
-<div class="separator-line"></div>
+    $baseSales =
+        0;
 
+    ?>
 
-<!-- ====================================================== -->
-<!-- DETAIL PENJUALAN -->
-<!-- ====================================================== -->
-
-<table class="detail">
-
-
-    <colgroup>
-
-        <col class="col-material">
-
-        <col class="col-basis">
-
-        <col class="col-qty">
-
-        <col class="col-weight">
-
-        <col class="col-price">
-
-        <col class="col-total">
-
-    </colgroup>
-
+    <table class="detail">
 
     <thead>
 
         <tr>
 
-
-            <th class="left">
+                <th
+                    width="38%"
+                    class="left">
 
                 Keterangan
 
             </th>
 
-
-            <th class="center">
+                <th
+                    width="9%"
+                    class="center">
 
                 Basis
 
             </th>
 
-
-            <th class="center">
+                <th
+                    width="9%"
+                    class="center">
 
                 Ekor
 
             </th>
 
-
-            <th class="center">
+                <th
+                    width="11%"
+                    class="center">
 
                 Berat
 
             </th>
 
+                <th
+                    width="13%"
+                    class="right">
 
-            <th class="right">
-
-                Harga
+                    Price
 
             </th>
 
+                <th
+                    width="20%"
+                    class="right">
 
-            <th class="right">
-
-                Jumlah (Rp)
+                    Jumlah(Rp)
 
             </th>
 
@@ -1296,10 +922,9 @@ if (
 
         <tr>
 
+                <!-- MATERIAL -->
 
-            <!-- KETERANGAN -->
-
-            <td class="left">
+                <td>
 
                 <?= $d->MATERIAL; ?>
 
@@ -1313,7 +938,7 @@ if (
             </td>
 
 
-            <!-- BASIS -->
+                <!-- BASIS -->
 
             <td class="center">
 
@@ -1322,7 +947,7 @@ if (
             </td>
 
 
-            <!-- EKOR -->
+                <!-- QTY -->
 
             <td class="center">
 
@@ -1336,7 +961,7 @@ if (
             </td>
 
 
-            <!-- BERAT -->
+                <!-- WEIGHT -->
 
             <td class="center">
 
@@ -1350,7 +975,7 @@ if (
             </td>
 
 
-            <!-- HARGA -->
+                <!-- PRICE -->
 
             <td class="right">
 
@@ -1364,7 +989,7 @@ if (
             </td>
 
 
-            <!-- JUMLAH -->
+                <!-- TOTAL -->
 
             <td class="right">
 
@@ -1377,97 +1002,215 @@ if (
 
             </td>
 
+            </tr>
 
-        </tr>
-
-
-    <?php endforeach; ?>
+        <?php endforeach; ?>
 
 
-    <?php if (
-        empty($detail)
-    ): ?>
+        <!-- DETAIL TOTAL -->
 
+        <tr class="detail-total">
 
-        <tr>
+            <td></td>
 
-            <td
-                colspan="6"
-                class="center">
+            <td></td>
 
-                Tidak ada detail penjualan.
+            <td class="center">
+
+                <?= number_format(
+                    $totalQty,
+                    0,
+                    ',',
+                    '.'
+                ); ?>
 
             </td>
 
-        </tr>
+            <td class="center">
 
+                <?= number_format(
+                    $totalBerat,
+                    2,
+                    ',',
+                    '.'
+                ); ?>
 
-    <?php endif; ?>
+            </td>
 
+            <td></td>
 
-    <!-- ================================================== -->
-    <!-- TOTAL DETAIL -->
-    <!-- ================================================== -->
+            <td class="right">
 
-    <tr class="detail-total">
+                <?= number_format(
+                    $baseSales,
+                    0,
+                    ',',
+                    '.'
+                ); ?>
 
-
-        <td></td>
-
-
-        <td></td>
-
-
-        <td class="center">
-
-            <?= number_format(
-                $totalQty,
-                0,
-                ',',
-                '.'
-            ); ?>
-
-        </td>
-
-
-        <td class="center">
-
-            <?= number_format(
-                $totalBerat,
-                2,
-                ',',
-                '.'
-            ); ?>
-
-        </td>
-
-
-        <td></td>
-
-
-        <td class="right">
-
-            <?= number_format(
-                $baseSales,
-                0,
-                ',',
-                '.'
-            ); ?>
-
-        </td>
+            </td>
 
 
     </tr>
 
 
-    </tbody>
+        </tbody>
 
-</table>
+    </table>
 
 
-<!-- ====================================================== -->
-<!-- RINGKASAN NILAI -->
-<!-- ====================================================== -->
+    <!-- ====================================================== -->
+    <!-- SAVING -->
+    <!-- ====================================================== -->
+
+    <?php if (
+        !empty($saving)
+    ): ?>
+
+
+        <div class="saving">
+
+
+            <div class="saving-title">
+
+                CUSTOMER SAVING
+
+            </div>
+
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th
+                            width="32%"
+                            class="left">
+
+                            Saving No
+
+                        </th>
+
+                        <th
+                            width="15%"
+                            class="center">
+
+                            Basis
+
+                        </th>
+
+                        <th
+                            width="20%"
+                            class="right">
+
+                            Rate
+
+                        </th>
+
+                        <th
+                            width="18%"
+                            class="right">
+
+                            Amount
+
+                        </th>
+
+                        <th
+                            width="15%"
+                            class="right">
+
+                            Remain
+
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                <?php foreach (
+                    $saving
+                    as $sv
+                ): ?>
+
+                    <tr>
+
+                        <td>
+
+                            <?= $sv->SV_NO; ?>
+
+                        </td>
+
+                        <td class="center">
+
+                            <?= $sv->BASIS ?: '-'; ?>
+
+                        </td>
+
+                        <td class="right">
+
+                            <?= number_format(
+                                $sv->RATE,
+                                0,
+                                ',',
+                                '.'
+                            ); ?>
+
+                            <?php if (
+                                $sv->BASIS === 'EKOR'
+                            ): ?>
+
+                                /Ekor
+
+                            <?php else: ?>
+
+                                /Kg
+
+                            <?php endif; ?>
+
+                        </td>
+
+                        <td class="right">
+
+                            <?= number_format(
+                                $sv->AMOUNT,
+                                0,
+                                ',',
+                                '.'
+                            ); ?>
+
+                        </td>
+
+                        <td class="right">
+
+                            <?= number_format(
+                                $sv->REMAIN,
+                                0,
+                                ',',
+                                '.'
+                            ); ?>
+
+                        </td>
+
+                    </tr>
+
+                <?php endforeach; ?>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    <?php endif; ?>
+
+
+    <!-- ====================================================== -->
+    <!-- SUMMARY -->
+    <!-- ====================================================== -->
 
 <div class="summary">
 
@@ -1485,24 +1228,23 @@ if (
 
                 Penjualan Dasar
 
-            </td>
+                </td>
 
+                <td width="30">
 
-            <td width="30">
-
-                Rp
+                    IDR
 
             </td>
 
 
             <td class="right">
 
-                <?= number_format(
-                    $penjualanDasar,
-                    0,
-                    ',',
-                    '.'
-                ); ?>
+                    <?= number_format(
+                        $summary['base_sales'],
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
 
             </td>
 
@@ -1513,10 +1255,9 @@ if (
         <!-- MODAL -->
         <!-- ================================================== -->
 
-        <?php if (
-            $modal != 0
-        ): ?>
-
+            <?php if (
+                $summary['biaya'] > 0
+            ): ?>
 
         <tr>
 
@@ -1524,24 +1265,58 @@ if (
 
                 Modal
 
-            </td>
+                </td>
+
+                <td>
+
+                    IDR
+
+                </td>
+
+                <td class="right">
+
+                    +<?= number_format(
+                        $summary['biaya'],
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
+
+                </td>
+
+            </tr>
+
+            <?php endif; ?>
 
 
-            <td>
+            <!-- DISCOUNT -->
 
-                Rp
+            <?php if (
+                $summary['discount'] > 0
+            ): ?>
 
-            </td>
+            <tr>
 
+                <td>
+
+                    Discount
+
+                </td>
+
+                <td>
+
+                    IDR
+
+                </td>
 
             <td class="right">
 
-                <?= number_format(
-                    abs($modal),
-                    0,
-                    ',',
-                    '.'
-                ); ?>
+                    -<?= number_format(
+                        $summary['discount'],
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
 
             </td>
 
@@ -1551,20 +1326,17 @@ if (
         <?php endif; ?>
 
 
-        <!-- ================================================== -->
-        <!-- BIAYA -->
-        <!-- ================================================== -->
+            <!-- ROUNDING -->
 
-        <?php if (
-            $biaya != 0
-        ): ?>
-
+            <?php if (
+                $summary['rounding'] > 0
+            ): ?>
 
         <tr>
 
             <td>
 
-                Biaya
+                    Pembulatan
 
             </td>
 
@@ -1578,12 +1350,12 @@ if (
 
             <td class="right">
 
-                <?= number_format(
-                    abs($biaya),
-                    0,
-                    ',',
-                    '.'
-                ); ?>
+                    +<?= number_format(
+                        $summary['rounding'],
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
 
             </td>
 
@@ -1593,118 +1365,170 @@ if (
         <?php endif; ?>
 
 
-        <!-- ================================================== -->
-        <!-- TOTAL PENJUALAN -->
-        <!-- ================================================== -->
+            <!-- TOTAL SALES -->
 
-        <tr class="separator-row">
+            <tr>
 
+                <td class="bold">
 
-            <td class="bold">
+                    Total Sales
 
-                Total Penjualan
+                </td>
 
-            </td>
+                <td class="bold">
 
+                    IDR
 
-            <td class="bold">
+                </td>
 
-                Rp
+                <td class="right bold">
 
-            </td>
-
-
-            <td class="right bold">
-
-                <?= number_format(
-                    $totalPenjualan,
-                    0,
-                    ',',
-                    '.'
-                ); ?>
+                    <?= number_format(
+                        $summary['sales_amount'],
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
 
             </td>
 
-
-        </tr>
-
-
-        <!-- ================================================== -->
-        <!-- TABUNGAN PELANGGAN -->
-        <!-- ================================================== -->
-
-        <?php if (
-            $totalSaving != 0
-        ): ?>
-
-
-        <tr>
-
-
-            <td>
-
-                Tabungan Pelanggan
-                (<?= $savingBasis; ?>)
-
-            </td>
-
-
-            <td>
-
-                Rp
-
-            </td>
-
+            </tr>
 
             <td class="right">
 
-                +
+            <!-- SAVING -->
 
-                <?= number_format(
-                    abs($totalSaving),
-                    0,
-                    ',',
-                    '.'
-                ); ?>
+            <?php if (
+                $summary['total_saving'] > 0
+            ): ?>
+
+            <tr>
+
+                <td>
+
+                    Customer Saving
+
+                </td>
+
+                <td>
+
+                    IDR
+
+                </td>
+
+                <td class="right">
+
+                    +<?= number_format(
+                        $summary['total_saving'],
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
+
+                </td>
+
+            </tr>
+
+            <?php endif; ?>
+
+
+            <!-- GRAND TOTAL -->
+
+            <tr class="grand">
+
+                <td>
+
+                    Grand Total
 
             </td>
 
+                <td>
 
-        </tr>
+                    IDR
+
+                </td>
+
+                <td class="right">
+
+                    <?= number_format(
+                        $summary['grand_total'],
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
+
+                </td>
+
+            </tr>
 
 
-        <?php endif; ?>
+            <!-- OUTSTANDING -->
+
+            <tr class="outstanding-header">
+
+                <td colspan="3">
+
+                    OUTSTANDING
+
+                </td>
+
+            </tr>
 
 
-        <!-- ================================================== -->
-        <!-- TOTAL AKHIR -->
-        <!-- ================================================== -->
+            <!-- SALES OUTSTANDING -->
 
-        <tr class="grand">
+            <tr>
 
+                <td>
+
+                    Outstanding Sales
+
+                </td>
 
             <td>
 
-                Total Akhir
+                    IDR
 
-            </td>
+                </td>
+
+                <td class="right">
+
+                    <?= number_format(
+                        $summary['outstanding_sales'],
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
+
+                </td>
+
+            </tr>
 
 
-            <td>
+            <!-- SAVING OUTSTANDING -->
 
-                Rp
+            <tr>
 
-            </td>
+                <td>
 
+                    Outstanding Saving
+
+                </td>
+
+                <td>
+
+                    IDR
+
+                </td>
 
             <td class="right">
 
-                <?= number_format(
-                    $totalAkhir,
-                    0,
-                    ',',
-                    '.'
-                ); ?>
+                    <?= number_format(
+                        $summary['outstanding_saving'],
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
 
 
             </td>
@@ -1713,45 +1537,62 @@ if (
         </tr>
 
 
-    </table>
+            <!-- TOTAL OUTSTANDING -->
+
+            <tr class="outstanding-total">
+
+                <td>
+
+                    Total Outstanding
+
+                </td>
+
+                <td>
+
+                    IDR
+
+                </td>
+
+                <td class="right">
+
+                    <?= number_format(
+                        $summary['total_outstanding'],
+                        0,
+                        ',',
+                        '.'
+                    ); ?>
+
+                </td>
+
+            </tr>
+
+        </table>
+
+    </div>
 
 
-</div>
-
-
-<!-- ====================================================== -->
-<!-- TERBILANG + DITERIMA OLEH -->
-<!-- ====================================================== -->
-
-<table class="bottom-section">
-
-
-    <tr>
-
-
-        <!-- ================================================== -->
-        <!-- TERBILANG + PEMBAYARAN -->
-        <!-- ================================================== -->
-
-        <td class="bottom-left">
-
+    <!-- ====================================================== -->
+    <!-- SAY -->
+    <!-- ====================================================== -->
 
             <div class="say">
 
                 Terbilang :
 
-                <?= ucwords(
-                    terbilang(
-                        $totalAkhir
-                    )
-                ); ?>
+        <?= ucwords(
+            terbilang(
+                $summary['grand_total']
+            )
+        ); ?>
 
                 Rupiah
 
             </div>
 
 
-            <!-- PEMBAYARAN -->
+    <!-- ====================================================== -->
+    <!-- BANK -->
+    <!-- ====================================================== -->
 
             <div class="bank">
 
@@ -1771,9 +1612,7 @@ if (
         </td>
 
 
-        <!-- ================================================== -->
-        <!-- DITERIMA OLEH -->
-        <!-- ================================================== -->
+        <table>
 
         <td class="bottom-right">
 
@@ -1792,40 +1631,37 @@ if (
 
     </tr>
 
-</table>
+
+            <tr>
+
+                <td></td>
+
+                <td
+                    class="
+                        center
+                        signature-space
+                    ">
+
+                </td>
+
+            </tr>
 
 
-<!-- ====================================================== -->
-<!-- KETERANGAN -->
-<!-- ====================================================== -->
+            <tr>
 
-<?php if (
-    !empty(
-        trim(
-            $header->REMARK
-            ?? ''
-        )
-    )
-): ?>
+                <td></td>
 
+                <td class="center">
 
-<div class="remark">
+                    (__________________)
 
+                </td>
 
-    Keterangan :
+            </tr>
 
-    <br>
+        </table>
 
-    <?= nl2br(
-        htmlspecialchars(
-            $header->REMARK,
-            ENT_QUOTES,
-            'UTF-8'
-        )
-    ); ?>
-
-
-</div>
+    </div>
 
 
 <?php endif; ?>

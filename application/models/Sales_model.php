@@ -78,6 +78,8 @@ class Sales_model extends CI_Model {
 
             s.REMARK,
 
+            s.RECEIVE,
+
             s.NOTA,
 
             s.AMOUNT,
@@ -1491,10 +1493,9 @@ class Sales_model extends CI_Model {
                 ->or_like('REMARK', 'AUTO FROM SALES ' . $sales, 'before')
             ->group_end()
             ->where('DELETED IS NULL', null, false)
-            ->order_by('CREATED_AT', 'DESC')
-            ->limit(1)
+            ->order_by('CREATED_AT', 'ASC')
             ->get()
-            ->row_array();
+            ->result_array();
     }
 
     public function insert_saving_batch(array $rows)
