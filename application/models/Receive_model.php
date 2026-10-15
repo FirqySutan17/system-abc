@@ -1368,6 +1368,22 @@ class Receive_model extends CI_Model {
 
                 po.BERAT,
 
+                po.AVG_BW,
+
+                po.MATI_QTY,
+
+                po.MATI_BW,
+
+                po.SUSUT_BW,
+
+                po.TOTAL_TERIMA_QTY,
+
+                po.TOTAL_TERIMA_BW,
+
+                po.CLAIM_QTY,
+
+                po.CLAIM_BW,
+
                 po.HARGA,
 
                 po.TOTAL,
@@ -1426,10 +1442,14 @@ class Receive_model extends CI_Model {
     public function get_receive_detail($plant, $receive)
     {
         return $this->db
+
             ->select("
                 d.*,
+
                 m.MATERIAL_NAME,
+
                 c.FULL_NAME AS CUSTOMER_NAME,
+
                 pt.CODE_NAME AS PO_TYPE_NAME
             ")
 
@@ -1461,7 +1481,103 @@ class Receive_model extends CI_Model {
 
             ->where('d.RECEIVE', $receive)
 
-            ->order_by('d.SEQ_NO', 'ASC')
+            ->order_by(
+                'd.SEQ_NO',
+                'ASC'
+            )
+
+            ->get()
+
+            ->result_array();
+    }
+
+    public function get_receive_saving($plant, $receive)
+    {
+        return $this->db
+            ->select("
+                s.SV_NO,
+                s.CUSTOMER,
+                c.FULL_NAME AS CUSTOMER_NAME,
+                s.AMOUNT,
+                s.BASIS,
+                s.RATE,
+                s.TOTAL_QTY,
+                s.TOTAL_WEIGHT,
+                s.REMAIN,
+                s.REMARK
+            ")
+            ->from('abc_mst_saving s')
+
+            ->join(
+                'abc_cd_customer c',
+                'c.CUST = s.CUSTOMER',
+                'left'
+            )
+
+            ->where('s.RECEIVE', $receive)
+
+            ->where('s.PLANT', $plant)
+
+            ->where(
+                's.DELETED IS NULL',
+                null,
+                false
+            )
+
+            ->order_by(
+                's.SV_NO',
+                'ASC'
+            )
+
+            ->get()
+
+            ->result_array();
+    }
+
+    public function get_receive_payment($plant, $receive)
+    {
+        return $this->db
+            ->select("
+                s.SALES,
+                s.CUSTOMER,
+                c.FULL_NAME AS CUSTOMER_NAME,
+
+                s.AMOUNT,
+                s.REMAIN,
+                s.STATUS,
+
+                s.MODAL,
+                s.BIAYA,
+                s.DISCOUNT,
+                s.ROUNDING,
+
+                s.PEMBAYARAN,
+                s.JENIS_PAY,
+
+                s.REMARK
+            ")
+            ->from('abc_mst_sales s')
+
+            ->join(
+                'abc_cd_customer c',
+                'c.CUST = s.CUSTOMER',
+                'left'
+            )
+
+            ->where('s.RECEIVE', $receive)
+
+            ->where('s.PLANT', $plant)
+
+            ->where(
+                's.DELETED IS NULL',
+                null,
+                false
+            )
+
+            ->order_by(
+                's.SALES',
+                'ASC'
+            )
 
             ->get()
 

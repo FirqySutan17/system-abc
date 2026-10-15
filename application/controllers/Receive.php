@@ -166,14 +166,200 @@ class Receive extends MY_Controller {
 
     private function build_pagination($pages, $current)
     {
-        $html = '<ul class="pagination pagination-sm">';
-        for ($i=1; $i <= $pages; $i++) {
-            $active = ($i == $current) ? 'active' : '';
-            $html .= '<li class="page-item '.$active.'">
-                        <a href="javascript:void(0)" class="page-link" onclick="loadPage('.$i.')">'.$i.'</a>
-                     </li>';
+        if ($pages <= 1) {
+            return '';
         }
+
+
+        $html = '';
+
+        $html .= '<ul class="pagination pagination-sm mb-0">';
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PREVIOUS
+        |--------------------------------------------------------------------------
+        */
+
+        if ($current > 1) {
+
+            $html .= '
+                <li class="page-item">
+                    <a
+                        href="javascript:void(0)"
+                        class="page-link"
+                        onclick="loadPage(' . ($current - 1) . ')"
+                    >
+                        &laquo;
+                    </a>
+                </li>
+            ';
+
+        } else {
+
+            $html .= '
+                <li class="page-item disabled">
+                    <span class="page-link">&laquo;</span>
+                </li>
+            ';
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PAGE RANGE
+        |--------------------------------------------------------------------------
+        */
+
+        $range = 2;
+
+
+        $start = max(
+            1,
+            $current - $range
+        );
+
+
+        $end = min(
+            $pages,
+            $current + $range
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | FIRST PAGE
+        |--------------------------------------------------------------------------
+        */
+
+        if ($start > 1) {
+
+            $html .= '
+                <li class="page-item">
+                    <a
+                        href="javascript:void(0)"
+                        class="page-link"
+                        onclick="loadPage(1)"
+                    >
+                        1
+                    </a>
+                </li>
+            ';
+
+
+            if ($start > 2) {
+
+                $html .= '
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                ';
+
+            }
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PAGE NUMBERS
+        |--------------------------------------------------------------------------
+        */
+
+        for ($i = $start; $i <= $end; $i++) {
+
+            $active = (
+                $i == $current
+            )
+                ? ' active'
+                : '';
+
+
+            $html .= '
+                <li class="page-item' . $active . '">
+                    <a
+                        href="javascript:void(0)"
+                        class="page-link"
+                        onclick="loadPage(' . $i . ')"
+                    >
+                        ' . $i . '
+                    </a>
+                </li>
+            ';
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | LAST PAGE
+        |--------------------------------------------------------------------------
+        */
+
+        if ($end < $pages) {
+
+            if ($end < ($pages - 1)) {
+
+                $html .= '
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                ';
+
+            }
+
+
+            $html .= '
+                <li class="page-item">
+                    <a
+                        href="javascript:void(0)"
+                        class="page-link"
+                        onclick="loadPage(' . $pages . ')"
+                    >
+                        ' . $pages . '
+                    </a>
+                </li>
+            ';
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | NEXT
+        |--------------------------------------------------------------------------
+        */
+
+        if ($current < $pages) {
+
+            $html .= '
+                <li class="page-item">
+                    <a
+                        href="javascript:void(0)"
+                        class="page-link"
+                        onclick="loadPage(' . ($current + 1) . ')"
+                    >
+                        &raquo;
+                    </a>
+                </li>
+            ';
+
+        } else {
+
+            $html .= '
+                <li class="page-item disabled">
+                    <span class="page-link">&raquo;</span>
+                </li>
+            ';
+
+        }
+
+
         $html .= '</ul>';
+
+
         return $html;
     }
 
@@ -677,6 +863,69 @@ class Receive extends MY_Controller {
             'status'  => true,
             'message' => 'Receive berhasil disimpan.'
         ]);
+    }
+
+    public function detail()
+    {
+        header('Content-Type: application/json');
+
+        $receive = trim($this->input->get('receive', true));
+        $plant   = trim($this->input->get('plant', true));
+
+        if (empty($receive) || empty($plant)) {
+            echo json_encode([
+                'status'  => false,
+                'message' => 'Parameter RECEIVE / PLANT tidak lengkap'
+            ]);
+            return;
+        }
+
+        // =========================
+        // HEADER RECEIVE
+        // =========================
+        $header = $this->Receive_model->get_receive_header($plant, $receive);
+
+        if (!$header) {
+            echo json_encode([
+                'status'  => false,
+                'message' => 'Data Receive tidak ditemukan'
+            ]);
+            return;
+        }
+
+        // =========================
+        // CUSTOMER ALLOCATION
+        // =========================
+        $detail = $this->Receive_model->get_receive_detail(
+            $plant,
+            $receive
+        );
+
+        // =========================
+        // SAVING
+        // =========================
+        $saving = $this->Receive_model->get_receive_saving(
+            $plant,
+            $receive
+        );
+
+        // =========================
+        // PAYMENT / SALES
+        // =========================
+        $payment = $this->Receive_model->get_receive_payment(
+            $plant,
+            $receive
+        );
+
+        echo json_encode([
+            'status'  => true,
+            'header'  => $header,
+            'detail'  => $detail,
+            'saving'  => $saving,
+            'payment' => $payment
+        ]);
+
+        return;
     }
 
     public function edit()
@@ -1838,23 +2087,23 @@ class Receive extends MY_Controller {
 
     public function print_slip_pdf()
     {
-        $receive = trim(
-            $this->input->get('receive', true)
-        );
+        $receive = trim($this->input->get('receive', true));
+        $plant   = trim($this->input->get('plant', true));
 
-        $plant = trim(
-            $this->input->get('plant', true)
-        );
 
-        if (
-            empty($receive) ||
-            empty($plant)
-        ) {
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDATE PARAMETER
+        |--------------------------------------------------------------------------
+        */
 
-            show_error(
-                'Parameter RECEIVE / PLANT tidak lengkap'
-            );
+        if (empty($receive) || empty($plant)) {
+
+            show_error('Parameter RECEIVE / PLANT tidak lengkap');
+
+            return;
         }
+
 
         /*
         |--------------------------------------------------------------------------
@@ -1862,105 +2111,67 @@ class Receive extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
-        $header = $this->db
-            ->select("
-                r.RECEIVE,
+        $header = $this->Receive_model->get_receive_header(
+            $plant,
+            $receive
+        );
 
-                r.PLANT,
 
-                plant.CODE_NAME AS PLANT_NAME,
+        /*
+        |--------------------------------------------------------------------------
+        | NORMALIZE HEADER
+        |--------------------------------------------------------------------------
+        */
 
-                r.RECEIVE_DATE,
+        if (is_array($header)) {
 
-                r.PO,
+            if (isset($header[0]) && is_array($header[0])) {
 
-                r.NOTA,
+                $header = (object) $header[0];
 
-                r.NO_REF,
+            } else {
 
-                r.SUPPLIER,
+                $header = (object) $header;
 
-                supplier.FULL_NAME AS SUPPLIER_NAME,
+            }
 
-                r.PEMBAYARAN,
-
-                r.JENIS_PAY,
-
-                r.SLIP_NO,
-
-                r.ATTACH_FILE_NAME,
-
-                r.REMARK,
-
-                r.STATUS_RECEIVE
-            ", false)
-
-            ->from('abc_mst_receive r')
-
-            ->join(
-                'abc_cd_code plant',
-                "
-                    plant.HEAD_CODE='PLANT'
-
-                    AND plant.CODE COLLATE utf8mb4_unicode_ci =
-                    r.PLANT COLLATE utf8mb4_unicode_ci
-                ",
-                'left',
-                false
-            )
-
-            ->join(
-                'abc_cd_customer supplier',
-                "
-                    supplier.CUST COLLATE utf8mb4_unicode_ci =
-                    r.SUPPLIER COLLATE utf8mb4_unicode_ci
-                ",
-                'left',
-                false
-            )
-
-            ->where('r.RECEIVE', $receive)
-
-            ->where('r.PLANT', $plant)
-
-            ->where(
-                'r.DELETED IS NULL',
-                null,
-                false
-            )
-
-            ->get()
-
-            ->row();
-
-        if (!$header) {
-
-            show_error(
-                'Receive tidak ditemukan'
-            );
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | PO TEXT
-        |--------------------------------------------------------------------------
-        */
-
-        $header->PO_TEXT =
-            !empty($header->PO)
-                ? $header->PO
-                : 'DIRECT RECEIVE';
 
         /*
         |--------------------------------------------------------------------------
-        | STATUS TEXT
+        | VALIDATE HEADER
         |--------------------------------------------------------------------------
         */
 
-        $header->STATUS_TEXT =
-            !empty($header->STATUS_RECEIVE)
-                ? strtoupper($header->STATUS_RECEIVE)
-                : 'OPEN';
+        if (!$header || !is_object($header)) {
+
+            show_error(
+                'Receive tidak ditemukan untuk RECEIVE: '
+                . htmlspecialchars($receive)
+                . ' dan PLANT: '
+                . htmlspecialchars($plant)
+            );
+
+            return;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | HEADER DISPLAY
+        |--------------------------------------------------------------------------
+        */
+
+        $header->PO_TEXT = !empty($header->PO)
+            ? $header->PO
+            : 'DIRECT RECEIVE';
+
+
+        $header->STATUS_TEXT = !empty($header->STATUS_RECEIVE)
+            ? strtoupper($header->STATUS_RECEIVE)
+            : 'OPEN';
+
 
         /*
         |--------------------------------------------------------------------------
@@ -1968,113 +2179,101 @@ class Receive extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
-        $detail = $this->db
-            ->select("
-                d.SEQ_NO,
+        $detail = $this->Receive_model->get_receive_detail(
+            $plant,
+            $receive
+        );
 
-                d.CUSTOMER,
-
-                customer.FULL_NAME AS CUSTOMER_NAME,
-
-                d.PO_TYPE,
-
-                po_type.CODE_NAME AS PO_TYPE_NAME,
-
-                d.MATERIAL,
-
-                material.MATERIAL_NAME,
-
-                d.JUMLAH,
-
-                d.BERAT,
-
-                d.SUSUT_JUMLAH,
-
-                d.SUSUT_BERAT,
-
-                d.HARGA,
-
-                d.TOTAL,
-
-                d.KETERANGAN,
-
-                d.STATUS,
-
-                d.IS_EXTRA,
-
-                d.SALES_CREATED,
-
-                d.SALES_NO
-            ", false)
-
-            ->from('abc_mst_receive_detail d')
-
-            /*
-            |--------------------------------------------------------------------------
-            | CUSTOMER
-            |--------------------------------------------------------------------------
-            */
-
-            ->join(
-                'abc_cd_customer customer',
-                "
-                    customer.CUST COLLATE utf8mb4_unicode_ci =
-                    d.CUSTOMER COLLATE utf8mb4_unicode_ci
-                ",
-                'left',
-                false
-            )
-
-            /*
-            |--------------------------------------------------------------------------
-            | MATERIAL
-            |--------------------------------------------------------------------------
-            */
-
-            ->join(
-                'abc_cd_material material',
-                "
-                    material.MATERIAL COLLATE utf8mb4_unicode_ci =
-                    d.MATERIAL COLLATE utf8mb4_unicode_ci
-                ",
-                'left',
-                false
-            )
-
-            /*
-            |--------------------------------------------------------------------------
-            | PO TYPE
-            |--------------------------------------------------------------------------
-            */
-
-            ->join(
-                'abc_cd_code po_type',
-                "
-                    po_type.CODE COLLATE utf8mb4_unicode_ci =
-                    d.PO_TYPE COLLATE utf8mb4_unicode_ci
-
-                    AND po_type.HEAD_CODE = 'PO'
-                ",
-                'left',
-                false
-            )
-
-            ->where('d.RECEIVE', $receive)
-
-            ->where('d.PLANT', $plant)
-
-            ->order_by('d.SEQ_NO', 'ASC')
-
-            ->get()
-
-            ->result();
 
         if (empty($detail)) {
 
             show_error(
-                'Detail receive tidak ditemukan'
+                'Detail Receive tidak ditemukan untuk RECEIVE: '
+                . htmlspecialchars($receive)
             );
+
+            return;
         }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | NORMALIZE DETAIL
+        |--------------------------------------------------------------------------
+        */
+
+        foreach ($detail as $key => $row) {
+
+            if (is_array($row)) {
+
+                $detail[$key] = (object) $row;
+
+            }
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SAVING
+        |--------------------------------------------------------------------------
+        */
+
+        $saving = $this->Receive_model->get_receive_saving(
+            $plant,
+            $receive
+        );
+
+
+        if (empty($saving)) {
+
+            $saving = [];
+
+        } else {
+
+            foreach ($saving as $key => $row) {
+
+                if (is_array($row)) {
+
+                    $saving[$key] = (object) $row;
+
+                }
+
+            }
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PAYMENT
+        |--------------------------------------------------------------------------
+        */
+
+        $payment = $this->Receive_model->get_receive_payment(
+            $plant,
+            $receive
+        );
+
+
+        if (empty($payment)) {
+
+            $payment = [];
+
+        } else {
+
+            foreach ($payment as $key => $row) {
+
+                if (is_array($row)) {
+
+                    $payment[$key] = (object) $row;
+
+                }
+
+            }
+
+        }
+
 
         /*
         |--------------------------------------------------------------------------
@@ -2083,45 +2282,70 @@ class Receive extends MY_Controller {
         */
 
         $summary = [
-
-            'qty' => 0,
-
-            'weight' => 0,
-
-            'total' => 0,
-
-            'susut_qty' => 0,
-
+            'qty'         => 0,
+            'weight'      => 0,
+            'avg_bw'      => 0,
+            'total'       => 0,
+            'discount'    => 0,
+            'saving'      => 0,
+            'payment'     => 0,
+            'susut_qty'   => 0,
             'susut_berat' => 0,
-
-            'customer' => [],
-
-            'sales' => []
-
+            'customer'    => [],
+            'sales'       => []
         ];
+
 
         /*
         |--------------------------------------------------------------------------
-        | LOOP SUMMARY
+        | CALCULATE DETAIL SUMMARY
         |--------------------------------------------------------------------------
         */
 
         foreach ($detail as $d) {
 
-            $summary['qty'] +=
-                (float)$d->JUMLAH;
+            $qty = (float) (
+                $d->JUMLAH ?? 0
+            );
 
-            $summary['weight'] +=
-                (float)$d->BERAT;
 
-            $summary['total'] +=
-                (float)$d->TOTAL;
+            $weight = (float) (
+                $d->BERAT ?? 0
+            );
 
-            $summary['susut_qty'] +=
-                (float)$d->SUSUT_JUMLAH;
 
-            $summary['susut_berat'] +=
-                (float)$d->SUSUT_BERAT;
+            $total = (float) (
+                $d->TOTAL ?? 0
+            );
+
+
+            $discount = (float) (
+                $d->DISCOUNT ?? 0
+            );
+
+
+            $susutQty = (float) (
+                $d->SUSUT_JUMLAH ?? 0
+            );
+
+
+            $susutBerat = (float) (
+                $d->SUSUT_BERAT ?? 0
+            );
+
+
+            $summary['qty'] += $qty;
+
+            $summary['weight'] += $weight;
+
+            $summary['total'] += $total;
+
+            $summary['discount'] += $discount;
+
+            $summary['susut_qty'] += $susutQty;
+
+            $summary['susut_berat'] += $susutBerat;
+
 
             /*
             |--------------------------------------------------------------------------
@@ -2134,7 +2358,9 @@ class Receive extends MY_Controller {
                 $summary['customer'][
                     $d->CUSTOMER
                 ] = true;
+
             }
+
 
             /*
             |--------------------------------------------------------------------------
@@ -2147,40 +2373,85 @@ class Receive extends MY_Controller {
                 $summary['sales'][
                     $d->SALES_NO
                 ] = true;
+
             }
+
         }
+
 
         /*
         |--------------------------------------------------------------------------
-        | TOTAL CUSTOMER / SALES
+        | AVG BW
+        |--------------------------------------------------------------------------
+        */
+
+        $summary['avg_bw'] = $summary['qty'] > 0
+            ? $summary['weight'] / $summary['qty']
+            : 0;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SAVING TOTAL
+        |--------------------------------------------------------------------------
+        */
+
+        foreach ($saving as $row) {
+
+            $summary['saving'] += (float) (
+                $row->AMOUNT ?? 0
+            );
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PAYMENT TOTAL
+        |--------------------------------------------------------------------------
+        */
+
+        foreach ($payment as $row) {
+
+            $summary['payment'] += (float) (
+                $row->PEMBAYARAN ?? 0
+            );
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | COUNT
         |--------------------------------------------------------------------------
         */
 
         $summary['total_customer'] =
             count($summary['customer']);
 
+
         $summary['total_sales'] =
             count($summary['sales']);
 
+
         /*
         |--------------------------------------------------------------------------
-        | DATA VIEW
+        | VIEW DATA
         |--------------------------------------------------------------------------
         */
 
         $data = [
-
-            'header' => $header,
-
-            'detail' => $detail,
-
+            'header'  => $header,
+            'detail'  => $detail,
+            'saving'  => $saving,
+            'payment' => $payment,
             'summary' => $summary
-
         ];
+
 
         /*
         |--------------------------------------------------------------------------
-        | HTML
+        | LOAD PDF TEMPLATE
         |--------------------------------------------------------------------------
         */
 
@@ -2190,6 +2461,7 @@ class Receive extends MY_Controller {
             true
         );
 
+
         /*
         |--------------------------------------------------------------------------
         | PDF
@@ -2198,31 +2470,26 @@ class Receive extends MY_Controller {
 
         $this->load->library('pdf');
 
+
         $this->pdf->loadHtml($html);
+
 
         $this->pdf->setPaper(
             'A4',
             'landscape'
         );
 
+
         $this->pdf->render();
 
-        /*
-        |--------------------------------------------------------------------------
-        | STREAM
-        |--------------------------------------------------------------------------
-        */
 
         $this->pdf->stream(
-
-            'RECEIVE_' .
-            $header->RECEIVE .
-            '.pdf',
-
+            'RECEIVE_' . $header->RECEIVE . '.pdf',
             [
                 'Attachment' => false
             ]
         );
+
 
         exit;
     }

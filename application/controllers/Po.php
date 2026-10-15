@@ -134,32 +134,226 @@ class Po extends MY_Controller {
 
     private function build_pagination($pages, $current)
     {
-        $html = '<ul class="pagination pagination-sm">';
-        for ($i=1; $i <= $pages; $i++) {
-            $active = ($i == $current) ? 'active' : '';
-            $html .= '<li class="page-item '.$active.'">
-                        <a href="javascript:void(0)" class="page-link" onclick="loadPage('.$i.')">'.$i.'</a>
-                     </li>';
+        $pages = (int)$pages;
+        $current = (int)$current;
+
+        if ($pages <= 1) {
+            return '';
         }
+
+        $html = '<ul class="pagination pagination-sm mb-0">';
+
+        /*
+        |--------------------------------------------------------------------------
+        | PREVIOUS
+        |--------------------------------------------------------------------------
+        */
+
+        if ($current > 1) {
+
+            $html .= '
+                <li class="page-item">
+                    <a href="javascript:void(0)"
+                    class="page-link"
+                    onclick="loadPage('.($current - 1).')">
+                        &laquo;
+                    </a>
+                </li>
+            ';
+
+        } else {
+
+            $html .= '
+                <li class="page-item disabled">
+                    <span class="page-link">
+                        &laquo;
+                    </span>
+                </li>
+            ';
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PAGE NUMBERS
+        |--------------------------------------------------------------------------
+        */
+
+        $showPages = [];
+
+
+        // Selalu tampilkan halaman pertama
+        $showPages[] = 1;
+
+
+        // Jika halaman sedang dekat dengan awal
+        if ($current <= 4) {
+
+            for ($i = 2; $i <= min(5, $pages); $i++) {
+                $showPages[] = $i;
+            }
+
+        }
+
+        // Jika halaman sedang di tengah
+        elseif ($current < $pages - 3) {
+
+            for ($i = $current - 1; $i <= $current + 1; $i++) {
+                $showPages[] = $i;
+            }
+
+        }
+
+        // Jika halaman sedang dekat dengan akhir
+        else {
+
+            for ($i = max(2, $pages - 4); $i < $pages; $i++) {
+                $showPages[] = $i;
+            }
+
+        }
+
+
+        // Selalu tampilkan halaman terakhir
+        if ($pages > 1) {
+            $showPages[] = $pages;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | REMOVE DUPLICATE
+        |--------------------------------------------------------------------------
+        */
+
+        $showPages = array_values(
+            array_unique($showPages)
+        );
+
+        sort($showPages);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | RENDER PAGE
+        |--------------------------------------------------------------------------
+        */
+
+        $previousPage = 0;
+
+        foreach ($showPages as $page) {
+
+            // Jika ada gap antar halaman
+            if ($previousPage > 0 && $page > $previousPage + 1) {
+
+                $html .= '
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            ...
+                        </span>
+                    </li>
+                ';
+
+            }
+
+            $active = ($page == $current)
+                ? 'active'
+                : '';
+
+            $html .= '
+                <li class="page-item '.$active.'">
+
+                    <a href="javascript:void(0)"
+                    class="page-link"
+                    onclick="loadPage('.$page.')">
+
+                        '.$page.'
+
+                    </a>
+
+                </li>
+            ';
+
+            $previousPage = $page;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | NEXT
+        |--------------------------------------------------------------------------
+        */
+
+        if ($current < $pages) {
+
+            $html .= '
+                <li class="page-item">
+
+                    <a href="javascript:void(0)"
+                    class="page-link"
+                    onclick="loadPage('.($current + 1).')">
+
+                        &raquo;
+
+                    </a>
+
+                </li>
+            ';
+
+        } else {
+
+            $html .= '
+                <li class="page-item disabled">
+
+                    <span class="page-link">
+                        &raquo;
+                    </span>
+
+                </li>
+            ';
+
+        }
+
+
         $html .= '</ul>';
+
         return $html;
     }
 
     public function detail()
     {
         $po = $this->input->get('po', TRUE);
-        if (!$po) {
-            echo json_encode(['status'=>false,'message'=>'Invalid PO']);
+        $plant = $this->input->get('plant', TRUE);
+
+        if (!$po || !$plant) {
+
+            echo json_encode([
+                'status'  => false,
+                'message' => 'Invalid PO'
+            ]);
+
             return;
         }
 
-        $header = $this->Po_model->get_header($po);
-        $detail = $this->Po_model->get_detail($po);
+        $header = $this->Po_model->get_header(
+            $plant,
+            $po
+        );
+
+        if (!$header) {
+
+            echo json_encode([
+                'status'  => false,
+                'message' => 'Data PO tidak ditemukan'
+            ]);
+
+            return;
+        }
 
         echo json_encode([
-            'status'  => true,
-            'header'  => $header,
-            'detail'  => $detail
+            'status' => true,
+            'header' => $header
         ]);
     }
 
@@ -1424,8 +1618,7 @@ class Po extends MY_Controller {
 
     public function print_pdf()
     {
-        $po    = $this->input->get('po', true);
-
+        $po = $this->input->get('po', true);
         $plant = $this->input->get('plant', true);
 
         if (!$po || !$plant) {
@@ -1506,17 +1699,17 @@ class Po extends MY_Controller {
             // ================= PLANT =================
             ->join(
                 'abc_cd_code plant',
-                "plant.HEAD_CODE='PLANT'
+                "plant.HEAD_CODE = 'PLANT'
                 AND plant.CODE COLLATE utf8mb4_unicode_ci =
                 p.PLANT COLLATE utf8mb4_unicode_ci",
                 'left',
                 false
             )
 
-            // ================= TYPE =================
+            // ================= PO TYPE =================
             ->join(
                 'abc_cd_code type',
-                "type.HEAD_CODE='PO'
+                "type.HEAD_CODE = 'PO'
                 AND type.CODE COLLATE utf8mb4_unicode_ci =
                 p.PO_TYPE COLLATE utf8mb4_unicode_ci",
                 'left',
@@ -1553,96 +1746,23 @@ class Po extends MY_Controller {
 
         if (!$header) {
 
-            show_error('PO tidak ditemukan');
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | DETAIL
-        |--------------------------------------------------------------------------
-        */
-
-        $detail = $this->db
-            ->select("
-                d.SEQ_NO,
-
-                d.CUSTOMER,
-
-                customer.FULL_NAME AS CUSTOMER_NAME,
-
-                d.JUMLAH,
-
-                d.BERAT,
-
-                d.HARGA,
-
-                d.TOTAL
-            ", false)
-
-            ->from('abc_mst_po_detail d')
-
-            ->join(
-                'abc_cd_customer customer',
-                "customer.CUST COLLATE utf8mb4_unicode_ci =
-                d.CUSTOMER COLLATE utf8mb4_unicode_ci",
-                'left',
-                false
-            )
-
-            ->where('d.PO', $po)
-
-            ->where('d.PLANT', $plant)
-
-            ->order_by('d.SEQ_NO', 'ASC')
-
-            ->get()
-
-            ->result();
-
-        if (empty($detail)) {
-
-            $detail = [];
-
-        }
-
-        $subtotal = [
-
-            'qty'    => 0,
-
-            'weight' => 0,
-
-            'total'  => 0
-
-        ];
-
-        if (!empty($detail)) {
-
-            foreach ($detail as $d) {
-
-                $subtotal['qty'] += (float)$d->JUMLAH;
-
-                $subtotal['weight'] += (float)$d->BERAT;
-
-                $subtotal['total'] += (float)$d->TOTAL;
-
-            }
-
+            show_error(
+                'PO tidak ditemukan'
+            );
         }
 
         /*
         |--------------------------------------------------------------------------
         | PREPARE DATA
         |--------------------------------------------------------------------------
+        |
+        | PO sudah dianggap actual.
+        | Tidak menggunakan abc_mst_po_detail.
+        |
         */
 
         $data = [
-
-            'header'   => $header,
-
-            'detail'   => $detail,
-
-            'subtotal' => $subtotal
-
+            'header' => $header
         ];
 
         /*

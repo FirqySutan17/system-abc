@@ -1,76 +1,3 @@
-<div class="row mb-4">
-
-    <!-- TOTAL SALES -->
-    <div class="col-md-4">
-
-        <div class="report-card bg-primary">
-
-            <div class="report-card-title">
-
-                TOTAL SALES
-
-            </div>
-
-            <div
-                class="report-card-value"
-                id="summaryTotalSales">
-
-                Rp 0
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- TOTAL DOC -->
-    <div class="col-md-4">
-
-        <div class="report-card bg-warning">
-
-            <div class="report-card-title">
-
-                TOTAL SALES DOC
-
-            </div>
-
-            <div
-                class="report-card-value"
-                id="summaryTotalDocSales">
-
-                0
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- TOTAL CUSTOMER -->
-    <div class="col-md-4">
-
-        <div class="report-card bg-danger">
-
-            <div class="report-card-title">
-
-                TOTAL CUSTOMER
-
-            </div>
-
-            <div
-                class="report-card-value"
-                id="summaryTotalCustomerSales">
-
-                0
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
 <div class="mb-4">
 
     <div class="row g-3">
@@ -205,13 +132,55 @@
         <!-- EXPORT -->
         <div class="col-md-2">
 
-            <button
-                id="btnExportSales"
-                class="btn btn-success w-100">
+            <div class="btn-group w-100">
 
-                Export Excel
+                <button
+                    type="button"
+                    class="btn btn-success dropdown-toggle w-100"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false">
 
-            </button>
+                    <i class="ti ti-file-export me-1"></i>
+
+                    Export
+
+                </button>
+
+                <ul class="dropdown-menu w-100">
+
+                    <li>
+
+                        <a
+                            href="#"
+                            class="dropdown-item"
+                            id="btnExportSalesExcel">
+
+                            <i class="ti ti-file-spreadsheet me-2 text-success"></i>
+
+                            Export Excel
+
+                        </a>
+
+                    </li>
+
+                    <li>
+
+                        <a
+                            href="#"
+                            class="dropdown-item"
+                            id="btnExportSalesPdf">
+
+                            <i class="ti ti-file-type-pdf me-2 text-danger"></i>
+
+                            Export PDF
+
+                        </a>
+
+                    </li>
+
+                </ul>
+
+            </div>
 
         </div>
 
@@ -244,6 +213,7 @@
 </div>
 
 <style>
+
     .report-card{
 
         border-radius: 24px;
@@ -257,6 +227,7 @@
 
     }
 
+
     .report-card-title{
 
         font-size: 14px;
@@ -267,6 +238,7 @@
 
     }
 
+
     .report-card-value{
 
         font-size: 38px;
@@ -276,6 +248,7 @@
         line-height: 1.1;
 
     }
+
 
     .sales-header{
 
@@ -295,6 +268,7 @@
         padding: 32px;
 
     }
+
 
     .sales-header::after{
 
@@ -316,6 +290,7 @@
 
     }
 
+
     .sales-title{
 
         color: #fff;
@@ -325,6 +300,7 @@
         font-weight: 700;
 
     }
+
 
     .sales-badge{
 
@@ -340,16 +316,681 @@
 
     }
 
+
     .sales-info-table tr{
+
         border: none !important;
+
     }
+
 
     .sales-info-table tbody{
+
         border: none !important;
+
     }
 
+
     .sales-info-table td{
+
         border: none !important;
+
+    }
+
+
+    /* =========================================================
+       REPORT SALES - GROUPED TABLE
+       ========================================================= */
+
+    .sales-report-wrapper{
+
+        width: 100%;
+
+        overflow: visible;
+
+        padding: 4px;
+
+        position: relative;
+
+    }
+
+
+    /* =========================================================
+       TABLE
+       ========================================================= */
+
+    .sales-report-table{
+
+        width: 100%;
+
+        border-collapse: separate !important;
+
+        border-spacing: 0;
+
+        font-size: 12px;
+
+        margin-bottom: 0;
+
+    }
+
+    /* =========================================================
+    TABLE HEADER - STICKY
+    ========================================================= */
+
+    .sales-report-table > thead > tr > th{
+
+        position: sticky;
+
+        top: 0;
+
+        z-index: 100;
+
+        background: #f1f4f8;
+
+        color: #64748b;
+
+        font-weight: 600;
+
+        border: none !important;
+
+        border-bottom: 1px solid #dbe3ec !important;
+
+        padding: 11px 9px;
+
+        white-space: nowrap;
+
+        box-shadow:
+            0 2px 6px rgba(15,23,42,.08);
+
+    }
+
+
+    /* =========================================================
+       SALES GROUP
+       ========================================================= */
+
+    .sales-report-group{
+
+        position: relative;
+
+    }
+
+
+    /* =========================================================
+       SALES HEADER
+       ========================================================= */
+
+    .sales-group-header td{
+
+        border: none !important;
+
+        padding: 0 !important;
+
+    }
+
+
+    .sales-group-box{
+
+        margin-top: 14px;
+
+        border: 1px solid #d8e3f0;
+
+        border-bottom: none;
+
+        border-radius: 9px 9px 0 0;
+
+        overflow: hidden;
+
+        background: #f8fbff;
+
+    }
+
+
+    /* =========================================================
+       SALES INFORMATION
+       ========================================================= */
+
+    .sales-group-info{
+
+        min-height: 62px;
+
+        padding: 9px 13px;
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: space-between;
+
+        gap: 18px;
+
+    }
+
+
+    /* =========================================================
+       SALES MAIN INFO
+       ========================================================= */
+
+    .sales-main-info{
+
+        display: grid;
+
+        grid-template-columns:
+            max-content
+            max-content
+            max-content
+            minmax(150px, 1.4fr)
+            max-content
+            max-content
+            max-content;
+
+        align-items: center;
+
+        gap: 15px;
+
+        flex: 1;
+
+        min-width: 0;
+
+    }
+
+
+    /* =========================================================
+       SALES NUMBER
+       ========================================================= */
+
+    .sales-number{
+
+        color: #0d6efd;
+
+        font-weight: 700;
+
+        font-size: 14px;
+
+        white-space: nowrap;
+
+    }
+
+
+    /* =========================================================
+       LABEL
+       ========================================================= */
+
+    .sales-label{
+
+        display: block;
+
+        margin-bottom: 3px;
+
+        color: #94a3b8;
+
+        font-size: 9px;
+
+        font-weight: 600;
+
+        text-transform: uppercase;
+
+        letter-spacing: .3px;
+
+        line-height: 1;
+
+    }
+
+
+    /* =========================================================
+       DATE
+       ========================================================= */
+
+    .sales-date{
+
+        color: #475569;
+
+        font-size: 11px;
+
+        white-space: nowrap;
+
+    }
+
+
+    /* =========================================================
+       PLANT
+       ========================================================= */
+
+    .sales-plant{
+
+        color: #475569;
+
+        font-size: 11px;
+
+        white-space: nowrap;
+
+    }
+
+
+    /* =========================================================
+       CUSTOMER
+       ========================================================= */
+
+    .sales-customer{
+
+        min-width: 150px;
+
+        max-width: 220px;
+
+        overflow: hidden;
+
+    }
+
+
+    .sales-customer .fw-semibold{
+
+        color: #334155;
+
+        font-size: 11px;
+
+        line-height: 1.2;
+
+        white-space: nowrap;
+
+        overflow: hidden;
+
+        text-overflow: ellipsis;
+
+    }
+
+
+    .sales-customer small{
+
+        display: block;
+
+        margin-top: 2px;
+
+        font-size: 9px;
+
+        line-height: 1.1;
+
+    }
+
+
+    /* =========================================================
+       SOURCE
+       ========================================================= */
+
+    .sales-source{
+
+        text-align: center;
+
+        white-space: nowrap;
+
+    }
+
+
+    /* =========================================================
+       PAYMENT
+       ========================================================= */
+
+    .sales-payment{
+
+        text-align: center;
+
+        white-space: nowrap;
+
+    }
+
+
+    /* =========================================================
+       STATUS
+       ========================================================= */
+
+    .sales-status{
+
+        text-align: center;
+
+        white-space: nowrap;
+
+    }
+
+
+    /* =========================================================
+       TOTAL SALES
+       ========================================================= */
+
+    .sales-total{
+
+        min-width: 155px;
+
+        padding-left: 16px;
+
+        border-left: 1px solid #dbe4ef;
+
+        text-align: right;
+
+        white-space: nowrap;
+
+    }
+
+
+    .sales-total span{
+
+        display: block;
+
+        color: #64748b;
+
+        font-size: 9px;
+
+        font-weight: 600;
+
+        text-transform: uppercase;
+
+        letter-spacing: .3px;
+
+        line-height: 1;
+
+    }
+
+
+    .sales-total strong{
+
+        display: block;
+
+        margin-top: 4px;
+
+        color: #0d47a1;
+
+        font-size: 15px;
+
+        font-weight: 700;
+
+        line-height: 1;
+
+    }
+
+
+    /* =========================================================
+       DETAIL
+       ========================================================= */
+
+    .sales-detail-row td{
+
+        background: #ffffff;
+
+        border-top: 1px solid #edf1f5 !important;
+
+        border-bottom: none !important;
+
+        padding: 8px 9px;
+
+    }
+
+
+    .sales-detail-row:last-of-type td{
+
+        border-bottom: 1px solid #dbe4f0 !important;
+
+    }
+
+
+    /* =========================================================
+       DETAIL HOVER
+       ========================================================= */
+
+    .sales-detail-row:hover td{
+
+        background: #f8fbff;
+
+    }
+
+
+    /* =========================================================
+       SAVING
+       ========================================================= */
+
+    .sales-saving-row td{
+
+        background: #fff8e6;
+
+        border-top: 1px dashed #f1d58a !important;
+
+        border-bottom: none !important;
+
+        padding: 8px 9px;
+
+    }
+
+
+    .sales-saving-row:hover td{
+
+        background: #fff4d6;
+
+    }
+
+
+    .saving-icon{
+
+        display: inline-flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        width: 20px;
+
+        height: 20px;
+
+        border-radius: 50%;
+
+        background: #f59e0b;
+
+        color: #ffffff;
+
+        font-weight: bold;
+
+    }
+
+
+    /* =========================================================
+       SUBTOTAL
+       ========================================================= */
+
+    .sales-subtotal-row td{
+
+        background: #edf5ff;
+
+        color: #334155;
+
+        border-top: 1px solid #dbe7f5 !important;
+
+        border-bottom: 1px solid #dbe7f5 !important;
+
+        padding: 8px 9px;
+
+        font-weight: 600;
+
+    }
+
+
+    /* =========================================================
+       SPACER
+       ========================================================= */
+
+    .sales-group-spacer td{
+
+        height: 14px;
+
+        padding: 0 !important;
+
+        border: none !important;
+
+        background: transparent !important;
+
+    }
+
+
+    /* =========================================================
+       GRAND TOTAL
+       ========================================================= */
+
+    .sales-grand-total td{
+
+        background: #f1f5f9;
+
+        border-top: 2px solid #cbd5e1 !important;
+
+        padding: 12px 9px;
+
+        font-weight: 700;
+
+    }
+
+
+    /* =========================================================
+       BADGE
+       ========================================================= */
+
+    .sales-report-table .badge{
+
+        font-size: 10px;
+
+        padding: 5px 7px;
+
+        white-space: nowrap;
+
+    }
+
+
+    /* =========================================================
+       MOBILE / TABLET
+       ========================================================= */
+
+    @media (max-width: 1400px){
+
+        .sales-group-info{
+
+            gap: 12px;
+
+        }
+
+
+        .sales-main-info{
+
+            grid-template-columns:
+                max-content
+                max-content
+                max-content
+                minmax(130px, 1fr)
+                max-content
+                max-content
+                max-content;
+
+            gap: 10px;
+
+        }
+
+
+        .sales-customer{
+
+            min-width: 130px;
+
+            max-width: 180px;
+
+        }
+
+
+        .sales-total{
+
+            min-width: 145px;
+
+        }
+
+    }
+
+
+    @media (max-width: 1200px){
+
+        .sales-group-info{
+
+            align-items: flex-start;
+
+        }
+
+
+        .sales-main-info{
+
+            grid-template-columns:
+                max-content
+                max-content
+                max-content
+                minmax(130px, 1fr);
+
+            gap: 9px 12px;
+
+        }
+
+
+        .sales-total{
+
+            min-width: 145px;
+
+        }
+
+    }
+
+
+    @media (max-width: 768px){
+
+        .sales-group-info{
+
+            flex-direction: column;
+
+            align-items: stretch;
+
+        }
+
+
+        .sales-main-info{
+
+            width: 100%;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap: 10px;
+
+        }
+
+
+        .sales-number{
+
+            grid-column: 1 / -1;
+
+        }
+
+
+        .sales-customer{
+
+            max-width: none;
+
+        }
+
+
+        .sales-total{
+
+            width: 100%;
+
+            min-width: 0;
+
+            padding-left: 0;
+
+            padding-top: 10px;
+
+            border-left: none;
+
+            border-top: 1px solid #dbe4ef;
+
+            text-align: left;
+
+        }
+
     }
 
 </style>
@@ -598,27 +1239,57 @@
 
             wrapper.html('');
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | TABLE HEADER
+            |--------------------------------------------------------------------------
+            */
+
             let thead = `
                 <thead>
                     <tr>
-                        <th class="text-center">Sales</th>
-                        <th class="text-center">Plant</th>
-                        <th class="text-center">Tanggal</th>
-                        <th class="text-center">Customer</th>
-                        <th class="text-center">Payment</th>
-                        <th class="text-center">Nota</th>
-                        <th class="text-center">Status</th>
-                        <th class="text-end">Grand Total</th>
-                        <th class="text-end">Sisa</th>
-                        <th>Material</th>
-                        <th class="text-end">Qty</th>
-                        <th class="text-end">Berat</th>
-                        <th class="text-end">Harga</th>
-                        <th class="text-end">Discount</th>
-                        <th class="text-end">Total</th>
+
+                        <th class="text-center" style="width:45px;">
+                            #
+                        </th>
+
+                        <th>
+                            Material
+                        </th>
+
+                        <th class="text-center">
+                            Basis
+                        </th>
+
+                        <th class="text-end">
+                            Ekor
+                        </th>
+
+                        <th class="text-end">
+                            Berat
+                        </th>
+
+                        <th class="text-end">
+                            Avg BW
+                        </th>
+
+                        <th class="text-end">
+                            Harga
+                        </th>
+
+                        <th class="text-end">
+                            Discount
+                        </th>
+
+                        <th class="text-end">
+                            Total
+                        </th>
+
                     </tr>
                 </thead>
             `;
+
 
             /*
             |--------------------------------------------------------------------------
@@ -626,164 +1297,1053 @@
             |--------------------------------------------------------------------------
             */
 
-            if(rows.length === 0){
+            if(!rows || rows.length === 0){
 
                 wrapper.html(`
+
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle table-modern">
+
+                        <table
+                            class="table table-hover align-middle table-modern"
+                        >
+
                             ${thead}
+
                             <tbody>
+
                                 <tr>
-                                    <td colspan="15" class="text-center text-muted py-4">
+
+                                    <td
+                                        colspan="9"
+                                        class="text-center text-muted py-5"
+                                    >
+
                                         Data Tidak Ditemukan
+
                                     </td>
+
                                 </tr>
+
                             </tbody>
+
                         </table>
+
                     </div>
+
                 `);
 
                 return;
             }
 
+
             /*
             |--------------------------------------------------------------------------
-            | LOOP
+            | TOTAL
             |--------------------------------------------------------------------------
             */
 
-            let totalGrandTotal = 0;
-            let totalRemain     = 0;
-            let totalQty        = 0;
-            let totalBerat      = 0;
-            let totalDetailAmt  = 0;
+            let totalQty = 0;
+
+            let totalBerat = 0;
+
+            let totalDiscount = 0;
+
+            let totalDetail = 0;
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | SALES GROUP
+            |--------------------------------------------------------------------------
+            */
 
             let rowsHtml = rows.map(function(row){
 
-                let details  = row.DETAILS || [];
-                let rowCount = Math.max(details.length, 1);
+                let details =
+                    Array.isArray(row.DETAILS)
+                        ? row.DETAILS
+                        : [];
 
-                totalGrandTotal += Number(row.GRAND_TOTAL || 0);
-                totalRemain     += Number(row.REMAIN      || 0);
+
+                let savings =
+                    Array.isArray(row.SAVINGS)
+                        ? row.SAVINGS
+                        : [];
+
 
                 /*
-                |--------------------------------------------------------------------------
-                | STATUS BADGE
-                |--------------------------------------------------------------------------
+                |----------------------------------------------------------------------
+                | SOURCE RECEIVE
+                |----------------------------------------------------------------------
                 */
 
-                let statusBadge = '<span class="badge bg-warning text-dark">OPEN</span>';
+                let receiveNo =
+                    row.RECEIVE || '';
 
-                if(row.STATUS === 'PAID'){
-                    statusBadge = '<span class="badge bg-success">PAID</span>';
-                } else if(row.STATUS === 'PARTIAL'){
-                    statusBadge = '<span class="badge bg-info">PARTIAL</span>';
+
+                /*
+                |----------------------------------------------------------------------
+                | FALLBACK REMARK
+                |----------------------------------------------------------------------
+                */
+
+                if(!receiveNo){
+
+                    let receiveMatch =
+                        String(
+                            row.REMARK || ''
+                        ).match(
+                            /AUTO FROM RECEIVE\s+([A-Z0-9]+)/i
+                        );
+
+                    if(receiveMatch){
+
+                        receiveNo =
+                            receiveMatch[1];
+
+                    }
+
                 }
 
+
                 /*
-                |--------------------------------------------------------------------------
-                | KOLOM HEADER (rowspan)
-                |--------------------------------------------------------------------------
+                |----------------------------------------------------------------------
+                | SOURCE
+                |----------------------------------------------------------------------
                 */
 
-                let headerCols = `
-                    <td class="text-center align-middle fw-bold text-primary" rowspan="${rowCount}">
-                        #${row.SALES || '-'}
-                    </td>
-                    <td class="text-center align-middle" rowspan="${rowCount}">
-                        ${row.PLANT_NAME || '-'}
-                    </td>
-                    <td class="text-center align-middle" rowspan="${rowCount}">
-                        ${formatDate(row.SALES_DATE)}
-                    </td>
-                    <td class="align-middle" rowspan="${rowCount}">
-                        <div class="fw-semibold">${row.CUSTOMER_NAME || '-'}</div>
-                        <small class="text-muted">${row.CUSTOMER || ''}</small>
-                    </td>
-                    <td class="text-center align-middle" rowspan="${rowCount}">
-                        <span class="badge bg-secondary">${row.PEMBAYARAN || '-'}</span>
-                    </td>
-                    <td class="text-center align-middle" rowspan="${rowCount}">
-                        ${row.NOTA || '-'}
-                    </td>
-                    <td class="text-center align-middle" rowspan="${rowCount}">
-                        ${statusBadge}
-                    </td>
-                    <td class="text-end align-middle fw-bold" rowspan="${rowCount}">
-                        Rp ${formatRupiah(row.GRAND_TOTAL || 0)}
-                    </td>
-                    <td class="text-end align-middle" rowspan="${rowCount}">
-                        Rp ${formatRupiah(row.REMAIN || 0)}
-                    </td>
+                let sourceHtml = '';
+
+                if(receiveNo){
+
+                    sourceHtml = `
+
+                        <div>
+
+                            <span
+                                class="badge bg-info text-dark"
+                            >
+
+                                FROM RECEIVE
+
+                            </span>
+
+                        </div>
+
+                        <div
+                            class="small text-muted mt-1"
+                        >
+
+                            ${receiveNo}
+
+                        </div>
+
+                    `;
+
+                }
+                else {
+
+                    sourceHtml = `
+
+                        <span
+                            class="badge bg-secondary"
+                        >
+
+                            MANUAL
+
+                        </span>
+
+                    `;
+
+                }
+
+
+                /*
+                |----------------------------------------------------------------------
+                | STATUS
+                |----------------------------------------------------------------------
+                */
+
+                let statusBadge =
+                    '<span class="badge bg-warning text-dark">OPEN</span>';
+
+
+                if(row.STATUS === 'PAID'){
+
+                    statusBadge =
+                        '<span class="badge bg-success">PAID</span>';
+
+                }
+                else if(row.STATUS === 'PARTIAL'){
+
+                    statusBadge =
+                        '<span class="badge bg-info">PARTIAL</span>';
+
+                }
+
+
+                /*
+                |----------------------------------------------------------------------
+                | PAYMENT
+                |----------------------------------------------------------------------
+                */
+
+                let paymentHtml = `
+
+                    <span class="badge bg-secondary">
+
+                        ${row.PEMBAYARAN || '-'}
+
+                    </span>
+
                 `;
 
-                let html = '';
+
+                /*
+                |----------------------------------------------------------------------
+                | SALES TOTAL
+                |----------------------------------------------------------------------
+                */
+
+                let salesAmount =
+                    Number(
+                        row.AMOUNT || 0
+                    );
+
+
+                /*
+                |----------------------------------------------------------------------
+                | GROUP START
+                |----------------------------------------------------------------------
+                */
+
+                let html = `
+
+                    <tbody class="sales-report-group">
+
+                        <!-- SALES HEADER -->
+
+                        <tr class="sales-group-header">
+
+                            <td
+                                colspan="9"
+                                style="padding:0;"
+                            >
+
+                                <div class="sales-group-box">
+
+                                    <div class="sales-group-info">
+
+                                        <div class="sales-main-info">
+
+                                            <!-- SALES -->
+
+                                            <div class="sales-number">
+
+                                                ${row.SALES || '-'}
+
+                                            </div>
+
+
+                                            <!-- DATE -->
+
+                                            <div class="sales-date">
+
+                                                <span class="sales-label">
+                                                    Tanggal
+                                                </span>
+
+                                                <span>
+                                                    ${formatDate(
+                                                        row.SALES_DATE
+                                                    )}
+                                                </span>
+
+                                            </div>
+
+
+                                            <!-- PLANT -->
+
+                                            <div class="sales-plant">
+
+                                                <span class="sales-label">
+                                                    Plant
+                                                </span>
+
+                                                <span>
+                                                    ${row.PLANT_NAME || '-'}
+                                                </span>
+
+                                            </div>
+
+
+                                            <!-- CUSTOMER -->
+
+                                            <div class="sales-customer">
+
+                                                <span class="sales-label">
+                                                    Customer
+                                                </span>
+
+                                                <div class="fw-semibold">
+
+                                                    ${row.CUSTOMER_NAME || '-'}
+
+                                                </div>
+
+                                                <small class="text-muted">
+
+                                                    ${row.CUSTOMER || ''}
+
+                                                </small>
+
+                                            </div>
+
+
+                                            <!-- SOURCE -->
+
+                                            <div class="sales-source">
+
+                                                <span class="sales-label">
+                                                    Source
+                                                </span>
+
+                                                <div>
+
+                                                    ${sourceHtml}
+
+                                                </div>
+
+                                            </div>
+
+
+                                            <!-- PAYMENT -->
+
+                                            <div class="sales-payment">
+
+                                                <span class="sales-label">
+                                                    Payment
+                                                </span>
+
+                                                <div>
+
+                                                    ${paymentHtml}
+
+                                                </div>
+
+                                            </div>
+
+
+                                            <!-- STATUS -->
+
+                                            <div class="sales-status">
+
+                                                <span class="sales-label">
+                                                    Status
+                                                </span>
+
+                                                <div>
+
+                                                    ${statusBadge}
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+
+                                        <!-- TOTAL -->
+
+                                        <div class="sales-total">
+
+                                            <span>
+                                                Total Sales
+                                            </span>
+
+                                            <strong>
+
+                                                Rp ${formatRupiah(
+                                                    salesAmount
+                                                )}
+
+                                            </strong>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+                `;
+
+
+                /*
+                |----------------------------------------------------------------------
+                | DETAIL
+                |----------------------------------------------------------------------
+                */
 
                 if(details.length === 0){
 
                     html += `
+
                         <tr>
-                            ${headerCols}
-                            <td>-</td>
-                            <td class="text-end">-</td>
-                            <td class="text-end">-</td>
-                            <td class="text-end">-</td>
-                            <td class="text-end">-</td>
-                            <td class="text-end">-</td>
+
+                            <td
+                                class="text-center text-muted"
+                            >
+
+                                -
+
+                            </td>
+
+                            <td
+                                class="text-muted"
+                            >
+
+                                Tidak ada detail
+
+                            </td>
+
+                            <td class="text-center">
+
+                                -
+
+                            </td>
+
+                            <td class="text-end">
+
+                                -
+
+                            </td>
+
+                            <td class="text-end">
+
+                                -
+
+                            </td>
+
+                            <td class="text-end">
+
+                                -
+
+                            </td>
+
+                            <td class="text-end">
+
+                                -
+
+                            </td>
+
+                            <td class="text-end">
+
+                                -
+
+                            </td>
+
+                            <td class="text-end">
+
+                                -
+
+                            </td>
+
                         </tr>
+
                     `;
 
-                } else {
+                }
+                else {
 
                     details.forEach(function(d, idx){
 
-                        totalQty       += Number(d.JUMLAH   || 0);
-                        totalBerat     += Number(d.BERAT    || 0);
-                        totalDetailAmt += Number(d.TOTAL    || 0);
+                        let qty =
+                            Number(
+                                d.JUMLAH || 0
+                            );
+
+
+                        let berat =
+                            Number(
+                                d.BERAT || 0
+                            );
+
+
+                        let avgBw =
+                            Number(
+                                d.AVG_BW || 0
+                            );
+
+
+                        let harga =
+                            Number(
+                                d.HARGA || 0
+                            );
+
+
+                        let discount =
+                            Number(
+                                d.DISCOUNT || 0
+                            );
+
+
+                        let total =
+                            Number(
+                                d.TOTAL || 0
+                            );
+
+
+                        /*
+                        |------------------------------------------------------------------
+                        | GLOBAL TOTAL
+                        |------------------------------------------------------------------
+                        */
+
+                        totalQty += qty;
+
+                        totalBerat += berat;
+
+                        totalDiscount += discount;
+
+                        totalDetail += total;
+
+
+                        /*
+                        |------------------------------------------------------------------
+                        | DETAIL
+                        |------------------------------------------------------------------
+                        */
 
                         html += `
-                            <tr>
-                                ${idx === 0 ? headerCols : ''}
-                                <td class="fw-semibold">${d.MATERIAL_NAME || '-'}</td>
-                                <td class="text-end">${formatQty(d.JUMLAH || 0)}</td>
-                                <td class="text-end">${formatWeight(d.BERAT || 0)}</td>
-                                <td class="text-end">Rp ${formatRupiah(d.HARGA || 0)}</td>
-                                <td class="text-end text-danger">Rp ${formatRupiah(d.DISCOUNT || 0)}</td>
-                                <td class="text-end fw-semibold text-primary">Rp ${formatRupiah(d.TOTAL || 0)}</td>
+
+                            <tr
+                                class="sales-detail-row"
+                            >
+
+                                <td
+                                    class="text-center text-muted"
+                                >
+
+                                    ${idx + 1}
+
+                                </td>
+
+
+                                <td
+                                    class="fw-semibold"
+                                >
+
+                                    ${d.MATERIAL_NAME || '-'}
+
+                                </td>
+
+
+                                <td
+                                    class="text-center"
+                                >
+
+                                    ${d.CALC_BASIS || '-'}
+
+                                </td>
+
+
+                                <td
+                                    class="text-end"
+                                >
+
+                                    ${formatQty(
+                                        qty
+                                    )}
+
+                                </td>
+
+
+                                <td
+                                    class="text-end"
+                                >
+
+                                    ${formatWeight(
+                                        berat
+                                    )}
+
+                                </td>
+
+
+                                <td
+                                    class="text-end"
+                                >
+
+                                    ${formatWeight(
+                                        avgBw
+                                    )}
+
+                                </td>
+
+
+                                <td
+                                    class="text-end"
+                                >
+
+                                    Rp ${formatRupiah(
+                                        harga
+                                    )}
+
+                                </td>
+
+
+                                <td
+                                    class="text-end text-danger"
+                                >
+
+                                    Rp ${formatRupiah(
+                                        discount
+                                    )}
+
+                                </td>
+
+
+                                <td
+                                    class="text-end fw-semibold"
+                                >
+
+                                    Rp ${formatRupiah(
+                                        total
+                                    )}
+
+                                </td>
+
                             </tr>
+
                         `;
+
                     });
+
                 }
+
+
+                /*
+                |----------------------------------------------------------------------
+                | SAVING
+                |----------------------------------------------------------------------
+                */
+
+                if(savings.length > 0){
+
+                    savings.forEach(function(saving){
+
+                        let basis =
+                            saving.BASIS || '-';
+
+
+                        let qty =
+                            parseFloat(
+                                saving.TOTAL_QTY || 0
+                            );
+
+
+                        let weight =
+                            parseFloat(
+                                saving.TOTAL_WEIGHT || 0
+                            );
+
+
+                        let rate =
+                            parseFloat(
+                                saving.RATE || 0
+                            );
+
+
+                        let total =
+                            parseFloat(
+                                saving.AMOUNT ||
+                                saving.TOTAL ||
+                                0
+                            );
+
+
+                        html += `
+
+                            <tr
+                                class="sales-saving-row"
+                            >
+
+                                <td
+                                    class="text-center"
+                                >
+
+                                    <span
+                                        class="saving-icon"
+                                    >
+
+                                        +
+
+                                    </span>
+
+                                </td>
+
+
+                                <td
+                                    class="fw-semibold"
+                                >
+
+                                    SAVING
+
+                                    ${
+                                        saving.SV_NO
+                                            ? `
+                                                <small
+                                                    class="text-muted ms-1"
+                                                >
+
+                                                    ${saving.SV_NO}
+
+                                                </small>
+                                            `
+                                            : ''
+                                    }
+
+                                </td>
+
+
+                                <td
+                                    class="text-center"
+                                >
+
+                                    ${basis}
+
+                                </td>
+
+
+                                <td
+                                    class="text-end"
+                                >
+
+                                    ${
+                                        qty
+                                            ? formatQty(qty)
+                                            : '-'
+                                    }
+
+                                </td>
+
+
+                                <td
+                                    class="text-end"
+                                >
+
+                                    ${
+                                        weight
+                                            ? formatWeight(weight)
+                                            : '-'
+                                    }
+
+                                </td>
+
+
+                                <td
+                                    class="text-end"
+                                >
+
+                                    -
+
+                                </td>
+
+
+                                <td
+                                    class="text-end"
+                                >
+
+                                    ${
+                                        rate
+                                            ? 'Rp ' +
+                                            formatRupiah(
+                                                rate
+                                            )
+                                            : '-'
+                                    }
+
+                                </td>
+
+
+                                <td
+                                    class="text-end"
+                                >
+
+                                    -
+
+                                </td>
+
+
+                                <td
+                                    class="text-end fw-bold"
+                                >
+
+                                    Rp ${formatRupiah(
+                                        total
+                                    )}
+
+                                </td>
+
+                            </tr>
+
+                        `;
+
+                    });
+
+                }
+
+
+                /*
+                |----------------------------------------------------------------------
+                | SUBTOTAL
+                |----------------------------------------------------------------------
+                */
+
+                let subtotalQty = 0;
+
+                let subtotalBerat = 0;
+
+                let subtotalDiscount = 0;
+
+                let subtotalTotal = 0;
+
+
+                details.forEach(function(d){
+
+                    subtotalQty +=
+                        Number(
+                            d.JUMLAH || 0
+                        );
+
+                    subtotalBerat +=
+                        Number(
+                            d.BERAT || 0
+                        );
+
+                    subtotalDiscount +=
+                        Number(
+                            d.DISCOUNT || 0
+                        );
+
+                    subtotalTotal +=
+                        Number(
+                            d.TOTAL || 0
+                        );
+
+                });
+
+
+                html += `
+
+                        <tr
+                            class="sales-subtotal-row"
+                        >
+
+                            <td
+                                colspan="3"
+                            >
+
+                                Subtotal Detail
+                                (${details.length} item)
+
+                            </td>
+
+
+                            <td
+                                class="text-end"
+                            >
+
+                                ${formatQty(
+                                    subtotalQty
+                                )}
+
+                            </td>
+
+
+                            <td
+                                class="text-end"
+                            >
+
+                                ${formatWeight(
+                                    subtotalBerat
+                                )}
+
+                            </td>
+
+
+                            <td>
+
+                            </td>
+
+
+                            <td>
+
+                            </td>
+
+
+                            <td
+                                class="text-end"
+                            >
+
+                                ${
+                                    subtotalDiscount
+                                        ? 'Rp ' +
+                                        formatRupiah(
+                                            subtotalDiscount
+                                        )
+                                        : '-'
+                                }
+
+                            </td>
+
+
+                            <td
+                                class="text-end"
+                            >
+
+                                Rp ${formatRupiah(
+                                    subtotalTotal
+                                )}
+
+                            </td>
+
+                        </tr>
+
+
+                        <!-- SPACER -->
+
+                        <tr
+                            class="sales-group-spacer"
+                        >
+
+                            <td
+                                colspan="9"
+                            >
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                `;
+
 
                 return html;
 
             }).join('');
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | FINAL TABLE
+            |--------------------------------------------------------------------------
+            */
+
             let table = `
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle table-modern">
+
+                <div class="table-responsive sales-report-wrapper">
+
+                    <table
+                        class="
+                            table
+                            align-middle
+                            table-modern
+                            sales-report-table
+                        "
+                    >
+
                         ${thead}
-                        <tbody>
-                            ${rowsHtml}
-                        </tbody>
+
+                        ${rowsHtml}
+
+
                         <tfoot>
-                            <tr class="table-light fw-bold">
-                                <td colspan="7" class="text-end">Total Semua</td>
-                                <td class="text-end">Rp ${formatRupiah(totalGrandTotal)}</td>
-                                <td class="text-end">Rp ${formatRupiah(totalRemain)}</td>
-                                <td></td>
-                                <td class="text-end">${formatQty(totalQty)}</td>
-                                <td class="text-end">${formatWeight(totalBerat)}</td>
-                                <td></td>
-                                <td></td>
-                                <td class="text-end">Rp ${formatRupiah(totalDetailAmt)}</td>
+
+                            <tr
+                                class="sales-grand-total"
+                            >
+
+                                <td
+                                    colspan="3"
+                                    class="text-end"
+                                >
+
+                                    Total Semua
+
+                                </td>
+
+
+                                <td
+                                    class="text-end"
+                                >
+
+                                    ${formatQty(
+                                        totalQty
+                                    )}
+
+                                </td>
+
+
+                                <td
+                                    class="text-end"
+                                >
+
+                                    ${formatWeight(
+                                        totalBerat
+                                    )}
+
+                                </td>
+
+
+                                <td>
+
+                                </td>
+
+
+                                <td>
+
+                                </td>
+
+
+                                <td
+                                    class="text-end"
+                                >
+
+                                    Rp ${formatRupiah(
+                                        totalDiscount
+                                    )}
+
+                                </td>
+
+
+                                <td
+                                    class="text-end"
+                                >
+
+                                    Rp ${formatRupiah(
+                                        totalDetail
+                                    )}
+
+                                </td>
+
                             </tr>
+
                         </tfoot>
+
                     </table>
+
                 </div>
+
             `;
 
-            wrapper.html(table);
+
+            wrapper.html(
+                table
+            );
         }
 
         function loadPlant()
@@ -881,15 +2441,33 @@
 
                     e.preventDefault();
 
+
                     let page =
                         $(this)
                             .data('sales-pagination-page');
+
 
                     if(!page){
 
                         return;
 
                     }
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | SCROLL TO TOP
+                    |--------------------------------------------------------------------------
+                    */
+
+                    window.scrollTo({
+
+                        top: 0,
+
+                        behavior: 'smooth'
+
+                    });
+
 
                     loadData(page);
 
@@ -903,41 +2481,86 @@
             |--------------------------------------------------------------------------
             */
 
-            $('#btnExportSales').on(
+            function getSalesExportParams()
+            {
+                return $.param({
+
+                    search:
+                        $('#salesSearch').val(),
+
+                    plant:
+                        $('#salesPlant').val(),
+
+                    customer:
+                        $('#salesCustomer').val(),
+
+                    pembayaran:
+                        $('#salesPembayaran').val(),
+
+                    status:
+                        $('#salesStatus').val(),
+
+                    date_from:
+                        $('#salesDateFrom').val(),
+
+                    date_to:
+                        $('#salesDateTo').val()
+
+                });
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | EXPORT EXCEL
+            |--------------------------------------------------------------------------
+            */
+
+            $('#btnExportSalesExcel').on(
 
                 'click',
 
-                function(){
+                function(e){
+
+                    e.preventDefault();
 
                     let params =
-                        $.param({
-
-                            search:
-                                $('#salesSearch').val(),
-
-                            plant:
-                                $('#salesPlant').val(),
-
-                            customer:
-                                $('#salesCustomer').val(),
-
-                            pembayaran:
-                                $('#salesPembayaran').val(),
-
-                            status:
-                                $('#salesStatus').val(),
-
-                            date_from:
-                                $('#salesDateFrom').val(),
-
-                            date_to:
-                                $('#salesDateTo').val()
-
-                        });
+                        getSalesExportParams();
 
                     window.open(
 
                         '<?= base_url("report-sales/export_excel_sales"); ?>?'
+                        + params,
+
+                        '_blank'
+
+                    );
+
+                }
+
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | EXPORT PDF
+            |--------------------------------------------------------------------------
+            */
+
+            $('#btnExportSalesPdf').on(
+
+                'click',
+
+                function(e){
+
+                    e.preventDefault();
+
+                    let params =
+                        getSalesExportParams();
+
+                    window.open(
+
+                        '<?= base_url("report-sales/export_pdf_sales"); ?>?'
                         + params,
 
                         '_blank'

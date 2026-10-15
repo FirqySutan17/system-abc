@@ -58,6 +58,19 @@
 
                 </li>
 
+                <li class="nav-item">
+
+                    <a
+                        class="nav-link"
+                        data-bs-toggle="tab"
+                        href="#tab-ar">
+
+                        Report AR
+
+                    </a>
+
+                </li>
+
                 <!-- SAVING & LOAN -->
                 <li class="nav-item">
 
@@ -66,7 +79,7 @@
                         data-bs-toggle="tab"
                         href="#tab-sl">
 
-                        Report SL
+                        Report Tabungan
 
                     </a>
 
@@ -123,6 +136,18 @@
                     <?php
                     $this->load->view(
                         'admin/report_accounting/tab_cashin'
+                    );
+                    ?>
+
+                </div>
+
+                <div
+                    class="tab-pane fade"
+                    id="tab-ar">
+
+                    <?php
+                    $this->load->view(
+                        'admin/report_accounting/tab_ar'
                     );
                     ?>
 
@@ -211,6 +236,16 @@ document.addEventListener(
             if(window.ReportCashIn){
 
                 ReportCashIn.init();
+
+            }
+
+        }
+
+        if(target === '#tab-ar'){
+
+            if(window.ReportAR){
+
+                ReportAR.init();
 
             }
 

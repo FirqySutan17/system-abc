@@ -4043,7 +4043,7 @@
         let plant = $(this).data("plant");
 
         window.open(
-            "<?= base_url('cashin/print_pdf'); ?>?cash_in=" + cash_in + "&plant=" + plant,
+            "<?= base_url('cash-in/print_pdf'); ?>?cash_in=" + cash_in + "&plant=" + plant,
             "_blank"
         );
     });

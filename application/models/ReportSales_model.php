@@ -78,11 +78,17 @@ class ReportSales_model extends CI_Model {
 
             plant.CODE_NAME AS PLANT_NAME,
 
+            s.RECEIVE,
+
+            s.RECEIVE_DETAIL_ID,
+
             s.SALES_DATE,
 
             s.CUSTOMER,
 
             customer.FULL_NAME AS CUSTOMER_NAME,
+
+            s.JENIS_PAY,
 
             s.PEMBAYARAN,
 
@@ -96,6 +102,18 @@ class ReportSales_model extends CI_Model {
 
             s.REMAIN,
 
+            s.AMOUNT,
+
+            s.MODAL,
+
+            s.BIAYA,
+
+            s.DP_AMOUNT,
+
+            s.DISCOUNT,
+
+            s.ROUNDING,
+
             COUNT(d.ID) AS TOTAL_ITEM,
 
             COALESCE(
@@ -104,6 +122,12 @@ class ReportSales_model extends CI_Model {
             ) AS GRAND_TOTAL
 
         ", false);
+
+        /*
+        |--------------------------------------------------------------------------
+        | FROM
+        |--------------------------------------------------------------------------
+        */
 
         $this->db->from(
             'abc_mst_sales s'
@@ -178,7 +202,7 @@ class ReportSales_model extends CI_Model {
 
         /*
         |--------------------------------------------------------------------------
-        | FILTER
+        | DELETED SALES
         |--------------------------------------------------------------------------
         */
 
@@ -188,32 +212,49 @@ class ReportSales_model extends CI_Model {
             false
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        */
+
         if(!empty($filter['search'])){
+
+            $search =
+                trim(
+                    $filter['search']
+                );
 
             $this->db->group_start();
 
             $this->db->like(
                 's.SALES',
-                $filter['search']
+                $search
             );
 
             $this->db->or_like(
                 's.SLIP_NO',
-                $filter['search']
+                $search
             );
 
             $this->db->or_like(
                 's.NOTA',
-                $filter['search']
+                $search
             );
 
             $this->db->or_like(
                 'customer.FULL_NAME',
-                $filter['search']
+                $search
             );
 
             $this->db->group_end();
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT
+        |--------------------------------------------------------------------------
+        */
 
         if(!empty($filter['plant'])){
 
@@ -223,6 +264,12 @@ class ReportSales_model extends CI_Model {
             );
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER
+        |--------------------------------------------------------------------------
+        */
+
         if(!empty($filter['customer'])){
 
             $this->db->where(
@@ -230,6 +277,12 @@ class ReportSales_model extends CI_Model {
                 $filter['customer']
             );
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | PEMBAYARAN
+        |--------------------------------------------------------------------------
+        */
 
         if(!empty($filter['pembayaran'])){
 
@@ -239,6 +292,12 @@ class ReportSales_model extends CI_Model {
             );
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | STATUS
+        |--------------------------------------------------------------------------
+        */
+
         if(!empty($filter['status'])){
 
             $this->db->where(
@@ -247,6 +306,12 @@ class ReportSales_model extends CI_Model {
             );
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | DATE FROM
+        |--------------------------------------------------------------------------
+        */
+
         if(!empty($filter['date_from'])){
 
             $this->db->where(
@@ -254,6 +319,12 @@ class ReportSales_model extends CI_Model {
                 $filter['date_from']
             );
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATE TO
+        |--------------------------------------------------------------------------
+        */
 
         if(!empty($filter['date_to'])){
 
@@ -295,6 +366,12 @@ class ReportSales_model extends CI_Model {
             $start
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | GET HEADER
+        |--------------------------------------------------------------------------
+        */
+
         $rows =
             $this->db
                 ->get()
@@ -302,11 +379,17 @@ class ReportSales_model extends CI_Model {
 
         /*
         |--------------------------------------------------------------------------
-        | DETAIL LOOP
+        | DETAIL + SAVING
         |--------------------------------------------------------------------------
         */
 
         foreach($rows as &$row){
+
+            /*
+            |----------------------------------------------------------------------
+            | DETAIL SALES
+            |----------------------------------------------------------------------
+            */
 
             $details =
                 $this->db
@@ -367,7 +450,52 @@ class ReportSales_model extends CI_Model {
 
             $row['DETAILS'] =
                 $details;
+
+
+            /*
+            |----------------------------------------------------------------------
+            | SAVING
+            |----------------------------------------------------------------------
+            */
+
+            $savings =
+                $this->db
+
+                    ->from(
+                        'abc_mst_saving'
+                    )
+
+                    ->where(
+                        'SALES',
+                        $row['SALES']
+                    )
+
+                    ->where(
+                        'PLANT',
+                        $row['PLANT']
+                    )
+
+                    ->where(
+                        'DELETED IS NULL',
+                        null,
+                        false
+                    )
+
+                    ->order_by(
+                        'SV_NO',
+                        'ASC'
+                    )
+
+                    ->get()
+
+                    ->result_array();
+
+            $row['SAVINGS'] =
+                $savings;
+
         }
+
+        unset($row);
 
         return $rows;
     }
@@ -394,9 +522,23 @@ class ReportSales_model extends CI_Model {
 
         ", false);
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | FROM
+        |--------------------------------------------------------------------------
+        */
+
         $this->db->from(
             'abc_mst_sales s'
         );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | DETAIL
+        |--------------------------------------------------------------------------
+        */
 
         $this->db->join(
 
@@ -415,11 +557,194 @@ class ReportSales_model extends CI_Model {
 
         );
 
-        $this->db->where(
-            's.DELETED IS NULL',
-            null,
+
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+
+            'abc_cd_customer customer',
+
+            '
+
+                customer.CUST COLLATE utf8mb4_unicode_ci =
+                s.CUSTOMER COLLATE utf8mb4_unicode_ci
+
+            ',
+
+            'left',
             false
+
         );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | DELETED SALES
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->where(
+
+            's.DELETED IS NULL',
+
+            null,
+
+            false
+
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['search'])){
+
+            $search =
+                trim(
+                    $filter['search']
+                );
+
+
+            $this->db->group_start();
+
+
+            $this->db->like(
+                's.SALES',
+                $search
+            );
+
+
+            $this->db->or_like(
+                's.SLIP_NO',
+                $search
+            );
+
+
+            $this->db->or_like(
+                's.NOTA',
+                $search
+            );
+
+
+            $this->db->or_like(
+                'customer.FULL_NAME',
+                $search
+            );
+
+
+            $this->db->group_end();
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['plant'])){
+
+            $this->db->where(
+                's.PLANT',
+                $filter['plant']
+            );
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['customer'])){
+
+            $this->db->where(
+                's.CUSTOMER',
+                $filter['customer']
+            );
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PEMBAYARAN
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['pembayaran'])){
+
+            $this->db->where(
+                's.PEMBAYARAN',
+                $filter['pembayaran']
+            );
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | STATUS
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['status'])){
+
+            $this->db->where(
+                's.STATUS',
+                $filter['status']
+            );
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATE FROM
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['date_from'])){
+
+            $this->db->where(
+                'DATE(s.SALES_DATE) >=',
+                $filter['date_from']
+            );
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATE TO
+        |--------------------------------------------------------------------------
+        */
+
+        if(!empty($filter['date_to'])){
+
+            $this->db->where(
+                'DATE(s.SALES_DATE) <=',
+                $filter['date_to']
+            );
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | RESULT
+        |--------------------------------------------------------------------------
+        */
 
         return $this->db
             ->get()

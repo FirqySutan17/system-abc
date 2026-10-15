@@ -1,816 +1,2791 @@
 <?php
-$userPlant = $this->session->userdata('plant');
-$roleId    = $this->session->userdata('role_id');
 ?>
 
 <div class="po-report-wrap">
-    <!-- SUMMARY -->
-    <div class="row mb-4" id="summaryWrapper">
-
-        <div class="col-md-2">
-            <div class="summary-card">
-                <div class="summary-label">
-                    OPEN
-                </div>
-
-                <div class="summary-value" id="sumSupplier">
-                    0
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-2">
-            <div class="summary-card">
-                <div class="summary-label">
-                    RECEIVED
-                </div>
-
-                <div class="summary-value" id="sumCustomer">
-                    0
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-2">
-            <div class="summary-card">
-                <div class="summary-label">
-                    PAID
-                </div>
-
-                <div class="summary-value" id="sumPaid">
-                    0
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="summary-card">
-                <div class="summary-label">
-                    TOTAL WEIGHT
-                </div>
-
-                <div class="summary-value" id="sumWeight">
-                    0
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="summary-card summary-money">
-                <div class="summary-label">
-                    TOTAL AMOUNT
-                </div>
-
-                <div class="summary-value" id="sumAmount">
-                    0
-                </div>
-            </div>
-        </div>
-
-    </div>
 
     <!-- FILTER -->
     <div class="report-filter-card">
+
         <div class="row g-3 align-items-end">
 
             <div class="col-md-2">
-                <label class="form-label fw-semibold">Plant</label>
-                <select id="filter_plant" class="form-control">
+
+                <label class="form-label fw-semibold">
+                    Plant
+                </label>
+
+                <select
+                    id="filter_plant"
+                    class="form-control"
+                >
+
+                    <option value="">
+                        Semua Plant
+                    </option>
+
                     <?php foreach ($plants as $p): ?>
+
                         <?php if ($p->CODE == '*') continue; ?>
+
                         <option value="<?= $p->CODE ?>">
                             <?= $p->CODE_NAME ?>
                         </option>
+
                     <?php endforeach; ?>
+
                 </select>
+
             </div>
 
+
             <div class="col-md-3">
-                <label class="form-label fw-semibold">Supplier</label>
-                <select id="filter_supplier" class="form-control">
+
+                <label class="form-label fw-semibold">
+                    Supplier
+                </label>
+
+                <select
+                    id="filter_supplier"
+                    class="form-control"
+                >
+
                     <option value=""></option>
+
                     <?php foreach ($suppliers as $s): ?>
+
                         <option value="<?= $s->CUST ?>">
                             <?= $s->CUST ?> - <?= $s->FULL_NAME ?>
                         </option>
+
                     <?php endforeach; ?>
+
                 </select>
+
             </div>
 
+
             <div class="col-md-3">
-                <label class="form-label fw-semibold">Nomor PO</label>
+
+                <label class="form-label fw-semibold">
+                    Nomor PO
+                </label>
+
                 <input
                     type="text"
                     id="filter_po"
                     class="form-control"
                     placeholder="Cari Nomor PO..."
                 >
+
             </div>
 
+
             <div class="col-md-2">
-                <label class="form-label fw-semibold">Tanggal Mulai</label>
+
+                <label class="form-label fw-semibold">
+                    Tanggal Mulai
+                </label>
+
                 <input
                     type="date"
                     id="filter_date_from"
                     class="form-control"
                 >
+
             </div>
 
+
             <div class="col-md-2">
-                <label class="form-label fw-semibold">Tanggal Selesai</label>
+
+                <label class="form-label fw-semibold">
+                    Tanggal Selesai
+                </label>
+
                 <input
                     type="date"
                     id="filter_date_to"
                     class="form-control"
                 >
+
             </div>
+
 
             <div class="col-md-10"></div>
 
+
             <div class="col-md-2">
+
                 <div class="btn-group w-100">
+
                     <button
                         class="btn btn-success dropdown-toggle w-100"
                         data-bs-toggle="dropdown"
                     >
+
                         <i class="fa fa-download me-1"></i>
+
                         Export
+
                     </button>
 
+
                     <ul class="dropdown-menu w-100">
+
                         <li>
-                            <a href="#" class="dropdown-item" id="exportExcel">
+
+                            <a
+                                href="#"
+                                class="dropdown-item"
+                                id="exportExcel"
+                            >
+
                                 <i class="fa fa-file-excel text-success me-2"></i>
+
                                 Export Excel
+
                             </a>
+
                         </li>
+
+
                         <li>
-                            <a href="#" class="dropdown-item" id="exportPDF">
+
+                            <a
+                                href="#"
+                                class="dropdown-item"
+                                id="exportPDF"
+                            >
+
                                 <i class="fa fa-file-pdf text-danger me-2"></i>
+
                                 Export PDF
+
                             </a>
+
                         </li>
+
                     </ul>
+
                 </div>
+
             </div>
 
         </div>
+
     </div>
+
 
     <!-- LOADING -->
-    <div id="poLoading" class="report-loading d-none">
+
+    <div
+        id="poLoading"
+        class="report-loading d-none"
+    >
+
         <div class="text-center">
+
             <div class="spinner-border text-primary"></div>
-            <div class="fw-semibold mt-3">Loading report...</div>
-            <small class="text-muted">Mohon tunggu sebentar</small>
+
+            <div class="fw-semibold mt-3">
+                Loading report...
+            </div>
+
+            <small class="text-muted">
+                Mohon tunggu sebentar
+            </small>
+
         </div>
+
     </div>
 
-    <!-- CONTENT -->
+
+    <!-- REPORT -->
+
     <div id="poReportWrapper"></div>
 
     <!-- PAGINATION -->
+
     <div class="d-flex justify-content-between align-items-center mt-4">
-        <div id="pageInfo" class="small text-muted"></div>
+
+        <div
+            id="pageInfo"
+            class="small text-muted"
+        ></div>
+
         <div id="pagination"></div>
+
     </div>
 
 </div>
 
+
 <style>
 
-    .po-report-wrap{
-        padding:4px;
-    }
-
-    .report-filter-card{
-        background:#fff;
-        border:1px solid #edf2f7;
-        border-radius:18px;
-        padding:24px;
-        box-shadow:0 8px 25px rgba(15,23,42,.05);
-        margin-bottom:24px;
-    }
-
-    .report-loading{
-        min-height:280px;
-        background:#fff;
-        border-radius:18px;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        border:1px solid #edf2f7;
-    }
-
-    #poReportWrapper.loading{
-        opacity:.35;
-        pointer-events:none;
-        transition:.25s;
-    }
-    .po-card{
-        border:1px solid #e9ecef;
-        border-radius:18px;
-        overflow:hidden;
-        margin-bottom:22px;
-        box-shadow:0 8px 30px rgba(0,0,0,.05);
-    }
-
-    .po-head{
-        background:linear-gradient(135deg,#0F4C81,#1d6fb1);
-        color:#fff;
-        padding:18px 22px;
-    }
-
-    .po-title{
-        font-size:18px;
-        font-weight:700;
-    }
-
-    .po-body{
-        padding:10px;
-        background:#fff;
-    }
-
-    .status-badge{
-        padding:5px 12px;
-        border-radius:30px;
-        font-size:12px;
-        font-weight:700;
-    }
-
     .status-open{
-        background:#fff3cd;
-        color:#9a6700;
+    background:#fff3cd;
+    color:#9a6700;
+}
+
+.status-success{
+    background:#d1e7dd;
+    color:#0f5132;
+}
+
+.status-danger{
+    background:#f8d7da;
+    color:#842029;
+}
+
+.status-default{
+    background:#e2e3e5;
+    color:#41464b;
+}
+
+.payment-paid{
+    background:#d1e7dd;
+    color:#0f5132;
+}
+
+.payment-unpaid{
+    background:#fff3cd;
+    color:#9a6700;
+}
+
+.payment-partial{
+    background:#cff4fc;
+    color:#055160;
+}
+
+.payment-default{
+    background:#e2e3e5;
+    color:#41464b;
+}
+
+/* ======================================================
+   WRAPPER
+   ====================================================== */
+
+.po-report-wrap{
+    padding:4px;
+}
+
+
+/* ======================================================
+   FILTER
+   ====================================================== */
+
+.report-filter-card{
+
+    background:#fff;
+
+    border:1px solid #edf2f7;
+
+    border-radius:18px;
+
+    padding:24px;
+
+    box-shadow:0 8px 25px rgba(15,23,42,.05);
+
+    margin-bottom:24px;
+
+}
+
+
+/* ======================================================
+   LOADING
+   ====================================================== */
+
+.report-loading{
+
+    position:fixed;
+
+    inset:0;
+
+    z-index:9999;
+
+    background:rgba(255,255,255,.75);
+
+    backdrop-filter:blur(2px);
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+}
+
+
+
+/* ======================================================
+   TABLE SCROLL
+   ====================================================== */
+
+.report-table-scroll{
+
+    width:100%;
+
+    overflow-x:auto;
+
+    overflow-y:visible;
+
+}
+
+
+/* ======================================================
+   TABLE
+   ====================================================== */
+
+.po-report-table{
+
+    width:max-content;
+
+    min-width:100%;
+
+    margin:0;
+
+    border-collapse:separate;
+
+    border-spacing:0;
+
+    font-size:13px;
+
+}
+
+
+/* ======================================================
+   GROUP HEADER
+   ====================================================== */
+
+.po-report-table thead .group-header th{
+
+    position:sticky;
+
+    top:0;
+
+    z-index:20;
+
+    background:#0F4C81;
+
+    color:#fff;
+
+    text-align:center;
+
+    font-size:14px;
+
+    font-weight:700;
+
+    letter-spacing:.5px;
+
+    padding:12px 14px;
+
+    border-right:1px solid rgba(255,255,255,.18);
+
+    white-space:nowrap;
+
+}
+
+
+/* ======================================================
+   COLUMN HEADER
+   ====================================================== */
+
+.po-report-table thead .column-header th{
+
+    position:sticky;
+
+    top:42px;
+
+    z-index:19;
+
+    background:#f8fafc;
+
+    color:#334155;
+
+    font-size:12px;
+
+    font-weight:700;
+
+    padding:11px 12px;
+
+    border-bottom:2px solid #dbe3ec;
+
+    border-right:1px solid #e5e7eb;
+
+    white-space:nowrap;
+
+}
+
+
+/* ======================================================
+   BODY
+   ====================================================== */
+
+.po-report-table tbody td{
+
+    padding:11px 12px;
+
+    vertical-align:middle;
+
+    border-bottom:1px solid #edf2f7;
+
+    border-right:1px solid #edf2f7;
+
+    white-space:nowrap;
+
+    background:#fff;
+
+}
+
+
+/* ======================================================
+   HOVER
+   ====================================================== */
+
+.po-report-table tbody tr:hover td{
+
+    background:#f8fafc;
+
+}
+
+
+/* ======================================================
+   PO
+   ====================================================== */
+
+.po-number{
+
+    font-weight:700;
+
+    color:#0F4C81;
+
+}
+
+
+/* ======================================================
+   TEXT
+   ====================================================== */
+
+.po-text{
+
+    max-width:220px;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    white-space:nowrap;
+
+}
+
+
+/* ======================================================
+   REMARK
+   ====================================================== */
+
+.po-remark{
+
+    max-width:250px;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    white-space:nowrap;
+
+}
+
+
+/* ======================================================
+   STATUS
+   ====================================================== */
+
+.po-status{
+
+    display:inline-block;
+
+    padding:5px 10px;
+
+    border-radius:20px;
+
+    font-size:11px;
+
+    font-weight:700;
+
+    white-space:nowrap;
+
+}
+
+
+/* ======================================================
+   PAYMENT STATUS
+   ====================================================== */
+
+.payment-status{
+
+    display:inline-block;
+
+    padding:5px 10px;
+
+    border-radius:20px;
+
+    font-size:11px;
+
+    font-weight:700;
+
+    white-space:nowrap;
+
+}
+
+
+/* ======================================================
+   EMPTY
+   ====================================================== */
+
+.po-empty{
+
+    padding:50px !important;
+
+    color:#64748b;
+
+    text-align:center;
+
+}
+
+
+/* ======================================================
+   NUMERIC
+   ====================================================== */
+
+.po-report-table .text-end{
+
+    font-variant-numeric:tabular-nums;
+
+}
+
+
+/* ======================================================
+   DATE
+   ====================================================== */
+
+.po-date{
+
+    white-space:nowrap;
+
+}
+
+
+/* ======================================================
+   SCROLLBAR
+   ====================================================== */
+
+.report-table-scroll::-webkit-scrollbar{
+
+    height:10px;
+
+}
+
+.report-table-scroll::-webkit-scrollbar-track{
+
+    background:#f1f5f9;
+
+}
+
+.report-table-scroll::-webkit-scrollbar-thumb{
+
+    background:#cbd5e1;
+
+    border-radius:10px;
+
+}
+
+.report-table-scroll::-webkit-scrollbar-thumb:hover{
+
+    background:#94a3b8;
+
+}
+
+/* ======================================================
+   PO CARD
+   ====================================================== */
+
+.po-card{
+
+    background:#fff;
+
+    border:1px solid #e5e7eb;
+
+    border-radius:14px;
+
+    overflow:hidden;
+
+    margin-bottom:18px;
+
+    box-shadow:0 4px 18px rgba(15,23,42,.05);
+
+}
+
+
+/* ======================================================
+   PO HEADER
+   ====================================================== */
+
+.po-head{
+
+    background:#f1f7fc;
+
+    border-bottom:1px solid #dce8f2;
+
+    padding:14px 16px;
+
+}
+
+
+/* ======================================================
+   PO TITLE
+   ====================================================== */
+
+.po-title{
+
+    font-size:14px;
+
+    font-weight:700;
+
+    color:#0F4C81;
+
+}
+
+
+/* ======================================================
+   PO STATUS
+   ====================================================== */
+
+.po-status{
+
+    display:inline-block;
+
+    padding:4px 10px;
+
+    border-radius:20px;
+
+    font-size:10px;
+
+    font-weight:700;
+
+    white-space:nowrap;
+
+}
+
+.po-status-open{
+
+    background:#fff3cd;
+
+    color:#9a6700;
+
+}
+
+.po-status-received{
+
+    background:#d1e7dd;
+
+    color:#0f5132;
+
+}
+
+.po-status-cancel{
+
+    background:#f8d7da;
+
+    color:#842029;
+
+}
+
+.po-status-default{
+
+    background:#e2e3e5;
+
+    color:#41464b;
+
+}
+
+
+/* ======================================================
+   META
+   ====================================================== */
+
+.po-meta{
+
+    display:grid;
+
+    grid-template-columns:
+        1fr
+        1fr
+        1fr
+        1fr;
+
+    gap:8px 20px;
+
+    margin-top:12px;
+
+}
+
+
+.po-meta-item{
+
+    min-width:0;
+
+}
+
+
+.po-meta-label{
+
+    display:block;
+
+    font-size:9px;
+
+    font-weight:700;
+
+    color:#94a3b8;
+
+    letter-spacing:.5px;
+
+    margin-bottom:2px;
+
+}
+
+
+.po-meta-value{
+
+    font-size:11px;
+
+    font-weight:600;
+
+    color:#334155;
+
+    white-space:nowrap;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+}
+
+
+/* ======================================================
+   PO BODY
+   ====================================================== */
+
+.po-body{
+
+    padding:12px;
+
+    background:#fff;
+
+}
+
+
+/* ======================================================
+   TABLE WRAPPER
+   ====================================================== */
+
+.po-table-scroll{
+
+    width:100%;
+
+    overflow-x:auto;
+
+    overflow-y:visible;
+
+}
+
+
+/* ======================================================
+   DETAIL TABLE
+   ====================================================== */
+
+.po-detail-table{
+
+    width:max-content;
+
+    min-width:100%;
+
+    margin:0;
+
+    border-collapse:collapse;
+
+    font-size:11px;
+
+}
+
+
+/* ======================================================
+   GROUP HEADER
+   ====================================================== */
+
+.po-detail-table .group-head th{
+
+    background:#eaf3fb;
+
+    color:#0F4C81;
+
+    text-align:center;
+
+    font-size:10px;
+
+    font-weight:700;
+
+    padding:7px 10px;
+
+    border:1px solid #d7e5f0;
+
+    white-space:nowrap;
+
+}
+
+
+/* ======================================================
+   COLUMN HEADER
+   ====================================================== */
+
+.po-detail-table .column-head th{
+
+    background:#f8fafc;
+
+    color:#475569;
+
+    font-size:10px;
+
+    font-weight:700;
+
+    padding:7px 9px;
+
+    border:1px solid #e5e7eb;
+
+    white-space:nowrap;
+
+}
+
+
+/* ======================================================
+   TABLE BODY
+   ====================================================== */
+
+.po-detail-table td{
+
+    padding:8px 9px;
+
+    border:1px solid #edf2f7;
+
+    color:#475569;
+
+    white-space:nowrap;
+
+    background:#fff;
+
+}
+
+
+/* ======================================================
+   HOVER
+   ====================================================== */
+
+.po-detail-table tbody tr:hover td{
+
+    background:#f8fafc;
+
+}
+
+
+/* ======================================================
+   IMPORTANT VALUE
+   ====================================================== */
+
+.po-main-value{
+
+    font-weight:700;
+
+    color:#0F4C81;
+
+}
+
+
+/* ======================================================
+   TOTAL
+   ====================================================== */
+
+.po-total{
+
+    font-weight:700;
+
+    color:#0F4C81;
+
+}
+
+
+/* ======================================================
+   PAYMENT
+   ====================================================== */
+
+.po-payment-paid{
+
+    display:inline-block;
+
+    padding:4px 9px;
+
+    border-radius:20px;
+
+    background:#d1e7dd;
+
+    color:#0f5132;
+
+    font-size:10px;
+
+    font-weight:700;
+
+}
+
+.po-payment-unpaid{
+
+    display:inline-block;
+
+    padding:4px 9px;
+
+    border-radius:20px;
+
+    background:#fff3cd;
+
+    color:#9a6700;
+
+    font-size:10px;
+
+    font-weight:700;
+
+}
+
+.po-payment-partial{
+
+    display:inline-block;
+
+    padding:4px 9px;
+
+    border-radius:20px;
+
+    background:#cff4fc;
+
+    color:#055160;
+
+    font-size:10px;
+
+    font-weight:700;
+
+}
+
+.po-payment-default{
+
+    display:inline-block;
+
+    padding:4px 9px;
+
+    border-radius:20px;
+
+    background:#e2e3e5;
+
+    color:#41464b;
+
+    font-size:10px;
+
+    font-weight:700;
+
+}
+
+
+/* ======================================================
+   REMARK
+   ====================================================== */
+
+.po-remark-box{
+
+    margin-top:10px;
+
+    padding:8px 10px;
+
+    background:#f8fafc;
+
+    border-left:3px solid #0F4C81;
+
+    border-radius:4px;
+
+    font-size:10px;
+
+    color:#64748b;
+
+}
+
+
+/* ======================================================
+   RESPONSIVE
+   ====================================================== */
+
+@media(max-width:1100px){
+
+    .po-meta{
+
+        grid-template-columns:
+            1fr
+            1fr;
+
     }
 
-    .status-received{
-        background:#d1e7dd;
-        color:#0f5132;
-    }
+}
 
-    .table-detail th{
-        background:#f8f9fa;
-        font-size:13px;
-        text-transform:uppercase;
-    }
 
-    .table-detail td{
-        vertical-align:middle;
-    }
+@media(max-width:700px){
 
-    .subtotal-row{
-        background:#f8fafc;
-        font-weight:700;
-    }
+    .po-meta{
 
-    .po-meta-grid{
-        margin-top:14px;
-        display:grid;
-        grid-template-columns:1fr 1fr;
-        gap:8px 28px;
-        font-size:13px;
-    }
-
-    .meta-label{
-        display:inline-block;
-        width:85px;
-        font-weight:700;
-        color:rgba(255,255,255,.85);
-        letter-spacing:.4px;
-    }
-
-    .meta-value{
-        font-weight:500;
-        color:#fff;
-    }
-    .summary-card{
-        background:#fff;
-        border-radius:18px;
-        padding:20px;
-        border:1px solid #edf2f7;
-        box-shadow:0 8px 24px rgba(15,23,42,.05);
-        height:100%;
-        transition:.2s;
-    }
-
-    .summary-card:hover{
-        transform:translateY(-2px);
-    }
-
-    .summary-label{
-        font-size:12px;
-        font-weight:700;
-        color:#64748b;
-        letter-spacing:.5px;
-        margin-bottom:10px;
-    }
-
-    .summary-value{
-        font-size:18px;
-        font-weight:800;
-        color:#0f172a;
-    }
-
-    .summary-money .summary-value{
-        color:#0F4C81;
-    }
-    .table th{
-        white-space:nowrap;
-        font-size:14px;
-    }
-
-    .table td{
-        white-space:nowrap;
-    }
-
-    .table-responsive{
-
-        max-height:550px;
+        grid-template-columns:1fr;
 
     }
 
-    thead th{
+}
 
-        position:sticky;
+/* ======================================================
+   REPORT TABLE
+   ====================================================== */
 
-        top:0;
+.po-report-card{
 
-        z-index:5;
+    background:#fff;
 
-        background:#0F4C81;
+    border:1px solid #edf2f7;
 
-        color:#000;
+    border-radius:16px;
 
-        font-weight:600;
+    box-shadow:0 6px 22px rgba(15,23,42,.05);
 
-        border:none;
+    overflow:hidden;
 
-        padding:14px 12px;
+}
 
-        font-size:13px;
 
-        letter-spacing:.3px;
+/* ======================================================
+   TABLE SCROLL
+   ====================================================== */
 
-        text-align: center;
+.po-table-scroll{
 
-        padding: 10px 15px !important;
+    width:100%;
 
-    }
+    overflow-x:auto;
 
-    .text-money{
+    overflow-y:visible;
 
-        white-space:nowrap;
+}
 
-    }
 
-    .report-table-card{
+/* ======================================================
+   MAIN TABLE
+   ====================================================== */
 
-        background:#fff;
+.po-report-table{
 
-        border-radius:18px;
+    width:max-content;
 
-        overflow:hidden;
+    min-width:100%;
 
-        box-shadow:0 12px 35px rgba(15,23,42,.06);
+    margin:0;
 
-    }
+    border-collapse:separate;
 
-    tbody tr{
+    border-spacing:0;
 
-        transition:.2s;
+    font-size:11px;
 
-    }
+}
 
-    tbody tr:hover{
-        background:#eef7ff;
-    }
 
-    tbody tr:nth-child(even){
+/* ======================================================
+   GROUP HEADER
+   ====================================================== */
 
-        background:#fbfcfd;
+.po-report-table thead .group-header th{
 
-    }
+    position:sticky;
 
-    .badge-open{
+    top:0;
 
-        background:#FFF6D8;
+    z-index:20;
 
-        color:#C68600;
+    background:#eaf3fb;
 
-    }
+    color:#0F4C81;
 
-    .badge-received{
+    text-align:center;
 
-        background:#DCFCE7;
+    font-size:13px;
 
-        color:#15803D;
+    font-weight:700;
 
-    }
+    letter-spacing:.3px;
 
-    .badge-paid{
+    padding:8px 10px;
 
-        background:#DBEAFE;
+    border-top:1px solid #dce8f2;
 
-        color:#2563EB;
+    border-right:1px solid #d7e5f0;
 
-    }
+    border-bottom:1px solid #d7e5f0;
 
-    .po-number{
+    white-space:nowrap;
 
-        font-weight:700;
+}
 
-        color:#0F4C81;
 
-        cursor:pointer;
+/* ======================================================
+   COLUMN HEADER
+   ====================================================== */
 
-    }
+.po-report-table thead .column-header th{
 
-    .material{
+    position:sticky;
 
-        max-width:180px;
+    top:34px;
 
-        overflow:hidden;
+    z-index:19;
 
-        text-overflow:ellipsis;
+    background:#f8fafc;
 
-    }
+    color:#475569;
+
+    text-align:left;
+
+    font-size:13px;
+
+    font-weight:700;
+
+    padding:8px 9px;
+
+    border-right:1px solid #e5e7eb;
+
+    border-bottom:2px solid #dbe3ec;
+
+    white-space:nowrap;
+
+}
+
+
+/* ======================================================
+   BODY
+   ====================================================== */
+
+.po-report-table tbody td{
+
+    padding:8px 9px;
+
+    vertical-align:middle;
+
+    color:#475569;
+
+    background:#fff;
+
+    border-right:1px solid #edf2f7;
+
+    border-bottom:1px solid #edf2f7;
+
+    white-space:nowrap;
+
+}
+
+
+/* ======================================================
+   HOVER
+   ====================================================== */
+
+.po-report-table tbody tr:hover td{
+
+    background:#f8fafc;
+
+}
+
+
+/* ======================================================
+   PO
+   ====================================================== */
+
+.po-report-table .po-number{
+
+    color:#0066a1;
+
+    font-weight:700;
+
+}
+
+
+/* ======================================================
+   TEXT COLUMN
+   ====================================================== */
+
+.po-report-table .po-text{
+
+    max-width:180px;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    white-space:nowrap;
+
+}
+
+
+/* ======================================================
+   NUMERIC
+   ====================================================== */
+
+.po-report-table .text-end{
+
+    text-align:right !important;
+
+    font-variant-numeric:tabular-nums;
+
+}
+
+
+/* ======================================================
+   IMPORTANT TOTAL
+   ====================================================== */
+
+.po-report-table .po-total{
+
+    font-weight:700;
+
+    color:#0F4C81;
+
+}
+
+
+/* ======================================================
+   STATUS
+   ====================================================== */
+
+.po-status{
+
+    display:inline-block;
+
+    padding:4px 9px;
+
+    border-radius:20px;
+
+    font-size:9px;
+
+    font-weight:700;
+
+    line-height:1;
+
+    white-space:nowrap;
+
+}
+
+
+.po-status-open{
+
+    background:#fff3cd;
+
+    color:#9a6700;
+
+}
+
+
+.po-status-received{
+
+    background:#d1e7dd;
+
+    color:#0f5132;
+
+}
+
+
+.po-status-cancel{
+
+    background:#f8d7da;
+
+    color:#842029;
+
+}
+
+
+.po-status-default{
+
+    background:#e2e3e5;
+
+    color:#41464b;
+
+}
+
+
+/* ======================================================
+   PAYMENT STATUS
+   ====================================================== */
+
+.po-payment-status{
+
+    display:inline-block;
+
+    padding:4px 9px;
+
+    border-radius:20px;
+
+    font-size:9px;
+
+    font-weight:700;
+
+    line-height:1;
+
+    white-space:nowrap;
+
+}
+
+
+.po-payment-paid{
+
+    background:#d1e7dd;
+
+    color:#0f5132;
+
+}
+
+
+.po-payment-unpaid{
+
+    background:#fff3cd;
+
+    color:#9a6700;
+
+}
+
+
+.po-payment-partial{
+
+    background:#cff4fc;
+
+    color:#055160;
+
+}
+
+
+.po-payment-default{
+
+    background:#e2e3e5;
+
+    color:#41464b;
+
+}
+
+
+/* ======================================================
+   REMARK
+   ====================================================== */
+
+.po-report-table .po-remark{
+
+    max-width:180px;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    white-space:nowrap;
+
+}
+
+
+/* ======================================================
+   EMPTY
+   ====================================================== */
+
+.po-empty{
+
+    text-align:center;
+
+    padding:45px !important;
+
+    color:#94a3b8 !important;
+
+}
+
+
+/* ======================================================
+   SCROLLBAR
+   ====================================================== */
+
+.po-table-scroll::-webkit-scrollbar{
+
+    height:9px;
+
+}
+
+
+.po-table-scroll::-webkit-scrollbar-track{
+
+    background:#f1f5f9;
+
+}
+
+
+.po-table-scroll::-webkit-scrollbar-thumb{
+
+    background:#cbd5e1;
+
+    border-radius:10px;
+
+}
+
+
+.po-table-scroll::-webkit-scrollbar-thumb:hover{
+
+    background:#94a3b8;
+
+}
+
 </style>
 
+
 <script>
+
 const POReport = {
 
     state:{
+
         page:1,
-        limit:10
+
+        limit:20
+
     },
+
 
     init(){
+
         this.initSelect2();
+
         this.bind();
 
-        setTimeout(()=>{
-            this.setDefault();
-            this.load();
-        },100);
+        this.setDefault();
+
+        this.load();
+
     },
 
+
+    /* ==================================================
+       DEFAULT
+       ================================================== */
+
     setDefault(){
+
         const now = new Date();
 
         const yyyy = now.getFullYear();
-        const mm   = String(now.getMonth()+1).padStart(2,'0');
-        const dd   = String(now.getDate()).padStart(2,'0');
 
-        const today = `${yyyy}-${mm}-${dd}`;
-        const first = `${yyyy}-${mm}-01`;
+        const mm = String(
+            now.getMonth() + 1
+        ).padStart(2,'0');
 
-        $('#filter_date_from').val(first);
-        $('#filter_date_to').val(today);
+        const dd = String(
+            now.getDate()
+        ).padStart(2,'0');
 
-        // skip CODE = *
-        const $plant = $('#filter_plant');
 
-        const firstValid = $plant.find('option').filter(function () {
-            const val = ($(this).val() || '').trim();
+        const today =
+            `${yyyy}-${mm}-${dd}`;
 
-            return val !== '' && val !== '*';
-        }).first();
+        const first =
+            `${yyyy}-${mm}-01`;
 
-        if(firstValid.length){
-            $plant.val(firstValid.val()).trigger('change.select2');
-        }
 
-        console.log('DEFAULT PLANT =', $plant.val());
+        $('#filter_date_from')
+            .val(first);
+
+        $('#filter_date_to')
+            .val(today);
+
+
+        // IMPORTANT:
+        // Plant default = ALL
+
+        $('#filter_plant')
+            .val('')
+            .trigger('change.select2');
+
     },
+
+
+    /* ==================================================
+       SELECT2
+       ================================================== */
 
     initSelect2(){
+
         $('#filter_plant').select2({
+
             width:'100%'
+
         });
+
 
         $('#filter_supplier').select2({
+
             width:'100%',
+
             placeholder:'Pilih Supplier',
+
             allowClear:true
+
         });
+
     },
 
-    showLoading(){
-        $('#poLoading').removeClass('d-none');
-        $('#poReportWrapper').addClass('loading');
-    },
 
-    hideLoading(){
-        $('#poLoading').addClass('d-none');
-        $('#poReportWrapper').removeClass('loading');
-    },
+    /* ==================================================
+       BIND
+       ================================================== */
 
     bind(){
+
         let timer;
 
-        $('#filter_po').on('keyup', ()=>{
-            clearTimeout(timer);
-            timer = setTimeout(()=>{
-                this.state.page = 1;
-                this.load();
-            },300);
-        });
 
-        $('#filter_plant,#filter_supplier,#filter_date_from,#filter_date_to')
-            .on('change', ()=>{
-                this.state.page = 1;
-                this.load();
-            });
+        $('#filter_po').on(
+            'keyup',
+            ()=>{
 
-        $('#exportExcel').on('click',(e)=>{
-            e.preventDefault();
-            window.open(
-                '<?= base_url("report-inventory/export_excel_po"); ?>?'+this.query(),
-                '_blank'
-            );
-        });
+                clearTimeout(timer);
 
-        $('#exportPDF').on('click',(e)=>{
-            e.preventDefault();
-            window.open(
-                '<?= base_url("report-inventory/export_pdf_po"); ?>?'+this.query(),
-                '_blank'
-            );
-        });
+                timer = setTimeout(()=>{
 
-        $(document).on('click','#pagination a',(e)=>{
-            e.preventDefault();
+                    this.state.page = 1;
 
-            const page = $(e.currentTarget).data('page');
+                    this.load();
 
-            if(page){
-                this.state.page = page;
-                this.load();
+                },300);
+
             }
-        });
+        );
+
+
+        $(
+            '#filter_plant,' +
+            '#filter_supplier,' +
+            '#filter_date_from,' +
+            '#filter_date_to'
+        ).on(
+            'change',
+            ()=>{
+
+                this.state.page = 1;
+
+                this.load();
+
+            }
+        );
+
+
+        $('#exportExcel').on(
+            'click',
+            (e)=>{
+
+                e.preventDefault();
+
+                window.open(
+
+                    '<?= base_url("report-inventory/export_excel_po"); ?>?' +
+                    this.query(),
+
+                    '_blank'
+
+                );
+
+            }
+        );
+
+
+        $('#exportPDF').on(
+            'click',
+            (e)=>{
+
+                e.preventDefault();
+
+                window.open(
+
+                    '<?= base_url("report-inventory/export_pdf_po"); ?>?' +
+                    this.query(),
+
+                    '_blank'
+
+                );
+
+            }
+        );
+
+
+        $(document).on(
+            'click',
+            '#pagination a',
+            (e)=>{
+
+                e.preventDefault();
+
+                const page =
+                    $(e.currentTarget)
+                    .data('page');
+
+
+                if(page){
+
+                    this.state.page = page;
+
+                    this.load();
+
+                }
+
+            }
+        );
+
     },
+
+
+    /* ==================================================
+       QUERY
+       ================================================== */
 
     query(){
+
         return $.param({
-            page      : this.state.page,
-            limit     : this.state.limit,
-            plant     : $('#filter_plant').val(),
-            supplier  : $('#filter_supplier').val(),
-            po        : $('#filter_po').val(),
-            date_from : $('#filter_date_from').val(),
-            date_to   : $('#filter_date_to').val()
+
+            page:
+                this.state.page,
+
+            limit:
+                this.state.limit,
+
+            plant:
+                $('#filter_plant').val(),
+
+            supplier:
+                $('#filter_supplier').val(),
+
+            po:
+                $('#filter_po').val(),
+
+            date_from:
+                $('#filter_date_from').val(),
+
+            date_to:
+                $('#filter_date_to').val()
+
         });
+
     },
 
-    money(x){
-        return Number(x || 0).toLocaleString('id-ID');
+
+    /* ==================================================
+       FORMAT
+       ================================================== */
+
+    money(value){
+
+        return Number(
+            value || 0
+        ).toLocaleString(
+            'id-ID'
+        );
+
     },
 
-    decimal(x){
-        return Number(x || 0).toLocaleString('id-ID',{
-            minimumFractionDigits:2,
-            maximumFractionDigits:2
-        });
+
+    decimal(value){
+
+        return Number(
+            value || 0
+        ).toLocaleString(
+            'id-ID',
+            {
+
+                minimumFractionDigits:2,
+
+                maximumFractionDigits:2
+
+            }
+        );
+
     },
 
-    dateIndoLong(date){
-        if(!date) return '-';
 
-        const bulan = [
-            'JANUARI','FEBRUARI','MARET','APRIL','MEI','JUNI',
-            'JULI','AGUSTUS','SEPTEMBER','OKTOBER','NOVEMBER','DESEMBER'
-        ];
+    dateIndo(date){
 
-        const d = new Date(date);
+        if(!date){
 
-        return `${String(d.getDate()).padStart(2,'0')} ${bulan[d.getMonth()]} ${d.getFullYear()}`;
-    },
+            return '-';
 
-    renderSummary(summary){
-
-        if(!summary){
-            return;
         }
 
-        $('#sumPO').text(
-            this.money(summary.TOTAL_PO || 0)
-        );
 
-        $('#sumOpen').text(
-            this.money(summary.TOTAL_OPEN || 0)
-        );
+        const value =
+            String(date)
+            .substring(0,10)
+            .split('-');
 
-        $('#sumReceived').text(
-            this.money(summary.TOTAL_RECEIVED || 0)
-        );
 
-        $('#sumPaid').text(
-            this.money(summary.TOTAL_PAID || 0)
-        );
+        if(value.length !== 3){
 
-        $('#sumWeight').text(
-            this.decimal(summary.TOTAL_BERAT || 0)
-        );
+            return date;
 
-        $('#sumAmount').text(
-            'Rp ' + this.money(summary.TOTAL_AMOUNT || 0)
+        }
+
+
+        const bulan = [
+
+            'JANUARI',
+
+            'FEBRUARI',
+
+            'MARET',
+
+            'APRIL',
+
+            'MEI',
+
+            'JUNI',
+
+            'JULI',
+
+            'AGUSTUS',
+
+            'SEPTEMBER',
+
+            'OKTOBER',
+
+            'NOVEMBER',
+
+            'DESEMBER'
+
+        ];
+
+
+        return (
+
+            value[2] +
+            ' ' +
+            bulan[
+                Number(value[1]) - 1
+            ] +
+            ' ' +
+            value[0]
+
         );
 
     },
+
+
+    escape(value){
+
+        if(
+            value === null ||
+            value === undefined
+        ){
+
+            return '-';
+
+        }
+
+
+        return String(value)
+
+            .replace(
+                /&/g,
+                '&amp;'
+            )
+
+            .replace(
+                /</g,
+                '&lt;'
+            )
+
+            .replace(
+                />/g,
+                '&gt;'
+            )
+
+            .replace(
+                /"/g,
+                '&quot;'
+            )
+
+            .replace(
+                /'/g,
+                '&#039;'
+            );
+
+    },
+
+
+    /* ==================================================
+       STATUS
+       ================================================== */
+
+    renderStatus(status){
+
+        const value =
+            String(
+                status || '-'
+            );
+
+        const upper =
+            value.toUpperCase();
+
+
+        let cls =
+            'status-default';
+
+
+        if(
+            upper === 'OPEN'
+        ){
+
+            cls =
+                'status-open';
+
+        }
+        else if(
+            upper === 'RECEIVED' ||
+            upper === 'CLOSED' ||
+            upper === 'DONE' ||
+            upper === 'COMPLETE'
+        ){
+
+            cls =
+                'status-success';
+
+        }
+        else if(
+            upper === 'CANCEL' ||
+            upper === 'CANCELLED'
+        ){
+
+            cls =
+                'status-danger';
+
+        }
+
+
+        return `
+
+            <span
+                class="po-status ${cls}"
+            >
+
+                ${this.escape(value)}
+
+            </span>
+
+        `;
+
+    },
+
+
+    /* ==================================================
+       PAYMENT STATUS
+       ================================================== */
+
+    renderPaymentStatus(status){
+
+        const value =
+            String(
+                status || '-'
+            );
+
+        const upper =
+            value.toUpperCase();
+
+
+        let cls =
+            'payment-default';
+
+
+        if(
+            upper === 'PAID'
+        ){
+
+            cls =
+                'payment-paid';
+
+        }
+        else if(
+            upper === 'UNPAID'
+        ){
+
+            cls =
+                'payment-unpaid';
+
+        }
+        else if(
+            upper.includes('PART')
+        ){
+
+            cls =
+                'payment-partial';
+
+        }
+
+
+        return `
+
+            <span
+                class="payment-status ${cls}"
+            >
+
+                ${this.escape(value)}
+
+            </span>
+
+        `;
+
+    },
+
+
+    /* ==================================================
+       RENDER
+       ================================================== */
 
     render(rows){
 
-        const wrap = $('#poReportWrapper').empty();
+        const wrap =
+            $('#poReportWrapper');
 
-        if(!rows || !rows.length){
+        wrap.empty();
+
+
+        if(
+            !rows ||
+            !rows.length
+        ){
 
             wrap.html(`
-                <div class="text-center py-5 text-muted">
-                    Data tidak ditemukan
+
+                <div class="po-report-card">
+
+                    <div class="po-empty">
+
+                        Data tidak ditemukan
+
+                    </div>
+
                 </div>
+
             `);
 
             return;
+
         }
 
-        const badge = (status)=>{
 
-            switch((status || '').toUpperCase()){
+        wrap.html(`
 
-                case 'PAID':
-                    return '<span class="badge bg-primary">PAID</span>';
+            <div class="po-report-card">
 
-                case 'PARTIAL':
-                    return '<span class="badge bg-info">PARTIAL</span>';
+                <div class="po-table-scroll">
 
-                case 'RECEIVED':
-                    return '<span class="badge bg-success">RECEIVED</span>';
+                    <table class="po-report-table">
 
-                default:
-                    return '<span class="badge bg-warning text-dark">OPEN</span>';
+                        <thead>
 
-            }
+                            <!-- ==================================
+                                GROUP HEADER
+                                ================================== -->
 
-        };
+                            <tr class="group-header">
 
-        let html = `
-        <div class="report-table-card">
-            <div class="table-responsive">
+                                <th colspan="9">
+                                    PO INFORMATION
+                                </th>
 
-                <table class="table table-bordered table-hover table-sm align-middle">
+                                <th colspan="5">
+                                    PO QUANTITY & VALUE
+                                </th>
 
-                    <thead class="table-light">
+                                <th colspan="6">
+                                    ACTUAL & RECEIVE
+                                </th>
 
-                        <tr>
+                                <th colspan="3">
+                                    CLAIM & PAYABLE
+                                </th>
 
-                            <th>PO</th>
-                            <th>Date</th>
-                            <th>Plant</th>
-                            <th>Supplier</th>
-                            <th>Material</th>
+                                <th colspan="3">
+                                    PAYMENT
+                                </th>
 
-                            <th class="text-end">Qty</th>
-                            <th class="text-end">Weight</th>
-                            <th class="text-end">Avg BW</th>
+                                <th colspan="1">
+                                    ADDITIONAL
+                                </th>
 
-                            <th class="text-end">Dead Qty</th>
-                            <th class="text-end">Dead BW</th>
+                            </tr>
 
-                            <th class="text-end">Actual</th>
-                            <th class="text-end">Shrink</th>
 
-                            <th class="text-end">Receive Qty</th>
-                            <th class="text-end">Receive BW</th>
+                            <!-- ==================================
+                                COLUMN HEADER
+                                ================================== -->
 
-                            <th class="text-end">Claim Qty</th>
-                            <th class="text-end">Claim BW</th>
+                            <tr class="column-header">
 
-                            <th class="text-end">Payable BW</th>
 
-                            <th class="text-end">Price</th>
-                            <th class="text-end">Total</th>
+                                <!-- PO INFORMATION -->
 
-                            <th>Truck</th>
-                            <th>Driver</th>
+                                <th>
+                                    PO
+                                </th>
 
-                            <th>Status</th>
+                                <th>
+                                    Tanggal
+                                </th>
 
-                        </tr>
+                                <th>
+                                    Plant
+                                </th>
 
-                    </thead>
+                                <th>
+                                    PO Type
+                                </th>
 
-                    <tbody>
-        `;
+                                <th>
+                                    Supplier
+                                </th>
 
-        rows.forEach(r=>{
+                                <th>
+                                    Material
+                                </th>
 
-            html += `
+                                <th>
+                                    Truck
+                                </th>
 
-                <tr>
+                                <th>
+                                    Driver
+                                </th>
 
-                    <td class="text-center po-number">#${r.PO}</td>
+                                <th>
+                                    Status
+                                </th>
 
-                    <td class="text-center">${this.dateIndoLong(r.PO_DATE)}</td>
 
-                    <td class="text-center">${r.PLANT_NAME}</td>
+                                <!-- QUANTITY & VALUE -->
 
-                    <td class="text-center">${r.SUPPLIER_NAME}</td>
+                                <th class="text-end">
+                                    Qty
+                                </th>
 
-                    <td class="material">${r.MATERIAL_NAME}</td>
+                                <th class="text-end">
+                                    Weight
+                                </th>
 
-                    <td class="text-end">${this.decimal(r.JUMLAH)}</td>
+                                <th class="text-end">
+                                    Avg BW
+                                </th>
 
-                    <td class="text-end">${this.decimal(r.BERAT)}</td>
+                                <th class="text-end">
+                                    Price
+                                </th>
 
-                    <td class="text-end">${this.decimal(r.AVG_BW)}</td>
+                                <th class="text-end">
+                                    Total
+                                </th>
 
-                    <td class="text-end">${this.decimal(r.MATI_QTY)}</td>
 
-                    <td class="text-end">${this.decimal(r.MATI_BW)}</td>
+                                <!-- ACTUAL & RECEIVE -->
 
-                    <td class="text-end">${this.decimal(r.ACTUAL_HASIL_TIMBANG)}</td>
+                                <th class="text-end">
+                                    Dead Qty
+                                </th>
 
-                    <td class="text-end">${this.decimal(r.SUSUT_BW)}</td>
+                                <th class="text-end">
+                                    Dead BW
+                                </th>
 
-                    <td class="text-end">${this.decimal(r.TOTAL_TERIMA_QTY)}</td>
+                                <th class="text-end">
+                                    Actual Weight
+                                </th>
 
-                    <td class="text-end">${this.decimal(r.TOTAL_TERIMA_BW)}</td>
+                                <th class="text-end">
+                                    Shrink
+                                </th>
 
-                    <td class="text-end">${this.decimal(r.CLAIM_QTY)}</td>
+                                <th class="text-end">
+                                    Receive Qty
+                                </th>
 
-                    <td class="text-end">${this.decimal(r.CLAIM_BW)}</td>
+                                <th class="text-end">
+                                    Receive BW
+                                </th>
 
-                    <td class="text-end">${this.decimal(r.TOTAL_BAYAR_BW)}</td>
 
-                    <td class="text-end text-money">
-                        Rp ${this.money(r.HARGA)}
-                    </td>
+                                <!-- CLAIM -->
 
-                    <td class="text-end text-money fw-bold">
-                        Rp ${this.money(r.TOTAL)}
-                    </td>
+                                <th class="text-end">
+                                    Claim Qty
+                                </th>
 
-                    <td class="text-center">${r.NO_TRUCK || '-'}</td>
+                                <th class="text-end">
+                                    Claim BW
+                                </th>
 
-                    <td class="text-center">${r.DRIVER || '-'}</td>
+                                <th class="text-end">
+                                    Payable BW
+                                </th>
 
-                    <td class="text-center">${badge(r.STATUS)}</td>
 
-                </tr>
+                                <!-- PAYMENT -->
 
-            `;
+                                <th class="text-end">
+                                    Paid Amount
+                                </th>
 
-        });
+                                <th class="text-end">
+                                    Remaining
+                                </th>
 
-        html += `
+                                <th>
+                                    Payment Status
+                                </th>
 
-                    </tbody>
 
-                </table>
+                                <!-- ADDITIONAL -->
+
+                                <th>
+                                    Remark
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+
+                            ${
+                                rows.map((row)=>{
+
+
+                                    /* ============================
+                                    STATUS
+                                    ============================ */
+
+                                    const status =
+                                        String(
+                                            row.STATUS || '-'
+                                        ).toUpperCase();
+
+
+                                    let statusClass =
+                                        'po-status-default';
+
+
+                                    if(
+                                        status === 'OPEN'
+                                    ){
+
+                                        statusClass =
+                                            'po-status-open';
+
+                                    }
+                                    else if(
+                                        status === 'RECEIVED' ||
+                                        status === 'CLOSED' ||
+                                        status === 'DONE' ||
+                                        status === 'COMPLETE'
+                                    ){
+
+                                        statusClass =
+                                            'po-status-received';
+
+                                    }
+                                    else if(
+                                        status === 'CANCEL' ||
+                                        status === 'CANCELLED'
+                                    ){
+
+                                        statusClass =
+                                            'po-status-cancel';
+
+                                    }
+
+
+                                    /* ============================
+                                    PAYMENT
+                                    ============================ */
+
+                                    const paymentStatus =
+                                        String(
+                                            row.PAYMENT_STATUS || '-'
+                                        ).toUpperCase();
+
+
+                                    let paymentClass =
+                                        'po-payment-default';
+
+
+                                    if(
+                                        paymentStatus === 'PAID'
+                                    ){
+
+                                        paymentClass =
+                                            'po-payment-paid';
+
+                                    }
+                                    else if(
+                                        paymentStatus === 'UNPAID'
+                                    ){
+
+                                        paymentClass =
+                                            'po-payment-unpaid';
+
+                                    }
+                                    else if(
+                                        paymentStatus.includes('PART')
+                                    ){
+
+                                        paymentClass =
+                                            'po-payment-partial';
+
+                                    }
+
+
+                                    return `
+
+                                        <tr>
+
+
+                                            <!-- =====================
+                                                PO INFORMATION
+                                                ===================== -->
+
+
+                                            <td>
+
+                                                <span
+                                                    class="po-number"
+                                                >
+
+                                                    ${this.escape(
+                                                        row.PO
+                                                    )}
+
+                                                </span>
+
+                                            </td>
+
+
+                                            <td>
+
+                                                ${this.dateIndo(
+                                                    row.PO_DATE
+                                                )}
+
+                                            </td>
+
+
+                                            <td>
+
+                                                ${this.escape(
+                                                    row.PLANT_NAME ||
+                                                    row.PLANT ||
+                                                    '-'
+                                                )}
+
+                                            </td>
+
+
+                                            <td>
+
+                                                ${this.escape(
+                                                    row.PO_NAME ||
+                                                    row.PO_TYPE ||
+                                                    '-'
+                                                )}
+
+                                            </td>
+
+
+                                            <td>
+
+                                                <div
+                                                    class="po-text"
+                                                    title="${this.escape(
+                                                        row.SUPPLIER_NAME ||
+                                                        row.SUPPLIER ||
+                                                        '-'
+                                                    )}"
+                                                >
+
+                                                    ${this.escape(
+                                                        row.SUPPLIER_NAME ||
+                                                        row.SUPPLIER ||
+                                                        '-'
+                                                    )}
+
+                                                </div>
+
+                                            </td>
+
+
+                                            <td>
+
+                                                <div
+                                                    class="po-text"
+                                                    title="${this.escape(
+                                                        row.MATERIAL_NAME ||
+                                                        row.MATERIAL ||
+                                                        '-'
+                                                    )}"
+                                                >
+
+                                                    ${this.escape(
+                                                        row.MATERIAL_NAME ||
+                                                        row.MATERIAL ||
+                                                        '-'
+                                                    )}
+
+                                                </div>
+
+                                            </td>
+
+
+                                            <td>
+
+                                                ${this.escape(
+                                                    row.NO_TRUCK ||
+                                                    '-'
+                                                )}
+
+                                            </td>
+
+
+                                            <td>
+
+                                                <div
+                                                    class="po-text"
+                                                    title="${this.escape(
+                                                        row.DRIVER ||
+                                                        '-'
+                                                    )}"
+                                                >
+
+                                                    ${this.escape(
+                                                        row.DRIVER ||
+                                                        '-'
+                                                    )}
+
+                                                </div>
+
+                                            </td>
+
+
+                                            <td>
+
+                                                <span
+                                                    class="
+                                                        po-status
+                                                        ${statusClass}
+                                                    "
+                                                >
+
+                                                    ${this.escape(
+                                                        status
+                                                    )}
+
+                                                </span>
+
+                                            </td>
+
+
+                                            <!-- =====================
+                                                QUANTITY & VALUE
+                                                ===================== -->
+
+
+                                            <td
+                                                class="text-end"
+                                            >
+
+                                                ${this.decimal(
+                                                    row.JUMLAH
+                                                )}
+
+                                            </td>
+
+
+                                            <td
+                                                class="text-end"
+                                            >
+
+                                                ${this.decimal(
+                                                    row.BERAT
+                                                )}
+
+                                            </td>
+
+
+                                            <td
+                                                class="text-end"
+                                            >
+
+                                                ${this.decimal(
+                                                    row.AVG_BW
+                                                )}
+
+                                            </td>
+
+
+                                            <td
+                                                class="text-end"
+                                            >
+
+                                                Rp
+                                                ${this.money(
+                                                    row.HARGA
+                                                )}
+
+                                            </td>
+
+
+                                            <td
+                                                class="
+                                                    text-end
+                                                    po-total
+                                                "
+                                            >
+
+                                                Rp
+                                                ${this.money(
+                                                    row.TOTAL
+                                                )}
+
+                                            </td>
+
+
+                                            <!-- =====================
+                                                ACTUAL & RECEIVE
+                                                ===================== -->
+
+
+                                            <td
+                                                class="text-end"
+                                            >
+
+                                                ${this.decimal(
+                                                    row.MATI_QTY
+                                                )}
+
+                                            </td>
+
+
+                                            <td
+                                                class="text-end"
+                                            >
+
+                                                ${this.decimal(
+                                                    row.MATI_BW
+                                                )}
+
+                                            </td>
+
+
+                                            <td
+                                                class="text-end"
+                                            >
+
+                                                ${this.decimal(
+                                                    row.ACTUAL_HASIL_TIMBANG
+                                                )}
+
+                                            </td>
+
+
+                                            <td
+                                                class="text-end"
+                                            >
+
+                                                ${this.decimal(
+                                                    row.SUSUT_BW
+                                                )}
+
+                                            </td>
+
+
+                                            <td
+                                                class="text-end"
+                                            >
+
+                                                ${this.decimal(
+                                                    row.TOTAL_TERIMA_QTY
+                                                )}
+
+                                            </td>
+
+
+                                            <td
+                                                class="text-end"
+                                            >
+
+                                                ${this.decimal(
+                                                    row.TOTAL_TERIMA_BW
+                                                )}
+
+                                            </td>
+
+
+                                            <!-- =====================
+                                                CLAIM
+                                                ===================== -->
+
+
+                                            <td
+                                                class="text-end"
+                                            >
+
+                                                ${this.decimal(
+                                                    row.CLAIM_QTY
+                                                )}
+
+                                            </td>
+
+
+                                            <td
+                                                class="text-end"
+                                            >
+
+                                                ${this.decimal(
+                                                    row.CLAIM_BW
+                                                )}
+
+                                            </td>
+
+
+                                            <td
+                                                class="
+                                                    text-end
+                                                    po-total
+                                                "
+                                            >
+
+                                                ${this.decimal(
+                                                    row.TOTAL_BAYAR_BW
+                                                )}
+
+                                            </td>
+
+
+                                            <!-- =====================
+                                                PAYMENT
+                                                ===================== -->
+
+
+                                            <td
+                                                class="text-end"
+                                            >
+
+                                                Rp
+                                                ${this.money(
+                                                    row.PAID_AMOUNT
+                                                )}
+
+                                            </td>
+
+
+                                            <td
+                                                class="text-end"
+                                            >
+
+                                                Rp
+                                                ${this.money(
+                                                    row.REMAINING
+                                                )}
+
+                                            </td>
+
+
+                                            <td>
+
+                                                <span
+                                                    class="
+                                                        po-payment-status
+                                                        ${paymentClass}
+                                                    "
+                                                >
+
+                                                    ${this.escape(
+                                                        paymentStatus
+                                                    )}
+
+                                                </span>
+
+                                            </td>
+
+
+                                            <!-- =====================
+                                                ADDITIONAL
+                                                ===================== -->
+
+
+                                            <td>
+
+                                                <div
+                                                    class="po-remark"
+                                                    title="${this.escape(
+                                                        row.REMARK || '-'
+                                                    )}"
+                                                >
+
+                                                    ${this.escape(
+                                                        row.REMARK || '-'
+                                                    )}
+
+                                                </div>
+
+                                            </td>
+
+
+                                        </tr>
+
+                                    `;
+
+                                }).join('')
+
+                            }
+
+
+                        </tbody>
+
+                    </table>
+
+                </div>
 
             </div>
-        </div>
 
-        `;
-
-        wrap.html(html);
+        `);
 
     },
+
+    /* ==================================================
+       LOAD
+       ================================================== */
 
     load(){
+
         this.showLoading();
 
+
         $.get(
+
             '<?= base_url("report-inventory/load_data"); ?>',
+
             this.query(),
+
             (resp)=>{
-                resp = typeof resp === 'string'
+
+                resp =
+                    typeof resp === 'string'
+
                     ? JSON.parse(resp)
+
                     : resp;
 
-                this.renderSummary(resp.summary || {});
-                this.render(resp.rows || []);
-                $('#pagination').html(resp.pagination || '');
-                $('#pageInfo').html(`
-                    Showing page ${resp.page} of ${resp.pages}
-                    (${this.money(resp.total)} PO)
-                `);
+
+                this.render(
+                    resp.rows || []
+                );
+
+
+                $('#pagination')
+                    .html(
+                        resp.pagination || ''
+                    );
+
+
+                $('#pageInfo')
+                    .html(`
+
+                        Showing page
+                        ${resp.page}
+                        of
+                        ${resp.pages}
+
+                        (${this.money(
+                            resp.total
+                        )} PO)
+
+                    `);
+
             }
+
         )
+
         .fail(()=>{
-            $('#poReportWrapper').html(`
-                <div class="alert alert-danger mb-0">
-                    Gagal memuat data
-                </div>
-            `);
+
+            $('#poReportBody')
+                .html(`
+
+                    <tr>
+
+                        <td
+                            colspan="27"
+                            class="text-center text-danger py-5"
+                        >
+
+                            Gagal memuat data
+
+                        </td>
+
+                    </tr>
+
+                `);
+
         })
+
         .always(()=>{
+
             this.hideLoading();
+
         });
+
     },
+
+
+    /* ==================================================
+       LOADING
+       ================================================== */
+
+    showLoading(){
+
+        $('#poLoading')
+            .removeClass('d-none');
+
+    },
+
+
+    hideLoading(){
+
+        $('#poLoading')
+            .addClass('d-none');
+
+    }
+
 };
 
+
 $(function(){
+
     POReport.init();
+
 });
+
 </script>

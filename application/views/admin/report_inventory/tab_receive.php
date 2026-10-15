@@ -1,351 +1,714 @@
 <?php $userPlant = $this->session->userdata('plant'); ?>
 
 <div class="receive-report-wrap">
+
     <!-- FILTER -->
     <div class="report-filter-card">
+
         <div class="row g-3 align-items-end">
 
             <div class="col-md-2">
-                <label class="form-label fw-semibold">Plant</label>
-                <select id="rc_filter_plant" class="form-control">
-                    <option value="">Pilih Plant</option>
+
+                <label class="form-label fw-semibold">
+                    Plant
+                </label>
+
+                <select
+                    id="rc_filter_plant"
+                    class="form-control"
+                >
+
+                    <option value="">
+                        Pilih Plant
+                    </option>
+
                     <?php foreach ($plants as $p): ?>
+
                         <?php if ($p->CODE != '*'): ?>
+
                             <option value="<?= $p->CODE ?>">
                                 <?= $p->CODE_NAME ?>
                             </option>
+
                         <?php endif; ?>
+
                     <?php endforeach; ?>
+
                 </select>
+
             </div>
 
+
             <div class="col-md-3">
-                <label class="form-label fw-semibold">Supplier</label>
-                <select id="rc_filter_supplier" class="form-control">
-                    <option value="">Pilih Supplier</option>
+
+                <label class="form-label fw-semibold">
+                    Supplier
+                </label>
+
+                <select
+                    id="rc_filter_supplier"
+                    class="form-control"
+                >
+
+                    <option value="">
+                        Pilih Supplier
+                    </option>
+
                     <?php foreach ($suppliers as $s): ?>
+
                         <option value="<?= $s->CUST ?>">
                             <?= $s->CUST ?> - <?= $s->FULL_NAME ?>
                         </option>
+
                     <?php endforeach; ?>
+
                 </select>
+
             </div>
 
+
             <div class="col-md-3">
-                <label class="form-label fw-semibold">Receive / PO</label>
+
+                <label class="form-label fw-semibold">
+                    Receive / PO
+                </label>
+
                 <input
                     type="text"
                     id="rc_filter_receive"
                     class="form-control"
                     placeholder="Cari Nomor Receive / PO..."
                 >
+
             </div>
 
-            <div class="col-md-2">
-                <label class="form-label fw-semibold">Tanggal Mulai</label>
-                <input type="date" id="rc_date_from" class="form-control">
-            </div>
 
             <div class="col-md-2">
-                <label class="form-label fw-semibold">Tanggal Selesai</label>
-                <input type="date" id="rc_date_to" class="form-control">
+
+                <label class="form-label fw-semibold">
+                    Tanggal Mulai
+                </label>
+
+                <input
+                    type="date"
+                    id="rc_date_from"
+                    class="form-control"
+                >
+
             </div>
+
+
+            <div class="col-md-2">
+
+                <label class="form-label fw-semibold">
+                    Tanggal Selesai
+                </label>
+
+                <input
+                    type="date"
+                    id="rc_date_to"
+                    class="form-control"
+                >
+
+            </div>
+
 
             <div class="col-md-10"></div>
-            
+
+
             <div class="col-md-2">
+
                 <div class="d-grid gap-2">
+
                     <div class="btn-group">
+
                         <button
                             class="btn btn-success dropdown-toggle"
                             data-bs-toggle="dropdown"
                         >
-                            <i class="fa fa-download me-1"></i> Export
+
+                            <i class="fa fa-download me-1"></i>
+                            Export
+
                         </button>
 
+
                         <ul class="dropdown-menu w-100">
+
                             <li>
-                                <a href="#" class="dropdown-item" id="rc_exportExcel">
+
+                                <a
+                                    href="#"
+                                    class="dropdown-item"
+                                    id="rc_exportExcel"
+                                >
+
                                     <i class="fa fa-file-excel text-success me-2"></i>
                                     Export Excel
+
                                 </a>
+
                             </li>
+
+
                             <li>
-                                <a href="#" class="dropdown-item" id="rc_exportPDF">
+
+                                <a
+                                    href="#"
+                                    class="dropdown-item"
+                                    id="rc_exportPDF"
+                                >
+
                                     <i class="fa fa-file-pdf text-danger me-2"></i>
                                     Export PDF
+
                                 </a>
+
                             </li>
+
                         </ul>
+
                     </div>
+
                 </div>
+
             </div>
 
         </div>
+
     </div>
+
 
     <!-- LOADING -->
-    <div id="rcLoading" class="report-loading d-none">
+
+    <div
+        id="rcLoading"
+        class="report-loading d-none"
+    >
+
         <div class="text-center">
+
             <div class="spinner-border text-primary"></div>
-            <div class="fw-semibold mt-3">Loading report...</div>
-            <small class="text-muted">Mohon tunggu sebentar</small>
+
+            <div class="fw-semibold mt-3">
+                Loading report...
+            </div>
+
+            <small class="text-muted">
+                Mohon tunggu sebentar
+            </small>
+
         </div>
+
     </div>
 
+
     <!-- CONTENT -->
+
     <div id="receiveReportWrapper"></div>
 
+
     <!-- PAGINATION -->
+
     <div class="d-flex justify-content-between align-items-center mt-4">
-        <div id="rc_pageInfo" class="text-muted small"></div>
+
+        <div
+            id="rc_pageInfo"
+            class="text-muted small"
+        ></div>
+
         <div id="rc_pagination"></div>
+
     </div>
 
 </div>
 
+
 <style>
-    .receive-report-wrap{
-        padding:4px;
-    }
+
+.receive-report-wrap{
+    padding:4px;
+}
+
+.report-filter-card{
+    background:#fff;
+    border:1px solid #edf2f7;
+    border-radius:18px;
+    padding:24px;
+    box-shadow:0 8px 25px rgba(15,23,42,.05);
+    margin-bottom:24px;
+}
+
+.report-loading{
+    min-height:280px;
+    background:#fff;
+    border-radius:18px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    border:1px solid #edf2f7;
+}
+
+.receive-table-wrap{
+    background:#fff;
+    border:1px solid #edf2f7;
+    border-radius:18px;
+    box-shadow:0 8px 25px rgba(15,23,42,.05);
+    overflow:hidden;
+}
+
+.receive-table-scroll{
+    overflow-x:auto;
+    max-width:100%;
+}
+
+.receive-table{
+    margin:0;
+    min-width:2800px;
+    font-size:13px;
+}
+
+.receive-table thead th{
+    background:#f8fafc;
+    border-color:#dfe5ec;
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.3px;
+    white-space:nowrap;
+    vertical-align:middle;
+    text-align:center;
+    position:sticky;
+    top:0;
+    z-index:5;
+}
+
+.receive-table thead .group-header{
+    background:#eaf1f8;
+    font-size:12px;
+    color:#1e293b;
+    z-index:6;
+}
+
+
+
+.receive-table .number{
+    text-align:right;
+}
+
+.receive-table .center{
+    text-align:center;
+}
+
+.receive-table .money{
+    text-align:right;
+}
+
+.receive-table .status-badge{
+    display:inline-block;
+    padding:4px 9px;
+    border-radius:50px;
+    font-size:10px;
+    font-weight:700;
+}
+
+.status-open{
+    background:#fff3cd;
+    color:#856404;
+}
+
+.status-received{
+    background:#d1fae5;
+    color:#065f46;
+}
+
+.extra-badge{
+    display:inline-block;
+    padding:3px 7px;
+    border-radius:50px;
+    background:#fff3cd;
+    color:#856404;
+    font-size:10px;
+    font-weight:700;
+}
+
+.sales-badge{
+    display:inline-block;
+    padding:3px 7px;
+    border-radius:50px;
+    background:#d1fae5;
+    color:#065f46;
+    font-size:10px;
+    font-weight:700;
+}
+
+.saving-badge{
+    display:inline-block;
+    padding:3px 7px;
+    border-radius:50px;
+    background:#dbeafe;
+    color:#1d4ed8;
+    font-size:10px;
+    font-weight:700;
+}
+
+.receive-table tfoot td{
+    background:#f8fafc;
+    font-weight:700;
+    border-color:#dfe5ec;
+    white-space:nowrap;
+}
+
+@media(max-width:768px){
 
     .report-filter-card{
-        background:#fff;
-        border:1px solid #edf2f7;
-        border-radius:18px;
-        padding:24px;
-        box-shadow:0 8px 25px rgba(15,23,42,.05);
-        margin-bottom:24px;
+        padding:18px;
     }
 
-    .report-loading{
-        min-height:280px;
-        background:#fff;
-        border-radius:18px;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        border:1px solid #edf2f7;
-    }
+}
 
-    .receive-card{
-        background:#fff;
-        border-radius:20px;
-        overflow:hidden;
-        margin-bottom:24px;
-        box-shadow:0 10px 30px rgba(15,23,42,.06);
-        border:1px solid #edf2f7;
-    }
+.receive-table tbody td{
 
-    .receive-head{
-        background:linear-gradient(135deg,#0f4c81,#2563eb);
-        color:#fff;
-        padding:22px 24px;
-    }
+    border-left:1px solid #edf2f7;
 
-    .receive-title{
-        font-size:22px;
-        font-weight:700;
-        letter-spacing:.5px;
-    }
+    border-right:1px solid #edf2f7;
 
-    .status-badge{
-        padding:7px 14px;
-        border-radius:50px;
-        font-size:12px;
-        font-weight:700;
-    }
+    border-top:0;
 
-    .status-open{
-        background:#fff3cd;
-        color:#856404;
-    }
+    border-bottom:1px solid #c5d0dc !important;
 
-    .status-received{
-        background:#d1fae5;
-        color:#065f46;
-    }
+    vertical-align:middle;
 
-    .meta-grid{
-        display:grid;
-        grid-template-columns:1fr 1fr;
-        gap:10px 40px;
-        margin-top:18px;
-        font-size:14px;
-    }
+    white-space:nowrap;
 
-    .meta-item{
-        display:flex;
-        gap:8px;
-    }
+}
 
-    .meta-label{
-        min-width:110px;
-        opacity:.85;
-        font-weight:600;
-    }
 
-    .meta-value{
-        flex:1;
-        font-weight:500;
-    }
+.receive-table tbody tr{
 
-    .receive-body{
-        padding:10px;
-    }
+    border-bottom:1px solid #c5d0dc !important;
 
-    .attach-badge{
-        display:inline-block;
-        padding:4px 10px;
-        border-radius:50px;
-        font-size:12px;
-        font-weight:700;
-        background:#e0f2fe;
-        color:#075985;
-    }
+}
 
-    .table-detail{
-        margin:0;
-        font-size:14px;
-    }
 
-    .table-detail thead th{
-        background:#f8fafc;
-        border-color:#e5e7eb;
-        font-size:12px;
-        text-transform:uppercase;
-        letter-spacing:.4px;
-    }
+.receive-table tbody tr:hover{
 
-    .table-detail td{
-        border-color:#edf2f7;
-        vertical-align:middle;
-    }
+    background:#f8fafc;
 
-    .subtotal-row{
-        background:#f8fafc;
-        font-weight:700;
-    }
+}
 
-    @media(max-width:768px){
-        .meta-grid{
-            grid-template-columns:1fr;
-            gap:8px;
-        }
+.receive-table{
 
-        .receive-title{
-            font-size:18px;
-        }
+    margin:0;
 
-        .receive-head,
-        .receive-body{
-            padding:18px;
-        }
-    }
+    min-width:2800px;
+
+    font-size:13px;
+
+    border-collapse:separate !important;
+
+    border-spacing:0;
+
+}
+
+
+.receive-table tbody td{
+
+    vertical-align:middle;
+
+    white-space:nowrap;
+
+    border-top:0 !important;
+
+    border-left:1px solid #e5e7eb !important;
+
+    border-right:1px solid #e5e7eb !important;
+
+    border-bottom:1px solid #cbd5e1 !important;
+
+}
+
+
+.receive-table tbody tr{
+
+    border-bottom:1px solid #cbd5e1 !important;
+
+}
+
+
+.receive-table tbody tr:hover td{
+
+    background:#f8fafc;
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| GARIS PEMISAH RECEIVE
+|--------------------------------------------------------------------------
+|
+| Row pertama dari Receive baru diberi garis lebih tegas.
+|
+*/
+
+.receive-table tbody tr.receive-group-start td{
+
+    border-top:2px solid #94a3b8 !important;
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| GARIS ROW BIASA
+|--------------------------------------------------------------------------
+*/
+
+.receive-table tbody tr.receive-group-row td{
+
+    border-bottom:1px solid #d5dee8 !important;
+
+}
+
 </style>
 
+
 <script>
+
 window.ReceiveReport = {
 
     loaded:false,
+
     page:1,
+
     limit:10,
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | INIT
+    |--------------------------------------------------------------------------
+    */
+
     init(){
+
         if(this.loaded) return;
+
         this.loaded = true;
 
         this.initSelect2();
+
         this.bind();
 
         setTimeout(()=>{
+
             this.setDefault();
+
             this.load();
+
         },100);
+
     },
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | SELECT2
+    |--------------------------------------------------------------------------
+    */
 
     initSelect2(){
+
         $('#rc_filter_plant').select2({
+
             width:'100%',
+
             placeholder:'Pilih Plant'
+
         });
+
 
         $('#rc_filter_supplier').select2({
+
             width:'100%',
+
             placeholder:'Pilih Supplier',
+
             allowClear:true
+
         });
+
     },
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | DEFAULT
+    |--------------------------------------------------------------------------
+    */
+
     setDefault(){
+
         const now = new Date();
 
         const yyyy = now.getFullYear();
-        const mm = String(now.getMonth()+1).padStart(2,'0');
-        const dd = String(now.getDate()).padStart(2,'0');
 
-        $('#rc_date_from').val(`${yyyy}-${mm}-01`);
-        $('#rc_date_to').val(`${yyyy}-${mm}-${dd}`);
+        const mm = String(
+            now.getMonth()+1
+        ).padStart(2,'0');
 
-        const firstPlant = $('#rc_filter_plant option')
+        const dd = String(
+            now.getDate()
+        ).padStart(2,'0');
+
+
+        $('#rc_date_from').val(
+            `${yyyy}-${mm}-01`
+        );
+
+
+        $('#rc_date_to').val(
+            `${yyyy}-${mm}-${dd}`
+        );
+
+
+        const firstPlant =
+            $('#rc_filter_plant option')
+
             .filter(function(){
+
                 return $(this).val() !== '';
+
             })
+
             .first()
+
             .val();
 
+
         if(firstPlant){
-            $('#rc_filter_plant').val(firstPlant).trigger('change');
+
+            $('#rc_filter_plant')
+                .val(firstPlant)
+                .trigger('change');
+
         }
+
     },
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | BIND
+    |--------------------------------------------------------------------------
+    */
+
     bind(){
+
         let timer;
 
-        $('#rc_btnFilter').on('click', ()=>{
-            this.page = 1;
-            this.load();
-        });
 
-        $('#rc_filter_receive').on('keyup', ()=>{
-            clearTimeout(timer);
-            timer = setTimeout(()=>{
+        $('#rc_btnFilter').on(
+            'click',
+            ()=>{
+
                 this.page = 1;
+
                 this.load();
-            },300);
-        });
+
+            }
+        );
+
+
+        $('#rc_filter_receive').on(
+            'keyup',
+            ()=>{
+
+                clearTimeout(timer);
+
+
+                timer = setTimeout(()=>{
+
+                    this.page = 1;
+
+                    this.load();
+
+                },300);
+
+            }
+        );
+
 
         $('#rc_filter_plant,#rc_filter_supplier,#rc_date_from,#rc_date_to')
-            .on('change', ()=>{
-                this.page = 1;
-                this.load();
-            });
 
-        $('#rc_exportExcel').on('click',(e)=>{
-            e.preventDefault();
-            window.open(
-                '<?= base_url("report-inventory/export_excel_receive"); ?>?'+$.param(this.query()),
-                '_blank'
+            .on(
+                'change',
+                ()=>{
+
+                    this.page = 1;
+
+                    this.load();
+
+                }
             );
-        });
 
-        $('#rc_exportPDF').on('click',(e)=>{
-            e.preventDefault();
-            window.open(
-                '<?= base_url("report-inventory/export_pdf_receive"); ?>?'+$.param(this.query()),
-                '_blank'
-            );
-        });
 
-        $(document).on(
+        $('#rc_exportExcel').on(
             'click',
-            '#rc_pagination a',
             (e)=>{
 
                 e.preventDefault();
 
-                const page = $(e.currentTarget)
-                    .data('page');
+
+                window.open(
+
+                    '<?= base_url("report-inventory/export_excel_receive"); ?>?'
+                    + $.param(this.query()),
+
+                    '_blank'
+
+                );
+
+            }
+        );
+
+
+        $('#rc_exportPDF').on(
+            'click',
+            (e)=>{
+
+                e.preventDefault();
+
+
+                window.open(
+
+                    '<?= base_url("report-inventory/export_pdf_receive"); ?>?'
+                    + $.param(this.query()),
+
+                    '_blank'
+
+                );
+
+            }
+        );
+
+
+        $(document).on(
+
+            'click',
+
+            '#rc_pagination a',
+
+            (e)=>{
+
+                e.preventDefault();
+
+
+                const page =
+                    $(e.currentTarget)
+                        .data('page');
+
 
                 if(page){
 
@@ -354,53 +717,137 @@ window.ReceiveReport = {
                 }
 
             }
+
         );
+
     },
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | QUERY
+    |--------------------------------------------------------------------------
+    */
 
     query(){
+
         return {
+
             page:this.page,
+
             limit:this.limit,
+
             plant:$('#rc_filter_plant').val(),
+
             supplier:$('#rc_filter_supplier').val(),
+
             receive:$('#rc_filter_receive').val(),
+
             date_from:$('#rc_date_from').val(),
+
             date_to:$('#rc_date_to').val()
+
         };
+
     },
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | LOADING
+    |--------------------------------------------------------------------------
+    */
 
     showLoading(){
-        $('#rcLoading').removeClass('d-none');
-        $('#receiveReportWrapper').hide();
+
+        $('#rcLoading')
+            .removeClass('d-none');
+
+        $('#receiveReportWrapper')
+            .hide();
+
     },
+
 
     hideLoading(){
-        $('#rcLoading').addClass('d-none');
-        $('#receiveReportWrapper').show();
+
+        $('#rcLoading')
+            .addClass('d-none');
+
+        $('#receiveReportWrapper')
+            .show();
+
     },
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | LOAD
+    |--------------------------------------------------------------------------
+    */
+
     load(page=null){
-        if(page) this.page = page;
+
+        if(page){
+
+            this.page = page;
+
+        }
+
 
         this.showLoading();
 
+
         $.get(
+
             '<?= base_url("report-inventory/load_receive"); ?>',
+
             this.query(),
+
             (resp)=>{
-                resp = typeof resp === 'string'
+
+                resp =
+                    typeof resp === 'string'
+
                     ? JSON.parse(resp)
+
                     : resp;
 
-                this.render(resp.rows || []);
-                $('#rc_pagination').html(resp.pagination || '');
-                $('#rc_pageInfo').html(`Total data : ${resp.total || 0}`);
+
+                this.render(
+                    resp.rows || []
+                );
+
+
+                $('#rc_pagination')
+                    .html(
+                        resp.pagination || ''
+                    );
+
+
+                $('#rc_pageInfo')
+                    .html(
+                        `Total data : ${resp.total || 0}`
+                    );
+
             }
+
         )
+
         .always(()=>{
+
             this.hideLoading();
+
         });
+
     },
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | RENDER
+    |--------------------------------------------------------------------------
+    */
 
     render(rows){
 
@@ -419,485 +866,867 @@ window.ReceiveReport = {
             return;
         }
 
+
         /*
         |--------------------------------------------------------------------------
-        | GROUPING HEADER
+        | GROUP ROW BY RECEIVE + PLANT
         |--------------------------------------------------------------------------
         */
 
         const grouped = {};
 
-        rows.forEach(r=>{
+        rows.forEach(r => {
 
-            const key = r.RECEIVE + '|' + r.PLANT;
+            const key =
+                (r.RECEIVE || '') +
+                '|' +
+                (r.PLANT || '');
 
             if(!grouped[key]){
 
-                grouped[key] = {
-
-                    RECEIVE : r.RECEIVE,
-
-                    PLANT : r.PLANT,
-
-                    PLANT_NAME : r.PLANT_NAME,
-
-                    RECEIVE_DATE : r.RECEIVE_DATE,
-
-                    PO : r.PO,
-
-                    NOTA : r.NOTA,
-
-                    NO_REF : r.NO_REF,
-
-                    SUPPLIER : r.SUPPLIER,
-
-                    SUPPLIER_NAME : r.SUPPLIER_NAME,
-
-                    PEMBAYARAN : r.PEMBAYARAN,
-
-                    PEMBAYARAN_NAME : r.PEMBAYARAN_NAME,
-
-                    JENIS_PAY : r.JENIS_PAY,
-
-                    SLIP_NO : r.SLIP_NO,
-
-                    REMARK : r.REMARK,
-
-                    ATTACH_FILE_NAME : r.ATTACH_FILE_NAME,
-
-                    STATUS_RECEIVE : r.STATUS_RECEIVE,
-
-                    DETAIL : []
-
-                };
+                grouped[key] = [];
 
             }
 
-            grouped[key].DETAIL.push(r);
+            grouped[key].push(r);
 
         });
 
+
         /*
         |--------------------------------------------------------------------------
-        | RENDER CARD
+        | TOTAL
         |--------------------------------------------------------------------------
         */
 
-        Object.values(grouped).forEach(rc=>{
+        let totalQty = 0;
+        let totalWeight = 0;
+        let totalShrinkQty = 0;
+        let totalShrinkWeight = 0;
+        let totalReceive = 0;
 
-            /*
-            |--------------------------------------------------------------------------
-            | STATUS
-            |--------------------------------------------------------------------------
-            */
 
-            let badge = `
-                <span class="status-badge status-received">
-                    RECEIVED
-                </span>
-            `;
+        /*
+        |--------------------------------------------------------------------------
+        | BUILD ROW
+        |--------------------------------------------------------------------------
+        */
 
-            if(
-                rc.STATUS_RECEIVE === 'OPEN'
-            ){
+        let html = '';
 
-                badge = `
-                    <span class="status-badge status-open">
-                        OPEN
-                    </span>
-                `;
-            }
 
-            /*
-            |--------------------------------------------------------------------------
-            | ATTACHMENT
-            |--------------------------------------------------------------------------
-            */
+        Object.keys(grouped).forEach(key => {
 
-            let attachment = rc.ATTACH_FILE_NAME
-                ? `<span class="attach-badge">Available</span>`
-                : '-';
+            const group = grouped[key];
 
-            /*
-            |--------------------------------------------------------------------------
-            | DETAIL
-            |--------------------------------------------------------------------------
-            */
+            const rowspan = group.length;
 
-            let detailRows = '';
 
-            let subQty = 0;
-            let subWeight = 0;
-            let subTotal = 0;
-
-            rc.DETAIL.forEach(r=>{
-
-                subQty += Number(r.JUMLAH || 0);
-
-                subWeight += Number(r.BERAT || 0);
-
-                subTotal += Number(r.TOTAL || 0);
+            group.forEach((r, index) => {
 
                 /*
                 |--------------------------------------------------------------------------
-                | EXTRA BADGE
+                | TOTAL
                 |--------------------------------------------------------------------------
                 */
 
-                let extraBadge = '';
+                totalQty += Number(
+                    r.JUMLAH || 0
+                );
 
-                if(
-                    Number(r.IS_EXTRA) === 1
-                ){
+                totalWeight += Number(
+                    r.BERAT || 0
+                );
 
-                    extraBadge = `
-                        <span class="badge bg-warning text-dark ms-1" style="font-size: 10px">
+                totalShrinkQty += Number(
+                    r.SUSUT_JUMLAH || 0
+                );
+
+                totalShrinkWeight += Number(
+                    r.SUSUT_BERAT || 0
+                );
+
+                totalReceive += Number(
+                    r.TOTAL || 0
+                );
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | RECEIVE STATUS
+                |--------------------------------------------------------------------------
+                */
+
+                let receiveStatus = `
+                    <span class="status-badge status-received">
+                        RECEIVED
+                    </span>
+                `;
+
+
+                if(r.STATUS_RECEIVE === 'OPEN'){
+
+                    receiveStatus = `
+                        <span class="status-badge status-open">
+                            OPEN
+                        </span>
+                    `;
+
+                }else if(r.STATUS_RECEIVE){
+
+                    receiveStatus = `
+                        <span class="status-badge status-received">
+                            ${r.STATUS_RECEIVE}
+                        </span>
+                    `;
+
+                }
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | EXTRA
+                |--------------------------------------------------------------------------
+                */
+
+                let extra = '-';
+
+
+                if(Number(r.IS_EXTRA) === 1){
+
+                    extra = `
+                        <span class="extra-badge">
                             EXTRA
                         </span>
                     `;
 
                 }
 
+
                 /*
                 |--------------------------------------------------------------------------
-                | SALES BADGE
+                | SALES
                 |--------------------------------------------------------------------------
                 */
 
-                let salesBadge = '';
+                const salesNo =
+                    r.SALES_REPORT_NO || '-';
 
-                if(
-                    Number(r.SALES_CREATED) === 1
-                ){
+                const salesStatus =
+                    r.SALES_STATUS || '-';
 
-                    salesBadge = `
-                        <div class="small text-success fw-semibold mt-1">
-                            SALES : ${r.SALES_NO || '-'}
-                        </div>
+
+                /*
+                |--------------------------------------------------------------------------
+                | SAVING
+                |--------------------------------------------------------------------------
+                */
+
+                const savingNo =
+                    r.SAVING_NO_LIST || '-';
+
+                const savingStatus =
+                    r.SAVING_STATUS || '-';
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | PO
+                |--------------------------------------------------------------------------
+                */
+
+                const poText =
+                    r.PO || 'DIRECT RECEIVE';
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | RECEIVE INFORMATION
+                |--------------------------------------------------------------------------
+                |
+                | Hanya row pertama yang memiliki cell RECEIVE.
+                | Row berikutnya otomatis mengikuti rowspan.
+                |
+                */
+
+                let receiveInformation = '';
+
+
+                if(index === 0){
+
+                    receiveInformation = `
+
+                        <td
+                            rowspan="${rowspan}"
+                            class="align-middle"
+                        >
+
+                            <strong>
+                                ${r.RECEIVE || '-'}
+                            </strong>
+
+                        </td>
+
+
+                        <td
+                            rowspan="${rowspan}"
+                            class="align-middle"
+                        >
+
+                            ${this.dateIndoLong(
+                                r.RECEIVE_DATE
+                            )}
+
+                        </td>
+
+
+                        <td
+                            rowspan="${rowspan}"
+                            class="align-middle"
+                        >
+
+                            ${r.PLANT_NAME || r.PLANT || '-'}
+
+                        </td>
+
+
+                        <td
+                            rowspan="${rowspan}"
+                            class="align-middle"
+                        >
+
+                            ${poText}
+
+                        </td>
+
+
+                        <td
+                            rowspan="${rowspan}"
+                            class="align-middle"
+                        >
+
+                            ${r.SUPPLIER || '-'}
+
+                            <div class="small text-muted">
+
+                                ${r.SUPPLIER_NAME || ''}
+
+                            </div>
+
+                        </td>
+
+
+                        <td
+                            rowspan="${rowspan}"
+                            class="align-middle"
+                        >
+
+                            ${r.NOTA || '-'}
+
+                        </td>
+
+
+                        <td
+                            rowspan="${rowspan}"
+                            class="align-middle"
+                        >
+
+                            ${r.NO_REF || '-'}
+
+                        </td>
+
+
+                        <td
+                            rowspan="${rowspan}"
+                            class="align-middle text-center"
+                        >
+
+                            ${receiveStatus}
+
+                        </td>
+
                     `;
 
                 }
 
+
                 /*
                 |--------------------------------------------------------------------------
-                | PO TYPE
+                | ROW
                 |--------------------------------------------------------------------------
                 */
 
-                let poType = r.PO_TYPE_NAME || '-';
+                html += `
 
-                detailRows += `
-                    <tr>
+                    <tr class="${
+                            index === 0
+                                ? 'receive-group-start'
+                                : 'receive-group-row'
+                        }">
+
+                        ${receiveInformation}
+
+
+                        <!-- RECEIVE DETAIL -->
 
                         <td>
-                            ${r.CUSTOMER_NAME || '-'}
-                            ${salesBadge}
-                        </td>
 
-                        <td>
-                            ${r.MATERIAL_NAME || '-'}
-                            ${extraBadge}
+                            ${r.CUSTOMER || '-'}
 
-                            <div class="small text-muted mt-1">
-                                TYPE : ${poType}
+                            <div class="small text-muted">
+
+                                ${r.CUSTOMER_NAME || ''}
+
                             </div>
+
                         </td>
 
-                        <td class="text-end">
-                            ${this.decimal(r.JUMLAH)}
-                        </td>
-
-                        <td class="text-end">
-                            ${this.decimal(r.BERAT)}
-                        </td>
-
-                        <td class="text-end">
-                            ${this.decimal(r.SUSUT_JUMLAH)}
-                        </td>
-
-                        <td class="text-end">
-                            ${this.decimal(r.SUSUT_BERAT)}
-                        </td>
-
-                        <td class="text-end">
-                            ${this.money(r.HARGA)}
-                        </td>
-
-                        <td class="text-end fw-semibold">
-                            ${this.money(r.TOTAL)}
-                        </td>
 
                         <td>
-                            ${r.KETERANGAN || '-'}
+
+                            ${r.MATERIAL || '-'}
+
+                            <div class="small text-muted">
+
+                                ${r.MATERIAL_NAME || ''}
+
+                            </div>
+
                         </td>
 
-                        <td class="text-center">
-                            ${r.STATUS || '-'}
+
+                        <td>
+
+                            ${r.PO_TYPE_NAME || r.PO_TYPE || '-'}
+
+                        </td>
+
+
+                        <td class="number">
+
+                            ${this.decimal(
+                                r.JUMLAH
+                            )}
+
+                        </td>
+
+
+                        <td class="number">
+
+                            ${this.decimal(
+                                r.BERAT
+                            )}
+
+                        </td>
+
+
+                        <td class="number">
+
+                            ${this.decimal(
+                                r.AVG_BW
+                            )}
+
+                        </td>
+
+
+                        <td class="number">
+
+                            ${this.decimal(
+                                r.SUSUT_JUMLAH
+                            )}
+
+                        </td>
+
+
+                        <td class="number">
+
+                            ${this.decimal(
+                                r.SUSUT_BERAT
+                            )}
+
+                        </td>
+
+
+                        <td class="money">
+
+                            ${this.money(
+                                r.HARGA
+                            )}
+
+                        </td>
+
+
+                        <td class="money">
+
+                            ${this.money(
+                                r.DISCOUNT
+                            )}
+
+                        </td>
+
+
+                        <td class="money fw-semibold">
+
+                            ${this.money(
+                                r.TOTAL
+                            )}
+
+                        </td>
+
+
+                        <td class="center">
+
+                            ${extra}
+
+                        </td>
+
+
+                        <!-- SALES -->
+
+                        <td>
+
+                            ${salesNo}
+
+                        </td>
+
+
+                        <td>
+
+                            ${
+                                r.SALES_REPORT_DATE
+
+                                ? this.dateIndoLong(
+                                    r.SALES_REPORT_DATE
+                                )
+
+                                : '-'
+                            }
+
+                        </td>
+
+
+                        <td class="money">
+
+                            ${this.money(
+                                r.SALES_AMOUNT
+                            )}
+
+                        </td>
+
+
+                        <td class="money">
+
+                            ${this.money(
+                                r.SALES_MODAL
+                            )}
+
+                        </td>
+
+
+                        <td class="money">
+
+                            ${this.money(
+                                r.SALES_BIAYA
+                            )}
+
+                        </td>
+
+
+                        <td class="money">
+
+                            ${this.money(
+                                r.SALES_DP
+                            )}
+
+                        </td>
+
+
+                        <td class="money">
+
+                            ${this.money(
+                                r.SALES_DISCOUNT
+                            )}
+
+                        </td>
+
+
+                        <td class="money">
+
+                            ${this.money(
+                                r.SALES_ROUNDING
+                            )}
+
+                        </td>
+
+
+                        <td class="money">
+
+                            ${this.money(
+                                r.SALES_REMAIN
+                            )}
+
+                        </td>
+
+
+                        <td>
+
+                            ${salesStatus}
+
+                        </td>
+
+
+                        <!-- SAVING -->
+
+                        <td
+                            class="${index === 0 ? '' : ''}"
+                        >
+
+                            ${savingNo}
+
+                        </td>
+
+
+                        <td class="money">
+
+                            ${this.money(
+                                r.SAVING_AMOUNT
+                            )}
+
+                        </td>
+
+
+                        <td>
+
+                            ${r.SAVING_BASIS || '-'}
+
+                        </td>
+
+
+                        <td class="number">
+
+                            ${this.decimal(
+                                r.SAVING_RATE
+                            )}
+
+                        </td>
+
+
+                        <td class="number">
+
+                            ${this.decimal(
+                                r.SAVING_QTY
+                            )}
+
+                        </td>
+
+
+                        <td class="number">
+
+                            ${this.decimal(
+                                r.SAVING_WEIGHT
+                            )}
+
+                        </td>
+
+
+                        <td class="money">
+
+                            ${this.money(
+                                r.SAVING_REMAIN
+                            )}
+
+                        </td>
+
+
+                        <td>
+
+                            ${savingStatus}
+
                         </td>
 
                     </tr>
+
                 `;
+
             });
 
-            /*
-            |--------------------------------------------------------------------------
-            | PO TEXT
-            |--------------------------------------------------------------------------
-            */
+        });
 
-            let poText = rc.PO;
 
-            if(
-                !poText ||
-                poText === ''
-            ){
+        /*
+        |--------------------------------------------------------------------------
+        | TABLE
+        |--------------------------------------------------------------------------
+        */
 
-                poText = 'DIRECT RECEIVE';
+        wrap.html(`
 
-            }
+            <div class="receive-table-wrap">
 
-            /*
-            |--------------------------------------------------------------------------
-            | PAYMENT
-            |--------------------------------------------------------------------------
-            */
+                <div class="receive-table-scroll">
 
-            let paymentText =
-                rc.PEMBAYARAN_NAME ||
-                rc.PEMBAYARAN ||
-                '-';
+                    <table
+                        class="table table-bordered table-hover receive-table"
+                    >
 
-            /*
-            |--------------------------------------------------------------------------
-            | RENDER
-            |--------------------------------------------------------------------------
-            */
+                        <thead>
 
-            wrap.append(`
+                            <tr>
 
-                <div class="receive-card">
+                                <th
+                                    colspan="8"
+                                    class="group-header"
+                                >
+                                    RECEIVE INFORMATION
+                                </th>
 
-                    <div class="receive-head">
+                                <th
+                                    colspan="12"
+                                    class="group-header"
+                                >
+                                    RECEIVE DETAIL
+                                </th>
 
-                        <div class="d-flex justify-content-between align-items-center">
+                                <th
+                                    colspan="10"
+                                    class="group-header"
+                                >
+                                    SALES
+                                </th>
 
-                            <div class="receive-title">
-                                #${rc.RECEIVE}
-                            </div>
+                                <th
+                                    colspan="8"
+                                    class="group-header"
+                                >
+                                    SAVING
+                                </th>
 
-                            ${badge}
+                            </tr>
 
-                        </div>
 
-                        <div class="meta-grid">
+                            <tr>
 
-                            <div class="meta-item">
-                                <span class="meta-label">PLANT</span>
-                                <span class="meta-value">
-                                    : ${rc.PLANT_NAME}
-                                </span>
-                            </div>
+                                <!-- RECEIVE INFORMATION -->
 
-                            <div class="meta-item">
-                                <span class="meta-label">SUPPLIER</span>
-                                <span class="meta-value">
-                                    : ${rc.SUPPLIER} - ${rc.SUPPLIER_NAME}
-                                </span>
-                            </div>
+                                <th>RECEIVE</th>
+                                <th>TANGGAL</th>
+                                <th>PLANT</th>
+                                <th>PO</th>
+                                <th>SUPPLIER</th>
+                                <th>NOTA</th>
+                                <th>REF NO</th>
+                                <th>STATUS RECEIVE</th>
 
-                            <div class="meta-item">
-                                <span class="meta-label">Nomor PO</span>
-                                <span class="meta-value">
-                                    : ${poText}
-                                </span>
-                            </div>
 
-                            <div class="meta-item">
-                                <span class="meta-label">Tanggal Receive</span>
-                                <span class="meta-value">
-                                    : ${this.dateIndoLong(rc.RECEIVE_DATE)}
-                                </span>
-                            </div>
+                                <!-- RECEIVE DETAIL -->
 
-                            <div class="meta-item">
-                                <span class="meta-label">NOTA</span>
-                                <span class="meta-value">
-                                    : ${rc.NOTA || '-'}
-                                </span>
-                            </div>
+                                <th>CUSTOMER</th>
+                                <th>MATERIAL</th>
+                                <th>PO TYPE</th>
+                                <th>QTY</th>
+                                <th>WEIGHT</th>
+                                <th>AVG BW</th>
+                                <th>SHRINK QTY</th>
+                                <th>SHRINK WEIGHT</th>
+                                <th>PRICE</th>
+                                <th>DISCOUNT</th>
+                                <th>TOTAL</th>
+                                <th>EXTRA</th>
 
-                            <div class="meta-item">
-                                <span class="meta-label">REF NO</span>
-                                <span class="meta-value">
-                                    : ${rc.NO_REF || '-'}
-                                </span>
-                            </div>
 
-                            <div class="meta-item">
-                                <span class="meta-label">PEMBAYARAN</span>
-                                <span class="meta-value">
-                                    : ${paymentText}
-                                </span>
-                            </div>
+                                <!-- SALES -->
 
-                            <div class="meta-item">
-                                <span class="meta-label">JENIS PEMBAYARAN</span>
-                                <span class="meta-value">
-                                    : ${rc.JENIS_PAY || '-'}
-                                </span>
-                            </div>
+                                <th>SALES NO</th>
+                                <th>SALES DATE</th>
+                                <th>AMOUNT</th>
+                                <th>MODAL</th>
+                                <th>BIAYA</th>
+                                <th>DP</th>
+                                <th>DISCOUNT</th>
+                                <th>ROUNDING</th>
+                                <th>REMAINING</th>
+                                <th>STATUS</th>
 
-                            <div class="meta-item">
-                                <span class="meta-label">SLIP NO</span>
-                                <span class="meta-value">
-                                    : ${rc.SLIP_NO || '-'}
-                                </span>
-                            </div>
 
-                            <div class="meta-item">
-                                <span class="meta-label">LAMPIRAN</span>
-                                <span class="meta-value">
-                                    : ${attachment}
-                                </span>
-                            </div>
+                                <!-- SAVING -->
 
-                            <div
-                                class="meta-item"
-                                style="grid-column:1 / -1"
-                            >
-                                <span class="meta-label">KETERANGAN</span>
+                                <th>SAVING NO</th>
+                                <th>AMOUNT</th>
+                                <th>BASIS</th>
+                                <th>RATE</th>
+                                <th>TOTAL QTY</th>
+                                <th>TOTAL WEIGHT</th>
+                                <th>REMAINING</th>
+                                <th>STATUS</th>
 
-                                <span class="meta-value">
-                                    : ${rc.REMARK || '-'}
-                                </span>
-                            </div>
+                            </tr>
 
-                        </div>
+                        </thead>
 
-                    </div>
 
-                    <div class="receive-body">
+                        <tbody>
 
-                        <div class="table-responsive">
+                            ${html}
 
-                            <table class="table table-bordered table-hover table-detail">
+                        </tbody>
 
-                                <thead>
 
-                                    <tr>
+                        <tfoot>
 
-                                        <th>CUSTOMER</th>
+                            <tr>
 
-                                        <th>MATERIAL</th>
+                                <td
+                                    colspan="11"
+                                    class="text-end"
+                                >
+                                    TOTAL
+                                </td>
 
-                                        <th class="text-end">
-                                            JUMLAH
-                                        </th>
 
-                                        <th class="text-end">
-                                            BERAT
-                                        </th>
+                                <td class="number">
 
-                                        <th class="text-end">
-                                            KUANTITAS (SUSUT)
-                                        </th>
+                                    ${this.decimal(
+                                        totalQty
+                                    )}
 
-                                        <th class="text-end">
-                                            BERAT (SUSUT)
-                                        </th>
+                                </td>
 
-                                        <th class="text-end">
-                                            HARGA
-                                        </th>
 
-                                        <th class="text-end">
-                                            TOTAL
-                                        </th>
+                                <td class="number">
 
-                                        <th>
-                                            KETERANGAN
-                                        </th>
+                                    ${this.decimal(
+                                        totalWeight
+                                    )}
 
-                                        <th>
-                                            STATUS
-                                        </th>
+                                </td>
 
-                                    </tr>
 
-                                </thead>
+                                <td></td>
 
-                                <tbody>
 
-                                    ${detailRows}
+                                <td class="number">
 
-                                    <tr class="subtotal-row">
+                                    ${this.decimal(
+                                        totalShrinkQty
+                                    )}
 
-                                        <td colspan="2">
-                                            SUBTOTAL
-                                        </td>
+                                </td>
 
-                                        <td class="text-end">
-                                            ${this.decimal(subQty)}
-                                        </td>
 
-                                        <td class="text-end">
-                                            ${this.decimal(subWeight)}
-                                        </td>
+                                <td class="number">
 
-                                        <td></td>
+                                    ${this.decimal(
+                                        totalShrinkWeight
+                                    )}
 
-                                        <td></td>
+                                </td>
 
-                                        <td></td>
 
-                                        <td class="text-end">
-                                            ${this.money(subTotal)}
-                                        </td>
+                                <td></td>
 
-                                        <td></td>
+                                <td></td>
 
-                                        <td></td>
 
-                                    </tr>
+                                <td class="money">
 
-                                </tbody>
+                                    ${this.money(
+                                        totalReceive
+                                    )}
 
-                            </table>
+                                </td>
 
-                        </div>
 
-                    </div>
+                                <td colspan="18"></td>
+
+                            </tr>
+
+                        </tfoot>
+
+                    </table>
 
                 </div>
 
-            `);
+            </div>
 
-        });
+        `);
 
     },
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | DATE
+    |--------------------------------------------------------------------------
+    */
+
     dateIndoLong(date){
+
         if(!date) return '-';
 
+
         const bulan = [
-            'Januari','Februari','Maret','April','Mei','Juni',
-            'Juli','Agustus','September','Oktober','November','Desember'
+
+            'Januari',
+            'Februari',
+            'Maret',
+            'April',
+            'Mei',
+            'Juni',
+            'Juli',
+            'Agustus',
+            'September',
+            'Oktober',
+            'November',
+            'Desember'
+
         ];
+
 
         const d = new Date(date);
 
+
         return `${d.getDate()} ${bulan[d.getMonth()]} ${d.getFullYear()}`;
+
     },
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | MONEY
+    |--------------------------------------------------------------------------
+    */
 
     money(v){
-        return Number(v || 0).toLocaleString('id-ID');
+
+        return Number(
+            v || 0
+        ).toLocaleString(
+            'id-ID'
+        );
+
     },
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | DECIMAL
+    |--------------------------------------------------------------------------
+    */
+
     decimal(v){
-        return Number(v || 0).toLocaleString('id-ID',{
-            minimumFractionDigits:2,
-            maximumFractionDigits:2
-        });
+
+        return Number(
+            v || 0
+        ).toLocaleString(
+            'id-ID',
+            {
+                minimumFractionDigits:2,
+                maximumFractionDigits:2
+            }
+        );
+
     }
+
 };
+
 </script>

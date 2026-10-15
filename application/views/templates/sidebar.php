@@ -510,12 +510,12 @@
                           <span class="hide-menu">Cash In Entry</span>
                       </a>
                   </li>
-                  <li class="sidebar-item child-drop">
+                  <!-- <li class="sidebar-item child-drop">
                         <a href="<?= base_url('credit-note'); ?>" class="sidebar-link">
                             <i class="ti ti-dots"></i>
                             <span class="hide-menu">Credit Note</span>
                         </a>
-                  </li>
+                  </li> -->
                   <li class="sidebar-item child-drop">
                         <a href="<?= base_url('saving'); ?>" class="sidebar-link">
                             <i class="ti ti-dots"></i>

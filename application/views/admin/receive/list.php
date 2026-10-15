@@ -1122,6 +1122,258 @@
             min-width:1600px;
         }
     }
+
+    /* =========================================================
+    RECEIVE DETAIL MODAL
+    ========================================================= */
+
+    #modalDetailReceive .modal-dialog {
+        max-width: 1400px;
+    }
+
+    #modalDetailReceive .modal-content {
+        border: 0;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, .15);
+    }
+
+    /* ---------- Header ---------- */
+
+    #modalDetailReceive .modal-header {
+        background: #f8f9fa;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 16px 22px;
+    }
+
+    #modalDetailReceive .modal-title {
+        font-size: 17px;
+        letter-spacing: .3px;
+        color: #212529;
+    }
+
+    #modalDetailReceive .modal-header .close {
+        font-size: 24px;
+        opacity: .6;
+        outline: none;
+    }
+
+    /* ---------- Body ---------- */
+
+    #modalDetailReceive .modal-body {
+        background: #f4f6f8;
+        padding: 20px;
+    }
+
+    /* ---------- Section Card ---------- */
+
+    #modalDetailReceive .detail-section {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        margin-bottom: 16px;
+        overflow: hidden;
+    }
+
+    #modalDetailReceive .detail-section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 44px;
+        padding: 11px 16px;
+        background: #fafafa;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    #modalDetailReceive .detail-section-title {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: .7px;
+        color: #343a40;
+    }
+
+    #modalDetailReceive .detail-section-body {
+        padding: 16px;
+    }
+
+    /* ---------- Information Fields ---------- */
+
+    #modalDetailReceive .detail-field {
+        margin-bottom: 14px;
+    }
+
+    #modalDetailReceive .detail-field:last-child {
+        margin-bottom: 0;
+    }
+
+    #modalDetailReceive .detail-label {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        color: #8a9199;
+    }
+
+    #modalDetailReceive .detail-value {
+        min-height: 34px;
+        padding: 7px 10px;
+        border: 1px solid #e2e5e8;
+        border-radius: 6px;
+        background: #f8f9fa;
+        color: #343a40;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 18px;
+        word-break: break-word;
+    }
+
+    /* ---------- Status ---------- */
+
+    #modalDetailReceive #detail_status {
+        display: inline-flex;
+        align-items: center;
+        min-height: 26px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        background: #e8f5e9;
+        color: #198754;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    /* ---------- PO Table ---------- */
+
+    #modalDetailReceive .detail-table-wrap {
+        overflow-x: auto;
+    }
+
+    #modalDetailReceive .detail-table {
+        width: 100%;
+        margin: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    #modalDetailReceive .detail-table thead th {
+        padding: 9px 10px;
+        background: #f8f9fa;
+        border-top: 0;
+        border-bottom: 1px solid #dee2e6;
+        color: #6c757d;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .3px;
+        white-space: nowrap;
+    }
+
+    #modalDetailReceive .detail-table tbody td {
+        padding: 9px 10px;
+        border-top: 0;
+        border-bottom: 1px solid #edf0f2;
+        color: #343a40;
+        font-size: 12px;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    #modalDetailReceive .detail-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    #modalDetailReceive .detail-table tbody tr:hover {
+        background: #fafafa;
+    }
+
+    /* ---------- Actual Receive ---------- */
+
+    #modalDetailReceive .actual-card {
+        height: 100%;
+        padding: 16px;
+        border: 1px solid #e1e5e9;
+        border-radius: 9px;
+        background: #fff;
+    }
+
+    #modalDetailReceive .actual-label {
+        margin-bottom: 6px;
+        color: #8a9199;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .6px;
+    }
+
+    #modalDetailReceive .actual-value {
+        color: #212529;
+        font-size: 21px;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    #modalDetailReceive .actual-unit {
+        margin-left: 3px;
+        color: #8a9199;
+        font-size: 11px;
+        font-weight: 500;
+    }
+
+    /* ---------- Highlight Actual Receive ---------- */
+
+    #modalDetailReceive .actual-section {
+        border: 1px solid #dce7f5;
+    }
+
+    #modalDetailReceive .actual-section .detail-section-header {
+        background: #f5f8fc;
+    }
+
+    /* ---------- Empty State ---------- */
+
+    #modalDetailReceive .detail-empty {
+        padding: 24px !important;
+        color: #9aa1a8 !important;
+        text-align: center;
+        font-size: 12px !important;
+    }
+
+    /* ---------- Footer ---------- */
+
+    #modalDetailReceive .modal-footer {
+        padding: 12px 20px;
+        background: #fff;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    #modalDetailReceive .modal-footer .btn {
+        min-width: 90px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    /* ---------- Mobile ---------- */
+
+    @media (max-width: 768px) {
+
+        #modalDetailReceive .modal-body {
+            padding: 12px;
+        }
+
+        #modalDetailReceive .detail-section-body {
+            padding: 12px;
+        }
+
+        #modalDetailReceive .detail-value {
+            font-size: 12px;
+        }
+
+        #modalDetailReceive .actual-value {
+            font-size: 18px;
+        }
+    }
 </style>
 
 <div class="modal fade"
@@ -1896,6 +2148,852 @@
 
 </div>
 
+<!-- =========================================================
+     MODAL DETAIL RECEIVE
+========================================================= -->
+
+<div class="modal fade"
+     id="modalDetailReceive"
+     tabindex="-1"
+     role="dialog"
+     aria-labelledby="modalDetailReceiveLabel"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-xl"
+         role="document"
+         style="max-width: 1400px;">
+
+        <div class="modal-content">
+
+            <!-- =================================================
+                 HEADER
+            ================================================== -->
+
+            <div class="modal-header">
+
+                <div>
+                    <h5 class="modal-title font-weight-bold mb-1"
+                        id="modalDetailReceiveLabel">
+                        DETAIL RECEIVE
+                    </h5>
+
+                    <div class="small text-muted">
+                        Receive transaction information
+                    </div>
+                </div>
+
+                <button type="button"
+                        class="close"
+                        data-dismiss="modal"
+                        aria-label="Close">
+
+                    <span aria-hidden="true">
+                        &times;
+                    </span>
+
+                </button>
+
+            </div>
+
+
+            <!-- =================================================
+                 BODY
+            ================================================== -->
+
+            <div class="modal-body">
+
+
+                <!-- =================================================
+                     RECEIVE INFORMATION
+                ================================================== -->
+
+                <div class="detail-section">
+
+                    <div class="detail-section-header">
+
+                        <div class="detail-section-title">
+                            RECEIVE INFORMATION
+                        </div>
+
+                    </div>
+
+                    <div class="detail-section-body">
+
+                        <div class="row">
+
+                            <!-- RECEIVE -->
+
+                            <div class="col-md-3">
+                                <div class="detail-field">
+
+                                    <span class="detail-label">
+                                        Receive
+                                    </span>
+
+                                    <div class="detail-value"
+                                         id="detail_receive">
+                                        -
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                            <!-- SLIP -->
+
+                            <div class="col-md-3">
+                                <div class="detail-field">
+
+                                    <span class="detail-label">
+                                        Slip No
+                                    </span>
+
+                                    <div class="detail-value"
+                                         id="detail_slip_no">
+                                        -
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                            <!-- DATE -->
+
+                            <div class="col-md-3">
+                                <div class="detail-field">
+
+                                    <span class="detail-label">
+                                        Receive Date
+                                    </span>
+
+                                    <div class="detail-value"
+                                         id="detail_receive_date">
+                                        -
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                            <!-- STATUS -->
+
+                            <div class="col-md-3">
+                                <div class="detail-field">
+
+                                    <span class="detail-label">
+                                        Status
+                                    </span>
+
+                                    <div class="detail-value"
+                                         style="background: transparent;
+                                                border: 0;
+                                                padding-left: 0;"
+                                         id="detail_status">
+                                        -
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                            <!-- PLANT -->
+
+                            <div class="col-md-3">
+                                <div class="detail-field">
+
+                                    <span class="detail-label">
+                                        Plant
+                                    </span>
+
+                                    <div class="detail-value"
+                                         id="detail_plant">
+                                        -
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                            <!-- SUPPLIER -->
+
+                            <div class="col-md-3">
+                                <div class="detail-field">
+
+                                    <span class="detail-label">
+                                        Supplier
+                                    </span>
+
+                                    <div class="detail-value"
+                                         id="detail_supplier">
+                                        -
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                            <!-- PO -->
+
+                            <div class="col-md-3">
+                                <div class="detail-field">
+
+                                    <span class="detail-label">
+                                        PO
+                                    </span>
+
+                                    <div class="detail-value"
+                                         id="detail_po">
+                                        -
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                            <!-- MATERIAL -->
+
+                            <div class="col-md-3">
+                                <div class="detail-field">
+
+                                    <span class="detail-label">
+                                        Material
+                                    </span>
+
+                                    <div class="detail-value"
+                                         id="detail_material">
+                                        -
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                            <!-- NOTA -->
+
+                            <div class="col-md-3">
+                                <div class="detail-field">
+
+                                    <span class="detail-label">
+                                        Nota
+                                    </span>
+
+                                    <div class="detail-value"
+                                         id="detail_nota">
+                                        -
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                            <!-- REFERENCE -->
+
+                            <div class="col-md-3">
+                                <div class="detail-field">
+
+                                    <span class="detail-label">
+                                        No. Reference
+                                    </span>
+
+                                    <div class="detail-value"
+                                         id="detail_no_ref">
+                                        -
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                            <!-- REMARK -->
+
+                            <div class="col-md-6">
+                                <div class="detail-field">
+
+                                    <span class="detail-label">
+                                        Remark
+                                    </span>
+
+                                    <div class="detail-value"
+                                         id="detail_remark">
+                                        -
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- =================================================
+                     PO INFORMATION
+                ================================================== -->
+
+                <div class="detail-section">
+
+                    <div class="detail-section-header">
+
+                        <div class="detail-section-title">
+                            PO INFORMATION
+                        </div>
+
+                    </div>
+
+                    <div class="detail-section-body p-0">
+
+                        <div class="detail-table-wrap">
+
+                            <table class="detail-table">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th class="text-right">
+                                            Qty PO
+                                        </th>
+
+                                        <th class="text-right">
+                                            BW PO
+                                        </th>
+
+                                        <th class="text-right">
+                                            Avg BW
+                                        </th>
+
+                                        <th class="text-right">
+                                            Mati Qty
+                                        </th>
+
+                                        <th class="text-right">
+                                            Mati BW
+                                        </th>
+
+                                        <th class="text-right">
+                                            Susut BW
+                                        </th>
+
+                                        <th class="text-right">
+                                            Total Terima Qty
+                                        </th>
+
+                                        <th class="text-right">
+                                            Total Terima BW
+                                        </th>
+
+                                        <th class="text-right">
+                                            Harga
+                                        </th>
+
+                                        <th class="text-right">
+                                            Total
+                                        </th>
+
+                                        <th>
+                                            No Truck
+                                        </th>
+
+                                        <th>
+                                            Driver
+                                        </th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody>
+
+                                    <tr>
+
+                                        <td class="text-right"
+                                            id="detail_po_qty">
+                                            0
+                                        </td>
+
+                                        <td class="text-right"
+                                            id="detail_po_bw">
+                                            0
+                                        </td>
+
+                                        <td class="text-right"
+                                            id="detail_po_avg_bw">
+                                            0
+                                        </td>
+
+                                        <td class="text-right"
+                                            id="detail_mati_qty">
+                                            0
+                                        </td>
+
+                                        <td class="text-right"
+                                            id="detail_mati_bw">
+                                            0
+                                        </td>
+
+                                        <td class="text-right"
+                                            id="detail_susut_bw">
+                                            0
+                                        </td>
+
+                                        <td class="text-right"
+                                            id="detail_total_terima_qty">
+                                            0
+                                        </td>
+
+                                        <td class="text-right"
+                                            id="detail_total_terima_bw">
+                                            0
+                                        </td>
+
+                                        <td class="text-right"
+                                            id="detail_po_harga">
+                                            0
+                                        </td>
+
+                                        <td class="text-right"
+                                            id="detail_po_total">
+                                            0
+                                        </td>
+
+                                        <td id="detail_no_truck">
+                                            -
+                                        </td>
+
+                                        <td id="detail_driver">
+                                            -
+                                        </td>
+
+                                    </tr>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- =================================================
+                     ACTUAL RECEIVE
+                ================================================== -->
+
+                <div class="detail-section actual-section">
+
+                    <div class="detail-section-header">
+
+                        <div class="detail-section-title">
+                            ACTUAL RECEIVE
+                        </div>
+
+                    </div>
+
+                    <div class="detail-section-body">
+
+                        <div class="row">
+
+                            <!-- QTY -->
+
+                            <div class="col-md-4 mb-3 mb-md-0">
+
+                                <div class="actual-card">
+
+                                    <div class="actual-label">
+                                        QTY RECEIVE
+                                    </div>
+
+                                    <div class="actual-value">
+
+                                        <span id="detail_receive_qty">
+                                            0
+                                        </span>
+
+                                        <span class="actual-unit">
+                                            Ekor
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- BW -->
+
+                            <div class="col-md-4 mb-3 mb-md-0">
+
+                                <div class="actual-card">
+
+                                    <div class="actual-label">
+                                        BW RECEIVE
+                                    </div>
+
+                                    <div class="actual-value">
+
+                                        <span id="detail_receive_bw">
+                                            0
+                                        </span>
+
+                                        <span class="actual-unit">
+                                            KG
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- AVG BW -->
+
+                            <div class="col-md-4">
+
+                                <div class="actual-card">
+
+                                    <div class="actual-label">
+                                        AVG BW RECEIVE
+                                    </div>
+
+                                    <div class="actual-value">
+
+                                        <span id="detail_receive_avg_bw">
+                                            0
+                                        </span>
+
+                                        <span class="actual-unit">
+                                            KG/Ekor
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- =================================================
+                     CUSTOMER ALLOCATION
+                ================================================== -->
+
+                <div class="detail-section">
+
+                    <div class="detail-section-header">
+
+                        <div class="detail-section-title">
+                            CUSTOMER ALLOCATION
+                        </div>
+
+                    </div>
+
+                    <div class="detail-section-body p-0">
+
+                        <div class="detail-table-wrap">
+
+                            <table class="detail-table">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th class="text-center">
+                                            #
+                                        </th>
+
+                                        <th>
+                                            Customer
+                                        </th>
+
+                                        <th>
+                                            Customer Name
+                                        </th>
+
+                                        <th class="text-right">
+                                            Qty
+                                        </th>
+
+                                        <th class="text-right">
+                                            BW
+                                        </th>
+
+                                        <th class="text-right">
+                                            Avg BW
+                                        </th>
+
+                                        <th class="text-right">
+                                            Harga
+                                        </th>
+
+                                        <th class="text-right">
+                                            Discount
+                                        </th>
+
+                                        <th class="text-right">
+                                            Total
+                                        </th>
+
+                                        <th>
+                                            Remark
+                                        </th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody id="detail_customer_body">
+
+                                    <tr>
+
+                                        <td colspan="10"
+                                            class="detail-empty">
+                                            Tidak ada customer allocation
+                                        </td>
+
+                                    </tr>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- =================================================
+                     SAVING
+                ================================================== -->
+
+                <div class="detail-section">
+
+                    <div class="detail-section-header">
+
+                        <div class="detail-section-title">
+                            SAVING
+                        </div>
+
+                    </div>
+
+                    <div class="detail-section-body p-0">
+
+                        <div class="detail-table-wrap">
+
+                            <table class="detail-table">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th class="text-center">
+                                            #
+                                        </th>
+
+                                        <th>
+                                            Customer
+                                        </th>
+
+                                        <th>
+                                            Customer Name
+                                        </th>
+
+                                        <th class="text-right">
+                                            Amount
+                                        </th>
+
+                                        <th>
+                                            Basis
+                                        </th>
+
+                                        <th class="text-right">
+                                            Rate
+                                        </th>
+
+                                        <th class="text-right">
+                                            Total Qty
+                                        </th>
+
+                                        <th class="text-right">
+                                            Total Weight
+                                        </th>
+
+                                        <th class="text-right">
+                                            Remain
+                                        </th>
+
+                                        <th>
+                                            Remark
+                                        </th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody id="detail_saving_body">
+
+                                    <tr>
+
+                                        <td colspan="10"
+                                            class="detail-empty">
+                                            Tidak ada saving
+                                        </td>
+
+                                    </tr>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- =================================================
+                     PAYMENT
+                ================================================== -->
+
+                <div class="detail-section">
+
+                    <div class="detail-section-header">
+
+                        <div class="detail-section-title">
+                            PAYMENT
+                        </div>
+
+                    </div>
+
+                    <div class="detail-section-body p-0">
+
+                        <div class="detail-table-wrap">
+
+                            <table class="detail-table">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th class="text-center">
+                                            #
+                                        </th>
+
+                                        <th>
+                                            Sales
+                                        </th>
+
+                                        <th>
+                                            Customer
+                                        </th>
+
+                                        <th>
+                                            Customer Name
+                                        </th>
+
+                                        <th class="text-right">
+                                            Amount
+                                        </th>
+
+                                        <th class="text-right">
+                                            Modal
+                                        </th>
+
+                                        <th class="text-right">
+                                            Biaya
+                                        </th>
+
+                                        <th class="text-right">
+                                            Discount
+                                        </th>
+
+                                        <th class="text-right">
+                                            Rounding
+                                        </th>
+
+                                        <th class="text-right">
+                                            Pembayaran
+                                        </th>
+
+                                        <th>
+                                            Jenis Pay
+                                        </th>
+
+                                        <th>
+                                            Status
+                                        </th>
+
+                                        <th>
+                                            Remark
+                                        </th>
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody id="detail_payment_body">
+
+                                    <tr>
+
+                                        <td colspan="13"
+                                            class="detail-empty">
+                                            Tidak ada payment
+                                        </td>
+
+                                    </tr>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 FOOTER
+            ================================================== -->
+
+            <div class="modal-footer">
+
+                <button type="button"
+                        class="btn btn-secondary"
+                        data-dismiss="modal">
+                    Close
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
 <!-- ===================================================== -->
 <!-- LOOKUP MODAL -->
 <!-- ===================================================== -->
@@ -2198,7 +3296,7 @@
 
                 limit: listState.limit,
 
-                keyword: listState.keyword,
+                search: listState.keyword,
 
                 status: listState.status,
 
@@ -2360,20 +3458,40 @@
     {
         let html = '';
 
-        // View
-        // html += `
-        //     // <button
-        //     //     class="btn btn-info btn-sm btnView"
-        //     //     type="button"
-        //     //     data-id="${row.RECEIVE}"
-        //     //     title="View">
+        /*
+        |--------------------------------------------------------------------------
+        | VIEW
+        |--------------------------------------------------------------------------
+        */
 
-        //     //     <i class="ti ti-eye"></i>
+        html += `
+            <button type="button"
+                    class="btn btn-sm btn-info"
+                    onclick="showReceiveDetail('${row.RECEIVE}', '${row.PLANT}')">
+                <i class="ti ti-eye"></i>
+            </button>
+        `;
 
-        //     // </button>
-        // `;
+        html += `
+            <button
+                class="btn btn-primary btn-sm btnPrint"
+                type="button"
+                data-receive="${row.RECEIVE}"
+                data-plant="${row.PLANT}"
+                title="Print Receive">
 
-        // Delete / Locked
+                <i class="ti ti-printer"></i>
+
+            </button>
+        `;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | DELETE / LOCKED
+        |--------------------------------------------------------------------------
+        */
+
         if (row.STATUS_RECEIVE === 'PAID') {
 
             html += `
@@ -2404,6 +3522,548 @@
         }
 
         return html;
+    }
+
+    $(document).on(
+        'click',
+        '.btnPrint',
+        function () {
+
+            const receive = $(this).attr('data-receive');
+            const plant   = $(this).attr('data-plant');
+
+
+            /* =====================================================
+            VALIDATE
+            ===================================================== */
+
+            if (!receive || !plant) {
+
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Parameter tidak lengkap',
+                    text: 'RECEIVE / PLANT tidak ditemukan.'
+                });
+
+                return;
+            }
+
+
+            /* =====================================================
+            OPEN PDF
+            ===================================================== */
+
+            const url =
+                base_url +
+                'receive/print_slip_pdf' +
+                '?receive=' +
+                encodeURIComponent(receive) +
+                '&plant=' +
+                encodeURIComponent(plant);
+
+
+            window.open(
+                url,
+                '_blank'
+            );
+
+        }
+    );
+
+    function showReceiveDetail(receive, plant)
+    {
+        $.ajax({
+            url: base_url + "receive/detail",
+            type: "GET",
+            dataType: "json",
+
+            data: {
+                receive: receive,
+                plant: plant
+            },
+
+            beforeSend: function() {
+
+                Swal.fire({
+                    title: 'Loading...',
+                    text: 'Mengambil detail Receive',
+                    allowOutsideClick: false,
+                    didOpen: function() {
+                        Swal.showLoading();
+                    }
+                });
+
+            },
+
+            success: function(res) {
+
+                Swal.close();
+
+                if (!res.status) {
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: res.message || 'Data Receive tidak ditemukan'
+                    });
+
+                    return;
+                }
+
+
+                const header  = res.header || {};
+                const detail  = res.detail || [];
+                const saving  = res.saving || [];
+                const payment = res.payment || [];
+
+
+                // =====================================================
+                // RECEIVE INFORMATION
+                // =====================================================
+
+                $('#detail_receive').text(
+                    header.RECEIVE || '-'
+                );
+
+                $('#detail_slip_no').text(
+                    header.SLIP_NO || '-'
+                );
+
+                $('#detail_receive_date').text(
+                    header.RECEIVE_DATE || '-'
+                );
+
+                $('#detail_status').text(
+                    header.STATUS_RECEIVE || '-'
+                );
+
+                $('#detail_plant').text(
+                    header.PLANT_NAME || header.PLANT || '-'
+                );
+
+                $('#detail_supplier').text(
+                    header.SUPPLIER_NAME || header.SUPPLIER || '-'
+                );
+
+                $('#detail_po').text(
+                    header.PO || '-'
+                );
+
+                $('#detail_material').text(
+                    header.MATERIAL_NAME || header.MATERIAL || '-'
+                );
+
+                $('#detail_nota').text(
+                    header.NOTA || '-'
+                );
+
+                $('#detail_no_ref').text(
+                    header.NO_REF || '-'
+                );
+
+                $('#detail_remark').text(
+                    header.REMARK || '-'
+                );
+
+
+                // =====================================================
+                // PO INFORMATION
+                // =====================================================
+
+                $('#detail_po_qty').text(
+                    formatNumber(header.JUMLAH)
+                );
+
+                $('#detail_po_bw').text(
+                    formatNumber(header.BERAT)
+                );
+
+                $('#detail_po_avg_bw').text(
+                    formatNumber(header.AVG_BW, 2)
+                );
+
+                $('#detail_mati_qty').text(
+                    formatNumber(header.MATI_QTY)
+                );
+
+                $('#detail_mati_bw').text(
+                    formatNumber(header.MATI_BW)
+                );
+
+                $('#detail_susut_bw').text(
+                    formatNumber(header.SUSUT_BW)
+                );
+
+                $('#detail_total_terima_qty').text(
+                    formatNumber(header.TOTAL_TERIMA_QTY)
+                );
+
+                $('#detail_total_terima_bw').text(
+                    formatNumber(header.TOTAL_TERIMA_BW)
+                );
+
+                $('#detail_po_harga').text(
+                    formatCurrency(header.HARGA)
+                );
+
+                $('#detail_po_total').text(
+                    formatCurrency(header.TOTAL)
+                );
+
+                $('#detail_no_truck').text(
+                    header.NO_TRUCK || '-'
+                );
+
+                $('#detail_driver').text(
+                    header.DRIVER || '-'
+                );
+
+
+                // =====================================================
+                // ACTUAL RECEIVE
+                // =====================================================
+
+                $('#detail_receive_qty').text(
+                    formatNumber(header.TOTAL_QTY)
+                );
+
+                $('#detail_receive_bw').text(
+                    formatNumber(header.TOTAL_BW)
+                );
+
+                $('#detail_receive_avg_bw').text(
+                    formatNumber(header.TOTAL_AVG_BW, 2)
+                );
+
+
+                // =====================================================
+                // CUSTOMER ALLOCATION
+                // =====================================================
+
+                let customerHtml = '';
+
+                if (detail.length > 0) {
+
+                    detail.forEach(function(row, index) {
+
+                        customerHtml += `
+                            <tr>
+
+                                <td class="text-center">
+                                    ${index + 1}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(
+                                        row.CUSTOMER || '-'
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(
+                                        row.CUSTOMER_NAME || '-'
+                                    )}
+                                </td>
+
+                                <td class="text-right">
+                                    ${formatNumber(row.JUMLAH)}
+                                </td>
+
+                                <td class="text-right">
+                                    ${formatNumber(row.BERAT)}
+                                </td>
+
+                                <td class="text-right">
+                                    ${formatNumber(row.AVG_BW, 2)}
+                                </td>
+
+                                <td class="text-right">
+                                    ${formatCurrency(row.HARGA)}
+                                </td>
+
+                                <td class="text-right">
+                                    ${formatNumber(row.DISCOUNT)}
+                                </td>
+
+                                <td class="text-right">
+                                    ${formatCurrency(row.TOTAL)}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(
+                                        row.REMARK || ''
+                                    )}
+                                </td>
+
+                            </tr>
+                        `;
+
+                    });
+
+                } else {
+
+                    customerHtml = `
+                        <tr>
+                            <td colspan="10"
+                                class="text-center text-muted">
+                                Tidak ada customer allocation
+                            </td>
+                        </tr>
+                    `;
+                }
+
+                $('#detail_customer_body').html(customerHtml);
+
+
+                // =====================================================
+                // SAVING
+                // =====================================================
+
+                let savingHtml = '';
+
+                if (saving.length > 0) {
+
+                    saving.forEach(function(row, index) {
+
+                        savingHtml += `
+                            <tr>
+
+                                <td class="text-center">
+                                    ${index + 1}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(
+                                        row.CUSTOMER || '-'
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(
+                                        row.CUSTOMER_NAME || '-'
+                                    )}
+                                </td>
+
+                                <td class="text-right">
+                                    ${formatCurrency(row.AMOUNT)}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(
+                                        row.BASIS || '-'
+                                    )}
+                                </td>
+
+                                <td class="text-right">
+                                    ${formatNumber(row.RATE)}
+                                </td>
+
+                                <td class="text-right">
+                                    ${formatNumber(row.TOTAL_QTY)}
+                                </td>
+
+                                <td class="text-right">
+                                    ${formatNumber(row.TOTAL_WEIGHT)}
+                                </td>
+
+                                <td class="text-right">
+                                    ${formatCurrency(row.REMAIN)}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(
+                                        row.REMARK || ''
+                                    )}
+                                </td>
+
+                            </tr>
+                        `;
+
+                    });
+
+                } else {
+
+                    savingHtml = `
+                        <tr>
+                            <td colspan="10"
+                                class="text-center text-muted">
+                                Tidak ada saving
+                            </td>
+                        </tr>
+                    `;
+                }
+
+                $('#detail_saving_body').html(savingHtml);
+
+
+                // =====================================================
+                // PAYMENT
+                // =====================================================
+
+                let paymentHtml = '';
+
+                if (payment.length > 0) {
+
+                    payment.forEach(function(row, index) {
+
+                        paymentHtml += `
+                            <tr>
+
+                                <td class="text-center">
+                                    ${index + 1}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(
+                                        row.SALES || '-'
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(
+                                        row.CUSTOMER || '-'
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(
+                                        row.CUSTOMER_NAME || '-'
+                                    )}
+                                </td>
+
+                                <td class="text-right">
+                                    ${formatCurrency(row.AMOUNT)}
+                                </td>
+
+                                <td class="text-right">
+                                    ${formatCurrency(row.MODAL)}
+                                </td>
+
+                                <td class="text-right">
+                                    ${formatCurrency(row.BIAYA)}
+                                </td>
+
+                                <td class="text-right">
+                                    ${formatCurrency(row.DISCOUNT)}
+                                </td>
+
+                                <td class="text-right">
+                                    ${formatCurrency(row.ROUNDING)}
+                                </td>
+
+                                <td class="text-right">
+                                    ${formatCurrency(row.PEMBAYARAN)}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(
+                                        row.JENIS_PAY || '-'
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(
+                                        row.STATUS || '-'
+                                    )}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(
+                                        row.REMARK || ''
+                                    )}
+                                </td>
+
+                            </tr>
+                        `;
+
+                    });
+
+                } else {
+
+                    paymentHtml = `
+                        <tr>
+                            <td colspan="13"
+                                class="text-center text-muted">
+                                Tidak ada payment
+                            </td>
+                        </tr>
+                    `;
+                }
+
+                $('#detail_payment_body').html(paymentHtml);
+
+
+                // =====================================================
+                // SHOW MODAL
+                // =====================================================
+
+                $('#modalDetailReceive').modal('show');
+
+            },
+
+            error: function(xhr) {
+
+                Swal.close();
+
+                console.error(
+                    'Receive Detail Error:',
+                    xhr.responseText
+                );
+
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Terjadi kesalahan saat mengambil detail Receive'
+                });
+
+            }
+        });
+    }
+
+    function formatNumber(value, decimals)
+    {
+        decimals = decimals !== undefined ? decimals : 2;
+
+        let number = parseFloat(value);
+
+        if (isNaN(number)) {
+            number = 0;
+        }
+
+        return number.toLocaleString('id-ID', {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals
+        });
+    }
+
+
+    function formatCurrency(value)
+    {
+        let number = parseFloat(value);
+
+        if (isNaN(number)) {
+            number = 0;
+        }
+
+        return number.toLocaleString('id-ID', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        });
+    }
+
+
+    function escapeHtml(value)
+    {
+        if (value === null || value === undefined) {
+            return '';
+        }
+
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
     }
 
     function renderInfo(res)

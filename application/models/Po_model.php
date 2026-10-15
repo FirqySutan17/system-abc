@@ -567,26 +567,83 @@ class Po_model extends CI_Model {
      */
     public function get_header($plant, $po)
     {
-        $this->db->select('
-            abc_mst_po.*,
-            abc_cd_customer.FULL_NAME AS SUPPLIER_NAME,
-            abc_cd_code.CODE_NAME AS AJ_NAME
-        ');
-        $this->db->from('abc_mst_po');
-        $this->db->join(
-            'abc_cd_customer',
-            'abc_mst_po.SUPPLIER = abc_cd_customer.CUST',
-            'left'
-        );
-        $this->db->join(
-            'abc_cd_code',
-            "abc_cd_code.CODE = abc_mst_po.PLANT AND abc_cd_code.HEAD_CODE = 'AJ'",
-            'left'
-        );
-        $this->db->where('abc_mst_po.PLANT', $plant);
-        $this->db->where('abc_mst_po.PO', $po);
+        $this->db->select("
+            po.*,
 
-        return $this->db->get()->row_array();
+            supplier.FULL_NAME AS SUPPLIER_NAME,
+
+            plant.CODE_NAME AS PLANT_NAME,
+
+            po_type.CODE_NAME AS PO_TYPE_NAME,
+
+            material.MATERIAL_NAME AS MATERIAL_NAME
+        ");
+
+        $this->db->from('abc_mst_po po');
+
+        // ================= SUPPLIER =================
+
+        $this->db->join(
+            'abc_cd_customer supplier',
+            '
+                supplier.CUST COLLATE utf8mb4_unicode_ci =
+                po.SUPPLIER COLLATE utf8mb4_unicode_ci
+            ',
+            'left',
+            false
+        );
+
+        // ================= PLANT =================
+
+        $this->db->join(
+            'abc_cd_code plant',
+            "
+                plant.CODE COLLATE utf8mb4_unicode_ci =
+                po.PLANT COLLATE utf8mb4_unicode_ci
+                AND plant.HEAD_CODE = 'PLANT'
+            ",
+            'left',
+            false
+        );
+
+        // ================= PO TYPE =================
+
+        $this->db->join(
+            'abc_cd_code po_type',
+            "
+                po_type.CODE COLLATE utf8mb4_unicode_ci =
+                po.PO_TYPE COLLATE utf8mb4_unicode_ci
+                AND po_type.HEAD_CODE = 'PO'
+            ",
+            'left',
+            false
+        );
+
+        // ================= MATERIAL =================
+
+        $this->db->join(
+            'abc_cd_material material',
+            '
+                material.MATERIAL COLLATE utf8mb4_unicode_ci =
+                po.MATERIAL COLLATE utf8mb4_unicode_ci
+            ',
+            'left',
+            false
+        );
+
+        // ================= WHERE =================
+
+        $this->db->where('po.PLANT', $plant);
+        $this->db->where('po.PO', $po);
+        $this->db->where(
+            'po.DELETED IS NULL',
+            null,
+            false
+        );
+
+        return $this->db
+            ->get()
+            ->row_array();
     }
 
     public function get_header_for_edit(

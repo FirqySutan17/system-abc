@@ -373,6 +373,1033 @@ class ReportAccounting_model extends CI_Model
 
     /*
     |--------------------------------------------------------------------------
+    | REPORT SAVING
+    |--------------------------------------------------------------------------
+    */
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | SAVING CUSTOMER QUERY
+    |--------------------------------------------------------------------------
+    */
+
+    private function saving_customer_query(
+        $filter = []
+    )
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | FROM
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->from(
+            'abc_mst_saving sv'
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+
+            'abc_cd_customer customer',
+
+            '
+
+                customer.CUST COLLATE utf8mb4_unicode_ci =
+
+                sv.CUSTOMER COLLATE utf8mb4_unicode_ci
+
+            ',
+
+            'left',
+
+            false
+
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+
+            'abc_cd_code plant',
+
+            '
+
+                plant.CODE = sv.PLANT
+
+                AND plant.HEAD_CODE = "PLANT"
+
+            ',
+
+            'left',
+
+            false
+
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | BASE FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->where(
+
+            'sv.DELETED IS NULL',
+
+            null,
+
+            false
+
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | SEARCH
+        |--------------------------------------------------------------------------
+        */
+
+        if(
+            !empty(
+                $filter['search']
+            )
+        ){
+
+            $search =
+                $filter['search'];
+
+
+            $this->db->group_start();
+
+
+            $this->db->like(
+                'sv.SV_NO',
+                $search
+            );
+
+
+            $this->db->or_like(
+                'sv.CUSTOMER',
+                $search
+            );
+
+
+            $this->db->or_like(
+                'customer.FULL_NAME',
+                $search
+            );
+
+
+            $this->db->or_like(
+                'sv.RELATED',
+                $search
+            );
+
+
+            $this->db->or_like(
+                'sv.SALES',
+                $search
+            );
+
+
+            $this->db->or_like(
+                'sv.REMARK',
+                $search
+            );
+
+
+            $this->db->group_end();
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER
+        |--------------------------------------------------------------------------
+        */
+
+        if(
+            !empty(
+                $filter['customer']
+            )
+        ){
+
+            $this->db->where(
+                'sv.CUSTOMER',
+                $filter['customer']
+            );
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | STATUS
+        |--------------------------------------------------------------------------
+        */
+
+        if (!empty($filter['status'])) {
+
+            if ($filter['status'] === 'PAID') {
+
+                $this->db->where(
+                    'sv.REMAIN <=',
+                    0
+                );
+
+            } elseif ($filter['status'] === 'OUTSTANDING') {
+
+                $this->db->where(
+                    'sv.REMAIN >',
+                    0
+                );
+
+            }
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATE FROM
+        |--------------------------------------------------------------------------
+        */
+
+        if(
+            !empty(
+                $filter['date_from']
+            )
+        ){
+
+            $this->db->where(
+
+                'DATE(sv.SV_DATE) >=',
+
+                $filter['date_from']
+
+            );
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATE TO
+        |--------------------------------------------------------------------------
+        */
+
+        if(
+            !empty(
+                $filter['date_to']
+            )
+        ){
+
+            $this->db->where(
+
+                'DATE(sv.SV_DATE) <=',
+
+                $filter['date_to']
+
+            );
+
+        }
+
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | GET SAVING REPORT
+    |--------------------------------------------------------------------------
+    */
+
+    /*
+    |--------------------------------------------------------------------------
+    | GET SAVING REPORT
+    |--------------------------------------------------------------------------
+    */
+
+    public function get_saving_report(
+        $limit,
+        $start,
+        $filter = []
+    )
+    {
+
+        /*
+        |--------------------------------------------------------------------------
+        | STEP 1
+        | GET CUSTOMER LIST
+        |--------------------------------------------------------------------------
+        */
+
+        $this->saving_customer_query(
+            $filter
+        );
+
+
+        $this->db->select('
+
+            sv.CUSTOMER,
+
+            customer.FULL_NAME AS CUSTOMER_NAME,
+
+            GROUP_CONCAT(
+                DISTINCT sv.PLANT
+                ORDER BY sv.PLANT
+                SEPARATOR ", "
+            ) AS PLANT_LIST,
+
+            GROUP_CONCAT(
+                DISTINCT plant.CODE_NAME
+                ORDER BY plant.CODE_NAME
+                SEPARATOR ", "
+            ) AS PLANT_NAME_LIST
+
+        ', false);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | GROUP CUSTOMER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->group_by(
+            'sv.CUSTOMER'
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | ORDER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->order_by(
+            'customer.FULL_NAME',
+            'ASC'
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PAGINATION
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->limit(
+            $limit,
+            $start
+        );
+
+
+        $customerRows =
+            $this->db
+                ->get()
+                ->result_array();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | NO CUSTOMER
+        |--------------------------------------------------------------------------
+        */
+
+        if(
+            empty(
+                $customerRows
+            )
+        ){
+
+            return [
+
+                'rows' => [],
+
+                'total_count' =>
+                    $this->count_saving_customers(
+                        $filter
+                    )
+
+            ];
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER LIST
+        |--------------------------------------------------------------------------
+        */
+
+        $customers = [];
+
+
+        foreach(
+            $customerRows as $row
+        ){
+
+            $customers[] =
+                $row['CUSTOMER'];
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | STEP 2
+        | GET ALL SAVING HISTORY
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->select('
+
+            sv.SV_NO,
+
+            sv.PLANT,
+
+            plant.CODE_NAME AS PLANT_NAME,
+
+            sv.SV_DATE,
+
+            sv.CUSTOMER,
+
+            customer.FULL_NAME AS CUSTOMER_NAME,
+
+            sv.RELATED,
+
+            sv.RECEIVE,
+
+            sv.SALES,
+
+            sv.AMOUNT,
+
+            sv.BASIS,
+
+            sv.RATE,
+
+            sv.TOTAL_QTY,
+
+            sv.TOTAL_WEIGHT,
+
+            sv.REMAIN,
+
+            sv.REMARK,
+
+            sv.STATUS
+
+        ', false);
+
+
+        $this->db->from(
+            'abc_mst_saving sv'
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+
+            'abc_cd_customer customer',
+
+            '
+
+                customer.CUST COLLATE utf8mb4_unicode_ci =
+
+                sv.CUSTOMER COLLATE utf8mb4_unicode_ci
+
+            ',
+
+            'left',
+
+            false
+
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PLANT
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->join(
+
+            'abc_cd_code plant',
+
+            '
+
+                plant.CODE = sv.PLANT
+
+                AND plant.HEAD_CODE = "PLANT"
+
+            ',
+
+            'left',
+
+            false
+
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER LIST
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->where_in(
+            'sv.CUSTOMER',
+            $customers
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | DELETED
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->where(
+
+            'sv.DELETED IS NULL',
+
+            null,
+
+            false
+
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | IMPORTANT
+        |
+        | History harus tetap mengikuti filter yang sama
+        |--------------------------------------------------------------------------
+        */
+
+        if(
+            !empty(
+                $filter['search']
+            )
+        ){
+
+            $search =
+                $filter['search'];
+
+
+            $this->db->group_start();
+
+
+            $this->db->like(
+                'sv.SV_NO',
+                $search
+            );
+
+
+            $this->db->or_like(
+                'sv.CUSTOMER',
+                $search
+            );
+
+
+            $this->db->or_like(
+                'customer.FULL_NAME',
+                $search
+            );
+
+
+            $this->db->or_like(
+                'sv.RELATED',
+                $search
+            );
+
+
+            $this->db->or_like(
+                'sv.SALES',
+                $search
+            );
+
+
+            $this->db->or_like(
+                'sv.REMARK',
+                $search
+            );
+
+
+            $this->db->group_end();
+
+        }
+
+
+        if (!empty($filter['status'])) {
+
+            if ($filter['status'] === 'PAID') {
+
+                $this->db->where(
+                    'sv.REMAIN <=',
+                    0
+                );
+
+            } elseif ($filter['status'] === 'OUTSTANDING') {
+
+                $this->db->where(
+                    'sv.REMAIN >',
+                    0
+                );
+
+            }
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        if(
+            !empty(
+                $filter['customer']
+            )
+        ){
+
+            $this->db->where(
+                'sv.CUSTOMER',
+                $filter['customer']
+            );
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATE FILTER
+        |--------------------------------------------------------------------------
+        */
+
+        if(
+            !empty(
+                $filter['date_from']
+            )
+        ){
+
+            $this->db->where(
+
+                'DATE(sv.SV_DATE) >=',
+
+                $filter['date_from']
+
+            );
+
+        }
+
+
+        if(
+            !empty(
+                $filter['date_to']
+            )
+        ){
+
+            $this->db->where(
+
+                'DATE(sv.SV_DATE) <=',
+
+                $filter['date_to']
+
+            );
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | ORDER HISTORY
+        |--------------------------------------------------------------------------
+        */
+
+        $this->db->order_by(
+            'sv.CUSTOMER',
+            'ASC'
+        );
+
+
+        $this->db->order_by(
+            'sv.SV_DATE',
+            'ASC'
+        );
+
+
+        $this->db->order_by(
+            'sv.SV_NO',
+            'ASC'
+        );
+
+
+        $historyRows =
+            $this->db
+                ->get()
+                ->result_array();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | STEP 2.5
+        | GET PAYMENT HISTORY
+        |--------------------------------------------------------------------------
+        |
+        | Ambil semua SV_NO dari history yang sedang ditampilkan.
+        |
+        */
+
+        $savingNos = [];
+
+
+        foreach(
+            $historyRows as $history
+        ){
+
+            if(
+                !empty(
+                    $history['SV_NO']
+                )
+            ){
+
+                $savingNos[] =
+                    $history['SV_NO'];
+
+            }
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | REMOVE DUPLICATE SV_NO
+        |--------------------------------------------------------------------------
+        */
+
+        $savingNos =
+            array_values(
+                array_unique(
+                    $savingNos
+                )
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PAYMENT MAP
+        |--------------------------------------------------------------------------
+        |
+        | Format:
+        |
+        | [
+        |     'SV001' => [
+        |         payment 1,
+        |         payment 2
+        |     ],
+        |
+        |     'SV002' => [
+        |         payment 1
+        |     ]
+        | ]
+        |
+        */
+
+        $paymentMap =
+            $this->get_saving_payment_history(
+                $savingNos
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | STEP 3
+        | GROUP HISTORY BY CUSTOMER
+        |--------------------------------------------------------------------------
+        */
+
+        $historyByCustomer = [];
+
+
+        foreach(
+            $historyRows as $history
+        ){
+
+            $customer =
+                $history['CUSTOMER'];
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | PAYMENT HISTORY
+            |--------------------------------------------------------------------------
+            |
+            | Tambahkan payment history ke masing-masing Saving.
+            |
+            */
+
+            $history['PAYMENTS'] =
+                $paymentMap[
+                    $history['SV_NO']
+                ]
+                ?? [];
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | GROUP CUSTOMER
+            |--------------------------------------------------------------------------
+            */
+
+            if(
+                !isset(
+                    $historyByCustomer[
+                        $customer
+                    ]
+                )
+            ){
+
+                $historyByCustomer[
+                    $customer
+                ] = [];
+
+            }
+
+
+            $historyByCustomer[
+                $customer
+            ][] = $history;
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | STEP 4
+        | BUILD FINAL RESPONSE
+        |--------------------------------------------------------------------------
+        */
+
+        $rows = [];
+
+
+        foreach(
+            $customerRows as $customer
+        ){
+
+            $customerCode =
+                $customer['CUSTOMER'];
+
+
+            $details =
+                $historyByCustomer[
+                    $customerCode
+                ]
+                ?? [];
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | CUSTOMER GROUP
+            |--------------------------------------------------------------------------
+            */
+
+            $rows[] = [
+
+                'CUSTOMER' =>
+                    $customerCode,
+
+                'CUSTOMER_NAME' =>
+                    $customer['CUSTOMER_NAME']
+                    ?: '-',
+
+                'PLANT' =>
+                    $customer['PLANT_LIST']
+                    ?: '-',
+
+                'PLANT_NAME' =>
+                    $customer['PLANT_NAME_LIST']
+                    ?: '-',
+
+                'DETAILS' =>
+                    $details
+
+            ];
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | TOTAL CUSTOMER
+        |--------------------------------------------------------------------------
+        */
+
+        $total =
+            $this->count_saving_customers(
+                $filter
+            );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | RETURN
+        |--------------------------------------------------------------------------
+        */
+
+        return [
+
+            'rows' =>
+                $rows,
+
+            'total_count' =>
+                $total
+
+        ];
+
+    }
+
+    /**
+     * Get payment / offset history for saving
+     *
+     * Relationship:
+     * abc_mst_cash_in_saving
+     *      -> CASH_IN + PLANT
+     * abc_mst_cash_in
+     */
+    public function get_saving_payment_history($savingNos = [])
+    {
+        if (empty($savingNos)) {
+            return [];
+        }
+
+        $this->db->select("
+            cis.SV_NO,
+            cis.CASH_IN,
+            cis.PLANT,
+            cis.SALES,
+            cis.AMOUNT_OFFSET,
+            cis.DATE_OFFSET,
+
+            ci.CASHIN_DATE,
+            ci.CUSTOMER,
+            ci.AMOUNT AS CASH_IN_AMOUNT,
+            ci.PEMBAYARAN,
+            ci.NO_REK,
+            ci.STATUS AS CASH_IN_STATUS,
+            ci.REMARK AS CASH_IN_REMARK
+        ");
+
+        $this->db->from('abc_mst_cash_in_saving cis');
+
+        $this->db->join(
+            'abc_mst_cash_in ci',
+            'ci.CASH_IN = cis.CASH_IN
+            AND ci.PLANT = cis.PLANT
+            AND ci.DELETED IS NULL',
+            'left'
+        );
+
+        $this->db->where_in('cis.SV_NO', $savingNos);
+
+        // hanya data yang belum dihapus
+        $this->db->where('cis.DELETED IS NULL', null, false);
+
+        $this->db->order_by('cis.SV_NO', 'ASC');
+        $this->db->order_by('cis.DATE_OFFSET', 'ASC');
+        $this->db->order_by('cis.CASH_IN', 'ASC');
+
+        $query = $this->db->get();
+
+        $result = [];
+
+        foreach ($query->result() as $row) {
+
+            $svNo = $row->SV_NO;
+
+            if (!isset($result[$svNo])) {
+                $result[$svNo] = [];
+            }
+
+            $result[$svNo][] = [
+                'CASH_IN' => $row->CASH_IN,
+                'PLANT' => $row->PLANT,
+                'SALES' => $row->SALES,
+
+                'DATE_OFFSET' => $row->DATE_OFFSET,
+                'CASHIN_DATE' => $row->CASHIN_DATE,
+
+                'CASH_IN_AMOUNT' => (float) ($row->CASH_IN_AMOUNT ?? 0),
+                'AMOUNT_OFFSET' => (float) ($row->AMOUNT_OFFSET ?? 0),
+
+                'PEMBAYARAN' => $row->PEMBAYARAN,
+                'NO_REK' => $row->NO_REK,
+
+                'CASH_IN_STATUS' => $row->CASH_IN_STATUS,
+                'CASH_IN_REMARK' => $row->CASH_IN_REMARK
+            ];
+        }
+
+        return $result;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | COUNT SAVING CUSTOMER
+    |--------------------------------------------------------------------------
+    */
+
+    public function count_saving_customers(
+        $filter = []
+    )
+    {
+
+        $this->saving_customer_query(
+            $filter
+        );
+
+
+        $this->db->select(
+            'COUNT(DISTINCT sv.CUSTOMER) AS TOTAL_CUSTOMER',
+            false
+        );
+
+
+        $result =
+            $this->db
+                ->get()
+                ->row_array();
+
+
+        return (int) (
+            $result['TOTAL_CUSTOMER']
+            ?? 0
+        );
+
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | DATA
     |--------------------------------------------------------------------------
     */
@@ -1935,5 +2962,1757 @@ class ReportAccounting_model extends CI_Model
         return $this->db
             ->get()
             ->row_array();
+    }
+
+    /* ============================================================
+    | REPORT AR
+    | ============================================================ */
+
+    /**
+     * ============================================================
+     * AR CUSTOMER QUERY
+     *
+     * Customer yang ditampilkan adalah customer yang masih memiliki
+     * Grand Outstanding:
+     *
+     *     Sales Remain + Saving Remain
+     *
+     * Hanya Sales TEMPO.
+     *
+     * Tidak menggunakan:
+     * - Plant filter
+     * - Date From
+     * - Date To
+     *
+     * Pagination berdasarkan CUSTOMER.
+     * ============================================================
+     */
+    private function ar_customer_query($filter = [])
+    {
+        $this->db->from(
+            'abc_mst_sales s'
+        );
+
+        $this->db->join(
+            'abc_cd_customer customer',
+            '
+                customer.CUST COLLATE utf8mb4_unicode_ci =
+                s.CUSTOMER COLLATE utf8mb4_unicode_ci
+            ',
+            'left',
+            false
+        );
+
+        $this->db->where(
+            's.DELETED IS NULL',
+            null,
+            false
+        );
+
+        /*
+        |----------------------------------------------------------
+        | HANYA SALES TEMPO
+        |----------------------------------------------------------
+        */
+        $this->db->where(
+            's.JENIS_PAY',
+            'TEMPO'
+        );
+
+
+        /*
+        |----------------------------------------------------------
+        | GRAND OUTSTANDING
+        |
+        | Sales REMAIN
+        | +
+        | Saving REMAIN
+        |
+        | Saving diambil dari abc_mst_saving yang terkait
+        | dengan Sales.
+        |----------------------------------------------------------
+        */
+        $this->db->where(
+            "
+            (
+                GREATEST(
+                    COALESCE(s.REMAIN, 0),
+                    0
+                )
+                +
+                COALESCE(
+                    (
+                        SELECT
+                            SUM(
+                                GREATEST(
+                                    COALESCE(sv.REMAIN, 0),
+                                    0
+                                )
+                            )
+                        FROM abc_mst_saving sv
+                        WHERE sv.SALES = s.SALES
+                        AND sv.RELATED = 'SALES'
+                        AND sv.DELETED IS NULL
+                    ),
+                    0
+                )
+            ) > 0
+            ",
+            null,
+            false
+        );
+
+
+        /*
+        |----------------------------------------------------------
+        | CUSTOMER
+        |----------------------------------------------------------
+        */
+        if (!empty($filter['customer'])) {
+
+            $this->db->where(
+                's.CUSTOMER',
+                $filter['customer']
+            );
+
+        }
+
+
+        /*
+        |----------------------------------------------------------
+        | SEARCH
+        |
+        | Bisa mencari:
+        | - No Sales
+        | - Customer Code
+        | - Customer Name
+        | - Remark
+        |----------------------------------------------------------
+        */
+        if (!empty($filter['search'])) {
+
+            $search =
+                $filter['search'];
+
+            $this->db->group_start();
+
+            $this->db->like(
+                's.SALES',
+                $search
+            );
+
+            $this->db->or_like(
+                's.CUSTOMER',
+                $search
+            );
+
+            $this->db->or_like(
+                'customer.FULL_NAME',
+                $search
+            );
+
+            $this->db->or_like(
+                's.REMARK',
+                $search
+            );
+
+            $this->db->group_end();
+
+        }
+
+
+        /*
+        |----------------------------------------------------------
+        | STATUS
+        |
+        | Status dihitung berdasarkan:
+        |
+        | Sales Payment
+        | +
+        | Saving Payment
+        |
+        | Grand Outstanding > 0
+        |----------------------------------------------------------
+        */
+        if (!empty($filter['status'])) {
+
+            if (
+                $filter['status'] === 'UNPAID'
+            ) {
+
+                /*
+                * Tidak pernah menerima pembayaran
+                * baik ke Sales maupun Saving.
+                */
+                $this->db->where(
+                    "
+                    NOT EXISTS (
+                        SELECT 1
+                        FROM abc_mst_cash_in_detail cid
+                        WHERE cid.SALES = s.SALES
+                        AND cid.PLANT = s.PLANT
+                        AND cid.DELETED IS NULL
+                        AND cid.AMOUNT_OFFSET > 0
+                    )
+                    AND
+                    NOT EXISTS (
+                        SELECT 1
+                        FROM abc_mst_cash_in_saving cis
+                        WHERE cis.SALES = s.SALES
+                        AND cis.PLANT = s.PLANT
+                        AND cis.DELETED IS NULL
+                        AND cis.AMOUNT_OFFSET > 0
+                    )
+                    ",
+                    null,
+                    false
+                );
+
+
+            } elseif (
+                $filter['status'] === 'PARTIAL'
+            ) {
+
+                /*
+                * Pernah menerima pembayaran,
+                * tetapi Grand Outstanding masih > 0.
+                */
+                $this->db->where(
+                    "
+                    (
+                        EXISTS (
+                            SELECT 1
+                            FROM abc_mst_cash_in_detail cid
+                            WHERE cid.SALES = s.SALES
+                            AND cid.PLANT = s.PLANT
+                            AND cid.DELETED IS NULL
+                            AND cid.AMOUNT_OFFSET > 0
+                        )
+                        OR
+                        EXISTS (
+                            SELECT 1
+                            FROM abc_mst_cash_in_saving cis
+                            WHERE cis.SALES = s.SALES
+                            AND cis.PLANT = s.PLANT
+                            AND cis.DELETED IS NULL
+                            AND cis.AMOUNT_OFFSET > 0
+                        )
+                    )
+                    ",
+                    null,
+                    false
+                );
+
+            }
+
+        }
+    }
+
+
+    /**
+     * ============================================================
+     * GET AR REPORT
+     *
+     * Pagination berdasarkan CUSTOMER.
+     *
+     * 1 customer = 1 group.
+     *
+     * Semua Sales yang masih memiliki:
+     *
+     *     Sales Remain
+     *     +
+     *     Saving Remain
+     *
+     * akan ditampilkan.
+     * ============================================================
+     */
+    public function get_ar_report(
+        $limit,
+        $start,
+        $filter = []
+    ) {
+
+        /* ========================================================
+        | STEP 1
+        | CUSTOMER AR
+        ======================================================== */
+
+        $this->db->select('
+            s.CUSTOMER,
+            customer.FULL_NAME AS CUSTOMER_NAME
+        ', false);
+
+        $this->db->from(
+            'abc_mst_sales s'
+        );
+
+        $this->db->join(
+            'abc_cd_customer customer',
+            '
+                customer.CUST COLLATE utf8mb4_unicode_ci =
+                s.CUSTOMER COLLATE utf8mb4_unicode_ci
+            ',
+            'left',
+            false
+        );
+
+        $this->db->where(
+            's.DELETED IS NULL',
+            null,
+            false
+        );
+
+        $this->db->where(
+            's.JENIS_PAY',
+            'TEMPO'
+        );
+
+
+        /* ========================================================
+        | SEARCH
+        ======================================================== */
+
+        if (!empty($filter['search'])) {
+
+            $search =
+                $filter['search'];
+
+            $this->db->group_start();
+
+            $this->db->like(
+                's.SALES',
+                $search
+            );
+
+            $this->db->or_like(
+                's.CUSTOMER',
+                $search
+            );
+
+            $this->db->or_like(
+                'customer.FULL_NAME',
+                $search
+            );
+
+            $this->db->or_like(
+                's.REMARK',
+                $search
+            );
+
+            $this->db->group_end();
+
+        }
+
+
+        /* ========================================================
+        | CUSTOMER FILTER
+        ======================================================== */
+
+        if (!empty($filter['customer'])) {
+
+            $this->db->where(
+                's.CUSTOMER',
+                $filter['customer']
+            );
+
+        }
+
+
+        /*
+        |===========================================================
+        | CUSTOMER HARUS PUNYA:
+        |
+        | SALES REMAIN > 0
+        | ATAU
+        | SAVING REMAIN > 0
+        |===========================================================
+        */
+        $this->db->where(
+            "
+            (
+                COALESCE(s.REMAIN, 0) > 0
+
+                OR
+
+                EXISTS (
+                    SELECT 1
+                    FROM abc_mst_saving sv
+                    WHERE sv.SALES = s.SALES
+                    AND sv.RELATED = 'SALES'
+                    AND sv.DELETED IS NULL
+                    AND COALESCE(sv.REMAIN, 0) > 0
+                )
+            )
+            ",
+            null,
+            false
+        );
+
+
+        /* ========================================================
+        | STATUS
+        ======================================================== */
+
+        if (
+            !empty($filter['status'])
+        ) {
+
+            if (
+                $filter['status'] === 'UNPAID'
+            ) {
+
+                $this->db->where(
+                    "
+                    NOT EXISTS (
+                        SELECT 1
+                        FROM abc_mst_cash_in_detail cid
+                        WHERE cid.SALES = s.SALES
+                        AND cid.PLANT = s.PLANT
+                        AND cid.DELETED IS NULL
+                        AND cid.AMOUNT_OFFSET > 0
+                    )
+
+                    AND
+
+                    NOT EXISTS (
+                        SELECT 1
+                        FROM abc_mst_cash_in_saving cis
+                        WHERE cis.SALES = s.SALES
+                        AND cis.PLANT = s.PLANT
+                        AND cis.DELETED IS NULL
+                        AND cis.AMOUNT_OFFSET > 0
+                    )
+                    ",
+                    null,
+                    false
+                );
+
+            }
+
+            elseif (
+                $filter['status'] === 'PARTIAL'
+            ) {
+
+                $this->db->where(
+                    "
+                    (
+                        EXISTS (
+                            SELECT 1
+                            FROM abc_mst_cash_in_detail cid
+                            WHERE cid.SALES = s.SALES
+                            AND cid.PLANT = s.PLANT
+                            AND cid.DELETED IS NULL
+                            AND cid.AMOUNT_OFFSET > 0
+                        )
+
+                        OR
+
+                        EXISTS (
+                            SELECT 1
+                            FROM abc_mst_cash_in_saving cis
+                            WHERE cis.SALES = s.SALES
+                            AND cis.PLANT = s.PLANT
+                            AND cis.DELETED IS NULL
+                            AND cis.AMOUNT_OFFSET > 0
+                        )
+                    )
+                    ",
+                    null,
+                    false
+                );
+
+            }
+
+        }
+
+
+        /* ========================================================
+        | GROUP CUSTOMER
+        ======================================================== */
+
+        $this->db->group_by(
+            's.CUSTOMER'
+        );
+
+        $this->db->order_by(
+            'customer.FULL_NAME',
+            'ASC'
+        );
+
+        $this->db->limit(
+            $limit,
+            $start
+        );
+
+
+        $customerRows =
+            $this->db
+                ->get()
+                ->result_array();
+
+
+        /* ========================================================
+        | NO CUSTOMER
+        ======================================================== */
+
+        if (empty($customerRows)) {
+
+            return [
+
+                'rows' => [],
+
+                'total_count' =>
+                    $this->count_ar_customers(
+                        $filter
+                    )
+
+            ];
+
+        }
+
+
+        /* ========================================================
+        | CUSTOMER CODES
+        ======================================================== */
+
+        $customers = [];
+
+        foreach (
+            $customerRows
+            as $customer
+        ) {
+
+            if (
+                !empty(
+                    $customer['CUSTOMER']
+                )
+            ) {
+
+                $customers[] =
+                    $customer['CUSTOMER'];
+
+            }
+
+        }
+
+
+        /* ========================================================
+        | STEP 2
+        | AMBIL SALES CUSTOMER
+        |
+        | JANGAN FILTER SALES_REMAIN DI SINI.
+        |
+        | Kita akan menentukan outstanding setelah Saving
+        | juga sudah didapatkan.
+        ======================================================== */
+
+        $this->db->select('
+
+            s.SALES,
+            s.PLANT,
+            s.CUSTOMER,
+
+            customer.FULL_NAME AS CUSTOMER_NAME,
+
+            s.SALES_DATE,
+            s.SLIP_NO,
+            s.JENIS_PAY,
+
+            s.AMOUNT AS SALES_AMOUNT,
+
+            s.DISCOUNT,
+            s.DP_AMOUNT,
+
+            COALESCE(
+                s.REMAIN,
+                0
+            ) AS SALES_REMAIN,
+
+            s.REMARK AS SALES_REMARK,
+            s.STATUS AS SALES_STATUS
+
+        ', false);
+
+        $this->db->from(
+            'abc_mst_sales s'
+        );
+
+        $this->db->join(
+            'abc_cd_customer customer',
+            '
+                customer.CUST COLLATE utf8mb4_unicode_ci =
+                s.CUSTOMER COLLATE utf8mb4_unicode_ci
+            ',
+            'left',
+            false
+        );
+
+        $this->db->where_in(
+            's.CUSTOMER',
+            $customers
+        );
+
+        $this->db->where(
+            's.DELETED IS NULL',
+            null,
+            false
+        );
+
+        $this->db->where(
+            's.JENIS_PAY',
+            'TEMPO'
+        );
+
+
+        /* ========================================================
+        | SEARCH
+        ======================================================== */
+
+        if (!empty($filter['search'])) {
+
+            $search =
+                $filter['search'];
+
+            $this->db->group_start();
+
+            $this->db->like(
+                's.SALES',
+                $search
+            );
+
+            $this->db->or_like(
+                's.CUSTOMER',
+                $search
+            );
+
+            $this->db->or_like(
+                'customer.FULL_NAME',
+                $search
+            );
+
+            $this->db->or_like(
+                's.REMARK',
+                $search
+            );
+
+            $this->db->group_end();
+
+        }
+
+
+        /* ========================================================
+        | CUSTOMER
+        ======================================================== */
+
+        if (!empty($filter['customer'])) {
+
+            $this->db->where(
+                's.CUSTOMER',
+                $filter['customer']
+            );
+
+        }
+
+
+        /* ========================================================
+        | ORDER
+        ======================================================== */
+
+        $this->db->order_by(
+            's.CUSTOMER',
+            'ASC'
+        );
+
+        $this->db->order_by(
+            's.SALES_DATE',
+            'ASC'
+        );
+
+        $this->db->order_by(
+            's.SALES',
+            'ASC'
+        );
+
+
+        $historyRows =
+            $this->db
+                ->get()
+                ->result_array();
+
+
+        /* ========================================================
+        | STEP 3
+        | SALES LIST
+        ======================================================== */
+
+        $salesList = [];
+
+        foreach (
+            $historyRows
+            as $row
+        ) {
+
+            if (
+                !empty(
+                    $row['SALES']
+                )
+            ) {
+
+                $salesList[] =
+                    $row['SALES'];
+
+            }
+
+        }
+
+        $salesList =
+            array_values(
+                array_unique(
+                    $salesList
+                )
+            );
+
+
+        /* ========================================================
+        | STEP 4
+        | SAVING
+        ======================================================== */
+
+        $savingMap = [];
+
+        if (!empty($salesList)) {
+
+            $this->db->select('
+
+                sv.SV_NO,
+                sv.PLANT,
+                sv.CUSTOMER,
+                sv.SALES,
+                sv.SV_DATE,
+
+                sv.AMOUNT AS SAVING_AMOUNT,
+
+                COALESCE(
+                    sv.REMAIN,
+                    0
+                ) AS SAVING_REMAIN,
+
+                sv.REMARK AS SAVING_REMARK,
+                sv.STATUS AS SAVING_STATUS
+
+            ', false);
+
+            $this->db->from(
+                'abc_mst_saving sv'
+            );
+
+            $this->db->where_in(
+                'sv.SALES',
+                $salesList
+            );
+
+            $this->db->where(
+                'sv.RELATED',
+                'SALES'
+            );
+
+            $this->db->where(
+                'sv.DELETED IS NULL',
+                null,
+                false
+            );
+
+            $savingRows =
+                $this->db
+                    ->get()
+                    ->result_array();
+
+
+            foreach (
+                $savingRows
+                as $saving
+            ) {
+
+                $sales =
+                    $saving['SALES'];
+
+                if (
+                    !isset(
+                        $savingMap[$sales]
+                    )
+                ) {
+
+                    $savingMap[$sales] =
+                        [];
+
+                }
+
+                $savingMap[$sales][] =
+                    $saving;
+
+            }
+
+        }
+
+
+        /* ========================================================
+        | STEP 5
+        | PAYMENT SALES
+        ======================================================== */
+
+        $salesPaymentMap = [];
+
+        if (!empty($salesList)) {
+
+            $this->db->select('
+
+                cid.SALES,
+                cid.CASH_IN,
+                cid.PLANT,
+                cid.AMOUNT_OFFSET,
+                cid.DATE_OFFSET,
+
+                ci.CASHIN_DATE,
+                ci.CUSTOMER,
+                ci.AMOUNT AS CASH_IN_AMOUNT,
+                ci.PEMBAYARAN,
+                ci.NO_REK,
+                ci.STATUS AS CASH_IN_STATUS,
+                ci.REMARK AS CASH_IN_REMARK
+
+            ', false);
+
+            $this->db->from(
+                'abc_mst_cash_in_detail cid'
+            );
+
+            $this->db->join(
+                'abc_mst_cash_in ci',
+                '
+                    ci.CASH_IN = cid.CASH_IN
+                    AND ci.PLANT = cid.PLANT
+                    AND ci.DELETED IS NULL
+                ',
+                'left',
+                false
+            );
+
+            $this->db->where_in(
+                'cid.SALES',
+                $salesList
+            );
+
+            $this->db->where(
+                'cid.DELETED IS NULL',
+                null,
+                false
+            );
+
+            $this->db->where(
+                'cid.AMOUNT_OFFSET >',
+                0
+            );
+
+            $this->db->order_by(
+                'cid.DATE_OFFSET',
+                'ASC'
+            );
+
+            $this->db->order_by(
+                'cid.CASH_IN',
+                'ASC'
+            );
+
+
+            $paymentRows =
+                $this->db
+                    ->get()
+                    ->result_array();
+
+
+            foreach (
+                $paymentRows
+                as $payment
+            ) {
+
+                $sales =
+                    $payment['SALES'];
+
+                if (
+                    !isset(
+                        $salesPaymentMap[$sales]
+                    )
+                ) {
+
+                    $salesPaymentMap[$sales] =
+                        [];
+
+                }
+
+                $salesPaymentMap[$sales][] = [
+
+                    'CASH_IN' =>
+                        $payment['CASH_IN'],
+
+                    'PLANT' =>
+                        $payment['PLANT'],
+
+                    'DATE_OFFSET' =>
+                        $payment['DATE_OFFSET'],
+
+                    'CASHIN_DATE' =>
+                        $payment['CASHIN_DATE'],
+
+                    'CASH_IN_AMOUNT' =>
+                        (float)
+                        (
+                            $payment['CASH_IN_AMOUNT']
+                            ?? 0
+                        ),
+
+                    'AMOUNT_OFFSET' =>
+                        (float)
+                        (
+                            $payment['AMOUNT_OFFSET']
+                            ?? 0
+                        ),
+
+                    'PEMBAYARAN' =>
+                        $payment['PEMBAYARAN'],
+
+                    'NO_REK' =>
+                        $payment['NO_REK'],
+
+                    'CASH_IN_STATUS' =>
+                        $payment['CASH_IN_STATUS'],
+
+                    'CASH_IN_REMARK' =>
+                        $payment['CASH_IN_REMARK']
+
+                ];
+
+            }
+
+        }
+
+
+        /* ========================================================
+        | STEP 6
+        | PAYMENT SAVING
+        ======================================================== */
+
+        $savingPaymentMap = [];
+
+        $savingNos = [];
+
+        foreach (
+            $savingMap
+            as $salesSavings
+        ) {
+
+            foreach (
+                $salesSavings
+                as $saving
+            ) {
+
+                if (
+                    !empty(
+                        $saving['SV_NO']
+                    )
+                ) {
+
+                    $savingNos[] =
+                        $saving['SV_NO'];
+
+                }
+
+            }
+
+        }
+
+
+        $savingNos =
+            array_values(
+                array_unique(
+                    $savingNos
+                )
+            );
+
+
+        if (!empty($savingNos)) {
+
+            $this->db->select('
+
+                cis.SV_NO,
+                cis.CASH_IN,
+                cis.PLANT,
+                cis.SALES,
+                cis.AMOUNT_OFFSET,
+                cis.DATE_OFFSET,
+
+                ci.CASHIN_DATE,
+                ci.CUSTOMER,
+                ci.AMOUNT AS CASH_IN_AMOUNT,
+                ci.PEMBAYARAN,
+                ci.NO_REK,
+                ci.STATUS AS CASH_IN_STATUS,
+                ci.REMARK AS CASH_IN_REMARK
+
+            ', false);
+
+            $this->db->from(
+                'abc_mst_cash_in_saving cis'
+            );
+
+            $this->db->join(
+                'abc_mst_cash_in ci',
+                '
+                    ci.CASH_IN = cis.CASH_IN
+                    AND ci.PLANT = cis.PLANT
+                    AND ci.DELETED IS NULL
+                ',
+                'left',
+                false
+            );
+
+            $this->db->where_in(
+                'cis.SV_NO',
+                $savingNos
+            );
+
+            $this->db->where(
+                'cis.DELETED IS NULL',
+                null,
+                false
+            );
+
+            $this->db->where(
+                'cis.AMOUNT_OFFSET >',
+                0
+            );
+
+            $this->db->order_by(
+                'cis.DATE_OFFSET',
+                'ASC'
+            );
+
+            $this->db->order_by(
+                'cis.CASH_IN',
+                'ASC'
+            );
+
+
+            $savingPaymentRows =
+                $this->db
+                    ->get()
+                    ->result_array();
+
+
+            foreach (
+                $savingPaymentRows
+                as $payment
+            ) {
+
+                $svNo =
+                    $payment['SV_NO'];
+
+                if (
+                    !isset(
+                        $savingPaymentMap[$svNo]
+                    )
+                ) {
+
+                    $savingPaymentMap[$svNo] =
+                        [];
+
+                }
+
+                $savingPaymentMap[$svNo][] = [
+
+                    'CASH_IN' =>
+                        $payment['CASH_IN'],
+
+                    'PLANT' =>
+                        $payment['PLANT'],
+
+                    'SALES' =>
+                        $payment['SALES'],
+
+                    'DATE_OFFSET' =>
+                        $payment['DATE_OFFSET'],
+
+                    'CASHIN_DATE' =>
+                        $payment['CASHIN_DATE'],
+
+                    'CASH_IN_AMOUNT' =>
+                        (float)
+                        (
+                            $payment['CASH_IN_AMOUNT']
+                            ?? 0
+                        ),
+
+                    'AMOUNT_OFFSET' =>
+                        (float)
+                        (
+                            $payment['AMOUNT_OFFSET']
+                            ?? 0
+                        ),
+
+                    'PEMBAYARAN' =>
+                        $payment['PEMBAYARAN'],
+
+                    'NO_REK' =>
+                        $payment['NO_REK'],
+
+                    'CASH_IN_STATUS' =>
+                        $payment['CASH_IN_STATUS'],
+
+                    'CASH_IN_REMARK' =>
+                        $payment['CASH_IN_REMARK']
+
+                ];
+
+            }
+
+        }
+
+
+        /* ========================================================
+        | STEP 7
+        | BUILD DETAIL
+        ======================================================== */
+
+        $historyByCustomer = [];
+
+
+        foreach (
+            $historyRows
+            as $row
+        ) {
+
+            $sales =
+                $row['SALES'];
+
+            $salesRemain =
+                max(
+                    (float)
+                    (
+                        $row['SALES_REMAIN']
+                        ?? 0
+                    ),
+                    0
+                );
+
+
+            $savingDetails =
+                $savingMap[$sales]
+                ?? [];
+
+
+            $savingAmount =
+                0;
+
+            $savingRemain =
+                0;
+
+
+            foreach (
+                $savingDetails
+                as $saving
+            ) {
+
+                $savingAmount +=
+                    (float)
+                    (
+                        $saving['SAVING_AMOUNT']
+                        ?? 0
+                    );
+
+                $savingRemain +=
+                    max(
+                        (float)
+                        (
+                            $saving['SAVING_REMAIN']
+                            ?? 0
+                        ),
+                        0
+                    );
+
+            }
+
+
+            /*
+            |--------------------------------------------------------
+            | GRAND OUTSTANDING
+            |--------------------------------------------------------
+            */
+            $grandOutstanding =
+                round(
+                    $salesRemain
+                    +
+                    $savingRemain,
+                    2
+                );
+
+
+            /*
+            |--------------------------------------------------------
+            | HANYA MASUK AR JIKA MASIH OUTSTANDING
+            |--------------------------------------------------------
+            */
+            if (
+                $grandOutstanding <= 0
+            ) {
+
+                continue;
+
+            }
+
+
+            /*
+            |--------------------------------------------------------
+            | SALES PAYMENT
+            |--------------------------------------------------------
+            */
+            $salesPayments =
+                $salesPaymentMap[$sales]
+                ?? [];
+
+
+            $totalPaidSales =
+                0;
+
+
+            foreach (
+                $salesPayments
+                as $payment
+            ) {
+
+                $totalPaidSales +=
+                    (float)
+                    (
+                        $payment['AMOUNT_OFFSET']
+                        ?? 0
+                    );
+
+            }
+
+
+            /*
+            |--------------------------------------------------------
+            | SAVING PAYMENT
+            |--------------------------------------------------------
+            */
+            $totalPaidSaving =
+                0;
+
+
+            foreach (
+                $savingDetails
+                as $saving
+            ) {
+
+                $savingPayments =
+                    $savingPaymentMap[
+                        $saving['SV_NO']
+                    ]
+                    ?? [];
+
+
+                foreach (
+                    $savingPayments
+                    as $payment
+                ) {
+
+                    $totalPaidSaving +=
+                        (float)
+                        (
+                            $payment['AMOUNT_OFFSET']
+                            ?? 0
+                        );
+
+                }
+
+            }
+
+
+            /*
+            |--------------------------------------------------------
+            | TOTAL PAID
+            |--------------------------------------------------------
+            */
+            $totalPaid =
+                round(
+                    $totalPaidSales
+                    +
+                    $totalPaidSaving,
+                    2
+                );
+
+
+            /*
+            |--------------------------------------------------------
+            | STATUS
+            |--------------------------------------------------------
+            */
+            if (
+                $totalPaid > 0
+            ) {
+
+                $arStatus =
+                    'PARTIAL';
+
+            } else {
+
+                $arStatus =
+                    'UNPAID';
+
+            }
+
+
+            /*
+            |--------------------------------------------------------
+            | STATUS FILTER
+            |
+            | Kita cek lagi di level detail supaya tidak ada
+            | customer yang lolos tetapi detailnya salah status.
+            |--------------------------------------------------------
+            */
+            if (
+                !empty($filter['status'])
+                &&
+                $filter['status'] !== $arStatus
+            ) {
+
+                continue;
+
+            }
+
+
+            /*
+            |--------------------------------------------------------
+            | PAYMENT HISTORY
+            |--------------------------------------------------------
+            */
+            $payments = [];
+
+
+            foreach (
+                $salesPayments
+                as $payment
+            ) {
+
+                $payment[
+                    'ALLOCATION_TYPE'
+                ] =
+                    'SALES';
+
+                $payments[] =
+                    $payment;
+
+            }
+
+
+            foreach (
+                $savingDetails
+                as $saving
+            ) {
+
+                $savingPayments =
+                    $savingPaymentMap[
+                        $saving['SV_NO']
+                    ]
+                    ?? [];
+
+
+                foreach (
+                    $savingPayments
+                    as $payment
+                ) {
+
+                    $payment[
+                        'ALLOCATION_TYPE'
+                    ] =
+                        'SAVING';
+
+                    $payment[
+                        'SV_NO'
+                    ] =
+                        $saving['SV_NO'];
+
+                    $payments[] =
+                        $payment;
+
+                }
+
+            }
+
+
+            usort(
+                $payments,
+                function (
+                    $a,
+                    $b
+                ) {
+
+                    $dateA =
+                        !empty(
+                            $a['DATE_OFFSET']
+                        )
+                        ? $a['DATE_OFFSET']
+                        : (
+                            $a['CASHIN_DATE']
+                            ?? ''
+                        );
+
+                    $dateB =
+                        !empty(
+                            $b['DATE_OFFSET']
+                        )
+                        ? $b['DATE_OFFSET']
+                        : (
+                            $b['CASHIN_DATE']
+                            ?? ''
+                        );
+
+                    return strcmp(
+                        $dateA,
+                        $dateB
+                    );
+
+                }
+            );
+
+
+            /*
+            |--------------------------------------------------------
+            | FINAL ROW
+            |--------------------------------------------------------
+            */
+            $row['SALES_AMOUNT'] =
+                (float)
+                (
+                    $row['SALES_AMOUNT']
+                    ?? 0
+                );
+
+            $row['SAVING_AMOUNT'] =
+                round(
+                    $savingAmount,
+                    2
+                );
+
+            $row['SALES_REMAIN'] =
+                round(
+                    $salesRemain,
+                    2
+                );
+
+            $row['SAVING_REMAIN'] =
+                round(
+                    $savingRemain,
+                    2
+                );
+
+            $row['GRAND_OUTSTANDING'] =
+                $grandOutstanding;
+
+            $row['TOTAL_PAID_SALES'] =
+                round(
+                    $totalPaidSales,
+                    2
+                );
+
+            $row['TOTAL_PAID_SAVING'] =
+                round(
+                    $totalPaidSaving,
+                    2
+                );
+
+            $row['TOTAL_PAID'] =
+                $totalPaid;
+
+            $row['AR_STATUS'] =
+                $arStatus;
+
+            $row['PAYMENTS'] =
+                $payments;
+
+
+            /*
+            |--------------------------------------------------------
+            | CUSTOMER GROUP
+            |--------------------------------------------------------
+            */
+            $customer =
+                $row['CUSTOMER'];
+
+
+            if (
+                !isset(
+                    $historyByCustomer[$customer]
+                )
+            ) {
+
+                $historyByCustomer[$customer] =
+                    [];
+
+            }
+
+
+            $historyByCustomer[$customer][] =
+                $row;
+
+        }
+
+
+        /* ========================================================
+        | STEP 8
+        | FINAL CUSTOMER GROUP
+        ======================================================== */
+
+        $rows = [];
+
+
+        foreach (
+            $customerRows
+            as $customer
+        ) {
+
+            $customerCode =
+                $customer['CUSTOMER'];
+
+            $details =
+                $historyByCustomer[
+                    $customerCode
+                ]
+                ?? [];
+
+
+            if (
+                empty($details)
+            ) {
+
+                continue;
+
+            }
+
+
+            $rows[] = [
+
+                'CUSTOMER' =>
+                    $customerCode,
+
+                'CUSTOMER_NAME' =>
+                    $customer['CUSTOMER_NAME']
+                    ?: '-',
+
+                'DETAILS' =>
+                    $details
+
+            ];
+
+        }
+
+
+        return [
+
+            'rows' =>
+                $rows,
+
+            'total_count' =>
+                $this->count_ar_customers(
+                    $filter
+                )
+
+        ];
+
+    }
+
+
+    /**
+     * ============================================================
+     * COUNT AR CUSTOMER
+     * ============================================================
+     */
+    public function count_ar_customers(
+        $filter = []
+    ) {
+
+        $this->ar_customer_query(
+            $filter
+        );
+
+        $this->db->select(
+            'COUNT(DISTINCT s.CUSTOMER) AS TOTAL_CUSTOMER',
+            false
+        );
+
+        $row =
+            $this->db
+                ->get()
+                ->row_array();
+
+        return (int)
+            (
+                $row['TOTAL_CUSTOMER']
+                ?? 0
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | AR PAYMENT HISTORY
+    |--------------------------------------------------------------------------
+    |
+    | Relationship:
+    |
+    | abc_mst_cash_in_detail
+    |       |
+    |       +-- CASH_IN
+    |       +-- SALES
+    |       +-- AMOUNT_OFFSET
+    |       |
+    |       v
+    | abc_mst_cash_in
+    |
+    */
+
+    public function get_ar_payment_history(
+        $salesNos = []
+    ) {
+
+        if (
+            empty($salesNos)
+        ) {
+
+            return [];
+
+        }
+
+
+        $this->db->select("
+
+            d.SALES,
+
+            d.PLANT,
+
+            d.CASH_IN,
+
+            d.AMOUNT_OFFSET,
+
+            d.DATE_OFFSET,
+
+            ci.CASHIN_DATE,
+
+            ci.PEMBAYARAN,
+
+            ci.REMARK
+
+        ", false);
+
+
+        $this->db->from(
+            'abc_mst_cash_in_detail d'
+        );
+
+
+        $this->db->join(
+            'abc_mst_cash_in ci',
+            "
+                ci.CASH_IN = d.CASH_IN
+                AND ci.PLANT = d.PLANT
+                AND ci.DELETED IS NULL
+            ",
+            'left'
+        );
+
+
+        $this->db->where_in(
+            'd.SALES',
+            $salesNos
+        );
+
+
+        $this->db->where(
+            'd.DELETED IS NULL',
+            null,
+            false
+        );
+
+
+        $this->db->where(
+            'd.AMOUNT_OFFSET >',
+            0
+        );
+
+
+        $this->db->order_by(
+            'ci.CASHIN_DATE',
+            'ASC'
+        );
+
+
+        $this->db->order_by(
+            'd.CASH_IN',
+            'ASC'
+        );
+
+
+        $rows =
+            $this->db
+                ->get()
+                ->result_array();
+
+
+        $result = [];
+
+
+        foreach (
+            $rows
+            as $row
+        ) {
+
+            $sales =
+                $row['SALES'];
+
+
+            if (
+                !isset(
+                    $result[$sales]
+                )
+            ) {
+
+                $result[$sales] = [];
+
+            }
+
+
+            $result[$sales][] = [
+
+                'CASH_IN' =>
+                    $row['CASH_IN'],
+
+                'CASH_IN_DATE' =>
+                    $row['CASHIN_DATE']
+                    ?? $row['DATE_OFFSET'],
+
+                'JENIS_PAY' =>
+                    $row['PEMBAYARAN'],
+
+                'AMOUNT_OFFSET' =>
+                    (float)
+                    $row['AMOUNT_OFFSET'],
+
+                'REMARK' =>
+                    $row['REMARK']
+
+            ];
+
+        }
+
+
+        return $result;
     }
 }

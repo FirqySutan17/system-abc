@@ -144,7 +144,7 @@ $route['report-production/export_pdf_item_balance'] = 'ReportProduction/export_p
 
 // REPORT ACCOUNTING
 $route['report-accounting/load_cost'] = 'ReportAccounting/load_cost';
-$route['report-accounting/load_sl'] = 'ReportAccounting/load_sl';
+$route['report-accounting/load_saving'] = 'ReportAccounting/load_saving';
 $route['report-accounting/export_excel_cost'] = 'ReportAccounting/export_excel_cost';
 $route['report-accounting/export_pdf_cost'] = 'ReportAccounting/export_pdf_cost';
 
@@ -158,9 +158,11 @@ $route['report-accounting/load_cashin'] = 'ReportAccounting/load_cashin';
 $route['report-accounting/export_excel_cashin'] = 'ReportAccounting/export_excel_cashin';
 $route['report-accounting/export_pdf_cashin'] = 'ReportAccounting/export_pdf_cashin';
 
+$route['report-accounting/export_excel_saving'] = 'ReportAccounting/export_excel_saving';
+
 $route['report-accounting/load_ar'] = 'ReportAccounting/load_ar';
 $route['report-accounting/load_ar_detail'] = 'ReportAccounting/load_ar_detail';
-$route['report-accounting/export_excel_ar'] = 'ReportAccounting/export_excel_ar';
+$route['report-accounting/export_ar_excel'] = 'ReportAccounting/export_ar_excel';
 $route['report-accounting/export_pdf_ar'] = 'ReportAccounting/export_pdf_ar';
 
 $route['report-accounting/load_daily_summary'] = 'ReportAccounting/load_daily_summary';

@@ -179,14 +179,200 @@ class CashIn extends MY_Controller {
 
     private function build_pagination($pages, $current)
     {
-        $html = '<ul class="pagination pagination-sm">';
-        for ($i=1; $i <= $pages; $i++) {
-            $active = ($i == $current) ? 'active' : '';
-            $html .= '<li class="page-item '.$active.'">
-                        <a href="javascript:void(0)" class="page-link" onclick="loadPage('.$i.')">'.$i.'</a>
-                     </li>';
+        if ($pages <= 1) {
+            return '';
         }
+
+
+        $html = '';
+
+        $html .= '<ul class="pagination pagination-sm mb-0">';
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PREVIOUS
+        |--------------------------------------------------------------------------
+        */
+
+        if ($current > 1) {
+
+            $html .= '
+                <li class="page-item">
+                    <a
+                        href="javascript:void(0)"
+                        class="page-link"
+                        onclick="loadPage(' . ($current - 1) . ')"
+                    >
+                        &laquo;
+                    </a>
+                </li>
+            ';
+
+        } else {
+
+            $html .= '
+                <li class="page-item disabled">
+                    <span class="page-link">&laquo;</span>
+                </li>
+            ';
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PAGE RANGE
+        |--------------------------------------------------------------------------
+        */
+
+        $range = 2;
+
+
+        $start = max(
+            1,
+            $current - $range
+        );
+
+
+        $end = min(
+            $pages,
+            $current + $range
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | FIRST PAGE
+        |--------------------------------------------------------------------------
+        */
+
+        if ($start > 1) {
+
+            $html .= '
+                <li class="page-item">
+                    <a
+                        href="javascript:void(0)"
+                        class="page-link"
+                        onclick="loadPage(1)"
+                    >
+                        1
+                    </a>
+                </li>
+            ';
+
+
+            if ($start > 2) {
+
+                $html .= '
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                ';
+
+            }
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PAGE NUMBERS
+        |--------------------------------------------------------------------------
+        */
+
+        for ($i = $start; $i <= $end; $i++) {
+
+            $active = (
+                $i == $current
+            )
+                ? ' active'
+                : '';
+
+
+            $html .= '
+                <li class="page-item' . $active . '">
+                    <a
+                        href="javascript:void(0)"
+                        class="page-link"
+                        onclick="loadPage(' . $i . ')"
+                    >
+                        ' . $i . '
+                    </a>
+                </li>
+            ';
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | LAST PAGE
+        |--------------------------------------------------------------------------
+        */
+
+        if ($end < $pages) {
+
+            if ($end < ($pages - 1)) {
+
+                $html .= '
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                ';
+
+            }
+
+
+            $html .= '
+                <li class="page-item">
+                    <a
+                        href="javascript:void(0)"
+                        class="page-link"
+                        onclick="loadPage(' . $pages . ')"
+                    >
+                        ' . $pages . '
+                    </a>
+                </li>
+            ';
+
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | NEXT
+        |--------------------------------------------------------------------------
+        */
+
+        if ($current < $pages) {
+
+            $html .= '
+                <li class="page-item">
+                    <a
+                        href="javascript:void(0)"
+                        class="page-link"
+                        onclick="loadPage(' . ($current + 1) . ')"
+                    >
+                        &raquo;
+                    </a>
+                </li>
+            ';
+
+        } else {
+
+            $html .= '
+                <li class="page-item disabled">
+                    <span class="page-link">&raquo;</span>
+                </li>
+            ';
+
+        }
+
+
         $html .= '</ul>';
+
+
         return $html;
     }
 

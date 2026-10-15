@@ -249,8 +249,10 @@ class ReportInventory_model extends CI_Model {
         $filters = [],
         $order = 'a.PO_DATE',
         $dir = 'DESC'
-    ){
-        $this->db->select("
+    ) {
+        $this->base_po_report_query($filters);
+
+        $this->db->select('
             a.PLANT,
             plant.CODE_NAME AS PLANT_NAME,
 
@@ -286,30 +288,24 @@ class ReportInventory_model extends CI_Model {
             a.HARGA,
             a.TOTAL,
 
+            a.PAID_AMOUNT,
+            a.REMAINING,
+            a.PAYMENT_STATUS,
+
             a.NO_TRUCK,
             a.DRIVER,
 
             a.STATUS,
             a.REMARK
-        ", false);
-
-        $this->base_po_report_query($filters);
+        ');
 
         $this->db->order_by($order, $dir);
-        $this->db->order_by('a.PO', 'DESC');
 
-        if($limit > 0){
-
-            $this->db->limit(
-                (int)$limit,
-                (int)$start
-            );
-
+        if ($limit > 0) {
+            $this->db->limit($limit, $start);
         }
 
-        return $this->db
-            ->get()
-            ->result();
+        return $this->db->get()->result();
     }
 
     public function get_po_summary($filters = [])
@@ -360,13 +356,11 @@ class ReportInventory_model extends CI_Model {
         $dir = 'DESC'
     ){
         $allowedOrder = [
-
             'RECEIVE'      => 'r.RECEIVE',
             'PLANT'        => 'r.PLANT',
             'RECEIVE_DATE' => 'r.RECEIVE_DATE',
             'PO'           => 'r.PO',
             'SUPPLIER'     => 'r.SUPPLIER'
-
         ];
 
         $orderBy = $allowedOrder[$order]
@@ -385,7 +379,11 @@ class ReportInventory_model extends CI_Model {
         $this->db
             ->select('r.RECEIVE, r.PLANT')
             ->from('abc_mst_receive r')
-            ->where('r.DELETED IS NULL', null, false);
+            ->where(
+                'r.DELETED IS NULL',
+                null,
+                false
+            );
 
         /*
         |--------------------------------------------------------------------------
@@ -490,7 +488,7 @@ class ReportInventory_model extends CI_Model {
 
         /*
         |--------------------------------------------------------------------------
-        | BUILD PAIRS
+        | BUILD RECEIVE + PLANT PAIRS
         |--------------------------------------------------------------------------
         */
 
@@ -499,21 +497,28 @@ class ReportInventory_model extends CI_Model {
         foreach ($headers as $h) {
 
             $pairs[] = "("
-                .$this->db->escape($h->RECEIVE)
-                .","
-                .$this->db->escape($h->PLANT)
-                .")";
+                . $this->db->escape($h->RECEIVE)
+                . ","
+                . $this->db->escape($h->PLANT)
+                . ")";
 
         }
 
         /*
         |--------------------------------------------------------------------------
-        | DETAIL QUERY
+        | RECEIVE DETAIL + SALES + SAVING
         |--------------------------------------------------------------------------
         */
 
         $sql = "
+
             SELECT
+
+                /*
+                |--------------------------------------------------------------------------
+                | RECEIVE INFORMATION
+                |--------------------------------------------------------------------------
+                */
 
                 r.RECEIVE,
                 r.PLANT,
@@ -541,69 +546,295 @@ class ReportInventory_model extends CI_Model {
 
                 r.STATUS_RECEIVE,
 
+                r.TOTAL_QTY,
+                r.TOTAL_BW,
+                r.TOTAL_AVG_BW,
+
+                r.MATERIAL AS RECEIVE_MATERIAL,
+
+                r.TOTAL_CUSTOMER,
+
+                /*
+                |--------------------------------------------------------------------------
+                | RECEIVE DETAIL
+                |--------------------------------------------------------------------------
+                */
+
+                d.ID AS RECEIVE_DETAIL_ID,
+
                 d.SEQ_NO,
 
                 d.CUSTOMER,
+
                 customer.FULL_NAME AS CUSTOMER_NAME,
 
                 d.PO_TYPE,
+
                 po_type.CODE_NAME AS PO_TYPE_NAME,
 
                 d.MATERIAL,
+
                 material.MATERIAL_NAME,
 
                 d.JUMLAH,
                 d.BERAT,
+                d.AVG_BW,
 
                 d.SUSUT_JUMLAH,
                 d.SUSUT_BERAT,
 
                 d.HARGA,
+                d.DISCOUNT,
                 d.TOTAL,
 
                 d.IS_EXTRA,
+
                 d.SALES_CREATED,
                 d.SALES_NO,
 
-                d.KETERANGAN,
-                d.STATUS
+                d.STATUS,
+
+                /*
+                |--------------------------------------------------------------------------
+                | SALES
+                |--------------------------------------------------------------------------
+                */
+
+                s.SALES AS SALES_REPORT_NO,
+
+                s.SALES_DATE AS SALES_REPORT_DATE,
+
+                s.AMOUNT AS SALES_AMOUNT,
+
+                s.MODAL AS SALES_MODAL,
+
+                s.BIAYA AS SALES_BIAYA,
+
+                s.DP_AMOUNT AS SALES_DP,
+
+                s.DISCOUNT AS SALES_DISCOUNT,
+
+                s.ROUNDING AS SALES_ROUNDING,
+
+                s.REMAIN AS SALES_REMAIN,
+
+                s.STATUS AS SALES_STATUS,
+
+                /*
+                |--------------------------------------------------------------------------
+                | SAVING
+                |--------------------------------------------------------------------------
+                */
+
+                saving_data.SAVING_NO_LIST,
+
+                saving_data.SAVING_AMOUNT,
+
+                saving_data.SAVING_BASIS,
+
+                saving_data.SAVING_RATE,
+
+                saving_data.SAVING_QTY,
+
+                saving_data.SAVING_WEIGHT,
+
+                saving_data.SAVING_REMAIN,
+
+                saving_data.SAVING_STATUS
 
             FROM abc_mst_receive r
 
+            /*
+            |--------------------------------------------------------------------------
+            | RECEIVE DETAIL
+            |--------------------------------------------------------------------------
+            */
+
             INNER JOIN abc_mst_receive_detail d
+
                 ON d.RECEIVE = r.RECEIVE
+
                 AND d.PLANT = r.PLANT
+
                 AND d.DELETED IS NULL
 
+            /*
+            |--------------------------------------------------------------------------
+            | PLANT
+            |--------------------------------------------------------------------------
+            */
+
             LEFT JOIN abc_cd_code plant
+
                 ON plant.HEAD_CODE = 'PLANT'
+
                 AND plant.CODE COLLATE utf8mb4_unicode_ci =
                 r.PLANT COLLATE utf8mb4_unicode_ci
 
+            /*
+            |--------------------------------------------------------------------------
+            | SUPPLIER
+            |--------------------------------------------------------------------------
+            */
+
             LEFT JOIN abc_cd_customer supplier
+
                 ON supplier.CUST COLLATE utf8mb4_unicode_ci =
                 r.SUPPLIER COLLATE utf8mb4_unicode_ci
 
+            /*
+            |--------------------------------------------------------------------------
+            | CUSTOMER
+            |--------------------------------------------------------------------------
+            */
+
             LEFT JOIN abc_cd_customer customer
+
                 ON customer.CUST COLLATE utf8mb4_unicode_ci =
                 d.CUSTOMER COLLATE utf8mb4_unicode_ci
 
+            /*
+            |--------------------------------------------------------------------------
+            | MATERIAL
+            |--------------------------------------------------------------------------
+            */
+
             LEFT JOIN abc_cd_material material
+
                 ON material.MATERIAL COLLATE utf8mb4_unicode_ci =
                 d.MATERIAL COLLATE utf8mb4_unicode_ci
 
+            /*
+            |--------------------------------------------------------------------------
+            | PO TYPE
+            |--------------------------------------------------------------------------
+            */
+
             LEFT JOIN abc_cd_code po_type
+
                 ON po_type.HEAD_CODE = 'PO'
+
                 AND po_type.CODE COLLATE utf8mb4_unicode_ci =
                 d.PO_TYPE COLLATE utf8mb4_unicode_ci
 
+            /*
+            |--------------------------------------------------------------------------
+            | PAYMENT
+            |--------------------------------------------------------------------------
+            */
+
             LEFT JOIN abc_cd_code pay
+
                 ON pay.HEAD_CODE = 'PAYMENT'
+
                 AND pay.CODE COLLATE utf8mb4_unicode_ci =
                 r.PEMBAYARAN COLLATE utf8mb4_unicode_ci
 
-            WHERE (r.RECEIVE,r.PLANT)
-            IN (".implode(',', $pairs).")
+            /*
+            |--------------------------------------------------------------------------
+            | SALES
+            |--------------------------------------------------------------------------
+            |
+            | IMPORTANT:
+            |
+            | Tidak menggunakan RECEIVE_DETAIL_ID.
+            |
+            | Relasi hanya:
+            |
+            | s.RECEIVE = r.RECEIVE
+            |
+            | dan:
+            |
+            | s.REMARK = AUTO FROM RECEIVE {RECEIVE}
+            |
+            */
+
+            LEFT JOIN abc_mst_sales s
+
+                ON s.RECEIVE COLLATE utf8mb4_unicode_ci =
+                r.RECEIVE COLLATE utf8mb4_unicode_ci
+
+                AND s.REMARK COLLATE utf8mb4_unicode_ci =
+                CONCAT(
+                    'AUTO FROM RECEIVE ',
+                    r.RECEIVE
+                ) COLLATE utf8mb4_unicode_ci
+
+            /*
+            |--------------------------------------------------------------------------
+            | SAVING
+            |--------------------------------------------------------------------------
+            */
+
+            LEFT JOIN (
+
+                SELECT
+
+                    sv.RECEIVE,
+
+                    GROUP_CONCAT(
+                        DISTINCT sv.SV_NO
+                        ORDER BY sv.SV_NO
+                        SEPARATOR ', '
+                    ) AS SAVING_NO_LIST,
+
+                    SUM(
+                        COALESCE(sv.AMOUNT, 0)
+                    ) AS SAVING_AMOUNT,
+
+                    GROUP_CONCAT(
+                        DISTINCT sv.BASIS
+                        ORDER BY sv.BASIS
+                        SEPARATOR ', '
+                    ) AS SAVING_BASIS,
+
+                    GROUP_CONCAT(
+                        DISTINCT sv.RATE
+                        ORDER BY sv.RATE
+                        SEPARATOR ', '
+                    ) AS SAVING_RATE,
+
+                    SUM(
+                        COALESCE(sv.TOTAL_QTY, 0)
+                    ) AS SAVING_QTY,
+
+                    SUM(
+                        COALESCE(sv.TOTAL_WEIGHT, 0)
+                    ) AS SAVING_WEIGHT,
+
+                    SUM(
+                        COALESCE(sv.REMAIN, 0)
+                    ) AS SAVING_REMAIN,
+
+                    GROUP_CONCAT(
+                        DISTINCT sv.STATUS
+                        ORDER BY sv.STATUS
+                        SEPARATOR ', '
+                    ) AS SAVING_STATUS
+
+                FROM abc_mst_saving sv
+
+                GROUP BY sv.RECEIVE
+
+            ) saving_data
+
+                ON saving_data.RECEIVE COLLATE utf8mb4_unicode_ci =
+                r.RECEIVE COLLATE utf8mb4_unicode_ci
+
+            /*
+            |--------------------------------------------------------------------------
+            | RECEIVE PAIRS
+            |--------------------------------------------------------------------------
+            */
+
+            WHERE (r.RECEIVE, r.PLANT)
+            IN (" . implode(',', $pairs) . ")
+
+            /*
+            |--------------------------------------------------------------------------
+            | ORDER
+            |--------------------------------------------------------------------------
+            */
 
             ORDER BY
 
@@ -611,7 +842,12 @@ class ReportInventory_model extends CI_Model {
 
                 r.RECEIVE DESC,
 
-                d.SEQ_NO ASC
+                d.SEQ_NO ASC,
+
+                s.SALES_DATE ASC,
+
+                s.SALES ASC
+
         ";
 
         return $this->db

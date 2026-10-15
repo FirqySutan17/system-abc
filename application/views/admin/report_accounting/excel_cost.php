@@ -6,91 +6,184 @@
 
             <th>COST</th>
 
-            <th>DATE</th>
-
             <th>PLANT</th>
-
-            <th>SUPPLIER</th>
 
             <th>PAYMENT</th>
 
-            <th>PO</th>
+            <th>SLIP NO</th>
 
-            <th>MATERIAL</th>
+            <th>COST DATE</th>
 
-            <th>QTY</th>
+            <th>TIPE COST</th>
 
-            <th>BERAT</th>
+            <th>KUANTITAS</th>
 
             <th>HARGA</th>
 
             <th>TOTAL</th>
 
-            <th>REMARK</th>
-
         </tr>
 
     </thead>
+
 
     <tbody>
 
         <?php foreach($rows as $row): ?>
 
-            <?php foreach($row['DETAILS'] as $d): ?>
+            <?php
+
+            $details =
+                $row['DETAIL']
+                ?? [];
+
+            ?>
+
+
+            <?php if(empty($details)): ?>
 
                 <tr>
 
                     <td>
-                        <?= $row['COST']; ?>
+                        <?= htmlspecialchars(
+                            $row['COST'] ?? ''
+                        ); ?>
                     </td>
 
                     <td>
-                        <?= $row['COST_DATE']; ?>
+                        <?= htmlspecialchars(
+                            $row['PLANT_NAME'] ?? ''
+                        ); ?>
                     </td>
 
                     <td>
-                        <?= $row['PLANT_NAME']; ?>
+                        <?= htmlspecialchars(
+                            $row['PEMBAYARAN'] ?? ''
+                        ); ?>
                     </td>
 
                     <td>
-                        <?= $row['SUPPLIER_NAME']; ?>
+                        <?= htmlspecialchars(
+                            $row['SLIP_NO'] ?? ''
+                        ); ?>
                     </td>
 
                     <td>
-                        <?= $row['PEMBAYARAN']; ?>
+                        <?= htmlspecialchars(
+                            $row['COST_DATE'] ?? ''
+                        ); ?>
                     </td>
 
-                    <td>
-                        <?= $d['PO']; ?>
+                    <td>-</td>
+
+                    <td style="text-align:right;">
+                        0
                     </td>
 
-                    <td>
-                        <?= $d['MATERIAL_NAME']; ?>
+                    <td style="text-align:right;">
+                        0
                     </td>
 
-                    <td>
-                        <?= number_format($d['QTY'],2,',','.'); ?>
-                    </td>
-
-                    <td>
-                        <?= number_format($d['BERAT'],2,',','.'); ?>
-                    </td>
-
-                    <td>
-                        <?= number_format($d['HARGA'],0,',','.'); ?>
-                    </td>
-
-                    <td>
-                        <?= number_format($d['TOTAL'],0,',','.'); ?>
-                    </td>
-
-                    <td>
-                        <?= $d['REMARK']; ?>
+                    <td style="text-align:right;">
+                        0
                     </td>
 
                 </tr>
 
-            <?php endforeach; ?>
+
+            <?php else: ?>
+
+
+                <?php foreach($details as $detail): ?>
+
+                    <tr>
+
+                        <td>
+                            <?= htmlspecialchars(
+                                $row['COST'] ?? ''
+                            ); ?>
+                        </td>
+
+                        <td>
+                            <?= htmlspecialchars(
+                                $row['PLANT_NAME'] ?? ''
+                            ); ?>
+                        </td>
+
+                        <td>
+                            <?= htmlspecialchars(
+                                $row['PEMBAYARAN'] ?? ''
+                            ); ?>
+                        </td>
+
+                        <td>
+                            <?= htmlspecialchars(
+                                $row['SLIP_NO'] ?? ''
+                            ); ?>
+                        </td>
+
+                        <td>
+                            <?= htmlspecialchars(
+                                $row['COST_DATE'] ?? ''
+                            ); ?>
+                        </td>
+
+                        <td>
+                            <?= htmlspecialchars(
+                                $detail['COST_NAME']
+                                ?? $detail['TIPE_COST']
+                                ?? ''
+                            ); ?>
+                        </td>
+
+                        <td style="text-align:right;">
+
+                            <?= number_format(
+                                (float) (
+                                    $detail['TOTAL_QTY']
+                                    ?? 0
+                                ),
+                                2,
+                                ',',
+                                '.'
+                            ); ?>
+
+                        </td>
+
+                        <td style="text-align:right;">
+
+                            <?= number_format(
+                                (float) (
+                                    $detail['TOTAL_JUMLAH']
+                                    ?? 0
+                                ),
+                                0,
+                                ',',
+                                '.'
+                            ); ?>
+
+                        </td>
+
+                        <td style="text-align:right;">
+
+                            <?= number_format(
+                                (float) (
+                                    $detail['TOTAL']
+                                    ?? 0
+                                ),
+                                0,
+                                ',',
+                                '.'
+                            ); ?>
+
+                        </td>
+
+                    </tr>
+
+                <?php endforeach; ?>
+
+
+            <?php endif; ?>
 
         <?php endforeach; ?>
 

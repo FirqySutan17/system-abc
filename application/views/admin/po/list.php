@@ -1301,6 +1301,463 @@
 
 </div>
 
+<!-- MODAL DETAIL VIEW PO -->
+<div class="modal fade" id="poDetailView" tabindex="-1" aria-hidden="true">
+
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title mb-0" style="color:#fff">
+                    PURCHASE ORDER - DETAIL
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <!-- ================= PO INFORMATION ================= -->
+
+                <div class="po-section-card">
+
+                    <div class="po-section-title">
+
+                        <span>
+                            <i class="ti ti-package me-1"></i>
+                            PO INFORMATION
+                        </span>
+
+                    </div>
+
+
+                    <div class="row g-3">
+
+                        <!-- PLANT -->
+
+                        <div class="col-md-4">
+
+                            <label class="po-label">
+                                Plant
+                            </label>
+
+                            <input
+                                type="text"
+                                id="detailPlant"
+                                class="form-control po-input detail-view-input"
+                                readonly>
+
+                        </div>
+
+
+                        <!-- PO -->
+
+                        <div class="col-md-4">
+
+                            <label class="po-label">
+                                No. PO
+                            </label>
+
+                            <input
+                                type="text"
+                                id="detailPO"
+                                class="form-control po-input detail-view-input"
+                                readonly>
+
+                        </div>
+
+
+                        <!-- DATE -->
+
+                        <div class="col-md-4">
+
+                            <label class="po-label">
+                                Tanggal PO
+                            </label>
+
+                            <input
+                                type="text"
+                                id="detailPODate"
+                                class="form-control po-input detail-view-input"
+                                readonly>
+
+                        </div>
+
+
+                        <!-- TYPE -->
+
+                        <div class="col-md-4">
+
+                            <label class="po-label">
+                                Tipe PO
+                            </label>
+
+                            <input
+                                type="text"
+                                id="detailPOType"
+                                class="form-control po-input detail-view-input"
+                                readonly>
+
+                        </div>
+
+
+                        <!-- SUPPLIER -->
+
+                        <div class="col-md-4">
+
+                            <label class="po-label">
+                                Supplier
+                            </label>
+
+                            <input
+                                type="text"
+                                id="detailSupplier"
+                                class="form-control po-input detail-view-input"
+                                readonly>
+
+                        </div>
+
+
+                        <!-- MATERIAL -->
+
+                        <div class="col-md-4">
+
+                            <label class="po-label">
+                                Material
+                            </label>
+
+                            <input
+                                type="text"
+                                id="detailMaterial"
+                                class="form-control po-input detail-view-input"
+                                readonly>
+
+                        </div>
+
+
+                        <!-- QTY -->
+
+                        <div class="col-md-3">
+
+                            <label class="po-label">
+                                Qty / Ekor
+                            </label>
+
+                            <input
+                                type="text"
+                                id="detailJumlah"
+                                class="form-control po-input detail-view-input"
+                                readonly>
+
+                        </div>
+
+
+                        <!-- BERAT -->
+
+                        <div class="col-md-3">
+
+                            <label class="po-label">
+                                Berat / BW
+                            </label>
+
+                            <input
+                                type="text"
+                                id="detailBerat"
+                                class="form-control po-input detail-view-input"
+                                readonly>
+
+                        </div>
+
+
+                        <!-- AVG BW -->
+
+                        <div class="col-md-3">
+
+                            <label class="po-label">
+                                Avg BW
+                            </label>
+
+                            <input
+                                type="text"
+                                id="detailAvgBw"
+                                class="form-control po-input detail-view-input"
+                                readonly>
+
+                        </div>
+
+
+                        <!-- HARGA -->
+
+                        <div class="col-md-3">
+
+                            <label class="po-label">
+                                Harga
+                            </label>
+
+                            <input
+                                type="text"
+                                id="detailHarga"
+                                class="form-control po-input detail-view-input"
+                                readonly>
+
+                        </div>
+
+
+                        <!-- MATI QTY -->
+
+                        <div class="col-md-3">
+
+                            <label class="po-label">
+                                Mati (Qty)
+                            </label>
+
+                            <input
+                                type="text"
+                                id="detailMatiQty"
+                                class="form-control po-input detail-view-input"
+                                readonly>
+
+                        </div>
+
+
+                        <!-- MATI BW -->
+
+                        <div class="col-md-3">
+
+                            <label class="po-label">
+                                Mati (BW)
+                            </label>
+
+                            <input
+                                type="text"
+                                id="detailMatiBw"
+                                class="form-control po-input detail-view-input"
+                                readonly>
+
+                        </div>
+
+
+                        <!-- ACTUAL -->
+
+                        <div class="col-md-3">
+
+                            <label class="po-label">
+                                Actual Hasil Timbang
+                            </label>
+
+                            <input
+                                type="text"
+                                id="detailActualTimbang"
+                                class="form-control po-input detail-view-input"
+                                readonly>
+
+                        </div>
+
+
+                        <!-- SUSUT -->
+
+                        <div class="col-md-3">
+
+                            <label class="po-label">
+                                Susut (BW)
+                            </label>
+
+                            <input
+                                type="text"
+                                id="detailSusutBw"
+                                class="form-control po-input detail-view-input"
+                                readonly>
+
+                        </div>
+
+
+                        <!-- CLAIM QTY -->
+
+                        <div class="col-md-3">
+
+                            <label class="po-label">
+                                Claim Qty
+                            </label>
+
+                            <input
+                                type="text"
+                                id="detailClaimQty"
+                                class="form-control po-input detail-view-input"
+                                readonly>
+
+                        </div>
+
+
+                        <!-- CLAIM BW -->
+
+                        <div class="col-md-3">
+
+                            <label class="po-label">
+                                Claim BW
+                            </label>
+
+                            <input
+                                type="text"
+                                id="detailClaimBw"
+                                class="form-control po-input detail-view-input"
+                                readonly>
+
+                        </div>
+
+
+                        <!-- TOTAL TERIMA QTY -->
+
+                        <div class="col-md-3">
+
+                            <label class="po-label">
+                                Total Terima Qty
+                            </label>
+
+                            <input
+                                type="text"
+                                id="detailTerimaQty"
+                                class="form-control po-input detail-view-input"
+                                readonly>
+
+                        </div>
+
+
+                        <!-- TOTAL TERIMA BW -->
+
+                        <div class="col-md-3">
+
+                            <label class="po-label">
+                                Total Terima BW
+                            </label>
+
+                            <input
+                                type="text"
+                                id="detailTerimaBw"
+                                class="form-control po-input detail-view-input"
+                                readonly>
+
+                        </div>
+
+
+                        <!-- BW FINAL -->
+
+                        <div class="col-md-6">
+
+                            <label class="po-label">
+                                BW (Final)
+                            </label>
+
+                            <input
+                                type="text"
+                                id="detailBayarBw"
+                                class="form-control po-input detail-view-input"
+                                readonly>
+
+                        </div>
+
+
+                        <!-- TOTAL -->
+
+                        <div class="col-md-6">
+
+                            <label class="po-label">
+                                Total
+                            </label>
+
+                            <input
+                                type="text"
+                                id="detailTotal"
+                                class="form-control po-input detail-view-input"
+                                readonly>
+
+                        </div>
+
+
+                        <!-- TRUCK -->
+
+                        <div class="col-md-6">
+
+                            <label class="po-label">
+                                No Truck
+                            </label>
+
+                            <input
+                                type="text"
+                                id="detailTruck"
+                                class="form-control po-input detail-view-input"
+                                readonly>
+
+                        </div>
+
+
+                        <!-- DRIVER -->
+
+                        <div class="col-md-6">
+
+                            <label class="po-label">
+                                Driver
+                            </label>
+
+                            <input
+                                type="text"
+                                id="detailDriver"
+                                class="form-control po-input detail-view-input"
+                                readonly>
+
+                        </div>
+
+
+                        <!-- REMARK -->
+
+                        <div class="col-md-12">
+
+                            <label class="po-label">
+                                Remark
+                            </label>
+
+                            <textarea
+                                id="detailRemark"
+                                rows="2"
+                                class="form-control po-input detail-view-input"
+                                readonly>
+                            </textarea>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-light btn-modern"
+                    data-bs-dismiss="modal">
+
+                    Close
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
 <style>
     .table-box{
         min-height:300px;
@@ -1423,6 +1880,10 @@
     .select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option {
         line-height: 1;
         font-size: 13px !important;
+    }
+    .detail-view-input{
+        background:#f5f6f8 !important;
+        cursor:default;
     }
 </style>
 
@@ -1643,12 +2104,19 @@
             resp.rows.forEach(function(row){
                 let actionBtn = `
                     <button
+                        class="btn btn-outline-info detailBtn"
+                        data-po="${row.PO}"
+                        data-plant="${row.PLANT}">
+                        View
+                    </button>
+
+                    <button
                         class="btn btn-outline-primary exportPdf"
                         data-po="${row.PO}"
                         data-plant="${row.PLANT}">
                         Print
                     </button>
-                    `;
+                `;
 
                     if (row.STATUS === 'OPEN') {
 
@@ -2793,6 +3261,157 @@
                 }
 
             }, 'json');
+        });
+
+        // Click detail view
+        $(document).on('click', '.detailBtn', function () {
+
+            let po = $(this).data('po');
+            let plant = $(this).data('plant');
+
+            $.get(
+                '<?= base_url("po/detail"); ?>',
+                {
+                    po: po,
+                    plant: plant
+                },
+                function (resp) {
+
+                    resp = (typeof resp === 'string')
+                        ? JSON.parse(resp)
+                        : resp;
+
+                    if (!resp.status) {
+
+                        alert(resp.message);
+
+                        return;
+                    }
+
+                    let h = resp.header;
+
+
+                    // =====================================
+                    // PO INFORMATION
+                    // =====================================
+
+                    $('#detailPlant')
+                        .val(h.AJ_NAME || h.PLANT || '-');
+
+                    $('#detailPO')
+                        .val(h.PO || '-');
+
+                    $('#detailPODate')
+                        .val(formatTanggalIndo(h.PO_DATE));
+
+                    $('#detailPOType')
+                        .val(h.PO_TYPE || '-');
+
+                    $('#detailSupplier')
+                        .val(
+                            h.SUPPLIER_NAME
+                                ? h.SUPPLIER + ' - ' + h.SUPPLIER_NAME
+                                : h.SUPPLIER || '-'
+                        );
+
+                    $('#detailMaterial')
+                        .val(
+                            h.MATERIAL_NAME
+                                ? h.MATERIAL + ' - ' + h.MATERIAL_NAME
+                                : h.MATERIAL || '-'
+                        );
+
+
+                    // =====================================
+                    // MASTER
+                    // =====================================
+
+                    $('#detailJumlah')
+                        .val(formatDecimalID(h.JUMLAH));
+
+                    $('#detailBerat')
+                        .val(formatDecimalID(h.BERAT));
+
+                    $('#detailAvgBw')
+                        .val(formatDecimalID(h.AVG_BW));
+
+                    $('#detailHarga')
+                        .val(formatMoneyID(h.HARGA));
+
+
+                    // =====================================
+                    // ACTUAL
+                    // =====================================
+
+                    $('#detailMatiQty')
+                        .val(formatDecimalID(h.MATI_QTY));
+
+                    $('#detailMatiBw')
+                        .val(formatDecimalID(h.MATI_BW));
+
+                    $('#detailActualTimbang')
+                        .val(formatDecimalID(h.ACTUAL_HASIL_TIMBANG));
+
+                    $('#detailSusutBw')
+                        .val(formatDecimalID(h.SUSUT_BW));
+
+
+                    // =====================================
+                    // CLAIM
+                    // =====================================
+
+                    $('#detailClaimQty')
+                        .val(formatDecimalID(h.CLAIM_QTY));
+
+                    $('#detailClaimBw')
+                        .val(formatDecimalID(h.CLAIM_BW));
+
+
+                    // =====================================
+                    // RECEIVE
+                    // =====================================
+
+                    $('#detailTerimaQty')
+                        .val(formatDecimalID(h.TOTAL_TERIMA_QTY));
+
+                    $('#detailTerimaBw')
+                        .val(formatDecimalID(h.TOTAL_TERIMA_BW));
+
+                    $('#detailBayarBw')
+                        .val(formatDecimalID(h.TOTAL_BAYAR_BW));
+
+
+                    // =====================================
+                    // TOTAL
+                    // =====================================
+
+                    $('#detailTotal')
+                        .val(formatMoneyID(h.TOTAL));
+
+
+                    // =====================================
+                    // OTHER
+                    // =====================================
+
+                    $('#detailTruck')
+                        .val(h.NO_TRUCK || '-');
+
+                    $('#detailDriver')
+                        .val(h.DRIVER || '-');
+
+                    $('#detailRemark')
+                        .val(h.REMARK || '-');
+
+                    // =====================================
+                    // SHOW
+                    // =====================================
+
+                    $('#poDetailView').modal('show');
+
+                },
+                'json'
+            );
+
         });
 
         // Click edit
