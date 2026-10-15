@@ -271,6 +271,11 @@ class ReportInventory_model extends CI_Model {
             a.BERAT,
             a.AVG_BW,
 
+            a.JANTAN_QTY,
+            a.JANTAN_BW,
+            a.BETINA_QTY,
+            a.BETINA_BW,
+
             a.MATI_QTY,
             a.MATI_BW,
 

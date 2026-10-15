@@ -46,7 +46,7 @@
                     <button
                         id="btnResetFilter"
                         class="btn btn-light w-100">
-                        Atur Ulang
+                        Reset
                     </button>
                 </div>
 
@@ -103,9 +103,10 @@
 
                                     <th style="text-align: center; vertical-align: middle">Plant</th>
                                     <th style="text-align: center; vertical-align: middle">Tanggal</th>
-                                    <th style="text-align: center; vertical-align: middle">Class Out</th>
-                                    <th style="text-align: center; vertical-align: middle">Jumlah</th>
-                                    <th style="text-align: center; vertical-align: middle">Berat</th>
+                                    <th style="text-align: center; vertical-align: middle">Kategori</th>
+                                    <th style="text-align: center; vertical-align: middle">Ekor</th>
+                                    <th style="text-align: center; vertical-align: middle">Harga</th>
+                                    <th style="text-align: center; vertical-align: middle">Total</th>
                                     <th style="text-align: center; vertical-align: middle">Keterangan</th>
                                     <th style="text-align: center; vertical-align: middle">#</th>
 
@@ -369,6 +370,64 @@
                             </div>
 
                             <div class="col-md-6">
+                                <label class="form-label">No. Sales *</label>
+
+                                <div class="input-group">
+                                    <input
+                                        type="text"
+                                        id="SALES_ADD_DISPLAY"
+                                        class="form-control"
+                                        placeholder="Pilih Sales"
+                                        readonly
+                                        required>
+
+                                    <input
+                                        type="hidden"
+                                        id="SALES_ADD"
+                                        name="SALES">
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-primary"
+                                        id="btnPilihSalesAdd">
+                                        Pilih Sales
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- HARGA -->
+                            <div class="col-md-6">
+                                <label class="form-label">Harga</label>
+                                <input
+                                    type="text"
+                                    id="HARGA_ADD_DISPLAY"
+                                    class="form-control text-end"
+                                    readonly>
+
+                                <input
+                                    type="hidden"
+                                    id="HARGA_ADD"
+                                    name="HARGA">
+                            </div>
+
+                            <!-- EKOR -->
+                            <div class="col-md-6">
+                                <label class="form-label">Ekor *</label>
+                                <input
+                                    type="text"
+                                    id="EKOR_ADD_DISPLAY"
+                                    class="form-control text-end decimal-id"
+                                    autocomplete="off"
+                                    placeholder="0"
+                                    required>
+
+                                <input
+                                    type="hidden"
+                                    id="EKOR_ADD"
+                                    name="EKOR">
+                            </div>
+
+                            <div class="col-md-6">
 
                                 <label class="form-label">
                                     Jumlah *
@@ -378,7 +437,8 @@
                                     type="text"
                                     id="JUMLAH_ADD"
                                     class="form-control text-end decimal-id"
-                                    autocomplete="off">
+                                    autocomplete="off"
+                                    readonly>
 
                                 <input
                                     type="hidden"
@@ -387,7 +447,7 @@
 
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-6" style="display: none;">
 
                                 <label class="form-label">
                                     Berat *
@@ -406,7 +466,7 @@
 
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-12">
 
                                 <label class="form-label">
                                     Class Out *
@@ -541,6 +601,63 @@
                             </div>
 
                             <div class="col-md-6">
+                                <label class="form-label">No. Sales *</label>
+
+                                <div class="input-group">
+                                    <input
+                                        type="text"
+                                        id="SALES_EDIT_DISPLAY"
+                                        class="form-control"
+                                        placeholder="Pilih Sales"
+                                        readonly
+                                        required>
+
+                                    <input
+                                        type="hidden"
+                                        id="SALES_EDIT"
+                                        name="SALES">
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-primary"
+                                        id="btnPilihSalesEdit">
+                                        Pilih Sales
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- HARGA -->
+                            <div class="col-md-6">
+                                <label class="form-label">Harga</label>
+                                <input
+                                    type="text"
+                                    id="HARGA_EDIT_DISPLAY"
+                                    class="form-control text-end"
+                                    readonly>
+
+                                <input
+                                    type="hidden"
+                                    id="HARGA_EDIT"
+                                    name="HARGA">
+                            </div>
+
+                            <!-- EKOR -->
+                            <div class="col-md-6">
+                                <label class="form-label">Ekor *</label>
+                                <input
+                                    type="text"
+                                    id="EKOR_EDIT_DISPLAY"
+                                    class="form-control text-end decimal-id"
+                                    autocomplete="off"
+                                    required>
+
+                                <input
+                                    type="hidden"
+                                    id="EKOR_EDIT"
+                                    name="EKOR">
+                            </div>
+
+                            <div class="col-md-6">
 
                                 <label class="form-label">
                                     Jumlah *
@@ -558,7 +675,7 @@
 
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-6" style="display: none;">
 
                                 <label class="form-label">
                                     Berat *
@@ -576,7 +693,7 @@
 
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-12">
 
                                 <label class="form-label">
                                     Class Out *
@@ -639,6 +756,62 @@
 
     </div>
 
+</div>
+
+<!-- MODAL PILIH SALES -->
+<div class="modal fade"
+     id="modalPilihSales"
+     tabindex="-1"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content receive-card">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Pilih Sales</h5>
+
+                <button
+                    type="button"
+                    class="btn-close btn-close-white"
+                    data-bs-dismiss="modal">
+                </button>
+            </div>
+
+            <div class="modal-body">
+
+                <input
+                    type="text"
+                    id="searchSales"
+                    class="form-control mb-3"
+                    placeholder="Cari nomor Sales atau nomor slip...">
+
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered">
+                        <thead>
+                            <tr>
+                                <th>No. Sales</th>
+                                <th>Customer</th>
+                                <th class="text-center">Tanggal</th>
+                                <th class="text-end">Total Qty</th>
+                                <th class="text-end">Total BW</th>
+                                <th class="text-end">Harga Rata-rata</th>
+                                <th class="text-center"></th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="salesTableBody">
+                            <tr>
+                                <td colspan="5" class="text-center">
+                                    Ketik kata pencarian untuk mencari Sales.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -984,7 +1157,7 @@
         {
             html += `
                 <tr>
-                    <td colspan="7"
+                    <td colspan="8"
                         class="text-center">
                         Data tidak ditemukan
                     </td>
@@ -1015,11 +1188,15 @@
                 </td>
 
                 <td class="text-end">
-                    ${formatIDNumber(r.jumlah)}
+                    ${formatIDNumber(r.EKOR)}
                 </td>
 
                 <td class="text-end">
-                    ${formatIDNumber(r.berat)}
+                    ${formatIDNumber(r.HARGA)}
+                </td>
+
+                <td class="text-end">
+                    ${formatIDNumber(r.jumlah)}
                 </td>
 
                 <td class="text-center" style="vertical-align: middle">
@@ -1082,6 +1259,8 @@
                 .replace(',','.')
 
         );
+
+        calculateCullingJumlah('ADD');
 
         $('#BERAT_ADD_HIDDEN').val(
 
@@ -1190,6 +1369,22 @@
                 $('#YMD_EDIT')
                     .val(h.ymd);
 
+                // SALES
+                $('#SALES_EDIT').val(h.SALES || '');
+                $('#SALES_EDIT_DISPLAY').val(h.SALES || '');
+
+                // HARGA
+                $('#HARGA_EDIT').val(h.HARGA || 0);
+                $('#HARGA_EDIT_DISPLAY').val(
+                    formatIDNumber(h.HARGA || 0)
+                );
+
+                // EKOR
+                $('#EKOR_EDIT').val(h.EKOR || 0);
+                $('#EKOR_EDIT_DISPLAY').val(
+                    formatIDNumber(h.EKOR || 0)
+                );
+
                 $('#JUMLAH_EDIT_DISPLAY')
                     .val(
                         formatIDNumber(
@@ -1275,6 +1470,8 @@
                 .replace(',','.')
 
         );
+
+        calculateCullingJumlah('EDIT');
 
         $('#BERAT_EDIT').val(
 
@@ -1412,6 +1609,203 @@
             id,
             '_blank'
         );
+    });
+
+    let targetSalesForm = 'add';
+
+    function escapeSalesHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, function (char) {
+            return {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            }[char];
+        });
+    }
+
+    function formatTanggalDMY(value) {
+        if (!value) return '-';
+
+        const date = String(value).substring(0, 10);
+        const parts = date.split('-');
+
+        if (parts.length !== 3) return value;
+
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+
+    function loadSales(search = '') {
+        $('#salesTableBody').html(`
+            <tr>
+                <td colspan="5" class="text-center">
+                    Memuat data Sales...
+                </td>
+            </tr>
+        `);
+
+        $.ajax({
+            url: "<?= base_url('culling/get_sales'); ?>",
+            type: 'GET',
+            dataType: 'json',
+            data: { search: search },
+
+            success: function (res) {
+                let html = '';
+
+                if (!res.status || !res.data || res.data.length === 0) {
+                    html = `
+                        <tr>
+                            <td colspan="5" class="text-center">
+                                Data Sales tidak ditemukan.
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    res.data.forEach(function (sales) {
+                        html += `
+                            <tr>
+                                <td>
+                                    <b>#${escapeSalesHtml(sales.SALES)}</b>
+                                    <br>
+                                    <i>${escapeSalesHtml(sales.NOTA)}</i>
+                                </td>
+                                <td style="vertical-align: middle">${escapeSalesHtml(sales.CUSTOMER_NAME)}</td>
+                                <td style="vertical-align: middle" class="text-center">${formatTanggalDMY(sales.SALES_DATE)}</td>
+                                <td style="vertical-align: middle" class="text-end">
+                                    ${formatIDNumber(sales.TOTAL_QTY)}
+                                </td>
+                                <td style="vertical-align: middle" class="text-end">
+                                    ${formatIDNumber(sales.TOTAL_BW)}
+                                </td>
+                                <td style="vertical-align: middle" class="text-end">
+                                    ${formatIDNumber(sales.HARGA)}
+                                </td>
+                                <td style="vertical-align: middle" class="text-center">
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-primary btnSelectSales"
+                                        data-sales="${escapeSalesHtml(sales.SALES)}"
+                                        data-plant="${escapeSalesHtml(sales.PLANT)}"
+                                        data-harga="${escapeSalesHtml(sales.HARGA)}">
+                                        Pilih
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                $('#salesTableBody').html(html);
+            },
+
+            error: function () {
+                $('#salesTableBody').html(`
+                    <tr>
+                        <td colspan="5" class="text-center text-danger">
+                            Gagal mengambil data Sales.
+                        </td>
+                    </tr>
+                `);
+            }
+        });
+    }
+
+    $('#btnPilihSalesAdd').on('click', function () {
+        targetSalesForm = 'add';
+        $('#searchSales').val('');
+        loadSales('');
+
+        bootstrap.Modal
+            .getOrCreateInstance(document.getElementById('modalPilihSales'))
+            .show();
+    });
+
+    $('#btnPilihSalesEdit').on('click', function () {
+        targetSalesForm = 'edit';
+        $('#searchSales').val('');
+        loadSales('');
+
+        bootstrap.Modal
+            .getOrCreateInstance(document.getElementById('modalPilihSales'))
+            .show();
+    });
+
+    $('#searchSales').on('input', function () {
+        loadSales($(this).val().trim());
+    });
+
+    $(document).on('click', '.btnSelectSales', function () {
+        const sales = $(this).attr('data-sales');
+        const plant = $(this).attr('data-plant');
+        const harga = parseFloat($(this).attr('data-harga')) || 0;
+
+        const suffix = targetSalesForm === 'add' ? 'ADD' : 'EDIT';
+
+        $('#SALES_' + suffix).val(sales);
+        $('#SALES_' + suffix + '_DISPLAY').val(sales);
+
+        $('#HARGA_' + suffix).val(harga);
+        $('#HARGA_' + suffix + '_DISPLAY').val(formatIDNumber(harga));
+
+        // Plant Sales otomatis dipilih agar sesuai dengan Sales.
+        const plantSelector = suffix === 'ADD' ? '#plantAdd' : '#plantEdit';
+
+        if (plant) {
+            const option = new Option(plant, plant, true, true);
+
+            $(plantSelector)
+                .empty()
+                .append(option)
+                .trigger('change');
+        }
+
+        calculateCullingJumlah(suffix);
+
+        bootstrap.Modal
+            .getOrCreateInstance(document.getElementById('modalPilihSales'))
+            .hide();
+    });
+
+    function parseIDNumber(value) {
+        if (value === null || value === undefined || value === '') {
+            return 0;
+        }
+
+        return parseFloat(
+            String(value).replace(/\./g, '').replace(',', '.')
+        ) || 0;
+    }
+
+    function calculateCullingJumlah(suffix) {
+        const ekor = parseIDNumber(
+            $('#EKOR_' + suffix + '_DISPLAY').val()
+        );
+
+        const harga = parseFloat(
+            $('#HARGA_' + suffix).val()
+        ) || 0;
+
+        const jumlah = ekor * harga;
+
+        $('#EKOR_' + suffix).val(ekor);
+
+        const jumlahHidden = suffix === 'ADD'
+            ? '#JUMLAH_ADD_HIDDEN'
+            : '#JUMLAH_EDIT';
+
+        const jumlahDisplay = suffix === 'ADD'
+            ? '#JUMLAH_ADD'
+            : '#JUMLAH_EDIT_DISPLAY';
+
+        $(jumlahHidden).val(jumlah);
+        $(jumlahDisplay).val(formatIDNumber(jumlah));
+    }
+
+    $('#EKOR_ADD_DISPLAY, #EKOR_EDIT_DISPLAY').on('input change', function () {
+        const suffix = this.id.includes('_ADD_') ? 'ADD' : 'EDIT';
+        calculateCullingJumlah(suffix);
     });
 
     $(function () {

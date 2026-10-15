@@ -261,6 +261,28 @@ class Culling extends MY_Controller
         );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | GET SALES UNTUK MODAL CULLING
+    |--------------------------------------------------------------------------
+    */
+    public function get_sales()
+    {
+        header('Content-Type: application/json');
+
+        $search = trim(
+            $this->input->get('search', true) ?? ''
+        );
+
+        $data = $this->Culling_model
+            ->get_sales_for_culling($search);
+
+        echo json_encode([
+            'status' => true,
+            'data'   => $data
+        ]);
+    }
+
     public function create()
     {
         header('Content-Type: application/json');
@@ -268,85 +290,145 @@ class Culling extends MY_Controller
         $this->db->trans_begin();
 
         try {
-
+            // --------------------------------------------------
+            // AMBIL INPUT EXISTING
+            // --------------------------------------------------
             $plant = trim(
-                $this->input->post(
-                    'PLANT',
-                    true
-                ) ?? ''
+                $this->input->post('PLANT', true) ?? ''
             );
 
             $classOut = trim(
-                $this->input->post(
-                    'CLASS_OUT',
-                    true
-                ) ?? ''
+                $this->input->post('CLASS_OUT', true) ?? ''
             );
 
             $ymd = trim(
-                $this->input->post(
-                    'YMD',
-                    true
-                ) ?? ''
+                $this->input->post('YMD', true) ?? ''
             );
 
-            $jumlah = (float)
-                $this->input->post('JUMLAH');
-
-            $berat = (float)
-                $this->input->post('BERAT');
+            $beratInput = trim(
+                $this->input->post('BERAT', true) ?? '0'
+            );
 
             $remark = trim(
-                $this->input->post(
-                    'REMARK',
-                    true
-                ) ?? ''
+                $this->input->post('REMARK', true) ?? ''
             );
 
-            /*
-            |--------------------------------------------------------------------------
-            | VALIDATION
-            |--------------------------------------------------------------------------
-            */
+            // --------------------------------------------------
+            // INPUT SALES BARU
+            // --------------------------------------------------
+            $sales = trim(
+                $this->input->post('SALES', true) ?? ''
+            );
 
+            $ekorInput = trim(
+                $this->input->post('EKOR', true) ?? '0'
+            );
+
+            // --------------------------------------------------
+            // PARSING ANGKA FORMAT INDONESIA
+            // Contoh: 1.500,50 menjadi 1500.50
+            // --------------------------------------------------
+            $parseNumber = function ($value) {
+                if ($value === null || $value === '') {
+                    return 0;
+                }
+
+                $value = trim((string) $value);
+
+                // Hilangkan pemisah ribuan.
+                $value = str_replace('.', '', $value);
+
+                // Ubah desimal koma menjadi titik.
+                $value = str_replace(',', '.', $value);
+
+                if (!is_numeric($value)) {
+                    throw new Exception(
+                        'Format angka tidak valid.'
+                    );
+                }
+
+                return (float) $value;
+            };
+
+            $ekor = $parseNumber($ekorInput);
+            $berat = $parseNumber($beratInput);
+
+            // --------------------------------------------------
+            // VALIDASI FIELD WAJIB
+            // --------------------------------------------------
             if (
-                empty($plant) ||
-                empty($ymd) ||
-                empty($classOut)
+                $plant === '' ||
+                $ymd === '' ||
+                $classOut === '' ||
+                $sales === ''
             ) {
-
                 throw new Exception(
-                    'Plant, Date dan Class Out wajib diisi.'
+                    'Plant, Tanggal, Sales dan Class Out wajib diisi.'
                 );
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | INSERT
-            |--------------------------------------------------------------------------
-            */
+            if ($ekor <= 0) {
+                throw new Exception(
+                    'Jumlah Ekor harus lebih besar dari 0.'
+                );
+            }
 
+            // --------------------------------------------------
+            // AMBIL SALES DAN HARGA DARI DATABASE
+            // Jangan menggunakan harga dari browser.
+            // --------------------------------------------------
+            $salesData = $this->Culling_model
+                ->get_sales_price_for_culling($sales);
+
+            if (!$salesData) {
+                throw new Exception(
+                    'Sales tidak ditemukan, tidak aktif, sudah dihapus, atau tidak memiliki detail.'
+                );
+            }
+
+            $harga = (float) $salesData['HARGA'];
+
+            if ($harga < 0) {
+                throw new Exception(
+                    'Harga Sales tidak valid.'
+                );
+            }
+
+            // --------------------------------------------------
+            // VALIDASI PLANT
+            // Plant harus sesuai dengan Sales yang dipilih.
+            // --------------------------------------------------
+            if (
+                isset($salesData['PLANT']) &&
+                $salesData['PLANT'] !== $plant
+            ) {
+                throw new Exception(
+                    'Plant tidak sesuai dengan Plant pada Sales yang dipilih.'
+                );
+            }
+
+            // --------------------------------------------------
+            // HITUNG JUMLAH DI SERVER
+            // JUMLAH = EKOR x HARGA RATA-RATA
+            // --------------------------------------------------
+            $jumlah = $ekor * $harga;
+
+            // --------------------------------------------------
+            // INSERT DATA CULLING
+            // --------------------------------------------------
             $data = [
-
-                'plant' => $plant,
-
-                'ymd' => $ymd,
-
-                'jumlah' => $jumlah,
-
-                'berat' => $berat,
-
-                'class_out' => $classOut,
-
-                'remark' => $remark,
-
-                'CREATED_BY' =>
-                    $this->session
-                        ->userdata('username'),
-
-                'CREATED_AT' =>
-                    date('Y-m-d H:i:s')
-
+                'plant'      => $plant,
+                'ymd'        => $ymd,
+                'SALES'      => $sales,
+                'EKOR'       => $ekor,
+                'HARGA'      => $harga,
+                'jumlah'     => $jumlah,
+                'berat'      => $berat,
+                'class_out'  => $classOut,
+                'remark'     => $remark,
+                'CREATED_BY' => $this->session
+                    ->userdata('username'),
+                'CREATED_AT' => date('Y-m-d H:i:s')
             ];
 
             $this->db->insert(
@@ -354,47 +436,29 @@ class Culling extends MY_Controller
                 $data
             );
 
-            if (
-                $this->db->trans_status()
-                === false
-            ) {
-
+            if ($this->db->trans_status() === false) {
                 throw new Exception(
                     'Gagal menyimpan data.'
                 );
-
             }
 
-            $id =
-                $this->db
-                    ->insert_id();
+            $id = $this->db->insert_id();
 
             $this->db->trans_commit();
 
             echo json_encode([
-
-                'status' => true,
-
-                'message' =>
-                    'Data culling berhasil disimpan.',
-
-                'idno' => $id
-
+                'status'  => true,
+                'message' => 'Data culling berhasil disimpan.',
+                'idno'    => $id
             ]);
 
         } catch (Exception $e) {
-
             $this->db->trans_rollback();
 
             echo json_encode([
-
-                'status' => false,
-
-                'message' =>
-                    $e->getMessage()
-
+                'status'  => false,
+                'message' => $e->getMessage()
             ]);
-
         }
     }
 
@@ -498,139 +562,182 @@ class Culling extends MY_Controller
         $this->db->trans_begin();
 
         try {
+            // --------------------------------------------------
+            // ID CULLING
+            // --------------------------------------------------
+            $idno = (int) $this->input->post('IDNO');
 
-            $idno = (int)
-                $this->input->post(
-                    'IDNO'
-                );
-
-            if (
-                empty($idno)
-            ) {
-
-                throw new Exception(
-                    'ID Culling kosong.'
-                );
+            if (empty($idno)) {
+                throw new Exception('ID Culling kosong.');
             }
 
-            $header =
-                $this->Culling_model
-                    ->get_culling_header(
-                        $idno
-                    );
+            $header = $this->Culling_model
+                ->get_culling_header($idno);
 
             if (!$header) {
-
                 throw new Exception(
                     'Data culling tidak ditemukan.'
                 );
             }
 
+            // --------------------------------------------------
+            // INPUT EXISTING
+            // --------------------------------------------------
+            $plant = trim(
+                $this->input->post('PLANT', true) ?? ''
+            );
+
+            $ymd = trim(
+                $this->input->post('YMD', true) ?? ''
+            );
+
+            $classOut = trim(
+                $this->input->post('CLASS_OUT', true) ?? ''
+            );
+
+            $remark = trim(
+                $this->input->post('REMARK', true) ?? ''
+            );
+
+            $beratInput = trim(
+                $this->input->post('BERAT', true) ?? '0'
+            );
+
+            // --------------------------------------------------
+            // INPUT SALES BARU
+            // --------------------------------------------------
+            $sales = trim(
+                $this->input->post('SALES', true) ?? ''
+            );
+
+            $ekorInput = trim(
+                $this->input->post('EKOR', true) ?? '0'
+            );
+
+            // --------------------------------------------------
+            // PARSING ANGKA FORMAT INDONESIA
+            // Contoh: 1.500,50 menjadi 1500.50
+            // --------------------------------------------------
+            $parseNumber = function ($value) {
+                if ($value === null || $value === '') {
+                    return 0;
+                }
+
+                $value = trim((string) $value);
+                $value = str_replace('.', '', $value);
+                $value = str_replace(',', '.', $value);
+
+                if (!is_numeric($value)) {
+                    throw new Exception(
+                        'Format angka tidak valid.'
+                    );
+                }
+
+                return (float) $value;
+            };
+
+            $ekor = $parseNumber($ekorInput);
+            $berat = $parseNumber($beratInput);
+
+            // --------------------------------------------------
+            // VALIDASI FIELD WAJIB
+            // --------------------------------------------------
+            if (
+                $plant === '' ||
+                $ymd === '' ||
+                $classOut === '' ||
+                $sales === ''
+            ) {
+                throw new Exception(
+                    'Plant, Tanggal, Sales dan Class Out wajib diisi.'
+                );
+            }
+
+            if ($ekor <= 0) {
+                throw new Exception(
+                    'Jumlah Ekor harus lebih besar dari 0.'
+                );
+            }
+
+            // --------------------------------------------------
+            // AMBIL SALES DAN HARGA DARI DATABASE
+            // Harga browser tidak digunakan sebagai acuan.
+            // --------------------------------------------------
+            $salesData = $this->Culling_model
+                ->get_sales_price_for_culling($sales);
+
+            if (!$salesData) {
+                throw new Exception(
+                    'Sales tidak ditemukan, tidak aktif, sudah dihapus, atau tidak memiliki detail.'
+                );
+            }
+
+            $harga = (float) $salesData['HARGA'];
+
+            if ($harga < 0) {
+                throw new Exception(
+                    'Harga Sales tidak valid.'
+                );
+            }
+
+            // --------------------------------------------------
+            // VALIDASI PLANT SALES
+            // --------------------------------------------------
+            if (
+                isset($salesData['PLANT']) &&
+                $salesData['PLANT'] !== $plant
+            ) {
+                throw new Exception(
+                    'Plant tidak sesuai dengan Plant pada Sales yang dipilih.'
+                );
+            }
+
+            // --------------------------------------------------
+            // HITUNG ULANG JUMLAH DI SERVER
+            // JUMLAH = EKOR x HARGA RATA-RATA
+            // --------------------------------------------------
+            $jumlah = $ekor * $harga;
+
+            // --------------------------------------------------
+            // UPDATE DATA CULLING
+            // --------------------------------------------------
             $data = [
-
-                'plant' =>
-                    trim(
-                        $this->input->post(
-                            'PLANT',
-                            true
-                        )
-                    ),
-
-                'ymd' =>
-                    trim(
-                        $this->input->post(
-                            'YMD',
-                            true
-                        )
-                    ),
-
-                'jumlah' =>
-                    (float)
-                    $this->input->post(
-                        'JUMLAH'
-                    ),
-
-                'berat' =>
-                    (float)
-                    $this->input->post(
-                        'BERAT'
-                    ),
-
-                'class_out' =>
-                    trim(
-                        $this->input->post(
-                            'CLASS_OUT',
-                            true
-                        )
-                    ),
-
-                'remark' =>
-                    trim(
-                        $this->input->post(
-                            'REMARK',
-                            true
-                        )
-                    ),
-
-                'UPDATED_BY' =>
-                    $this->session
-                        ->userdata(
-                            'username'
-                        ),
-
-                'UPDATED_AT' =>
-                    date(
-                        'Y-m-d H:i:s'
-                    )
+                'plant'      => $plant,
+                'ymd'        => $ymd,
+                'SALES'      => $sales,
+                'EKOR'       => $ekor,
+                'HARGA'      => $harga,
+                'jumlah'     => $jumlah,
+                'berat'      => $berat,
+                'class_out'  => $classOut,
+                'remark'     => $remark,
+                'UPDATED_BY' => $this->session
+                    ->userdata('username'),
+                'UPDATED_AT' => date('Y-m-d H:i:s')
             ];
 
             $this->db
+                ->where('idno', $idno)
+                ->update('abc_mst_culling', $data);
 
-                ->where(
-                    'idno',
-                    $idno
-                )
-
-                ->update(
-                    'abc_mst_culling',
-                    $data
-                );
-
-            if (
-                $this->db->trans_status()
-                === false
-            ) {
-
-                throw new Exception(
-                    'Update gagal.'
-                );
-
+            if ($this->db->trans_status() === false) {
+                throw new Exception('Update gagal.');
             }
 
             $this->db->trans_commit();
 
             echo json_encode([
-
-                'status' => true,
-
-                'message' =>
-                    'Data culling berhasil diupdate.'
-
+                'status'  => true,
+                'message' => 'Data culling berhasil diupdate.'
             ]);
 
         } catch (Exception $e) {
-
             $this->db->trans_rollback();
 
             echo json_encode([
-
-                'status' => false,
-
-                'message' =>
-                    $e->getMessage()
-
+                'status'  => false,
+                'message' => $e->getMessage()
             ]);
-
         }
     }
 

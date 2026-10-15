@@ -543,6 +543,22 @@ class Po extends MY_Controller {
                 $this->input->post('BERAT')
             );
 
+            $jantanQty = $this->decimal(
+                $this->input->post('JANTAN_QTY')
+            );
+
+            $jantanBw = $this->decimal(
+                $this->input->post('JANTAN_BW')
+            );
+
+            $betinaQty = $this->decimal(
+                $this->input->post('BETINA_QTY')
+            );
+
+            $betinaBw = $this->decimal(
+                $this->input->post('BETINA_BW')
+            );
+
             $harga     = $this->decimal(
                 $this->input->post('HARGA')
             );
@@ -859,6 +875,12 @@ class Po extends MY_Controller {
             'JUMLAH'   => $jumlah,
             'BERAT'    => $berat,
 
+            'JANTAN_QTY' => $jantanQty,
+            'JANTAN_BW'  => $jantanBw,
+
+            'BETINA_QTY' => $betinaQty,
+            'BETINA_BW'  => $betinaBw,
+
             /*
             |--------------------------------------------------------------------------
             | ACTUAL
@@ -1143,6 +1165,22 @@ class Po extends MY_Controller {
                 $this->input->post('BERAT')
             );
 
+            $jantanQty = $this->decimal(
+                $this->input->post('JANTAN_QTY')
+            );
+
+            $jantanBw = $this->decimal(
+                $this->input->post('JANTAN_BW')
+            );
+
+            $betinaQty = $this->decimal(
+                $this->input->post('BETINA_QTY')
+            );
+
+            $betinaBw = $this->decimal(
+                $this->input->post('BETINA_BW')
+            );
+
             $harga = $this->decimal(
                 $this->input->post('HARGA')
             );
@@ -1420,6 +1458,14 @@ class Po extends MY_Controller {
 
                 'BERAT' => $berat,
 
+                'JANTAN_QTY' => $jantanQty,
+
+                'JANTAN_BW' => $jantanBw,
+
+                'BETINA_QTY' => $betinaQty,
+
+                'BETINA_BW' => $betinaBw,
+
                 /*
                 |--------------------------------------------------------------------------
                 | ACTUAL
@@ -1662,6 +1708,14 @@ class Po extends MY_Controller {
                 p.JUMLAH,
 
                 p.BERAT,
+
+                p.JANTAN_QTY,
+
+                p.JANTAN_BW,
+
+                p.BETINA_QTY,
+
+                p.BETINA_BW,
 
                 p.AVG_BW,
 

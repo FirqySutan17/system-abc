@@ -292,6 +292,60 @@ if (file_exists($logo) && is_readable($logo)) {
 
 </div>
 
+<div class="section">
+
+    <div class="section-title">
+        JANTAN &amp; BETINA (QTY &amp; BW)
+    </div>
+
+    <table class="info-table">
+        <tr>
+            <td class="label">Qty Jantan</td>
+            <td class="value right">
+                <?= number_format(
+                    (float)($header->JANTAN_QTY ?? 0),
+                    2,
+                    ',',
+                    '.'
+                ) ?>
+            </td>
+
+            <td class="label">BW Jantan</td>
+            <td class="value right">
+                <?= number_format(
+                    (float)($header->JANTAN_BW ?? 0),
+                    2,
+                    ',',
+                    '.'
+                ) ?>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="label">Qty Betina</td>
+            <td class="value right">
+                <?= number_format(
+                    (float)($header->BETINA_QTY ?? 0),
+                    2,
+                    ',',
+                    '.'
+                ) ?>
+            </td>
+
+            <td class="label">BW Betina</td>
+            <td class="value right">
+                <?= number_format(
+                    (float)($header->BETINA_BW ?? 0),
+                    2,
+                    ',',
+                    '.'
+                ) ?>
+            </td>
+        </tr>
+    </table>
+
+</div>
+
 
 <!-- ==========================================================
      ACTUAL INFORMATION

@@ -9,6 +9,89 @@ class Culling_model extends CI_Model
         date_default_timezone_set('Asia/Jakarta');
     }
 
+    public function get_sales_for_culling($search = '')
+    {
+        $this->db
+            ->select("
+                s.SALES,
+                s.NOTA,
+                s.CUSTOMER,
+                COALESCE(c.FULL_NAME, s.CUSTOMER_NAME) AS CUSTOMER_NAME,
+                s.PLANT,
+                s.SALES_DATE,
+                SUM(d.JUMLAH) AS TOTAL_QTY,
+                SUM(d.BERAT) AS TOTAL_BW,
+                AVG(d.HARGA) AS HARGA
+            ", false)
+            ->from('abc_mst_sales s')
+            ->join(
+                'abc_mst_sales_detail d',
+                'd.SALES = s.SALES',
+                'inner'
+            )
+            ->join(
+                'abc_cd_customer c',
+                'c.CUST = s.CUSTOMER',
+                'left'
+            )
+            ->group_start()
+                ->where('s.DELETED IS NULL', null, false)
+                ->or_where('s.DELETED', '')
+                ->or_where('s.DELETED', 'N')
+            ->group_end();
+
+        if ($search !== '') {
+            $this->db
+                ->group_start()
+                    ->like('s.SALES', $search)
+                    ->or_like('s.SLIP_NO', $search)
+                    ->or_like('c.FULL_NAME', $search)
+                ->group_end();
+        }
+
+        return $this->db
+            ->group_by([
+                's.SALES',
+                's.NOTA',
+                's.CUSTOMER',
+                'c.FULL_NAME',
+                's.CUSTOMER_NAME',
+                's.PLANT',
+                's.SALES_DATE'
+            ])
+            ->order_by('s.SALES_DATE', 'ASC')
+            ->get()
+            ->result_array();
+    }
+
+    public function get_sales_price_for_culling($sales)
+    {
+        return $this->db
+            ->select("
+                s.SALES,
+                s.PLANT,
+                AVG(d.HARGA) AS HARGA
+            ", false)
+            ->from('abc_mst_sales s')
+            ->join(
+                'abc_mst_sales_detail d',
+                'd.SALES = s.SALES',
+                'inner'
+            )
+            ->where('s.SALES', $sales)
+            ->group_start()
+                ->where('s.DELETED IS NULL', null, false)
+                ->or_where('s.DELETED', '')
+                ->or_where('s.DELETED', 'N')
+            ->group_end()
+            ->group_by([
+                's.SALES',
+                's.PLANT'
+            ])
+            ->get()
+            ->row_array();
+    }
+
     public function get_user_plants($username)
     {
         $row = $this->db

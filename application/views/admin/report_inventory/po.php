@@ -2012,6 +2012,10 @@ const POReport = {
                                     PO QUANTITY & VALUE
                                 </th>
 
+                                <th colspan="4">
+                                    JANTAN &amp; BETINA
+                                </th>
+
                                 <th colspan="6">
                                     ACTUAL & RECEIVE
                                 </th>
@@ -2098,6 +2102,11 @@ const POReport = {
                                 <th class="text-end">
                                     Total
                                 </th>
+
+                                <th class="text-end">Qty Jantan</th>
+                                <th class="text-end">BW Jantan</th>
+                                <th class="text-end">Qty Betina</th>
+                                <th class="text-end">BW Betina</th>
 
 
                                 <!-- ACTUAL & RECEIVE -->
@@ -2469,6 +2478,22 @@ const POReport = {
                                                     row.TOTAL
                                                 )}
 
+                                            </td>
+
+                                            <td class="text-end">
+                                                ${this.decimal(row.JANTAN_QTY)}
+                                            </td>
+
+                                            <td class="text-end">
+                                                ${this.decimal(row.JANTAN_BW)}
+                                            </td>
+
+                                            <td class="text-end">
+                                                ${this.decimal(row.BETINA_QTY)}
+                                            </td>
+
+                                            <td class="text-end">
+                                                ${this.decimal(row.BETINA_BW)}
                                             </td>
 
 

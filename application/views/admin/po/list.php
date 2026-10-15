@@ -356,6 +356,68 @@
                                     name="MATERIAL">
                             </div>
 
+                            <!-- ================= JANTAN & BETINA ================= -->
+                            <div class="col-md-12">
+                                <div class="po-section-card mt-2">
+
+                                    <div class="po-section-title">
+                                        <span>
+                                            <i class="ti ti-scale me-1"></i>
+                                            JANTAN & BETINA (QTY & BW)
+                                        </span>
+                                    </div>
+
+                                    <div class="row g-3">
+
+                                        <!-- JANTAN QTY -->
+                                        <div class="col-md-3">
+                                            <label class="po-label">Qty (Jantan)</label>
+                                            <input
+                                                type="text"
+                                                id="masterJantanQty"
+                                                name="JANTAN_QTY"
+                                                class="form-control po-input decimal-input"
+                                                placeholder="0,00">
+                                        </div>
+
+                                        <!-- JANTAN BW -->
+                                        <div class="col-md-3">
+                                            <label class="po-label">Berat (Jantan)</label>
+                                            <input
+                                                type="text"
+                                                id="masterJantanBw"
+                                                name="JANTAN_BW"
+                                                class="form-control po-input decimal-input"
+                                                placeholder="0,00">
+                                        </div>
+
+                                        <!-- BETINA QTY -->
+                                        <div class="col-md-3">
+                                            <label class="po-label">Qty (Betina)</label>
+                                            <input
+                                                type="text"
+                                                id="masterBetinaQty"
+                                                name="BETINA_QTY"
+                                                class="form-control po-input decimal-input"
+                                                placeholder="0,00">
+                                        </div>
+
+                                        <!-- BETINA BW -->
+                                        <div class="col-md-3">
+                                            <label class="po-label">Berat (Betina)</label>
+                                            <input
+                                                type="text"
+                                                id="masterBetinaBw"
+                                                name="BETINA_BW"
+                                                class="form-control po-input decimal-input"
+                                                placeholder="0,00">
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- ================= END JANTAN & BETINA ================= -->
+
                             <div class="col-md-3">
                                 <label class="po-label">Qty / Ekor *</label>
 
@@ -835,6 +897,59 @@
                                     id="hiddenMaterialEdit">
 
                             </div>
+
+                            <!-- ================= JANTAN & BETINA ================= -->
+                            <div class="po-section-card">
+
+                                <div class="po-section-title">
+                                    <span>
+                                        <i class="ti ti-scale me-1"></i>
+                                        JANTAN &amp; BETINA (QTY &amp; BW)
+                                    </span>
+                                </div>
+
+                                <div class="row g-3">
+
+                                    <div class="col-md-3">
+                                        <label class="po-label">Qty (Jantan)</label>
+                                        <input
+                                            type="text"
+                                            id="masterJantanQtyEdit"
+                                            class="form-control po-input decimal-input"
+                                            placeholder="0,00">
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label class="po-label">Berat (Jantan)</label>
+                                        <input
+                                            type="text"
+                                            id="masterJantanBwEdit"
+                                            class="form-control po-input decimal-input"
+                                            placeholder="0,00">
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label class="po-label">Qty (Betina)</label>
+                                        <input
+                                            type="text"
+                                            id="masterBetinaQtyEdit"
+                                            class="form-control po-input decimal-input"
+                                            placeholder="0,00">
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <label class="po-label">Berat (Betina)</label>
+                                        <input
+                                            type="text"
+                                            id="masterBetinaBwEdit"
+                                            class="form-control po-input decimal-input"
+                                            placeholder="0,00">
+                                    </div>
+
+                                </div>
+
+                            </div>
+                            <!-- ================= END JANTAN & BETINA ================= -->
 
                             <div class="col-md-3">
 
@@ -1441,6 +1556,55 @@
                                 readonly>
 
                         </div>
+
+                        <!-- ================= JANTAN & BETINA - DETAIL VIEW ================= -->
+                        <div class="po-section-card">
+                            <div class="po-section-title">
+                                <span>
+                                    <i class="ti ti-scale me-1"></i>
+                                    JANTAN &amp; BETINA (QTY &amp; BW)
+                                </span>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="po-label">Qty (Jantan)</label>
+                                    <input
+                                        type="text"
+                                        id="detailJantanQty"
+                                        class="form-control po-input detail-view-input"
+                                        readonly>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="po-label">Berat (Jantan)</label>
+                                    <input
+                                        type="text"
+                                        id="detailJantanBw"
+                                        class="form-control po-input detail-view-input"
+                                        readonly>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="po-label">Qty (Betina)</label>
+                                    <input
+                                        type="text"
+                                        id="detailBetinaQty"
+                                        class="form-control po-input detail-view-input"
+                                        readonly>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="po-label">Berat (Betina)</label>
+                                    <input
+                                        type="text"
+                                        id="detailBetinaBw"
+                                        class="form-control po-input detail-view-input"
+                                        readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- ================= END JANTAN & BETINA - DETAIL VIEW ================= -->
 
 
                         <!-- QTY -->
@@ -2807,6 +2971,77 @@
         ) || 0;
     }
 
+    function calculateGenderTotal() {
+
+        let jantanQty = parseDecimalID(
+            $('#masterJantanQty').val()
+        ) || 0;
+
+        let jantanBw = parseDecimalID(
+            $('#masterJantanBw').val()
+        ) || 0;
+
+        let betinaQty = parseDecimalID(
+            $('#masterBetinaQty').val()
+        ) || 0;
+
+        let betinaBw = parseDecimalID(
+            $('#masterBetinaBw').val()
+        ) || 0;
+
+        // Total Qty / Ekor
+        let totalQty = jantanQty + betinaQty;
+
+        // Total Berat / BW
+        let totalBw = jantanBw + betinaBw;
+
+        // Isi field existing, tetap editable
+        $('#masterJumlah').val(
+            formatDecimalID(totalQty)
+        );
+
+        $('#masterBerat').val(
+            formatDecimalID(totalBw)
+        );
+
+        // Perbarui seluruh perhitungan aktual existing
+        calculateActualHeader();
+
+        // Perbarui summary detail jika digunakan
+        calculateSummary();
+    }
+
+    function calculateGenderTotalEdit() {
+        let jantanQty = parseDecimalID(
+            $('#masterJantanQtyEdit').val()
+        ) || 0;
+
+        let jantanBw = parseDecimalID(
+            $('#masterJantanBwEdit').val()
+        ) || 0;
+
+        let betinaQty = parseDecimalID(
+            $('#masterBetinaQtyEdit').val()
+        ) || 0;
+
+        let betinaBw = parseDecimalID(
+            $('#masterBetinaBwEdit').val()
+        ) || 0;
+
+        let totalQty = jantanQty + betinaQty;
+        let totalBw = jantanBw + betinaBw;
+
+        $('#masterJumlahEdit').val(
+            formatDecimalID(totalQty)
+        );
+
+        $('#masterBeratEdit').val(
+            formatDecimalID(totalBw)
+        );
+
+        calculateActualHeader(true);
+    }
+
     function calculateActualHeader(isEdit = false){
 
         const prefix = isEdit ? 'Edit' : '';
@@ -2944,6 +3179,22 @@
         'keyup change',
         '#masterJumlah,#masterBerat,#masterHarga,#masterMatiQty,#masterActualTimbang,#masterClaimQty',
         function(){
+            calculateActualHeader();
+        }
+    );
+
+    $(document).on(
+        'input change',
+        '#masterJantanQty, #masterJantanBw, #masterBetinaQty, #masterBetinaBw',
+        function() {
+            calculateGenderTotal();
+        }
+    );
+
+    $(document).on(
+        'keyup change',
+        '#masterJumlah,#masterBerat,#masterHarga,#masterMatiQty,#masterActualTimbang,#masterClaimQty',
+        function(){
 
             calculateActualHeader();
 
@@ -2957,6 +3208,14 @@
 
             calculateActualHeader(true);
 
+        }
+    );
+
+    $(document).on(
+        'input change',
+        '#masterJantanQtyEdit, #masterJantanBwEdit, #masterBetinaQtyEdit, #masterBetinaBwEdit',
+        function() {
+            calculateGenderTotalEdit();
         }
     );
 
@@ -3169,6 +3428,22 @@
 
                 BERAT : masterBerat,
 
+                JANTAN_QTY : parseDecimalID(
+                    $('#masterJantanQty').val()
+                ),
+
+                JANTAN_BW : parseDecimalID(
+                    $('#masterJantanBw').val()
+                ),
+
+                BETINA_QTY : parseDecimalID(
+                    $('#masterBetinaQty').val()
+                ),
+
+                BETINA_BW : parseDecimalID(
+                    $('#masterBetinaBw').val()
+                ),
+
                 HARGA : parseRupiah(
                     $('#masterHarga').val()
                 ),
@@ -3213,6 +3488,11 @@
                     $('#poAdd').modal('hide');
 
                     $('#fpoAdd')[0].reset();
+
+                    $('#masterJantanQty').val('');
+                    $('#masterJantanBw').val('');
+                    $('#masterBetinaQty').val('');
+                    $('#masterBetinaBw').val('');
 
                     $('#poDetailTableAdd tbody').empty();
 
@@ -3331,6 +3611,18 @@
 
                     $('#detailBerat')
                         .val(formatDecimalID(h.BERAT));
+
+                    $('#detailJantanQty')
+                        .val(formatDecimalID(h.JANTAN_QTY));
+
+                    $('#detailJantanBw')
+                        .val(formatDecimalID(h.JANTAN_BW));
+
+                    $('#detailBetinaQty')
+                        .val(formatDecimalID(h.BETINA_QTY));
+
+                    $('#detailBetinaBw')
+                        .val(formatDecimalID(h.BETINA_BW));
 
                     $('#detailAvgBw')
                         .val(formatDecimalID(h.AVG_BW));
@@ -3527,6 +3819,22 @@
 
                     $('#masterBeratEdit')
                         .val(formatDecimalID(h.BERAT));
+
+                    $('#masterJantanQtyEdit').val(
+                        formatDecimalID(h.JANTAN_QTY)
+                    );
+
+                    $('#masterJantanBwEdit').val(
+                        formatDecimalID(h.JANTAN_BW)
+                    );
+
+                    $('#masterBetinaQtyEdit').val(
+                        formatDecimalID(h.BETINA_QTY)
+                    );
+
+                    $('#masterBetinaBwEdit').val(
+                        formatDecimalID(h.BETINA_BW)
+                    );
 
                     $('#masterAvgBwEdit')
                         .val(formatDecimalID(h.AVG_BW));
@@ -3780,6 +4088,22 @@
                     JUMLAH: masterJumlah,
 
                     BERAT: masterBerat,
+
+                    JANTAN_QTY: parseDecimalID(
+                        $('#masterJantanQtyEdit').val()
+                    ),
+
+                    JANTAN_BW: parseDecimalID(
+                        $('#masterJantanBwEdit').val()
+                    ),
+
+                    BETINA_QTY: parseDecimalID(
+                        $('#masterBetinaQtyEdit').val()
+                    ),
+
+                    BETINA_BW: parseDecimalID(
+                        $('#masterBetinaBwEdit').val()
+                    ),
 
                     MATI_QTY: matiQty,
 
