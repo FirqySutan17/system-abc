@@ -71,7 +71,7 @@
                             class="btn btn-light w-100"
                             id="btnResetFilter">
 
-                            Atur Ulang
+                            Reset
 
                         </button>
 
@@ -167,6 +167,82 @@
 </div>
 
 <style>
+    #tableRelation {
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    #tableRelation th {
+        background: #f3f4f6;
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    #tableRelation td {
+        vertical-align: middle;
+    }
+
+    #tableRelation td.text-end {
+        font-variant-numeric: tabular-nums;
+    }
+
+    #tableRelation .btn {
+        min-width: 65px;
+    }
+
+    /* Modal Pilih PO / Sales */
+    #modalPilihRelation {
+        z-index: 1065 !important;
+    }
+
+    #modalPilihRelation .modal-dialog {
+        width: calc(100% - 40px);
+        max-width: 1600px;
+        margin: 20px auto;
+    }
+
+    #modalPilihRelation .modal-content {
+        height: calc(100vh - 40px);
+        max-height: calc(100vh - 40px);
+        border: none;
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+    #modalPilihRelation .modal-header {
+        flex-shrink: 0;
+    }
+
+    #modalPilihRelation .modal-body {
+        overflow: auto;
+        min-height: 0;
+    }
+
+    #modalPilihRelation .modal-footer {
+        flex-shrink: 0;
+    }
+
+    /* Backdrop modal referensi harus di atas backdrop Create */
+    .modal-backdrop.relation-backdrop {
+        z-index: 1060 !important;
+    }
+
+    #tableRelation th,
+    #tableRelation td {
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+
+    #btnHapusRelation {
+        font-size: 12px;
+        opacity: 0.8;
+        transition: opacity 0.2s ease;
+    }
+
+    #btnHapusRelation:hover {
+        opacity: 1;
+        text-decoration: underline !important;
+    }
     .table-modern td,
     .table-modern th{
         white-space: nowrap;
@@ -278,6 +354,54 @@
                         <div class="col-md-6 flex-inline">
                             <label class="form-label">Nomor Slip</label>
                             <input class="form-control" placeholder="Auto Generate" readonly style="background:#efefef">
+                        </div>
+
+                        <!-- REFERENSI PO / SALES (OPSIONAL) -->
+                        <div class="col-md-6 flex-inline">
+                            <label class="form-label">Referensi</label>
+
+                            <div style="width: 100%;">
+                                <input
+                                    type="hidden"
+                                    name="RELATION"
+                                    id="RELATION_ADD"
+                                    value=""
+                                >
+
+                                <div class="input-group">
+                                    <input
+                                        type="text"
+                                        id="relationSelectedInfo"
+                                        class="form-control"
+                                        value="Cost Harian"
+                                        readonly
+                                        style="background:#efefef;"
+                                    >
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-primary"
+                                        id="btnPilihPO">
+                                        Pilih PO
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-success"
+                                        id="btnPilihSales">
+                                        Pilih Sales
+                                    </button>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm text-danger p-0 mt-1 d-none"
+                                    id="btnHapusRelation"
+                                    style="text-decoration: none;">
+                                    <i class="ti ti-trash me-1"></i>
+                                    Hapus referensi
+                                </button>
+                            </div>
                         </div>
 
                         <div class="col-md-6 flex-inline">
@@ -395,6 +519,54 @@
                             <input name="SLIP_NO" id="SLIP_NO_EDIT" class="form-control" readonly style="background:#efefef">
                         </div>
 
+                        <!-- REFERENSI PO / SALES (OPSIONAL) -->
+                        <div class="col-md-6 flex-inline">
+                            <label class="form-label">Referensi</label>
+
+                            <div style="width: 100%;">
+                                <input
+                                    type="hidden"
+                                    name="RELATION"
+                                    id="RELATION_EDIT"
+                                    value=""
+                                >
+
+                                <div class="input-group">
+                                    <input
+                                        type="text"
+                                        id="relationSelectedInfoEdit"
+                                        class="form-control"
+                                        value="Cost Harian"
+                                        readonly
+                                        style="background:#efefef;"
+                                    >
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-primary"
+                                        id="btnPilihPOEdit">
+                                        Pilih PO
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        class="btn btn-outline-success"
+                                        id="btnPilihSalesEdit">
+                                        Pilih Sales
+                                    </button>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-sm text-danger p-0 mt-1 d-none"
+                                    id="btnHapusRelationEdit"
+                                    style="text-decoration:none;">
+                                    <i class="ti ti-trash me-1"></i>
+                                    Hapus referensi
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="col-md-6 flex-inline">
                             <label class="form-label">Keterangan</label>
                             <input name="REMARK" id="REMARK_EDIT" class="form-control">
@@ -446,6 +618,73 @@
 
             </div>
         </form>
+    </div>
+</div>
+
+<!-- MODAL PILIH REFERENSI PO / SALES -->
+<div
+    class="modal fade"
+    id="modalPilihRelation"
+    tabindex="-1"
+    aria-hidden="true">
+
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="judulModalRelation">
+                    Pilih Referensi
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="mb-3">
+                    <input
+                        type="text"
+                        id="searchRelation"
+                        class="form-control"
+                        placeholder="Cari berdasarkan data dokumen...">
+                </div>
+
+                <div class="table-responsive">
+                    <table
+                        class="table table-bordered table-hover table-sm"
+                        id="tableRelation">
+
+                        <thead>
+                            <tr id="headRelation"></tr>
+                        </thead>
+
+                        <tbody id="bodyRelation">
+                            <tr>
+                                <td class="text-center">
+                                    Memuat data...
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+                    Tutup
+                </button>
+            </div>
+
+        </div>
     </div>
 </div>
 
@@ -999,6 +1238,7 @@
             }
         });
     }
+
     $(function(){
 
         loadPage(1);
@@ -1049,7 +1289,405 @@
 
         $('#costAdd').on('hidden.bs.modal', function () {
             $('#plantAdd').val(null).trigger('change');
+            $('#RELATION_ADD').val('');
+
+            $('#relationSelectedInfo').text(
+                'Tidak ada referensi — Cost Harian'
+            );
+
+            $('#btnHapusRelation').addClass('d-none');
         });
+
+        // =====================================================
+        // CREATE COST - REFERENSI PO / SALES
+        // =====================================================
+
+        let relationRows = [];
+        let relationType = '';
+        let relationColumns = [];
+
+        function escapeRelationHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, function (char) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                }[char];
+            });
+        }
+
+        function formatRelationDate(value) {
+            if (!value) return '-';
+
+            const datePart = String(value).substring(0, 10);
+            const parts = datePart.split('-');
+
+            if (parts.length !== 3) return value;
+
+            // Format YYYY-MM-DD menjadi DD-MM-YYYY
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+
+        function formatRelationDecimal(value) {
+            if (value === null || value === undefined || value === '') {
+                return '0,00';
+            }
+
+            const number = Number(value);
+
+            if (!Number.isFinite(number)) return '0,00';
+
+            return number.toLocaleString('id-ID', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function renderRelationRows() {
+            const keyword = ($('#searchRelation').val() || '')
+                .toLowerCase()
+                .trim();
+
+            const $body = $('#bodyRelation');
+            $body.empty();
+
+            let filtered = relationRows.filter(function (row) {
+                return Object.values(row).some(function (value) {
+                    return String(value ?? '')
+                        .toLowerCase()
+                        .includes(keyword);
+                });
+            });
+
+            if (!filtered.length) {
+                $body.html(`
+                    <tr>
+                        <td colspan="${relationType === 'PO' ? 9 : relationColumns.length + 1}"
+                            class="text-center text-muted">
+                            Data tidak ditemukan
+                        </td>
+                    </tr>
+                `);
+                return;
+            }
+
+            filtered.forEach(function (row) {
+                let cells = '';
+
+                if (relationType === 'PO') {
+                    cells = `
+                        <td>#${escapeRelationHtml(row.PO)}</td>
+
+                        <td class="text-center">${escapeRelationHtml(
+                            formatRelationDate(row.PO_DATE)
+                        )}</td>
+
+                        <td class="text-center">${escapeRelationHtml(
+                            row.PO_TYPE_NAME || row.PO_TYPE || '-'
+                        )}</td>
+
+                        <td class="text-center">${escapeRelationHtml(
+                            row.SUPPLIER_NAME || row.SUPPLIER || '-'
+                        )}</td>
+
+                        <td class="text-center">${escapeRelationHtml(
+                            row.MATERIAL_NAME || row.MATERIAL || '-'
+                        )}</td>
+
+                        <td class="text-center">
+                            <div class="text-center">${escapeRelationHtml(row.NO_TRUCK || '-')}</div>
+                            <div class="text-muted text-center small">
+                                ${escapeRelationHtml(row.DRIVER || '-')}
+                            </div>
+                        </td>
+
+                        <td class="text-end">
+                            ${formatRelationDecimal(row.TOTAL_TERIMA_BW)}
+                        </td>
+
+                        <td class="text-end">
+                            ${formatRelationDecimal(row.TOTAL_TERIMA_QTY)}
+                        </td>
+                    `;
+                } else {
+                    // Kolom khusus Sales
+                    cells = `
+                        <td>#${escapeRelationHtml(row.SALES || '-')}</td>
+
+                        <td class="text-center">${escapeRelationHtml(
+                            formatRelationDate(row.SALES_DATE)
+                        )}</td>
+
+                        <td class="text-center">${escapeRelationHtml(
+                            row.CUSTOMER_NAME || row.CUSTOMER || '-'
+                        )}</td>
+
+                        <td class="text-center">${escapeRelationHtml(row.NOTA || '-')}</td>
+                    `;
+                }
+
+                const originalIndex = relationRows.indexOf(row);
+
+                $body.append(`
+                    <tr>
+                        ${cells}
+
+                        <td class="text-center">
+                            <button
+                                type="button"
+                                class="btn btn-primary btn-sm btnSelectRelation"
+                                data-index="${originalIndex}">
+                                Pilih
+                            </button>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+
+        $('#modalPilihRelation')
+        .off('shown.bs.modal.relationBackdrop')
+        .on('shown.bs.modal.relationBackdrop', function () {
+            const $backdrops = $('.modal-backdrop');
+
+            // Backdrop terakhir adalah milik modal referensi.
+            $backdrops.last().addClass('relation-backdrop');
+        });
+
+        function openRelationModal(type) {
+            relationType = type;
+
+            const title = type === 'PO'
+                ? 'Pilih Purchase Order (PO)'
+                : 'Pilih Sales';
+
+            const url = type === 'PO'
+                ? '<?= base_url("mcost/get_po_reference"); ?>'
+                : '<?= base_url("mcost/get_sales_reference"); ?>';
+
+            $('#judulModalRelation').text(title);
+            $('#searchRelation').val('');
+            $('#headRelation').empty();
+
+            $('#bodyRelation').html(`
+                <tr>
+                    <td class="text-center">Memuat data...</td>
+                </tr>
+            `);
+
+            const modalElement = document.getElementById('modalPilihRelation');
+
+            const modal = bootstrap.Modal.getOrCreateInstance(modalElement, {
+                backdrop: true,
+                keyboard: true,
+                focus: true
+            });
+
+            modal.show();
+
+            $.getJSON(url)
+                .done(function (resp) {
+                    if (!resp || resp.status !== true) {
+                        $('#bodyRelation').html(`
+                            <tr>
+                                <td class="text-center text-danger">
+                                    Gagal memuat data
+                                </td>
+                            </tr>
+                        `);
+                        return;
+                    }
+
+                    relationRows = Array.isArray(resp.rows)
+                        ? resp.rows
+                        : [];
+
+                    if (!relationRows.length) {
+                        relationColumns = [];
+
+                        const colspan = type === 'PO' ? 9 : 5;
+
+                        $('#bodyRelation').html(`
+                            <tr>
+                                <td colspan="${colspan}"
+                                    class="text-center text-muted">
+                                    Belum ada data ${escapeRelationHtml(type)}
+                                </td>
+                            </tr>
+                        `);
+                        return;
+                    }
+
+                    // =========================================
+                    // HEADER TABEL PO
+                    // =========================================
+                    if (relationType === 'PO') {
+
+                        relationColumns = [
+                            'PO',
+                            'PO_DATE',
+                            'PO_TYPE_NAME',
+                            'SUPPLIER_NAME',
+                            'MATERIAL_NAME',
+                            'NO_TRUCK',
+                            'TOTAL_TERIMA_BW',
+                            'TOTAL_TERIMA_QTY'
+                        ];
+
+                        const headers = [
+                            'PO',
+                            'PO Date',
+                            'PO Type',
+                            'Supplier',
+                            'Material',
+                            'Truck / Driver',
+                            'Total Terima BW',
+                            'Total Terima Qty',
+                            'Aksi'
+                        ];
+
+                        headers.forEach(function (header) {
+                            $('#headRelation').append(`
+                                <th>${escapeRelationHtml(header)}</th>
+                            `);
+                        });
+
+                    } else {
+                        // Header khusus modal Sales
+                        relationColumns = [
+                            'SALES',
+                            'SALES_DATE',
+                            'CUSTOMER_NAME',
+                            'NOTA'
+                        ];
+
+                        const headers = [
+                            'Sales',
+                            'Sales Date',
+                            'Customer',
+                            'Nota',
+                            'Aksi'
+                        ];
+
+                        headers.forEach(function (header) {
+                            $('#headRelation').append(`
+                                <th>${escapeRelationHtml(header)}</th>
+                            `);
+                        });
+                    }
+
+                    // Render data menggunakan fungsi existing.
+                    renderRelationRows();
+                })
+                .fail(function () {
+                    $('#bodyRelation').html(`
+                        <tr>
+                            <td class="text-center text-danger">
+                                Terjadi kesalahan saat mengambil data
+                            </td>
+                        </tr>
+                    `);
+                });
+        }
+
+        // Buka modal pilihan
+        $('#btnPilihPO').on('click', function () {
+            relationTarget = 'ADD';
+            openRelationModal('PO');
+        });
+
+        $('#btnPilihSales').on('click', function () {
+            relationTarget = 'ADD';
+            openRelationModal('SALES');
+        });
+
+        // Pencarian di tabel modal
+        $('#searchRelation').on('input', function () {
+            renderRelationRows();
+        });
+
+        // Simpan pilihan ke hidden input form Create
+        
+        /* ================= PILIH PO / SALES ================= */
+        $(document).on('click', '.btnSelectRelation', function () {
+            const index = parseInt($(this).attr('data-index'), 10);
+            const row = relationRows[index];
+
+            if (!row) {
+                alert('Data referensi tidak ditemukan');
+                return;
+            }
+
+            const documentNo = relationType === 'PO'
+                ? row.PO
+                : row.SALES;
+
+            if (!documentNo) {
+                alert('Nomor dokumen referensi tidak ditemukan');
+                return;
+            }
+
+            const relationValue = relationType + '|' + documentNo;
+            const relationLabel = relationType + ' - ' + documentNo;
+
+            // Tentukan form tujuan berdasarkan tombol yang membuka modal.
+            if (relationTarget === 'EDIT') {
+                $('#RELATION_EDIT').val(relationValue);
+                $('#relationSelectedInfoEdit').val(relationLabel);
+                $('#btnHapusRelationEdit').removeClass('d-none');
+            } else {
+                $('#RELATION_ADD').val(relationValue);
+                $('#relationSelectedInfo').val(relationLabel);
+                $('#btnHapusRelation').removeClass('d-none');
+            }
+
+            // Tutup modal pemilihan.
+            bootstrap.Modal.getOrCreateInstance(
+                document.getElementById('modalPilihRelation')
+            ).hide();
+        });
+
+        // Hapus pilihan sehingga menjadi Cost Harian
+        $('#btnHapusRelation').on('click', function () {
+
+            // Kosongkan nilai RELATION yang dikirim ke backend
+            $('#RELATION_ADD').val('');
+
+            // Kembalikan tampilan field ke Cost Harian
+            $('#relationSelectedInfo')
+                .val('Cost Harian')
+                .trigger('change');
+
+            // Sembunyikan tombol hapus
+            $(this).addClass('d-none');
+
+        });
+
+        let relationTarget = 'ADD';
+
+        /* ================= REFERENSI PO / SALES EDIT ================= */
+
+        // Gunakan modal referensi yang sama.
+        // Tandai bahwa pilihan berasal dari form Edit.
+        $('#btnPilihPOEdit').on('click', function () {
+            relationTarget = 'EDIT';
+            openRelationModal('PO');
+        });
+
+        $('#btnPilihSalesEdit').on('click', function () {
+            relationTarget = 'EDIT';
+            openRelationModal('SALES');
+        });
+
+        // Hapus referensi Edit
+        $('#btnHapusRelationEdit').on('click', function () {
+            $('#RELATION_EDIT').val('');
+            $('#relationSelectedInfoEdit').val('Cost Harian');
+            $(this).addClass('d-none');
+        });
+
 
         /* ======================
         SUBMIT ADD
@@ -1164,6 +1802,41 @@
                     $('#COST_DATE_EDIT').val(h.COST_DATE?.substr(0,10));
                     $('#REMARK_EDIT').val(h.REMARK);
 
+                    /* ================= REFERENSI EDIT ================= */
+                    const relationEdit = h.RELATION || '';
+
+                    $('#RELATION_EDIT').val(relationEdit);
+
+                    if (relationEdit) {
+                        const separatorIndex = relationEdit.indexOf('|');
+
+                        const relationTypeEdit = separatorIndex >= 0
+                            ? relationEdit.substring(0, separatorIndex)
+                            : '';
+
+                        const relationNoEdit = separatorIndex >= 0
+                            ? relationEdit.substring(separatorIndex + 1)
+                            : '';
+
+                        if (
+                            ['PO', 'SALES'].includes(relationTypeEdit) &&
+                            relationNoEdit
+                        ) {
+                            $('#relationSelectedInfoEdit').val(
+                                relationTypeEdit + ' - ' + relationNoEdit
+                            );
+
+                            $('#btnHapusRelationEdit').removeClass('d-none');
+                        } else {
+                            $('#RELATION_EDIT').val('');
+                            $('#relationSelectedInfoEdit').val('Cost Harian');
+                            $('#btnHapusRelationEdit').addClass('d-none');
+                        }
+                    } else {
+                        $('#relationSelectedInfoEdit').val('Cost Harian');
+                        $('#btnHapusRelationEdit').addClass('d-none');
+                    }
+
                     $('input[name="PEMBAYARAN"][value="'+h.PEMBAYARAN+'"]').prop('checked',true);
 
                     $('#costDetailTableEdit tbody').html(''); // 🔥 reset total
@@ -1236,6 +1909,7 @@
             formData.append('COST_DATE', $('#COST_DATE_EDIT').val());
             formData.append('PEMBAYARAN', $('#fcostEdit input[name="PEMBAYARAN"]:checked').val());
             formData.append('REMARK', $('#REMARK_EDIT').val());
+            formData.set('RELATION', $('#RELATION_EDIT').val() || '');
 
             $.ajax({
                 url: '<?= base_url("mcost/update"); ?>',

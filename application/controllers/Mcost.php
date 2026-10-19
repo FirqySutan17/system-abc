@@ -25,6 +25,26 @@ class Mcost extends MY_Controller {
         $this->load->view('templates/footer');
     }
 
+    public function get_po_reference()
+    {
+        $rows = $this->Mcost_model->get_po_reference();
+
+        echo json_encode([
+            'status' => true,
+            'rows'   => $rows
+        ]);
+    }
+
+    public function get_sales_reference()
+    {
+        $rows = $this->Mcost_model->get_sales_reference();
+
+        echo json_encode([
+            'status' => true,
+            'rows'   => $rows
+        ]);
+    }
+
     public function load_data()
     {
         /*
@@ -242,6 +262,9 @@ class Mcost extends MY_Controller {
         $role_id  = (int)$this->session->userdata('role_id');
         $plant    = $data['PLANT'] ?? null;
 
+        $relation = trim((string)($data['RELATION'] ?? ''));
+        $relation = ($relation === '') ? null : $relation;
+
         if (!$plant)
             return $this->jsonError('Plant wajib dipilih');
 
@@ -272,6 +295,7 @@ class Mcost extends MY_Controller {
             'PLANT'=>$plant,
             'COST'=>$costNo,
             'COST_DATE'=>date('Y-m-d H:i:s',strtotime($data['COST_DATE'])),
+            'RELATION' => $relation,
             'PEMBAYARAN'=>$data['PEMBAYARAN'],
             'SLIP_NO'=>$slipNo,
             'REMARK'=>$data['REMARK']??null,
@@ -411,6 +435,9 @@ class Mcost extends MY_Controller {
             'COST_DATE'=>date('Y-m-d H:i:s',strtotime($data['COST_DATE'])),
             'PEMBAYARAN'=>$data['PEMBAYARAN'],
             'REMARK'=>$data['REMARK']??null,
+            'RELATION' => !empty($data['RELATION'])
+            ? trim($data['RELATION'])
+            : null,
             'UPDATED_AT'=>date('Y-m-d H:i:s'),
             'UPDATED_BY'=>$username
         ]);

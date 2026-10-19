@@ -448,6 +448,80 @@ class Mcost_model extends CI_Model {
             ->num_rows();
     }
 
+    public function get_po_reference()
+    {
+        return $this->db
+            ->select("
+                po.PO,
+                po.PO_DATE,
+                po.PO_TYPE,
+                po_type.CODE_NAME AS PO_TYPE_NAME,
+                po.SUPPLIER,
+                supplier.FULL_NAME AS SUPPLIER_NAME,
+                po.MATERIAL,
+                material.MATERIAL_NAME AS MATERIAL_NAME,
+                po.NO_TRUCK,
+                po.DRIVER,
+                po.TOTAL_TERIMA_BW,
+                po.TOTAL_TERIMA_QTY
+            ", false)
+            ->from('abc_mst_po po')
+            ->join(
+                'abc_cd_code po_type',
+                "
+                    po_type.CODE COLLATE utf8mb4_unicode_ci =
+                    po.PO_TYPE COLLATE utf8mb4_unicode_ci
+                    AND po_type.HEAD_CODE = 'PO'
+                ",
+                'left',
+                false
+            )
+            ->join(
+                'abc_cd_customer supplier',
+                '
+                    supplier.CUST COLLATE utf8mb4_unicode_ci =
+                    po.SUPPLIER COLLATE utf8mb4_unicode_ci
+                ',
+                'left',
+                false
+            )
+            ->join(
+                'abc_cd_material material',
+                '
+                    material.MATERIAL COLLATE utf8mb4_unicode_ci =
+                    po.MATERIAL COLLATE utf8mb4_unicode_ci
+                ',
+                'left',
+                false
+            )
+            ->order_by('po.PO_DATE', 'DESC')
+            ->order_by('po.PO', 'DESC')
+            ->get()
+            ->result_array();
+    }
+    
+    public function get_sales_reference()
+    {
+        return $this->db
+            ->select("
+                s.SALES,
+                s.SALES_DATE,
+                s.CUSTOMER,
+                c.FULL_NAME AS CUSTOMER_NAME,
+                s.NOTA
+            ", false)
+            ->from('abc_mst_sales s')
+            ->join(
+                'abc_cd_customer c',
+                'c.CUST = s.CUSTOMER',
+                'left'
+            )
+            ->order_by('s.SALES_DATE', 'DESC')
+            ->order_by('s.SALES', 'DESC')
+            ->get()
+            ->result_array();
+    }
+
     /* =========================================================
        USER / PLANT ACCESS
     ========================================================= */
