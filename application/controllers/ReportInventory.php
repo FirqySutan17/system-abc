@@ -4330,67 +4330,41 @@ class ReportInventory extends MY_Controller {
 
         exit;
     }
-
+    
     public function export_excel_culling()
     {
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER
+        |--------------------------------------------------------------------------
+        */
+
         $filters = [
-
-            'plant' =>
-                $this->input->get(
-                    'plant',
-                    true
-                ),
-
-            'class_out' =>
-                $this->input->get(
-                    'class_out',
-                    true
-                ),
-
-            'search' =>
-                $this->input->get(
-                    'search',
-                    true
-                ),
-
-            'date_from' =>
-                $this->input->get(
-                    'date_from',
-                    true
-                ),
-
-            'date_to' =>
-                $this->input->get(
-                    'date_to',
-                    true
-                )
-
+            'plant' => $this->input->get('plant', true),
+            'class_out' => $this->input->get('class_out', true),
+            'search' => $this->input->get('search', true),
+            'date_from' => $this->input->get('date_from', true),
+            'date_to' => $this->input->get('date_to', true)
         ];
 
         /*
         |--------------------------------------------------------------------------
         | DATA
         |--------------------------------------------------------------------------
+        | Ambil seluruh data sesuai filter, tanpa pagination.
         */
 
-        $rows =
-            $this
-                ->ReportInventory_model
-                ->get_culling_report(
-
-                    0,
-                    0,
-                    $filters,
-                    'ymd',
-                    'DESC'
-
-                );
+        $rows = $this->ReportInventory_model->get_culling_report(
+            0,
+            0,
+            $filters,
+            'ymd',
+            'DESC'
+        );
 
         if (empty($rows)) {
-
-            show_error(
-                'No data found for export'
-            );
+            show_error('No data found for export');
+            return;
         }
 
         /*
@@ -4399,16 +4373,10 @@ class ReportInventory extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
-        $spreadsheet =
-            new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
 
-        $sheet =
-            $spreadsheet
-                ->getActiveSheet();
-
-        $sheet->setTitle(
-            'Culling Report'
-        );
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Culling Report');
 
         /*
         |--------------------------------------------------------------------------
@@ -4416,28 +4384,15 @@ class ReportInventory extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
-        $logoPath =
-            FCPATH .
-            'assets/img/abc-trans.png';
+        $logoPath = FCPATH . 'assets/img/abc-trans.png';
 
         if (file_exists($logoPath)) {
+            $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
 
-            $drawing =
-                new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
-
-            $drawing->setPath(
-                $logoPath
-            );
-
-            $drawing->setCoordinates(
-                'A1'
-            );
-
+            $drawing->setPath($logoPath);
+            $drawing->setCoordinates('A1');
             $drawing->setHeight(55);
-
-            $drawing->setWorksheet(
-                $sheet
-            );
+            $drawing->setWorksheet($sheet);
         }
 
         /*
@@ -4446,69 +4401,29 @@ class ReportInventory extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
-        $sheet->mergeCells(
-            'B1:F1'
-        );
-
-        $sheet->setCellValue(
-            'B1',
-            'PT. Abadi Bersama Cerah'
-        );
+        $sheet->mergeCells('B1:F1');
+        $sheet->setCellValue('B1', 'PT. Abadi Bersama Cerah');
 
         $sheet->getStyle('B1')
             ->getFont()
             ->setBold(true)
             ->setSize(18);
 
-        $sheet->mergeCells(
-            'B2:F2'
-        );
-
-        $sheet->setCellValue(
-            'B2',
-            'CULLING REPORT'
-        );
+        $sheet->mergeCells('B2:F2');
+        $sheet->setCellValue('B2', 'CULLING REPORT');
 
         $sheet->getStyle('B2')
             ->getFont()
             ->setBold(true)
             ->setSize(13);
 
-        if (
-            !empty(
-                $filters['date_from']
-            ) &&
-            !empty(
-                $filters['date_to']
-            )
-        ) {
+        if (!empty($filters['date_from']) && !empty($filters['date_to'])) {
+            $period = date('d-m-Y', strtotime($filters['date_from']))
+                . ' - '
+                . date('d-m-Y', strtotime($filters['date_to']));
 
-            $period =
-                date(
-                    'd M Y',
-                    strtotime(
-                        $filters['date_from']
-                    )
-                )
-                .
-                ' - '
-                .
-                date(
-                    'd M Y',
-                    strtotime(
-                        $filters['date_to']
-                    )
-                );
-
-            $sheet->mergeCells(
-                'B3:F3'
-            );
-
-            $sheet->setCellValue(
-                'B3',
-                'Period : ' .
-                $period
-            );
+            $sheet->mergeCells('B3:F3');
+            $sheet->setCellValue('B3', 'Period: ' . $period);
         }
 
         /*
@@ -4520,60 +4435,46 @@ class ReportInventory extends MY_Controller {
         $row = 6;
 
         $headers = [
-
-            'NO',
-            'PLANT',
             'DATE',
-            'CLASS OUT',
-            'JUMLAH',
+            'PLANT',
+            'SALES',
+            'KATEGORI',
+            'EKOR',
             'BERAT',
-            'CREATED BY',
+            'HARGA',
+            'TOTAL',
             'REMARK'
-
         ];
 
         $col = 'A';
 
-        foreach ($headers as $h) {
-
-            $sheet->setCellValue(
-                $col . $row,
-                $h
-            );
-
+        foreach ($headers as $header) {
+            $sheet->setCellValue($col . $row, $header);
             $col++;
         }
 
-        $sheet->getStyle(
-            "A{$row}:H{$row}"
-        )->applyFromArray([
-
-            'font' => [
-                'bold' => true
-            ],
-
-            'fill' => [
-
-                'fillType' =>
-                    \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-
-                'startColor' => [
-                    'rgb' => '0F4C81'
+        $sheet->getStyle("A{$row}:I{$row}")
+            ->applyFromArray([
+                'font' => [
+                    'bold' => true,
+                    'color' => [
+                        'rgb' => 'FFFFFF'
+                    ]
+                ],
+                'fill' => [
+                    'fillType' =>
+                        \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => [
+                        'rgb' => '0F4C81'
+                    ]
+                ],
+                'alignment' => [
+                    'horizontal' =>
+                        \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                    'vertical' =>
+                        \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER
                 ]
-
-            ],
-
-            'font' => [
-
-                'bold' => true,
-
-                'color' => [
-                    'rgb' => 'FFFFFF'
-                ]
-
-            ]
-
-        ]);
+            ]);
 
         /*
         |--------------------------------------------------------------------------
@@ -4583,98 +4484,23 @@ class ReportInventory extends MY_Controller {
 
         $row++;
 
-        $no = 1;
-
-        $grandJumlah = 0;
-        $grandBerat = 0;
-
         foreach ($rows as $r) {
+            $date = !empty($r->ymd)
+                ? date('d-m-Y', strtotime($r->ymd))
+                : '-';
 
-            $sheet->setCellValue(
-                "A{$row}",
-                $no++
-            );
-
-            $sheet->setCellValue(
-                "B{$row}",
-                $r->PLANT_NAME
-            );
-
-            $sheet->setCellValue(
-                "C{$row}",
-                strtoupper(
-                    date(
-                        'd F Y',
-                        strtotime(
-                            $r->ymd
-                        )
-                    )
-                )
-            );
-
-            $sheet->setCellValue(
-                "D{$row}",
-                $r->CLASS_OUT_NAME
-            );
-
-            $sheet->setCellValue(
-                "E{$row}",
-                (float)$r->jumlah
-            );
-
-            $sheet->setCellValue(
-                "F{$row}",
-                (float)$r->berat
-            );
-
-            $sheet->setCellValue(
-                "G{$row}",
-                $r->CREATED_BY
-            );
-
-            $sheet->setCellValue(
-                "H{$row}",
-                $r->remark
-            );
-
-            $grandJumlah +=
-                (float)$r->jumlah;
-
-            $grandBerat +=
-                (float)$r->berat;
+            $sheet->setCellValue("A{$row}", $date);
+            $sheet->setCellValue("B{$row}", $r->PLANT_NAME ?? '-');
+            $sheet->setCellValue("C{$row}", $r->SALES ?? '-');
+            $sheet->setCellValue("D{$row}", $r->CLASS_OUT_NAME ?? '-');
+            $sheet->setCellValue("E{$row}", (float)($r->EKOR ?? 0));
+            $sheet->setCellValue("F{$row}", (float)($r->berat ?? 0));
+            $sheet->setCellValue("G{$row}", (float)($r->HARGA ?? 0));
+            $sheet->setCellValue("H{$row}", (float)($r->jumlah ?? 0));
+            $sheet->setCellValue("I{$row}", $r->remark ?? '-');
 
             $row++;
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | GRAND TOTAL
-        |--------------------------------------------------------------------------
-        */
-
-        $sheet->mergeCells(
-            "A{$row}:D{$row}"
-        );
-
-        $sheet->setCellValue(
-            "A{$row}",
-            'GRAND TOTAL'
-        );
-
-        $sheet->setCellValue(
-            "E{$row}",
-            $grandJumlah
-        );
-
-        $sheet->setCellValue(
-            "F{$row}",
-            $grandBerat
-        );
-
-        $sheet->getStyle(
-            "A{$row}:H{$row}"
-        )->getFont()
-            ->setBold(true);
 
         /*
         |--------------------------------------------------------------------------
@@ -4682,13 +4508,31 @@ class ReportInventory extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
-        $sheet->getStyle(
-            "E7:F{$row}"
-        )
-        ->getNumberFormat()
-        ->setFormatCode(
-            '#,##0.00'
-        );
+        $lastDataRow = $row - 1;
+
+        if ($lastDataRow >= 7) {
+            $sheet->getStyle("E7:E{$lastDataRow}")
+                ->getNumberFormat()
+                ->setFormatCode('#,##0');
+
+            $sheet->getStyle("F7:H{$lastDataRow}")
+                ->getNumberFormat()
+                ->setFormatCode('#,##0.##');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | ALIGNMENT
+        |--------------------------------------------------------------------------
+        */
+
+        if ($lastDataRow >= 7) {
+            $sheet->getStyle("E7:H{$lastDataRow}")
+                ->getAlignment()
+                ->setHorizontal(
+                    \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT
+                );
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -4696,19 +4540,12 @@ class ReportInventory extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
-        foreach (
-            range('A', 'H')
-            as $col
-        ) {
-
-            $sheet
-                ->getColumnDimension(
-                    $col
-                )
-                ->setAutoSize(
-                    true
-                );
+        foreach (range('A', 'I') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
         }
+
+        $sheet->freezePane('A7');
+        $sheet->setAutoFilter("A6:I{$lastDataRow}");
 
         /*
         |--------------------------------------------------------------------------
@@ -4716,362 +4553,285 @@ class ReportInventory extends MY_Controller {
         |--------------------------------------------------------------------------
         */
 
+        $filename = 'REPORT_CULLING_' . date('Ymd_His') . '.xlsx';
+
+        if (ob_get_length()) {
+            ob_end_clean();
+        }
+
         header(
             'Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         );
 
         header(
-            'Content-Disposition: attachment; filename="REPORT_CULLING.xlsx"'
+            'Content-Disposition: attachment; filename="' . $filename . '"'
         );
 
-        header(
-            'Cache-Control: max-age=0'
-        );
+        header('Cache-Control: max-age=0');
 
-        $writer =
-            new \PhpOffice\PhpSpreadsheet\Writer\Xlsx(
-                $spreadsheet
-            );
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->save('php://output');
 
-        $writer->save(
-            'php://output'
-        );
+        $spreadsheet->disconnectWorksheets();
+        unset($spreadsheet);
 
         exit;
     }
 
     public function export_pdf_culling()
     {
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER
+        |--------------------------------------------------------------------------
+        */
+
         $filters = [
-
-            'plant' =>
-                $this->input->get(
-                    'plant',
-                    true
-                ),
-
-            'class_out' =>
-                $this->input->get(
-                    'class_out',
-                    true
-                ),
-
-            'search' =>
-                $this->input->get(
-                    'search',
-                    true
-                ),
-
-            'date_from' =>
-                $this->input->get(
-                    'date_from',
-                    true
-                ),
-
-            'date_to' =>
-                $this->input->get(
-                    'date_to',
-                    true
-                )
-
+            'plant' => $this->input->get('plant', true),
+            'class_out' => $this->input->get('class_out', true),
+            'search' => $this->input->get('search', true),
+            'date_from' => $this->input->get('date_from', true),
+            'date_to' => $this->input->get('date_to', true)
         ];
 
-        $rows =
-            $this
-                ->ReportInventory_model
-                ->get_culling_report(
-                    0,
-                    0,
-                    $filters,
-                    'ymd',
-                    'DESC'
-                );
+        /*
+        |--------------------------------------------------------------------------
+        | DATA
+        |--------------------------------------------------------------------------
+        | Ambil seluruh data sesuai filter, tanpa pagination.
+        */
+
+        $rows = $this->ReportInventory_model->get_culling_report(
+            0,
+            0,
+            $filters,
+            'ymd',
+            'DESC'
+        );
 
         if (empty($rows)) {
-
-            show_error(
-                'No data found for export'
-            );
+            show_error('No data found for export');
+            return;
         }
 
-        $logo =
-            FCPATH .
-            'assets/img/abc-trans.png';
+        /*
+        |--------------------------------------------------------------------------
+        | LOGO
+        |--------------------------------------------------------------------------
+        */
 
-        $logo64 =
-            file_exists($logo)
-            ? 'data:image/png;base64,' .
-                base64_encode(
-                    file_get_contents(
-                        $logo
-                    )
-                )
+        $logoPath = FCPATH . 'assets/img/abc-trans.png';
+
+        $logo64 = file_exists($logoPath)
+            ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
             : '';
+
+        /*
+        |--------------------------------------------------------------------------
+        | PERIOD
+        |--------------------------------------------------------------------------
+        */
 
         $period = '';
 
-        if (
-            !empty(
-                $filters['date_from']
-            ) &&
-            !empty(
-                $filters['date_to']
-            )
-        ) {
-
-            $period =
-                date(
-                    'd M Y',
-                    strtotime(
-                        $filters['date_from']
-                    )
-                )
-                .
-                ' - '
-                .
-                date(
-                    'd M Y',
-                    strtotime(
-                        $filters['date_to']
-                    )
-                );
+        if (!empty($filters['date_from']) && !empty($filters['date_to'])) {
+            $period = date('d-m-Y', strtotime($filters['date_from']))
+                . ' - '
+                . date('d-m-Y', strtotime($filters['date_to']));
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | HTML HEADER
+        |--------------------------------------------------------------------------
+        */
+
         $html = '
-
         <style>
-
-            body{
-                font-family:sans-serif;
-                font-size:10px;
+            body {
+                font-family: sans-serif;
+                font-size: 9px;
             }
 
-            table{
-                width:100%;
-                border-collapse:collapse;
+            table {
+                width: 100%;
+                border-collapse: collapse;
             }
 
-            th,td{
-                border:1px solid #d9dee5;
-                padding:6px;
+            th, td {
+                border: 1px solid #d9dee5;
+                padding: 6px;
             }
 
-            th{
-                background:#eef2f7;
+            th {
+                background-color: #0F4C81;
+                color: #ffffff;
+                font-weight: bold;
+                text-align: center;
             }
 
-            .right{
-                text-align:right;
+            .center {
+                text-align: center;
             }
 
-            .center{
-                text-align:center;
+            .right {
+                text-align: right;
             }
 
-            .total{
-                background:#f8fafc;
-                font-weight:bold;
+            .report-title {
+                font-size: 18px;
+                font-weight: bold;
+                text-align: center;
             }
 
+            .report-subtitle {
+                font-size: 13px;
+                font-weight: bold;
+                text-align: center;
+            }
         </style>
 
-        <table border="0">
-
+        <table style="border:none;">
             <tr>
-
-                <td width="70" style="border:none;">'
-
-                .
-                (
-                    $logo64
-                    ? '<img src="'.$logo64.'" height="55">'
-                    : ''
-                )
-
-                .'
-
-                </td>
+                <td width="75" style="border:none;">'
+                    . ($logo64
+                        ? '<img src="' . $logo64 . '" height="50">'
+                        : ''
+                    ) .
+                '</td>
 
                 <td style="border:none;">
-
-                    <div
-                        style="
-                            text-align:center;
-                            font-size:18px;
-                            font-weight:bold;
-                        ">
-
+                    <div class="report-title">
                         PT. Abadi Bersama Cerah
-
                     </div>
 
-                    <div
-                        style="
-                            text-align:center;
-                        ">
-
+                    <div class="report-subtitle">
                         CULLING REPORT
-
                     </div>
 
-                    <div
-                        style="
-                            text-align:center;
-                        ">
-
-                        '.$period.'
-
+                    <div style="text-align:center;">
+                        ' . htmlspecialchars($period, ENT_QUOTES, 'UTF-8') . '
                     </div>
-
                 </td>
-
             </tr>
-
         </table>
 
         <br>
 
         <table>
-
             <thead>
-
                 <tr>
-
-                    <th>NO</th>
-                    <th>PLANT</th>
-                    <th>DATE</th>
-                    <th>CLASS OUT</th>
-                    <th>JUMLAH</th>
-                    <th>BERAT</th>
-                    <th>CREATED BY</th>
-                    <th>REMARK</th>
-
+                    <th>Date</th>
+                    <th>Plant</th>
+                    <th>Sales</th>
+                    <th>Kategori</th>
+                    <th>Ekor</th>
+                    <th>Berat</th>
+                    <th>Harga</th>
+                    <th>Total</th>
+                    <th>Remark</th>
                 </tr>
-
             </thead>
 
             <tbody>
         ';
 
-        $no = 1;
-
-        $grandJumlah = 0;
-        $grandBerat = 0;
+        /*
+        |--------------------------------------------------------------------------
+        | TABLE DETAIL
+        |--------------------------------------------------------------------------
+        */
 
         foreach ($rows as $r) {
+            $date = !empty($r->ymd)
+                ? date('d-m-Y', strtotime($r->ymd))
+                : '-';
 
-            $grandJumlah +=
-                (float)$r->jumlah;
+            $plant = htmlspecialchars(
+                (string)($r->PLANT_NAME ?? '-'),
+                ENT_QUOTES,
+                'UTF-8'
+            );
 
-            $grandBerat +=
-                (float)$r->berat;
+            $sales = htmlspecialchars(
+                (string)($r->SALES ?? '-'),
+                ENT_QUOTES,
+                'UTF-8'
+            );
+
+            $category = htmlspecialchars(
+                (string)($r->CLASS_OUT_NAME ?? '-'),
+                ENT_QUOTES,
+                'UTF-8'
+            );
+
+            $remark = htmlspecialchars(
+                (string)($r->remark ?? '-'),
+                ENT_QUOTES,
+                'UTF-8'
+            );
 
             $html .= '
+                <tr>
+                    <td class="center">'
+                        . htmlspecialchars($date, ENT_QUOTES, 'UTF-8') .
+                    '</td>
 
-            <tr>
+                    <td>' . $plant . '</td>
+                    <td>' . $sales . '</td>
+                    <td>' . $category . '</td>
 
-                <td class="center">
-                    '.$no++.'
-                </td>
+                    <td class="right">'
+                        . number_format((float)($r->EKOR ?? 0), 0, ',', '.') .
+                    '</td>
 
-                <td>
-                    '.$r->PLANT_NAME.'
-                </td>
+                    <td class="right">'
+                        . number_format((float)($r->berat ?? 0), 2, ',', '.') .
+                    '</td>
 
-                <td>
-                    '.strtoupper(
-                        date(
-                            'd F Y',
-                            strtotime(
-                                $r->ymd
-                            )
-                        )
-                    ).'
-                </td>
+                    <td class="right">'
+                        . number_format((float)($r->HARGA ?? 0), 2, ',', '.') .
+                    '</td>
 
-                <td>
-                    '.$r->CLASS_OUT_NAME.'
-                </td>
+                    <td class="right">'
+                        . number_format((float)($r->jumlah ?? 0), 2, ',', '.') .
+                    '</td>
 
-                <td class="right">
-                    '.number_format(
-                        $r->jumlah,
-                        2,
-                        ',',
-                        '.'
-                    ).'
-                </td>
-
-                <td class="right">
-                    '.number_format(
-                        $r->berat,
-                        2,
-                        ',',
-                        '.'
-                    ).'
-                </td>
-
-                <td>
-                    '.$r->CREATED_BY.'
-                </td>
-
-                <td>
-                    '.($r->remark ?: '-').'
-                </td>
-
-            </tr>
-
+                    <td>' . $remark . '</td>
+                </tr>
             ';
         }
 
         $html .= '
-
-            <tr class="total">
-
-                <td colspan="4">
-                    GRAND TOTAL
-                </td>
-
-                <td class="right">
-                    '.number_format(
-                        $grandJumlah,
-                        2,
-                        ',',
-                        '.'
-                    ).'
-                </td>
-
-                <td class="right">
-                    '.number_format(
-                        $grandBerat,
-                        2,
-                        ',',
-                        '.'
-                    ).'
-                </td>
-
-                <td colspan="2"></td>
-
-            </tr>
-
             </tbody>
-
         </table>
         ';
 
-        $mpdf =
-            new \Mpdf\Mpdf([
-                'orientation' => 'L'
-            ]);
+        /*
+        |--------------------------------------------------------------------------
+        | PDF
+        |--------------------------------------------------------------------------
+        */
 
-        $mpdf->WriteHTML(
-            $html
-        );
+        $mpdf = new \Mpdf\Mpdf([
+            'orientation' => 'L',
+            'margin_left' => 10,
+            'margin_right' => 10,
+            'margin_top' => 10,
+            'margin_bottom' => 12
+        ]);
 
-        $mpdf->Output(
-            'REPORT_CULLING.pdf',
-            'I'
-        );
+        $mpdf->SetHTMLFooter('
+            <div style="text-align:right; font-size:9px; color:#666;">
+                Page {PAGENO} of {nbpg}
+            </div>
+        ');
+
+        $mpdf->WriteHTML($html);
+
+        $filename = 'REPORT_CULLING_' . date('Ymd_His') . '.pdf';
+
+        $mpdf->Output($filename, 'I');
 
         exit;
     }

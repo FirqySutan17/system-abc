@@ -1,976 +1,547 @@
-<?php $userPlant = $this->session->userdata('plant'); ?>
 
-<div class="culling-report-wrap">
-
-    <!-- SUMMARY -->
-    <div class="row mb-4" id="summaryWrapper">
-
-        <div class="col-md-2">
-            <div class="summary-card">
-                <div class="summary-label">
-                    TOTAL CULLING
-                </div>
-
-                <div class="summary-value" id="sumCulling">
-                    0
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-2">
-            <div class="summary-card">
-                <div class="summary-label">
-                    DIPOTONG <br/> (JUMLAH CULLING)
-                </div>
-
-                <div class="summary-value" id="sumCullingDipotong">
-                    0
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-2">
-            <div class="summary-card">
-                <div class="summary-label">
-                    MATI <br/> (JUMLAH CULLING)
-                </div>
-
-                <div class="summary-value" id="sumCullingMati">
-                    0
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="summary-card">
-                <div class="summary-label">
-                    TOTAL KUANTITAS
-                </div>
-
-                <div class="summary-value" id="sumKuantitas">
-                    0
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="summary-card">
-                <div class="summary-label">
-                    TOTAL BERAT
-                </div>
-
-                <div class="summary-value" id="sumBerat">
-                    0
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="report-filter-card">
-
-        <div class="row g-3 align-items-end">
-
-            <!-- PLANT -->
-
-            <div class="col-md-2">
-
-                <label class="form-label fw-semibold">
-                    Plant
-                </label>
-
-                <select
-                    id="cl_filter_plant"
-                    class="form-control">
-
-                    <option value="">
-                        Pilih Plant
-                    </option>
-
-                    <?php foreach ($plants as $p): ?>
-
-                        <?php if ($p->CODE != '*'): ?>
-
-                            <option value="<?= $p->CODE ?>">
-                                <?= $p->CODE_NAME ?>
-                            </option>
-
-                        <?php endif; ?>
-
-                    <?php endforeach; ?>
-
-                </select>
-
-            </div>
-
-            <!-- CLASS OUT -->
-
-            <div class="col-md-3">
-
-                <label class="form-label fw-semibold">
-                    Class Out
-                </label>
-
-                <select
-                    id="cl_filter_class_out"
-                    class="form-control">
-
-                    <option value="">
-                        Pilih Class Out
-                    </option>
-
-                    <?php foreach ($class_out as $c): ?>
-
-                        <option value="<?= $c->CODE ?>">
-                            <?= $c->CODE_NAME ?>
-                        </option>
-
-                    <?php endforeach; ?>
-
-                </select>
-
-            </div>
-
-            <!-- SEARCH -->
-
-            <div class="col-md-3">
-
-                <label class="form-label fw-semibold">
-                    Pencarian
-                </label>
-
-                <input
-                    type="text"
-                    id="cl_filter_search"
-                    class="form-control"
-                    placeholder="Cari berdasarkan keterangan...">
-
-            </div>
-
-            <!-- DATE FROM -->
-
-            <div class="col-md-2">
-
-                <label class="form-label fw-semibold">
-                    Tanggal Mulai
-                </label>
-
-                <input
-                    type="date"
-                    id="cl_date_from"
-                    class="form-control">
-
-            </div>
-
-            <!-- DATE TO -->
-
-            <div class="col-md-2">
-
-                <label class="form-label fw-semibold">
-                    Tanggal Selesai
-                </label>
-
-                <input
-                    type="date"
-                    id="cl_date_to"
-                    class="form-control">
-
-            </div>
-
-            <div class="col-md-10"></div>
-
-            <!-- EXPORT -->
-
-            <div class="col-md-2">
-
-                <div class="btn-group w-100">
-
-                    <button
-                        class="btn btn-success dropdown-toggle"
-                        data-bs-toggle="dropdown">
-
-                        <i class="fa fa-download me-1"></i>
-                        Export
-
-                    </button>
-
-                    <ul class="dropdown-menu w-100">
-
-                        <li>
-
-                            <a
-                                href="#"
-                                class="dropdown-item"
-                                id="cl_exportExcel">
-
-                                <i class="fa fa-file-excel text-success me-2"></i>
-
-                                Export Excel
-
-                            </a>
-
-                        </li>
-
-                        <li>
-
-                            <a
-                                href="#"
-                                class="dropdown-item"
-                                id="cl_exportPDF">
-
-                                <i class="fa fa-file-pdf text-danger me-2"></i>
-
-                                Export PDF
-
-                            </a>
-
-                        </li>
-
-                    </ul>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- LOADING -->
-
-    <div
-        id="clLoading"
-        class="report-loading d-none">
-
-        <div class="text-center">
-
-            <div
-                class="spinner-border text-primary">
-            </div>
-
-            <div class="fw-semibold mt-3">
-                Loading report...
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- CONTENT -->
-
-    <div id="tableWrapper">
-
-        <div class="table-responsive">
-
-            <table
-                class="table table-hover align-middle table-modern"
-                id="mainTable">
-
-                <thead>
-
-                    <tr>
-
-                        <th style="text-align: center; vertical-align: middle">Plant</th>
-                        <th style="text-align: center; vertical-align: middle">Tanggal</th>
-                        <th style="text-align: center; vertical-align: middle">Class Out</th>
-                        <th style="text-align: center; vertical-align: middle">Jumlah</th>
-                        <th style="text-align: center; vertical-align: middle">Berat</th>
-                        <th style="text-align: center; vertical-align: middle">Keterangan</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody id="table-body">
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </div>
-
-    <div id="cullingReportWrapper"></div>
-
-    <!-- PAGINATION -->
-
-    <div
-        class="d-flex justify-content-between align-items-center mt-4">
-
-        <div
-            id="cl_pageInfo"
-            class="text-muted small">
-        </div>
-
-        <div id="cl_pagination"></div>
-
-    </div>
-
-</div>
+<?php defined('BASEPATH') OR exit('No direct script access allowed'); ?>
 
 <style>
-
-    .culling-card{
-        background:#fff;
-        border-radius:20px;
-        overflow:hidden;
-        margin-bottom:24px;
-        box-shadow:0 10px 30px rgba(15,23,42,.06);
-        border:1px solid #edf2f7;
+    .culling-report-wrap {
+        width: 100%;
     }
 
-    .culling-head{
-        background:
-            linear-gradient(
-                135deg,
-                #0f4c81,
-                #2563eb
-            );
-
-        color:#fff;
-        padding:22px 24px;
+    .culling-filter-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 20px;
     }
 
-    .culling-title{
-        font-size:22px;
-        font-weight:700;
+    .culling-report-wrap .form-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 7px;
     }
 
-    .culling-body{
-        padding:24px;
+    .culling-report-wrap .form-control,
+    .culling-report-wrap .form-select {
+        min-height: 42px;
+        border-radius: 9px;
+        font-size: 13px;
     }
 
-    .summary-box{
-        display:flex;
-        justify-content:space-around;
-        text-align:center;
+    .culling-table-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        overflow: hidden;
     }
 
-    .summary-value{
-        font-size:28px;
-        font-weight:700;
-        color:#0f4c81;
+    .culling-table-scroll {
+        width: 100%;
+        overflow-x: auto;
     }
 
-    .summary-label{
-        color:#64748b;
-    }
-    .receive-report-wrap{
-        padding:4px;
-    }
-
-    .report-filter-card{
-        background:#fff;
-        border:1px solid #edf2f7;
-        border-radius:18px;
-        padding:24px;
-        box-shadow:0 8px 25px rgba(15,23,42,.05);
-        margin-bottom:24px;
+    .culling-table {
+        width: 100%;
+        min-width: 1250px;
+        border-collapse: collapse;
+        font-size: 12px;
+        margin-bottom: 0;
     }
 
-    .report-loading{
-        min-height:280px;
-        background:#fff;
-        border-radius:18px;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        border:1px solid #edf2f7;
+    .culling-table thead th {
+        background: #f3f6fa;
+        color: #374151;
+        font-weight: 700;
+        padding: 13px 12px;
+        border-bottom: 1px solid #e5e7eb;
+        white-space: nowrap;
     }
 
-    .receive-card{
-        background:#fff;
-        border-radius:20px;
-        overflow:hidden;
-        margin-bottom:24px;
-        box-shadow:0 10px 30px rgba(15,23,42,.06);
-        border:1px solid #edf2f7;
+    .culling-table tbody td {
+        padding: 12px;
+        border-bottom: 1px solid #edf0f4;
+        vertical-align: middle;
+        color: #374151;
     }
 
-    .receive-head{
-        background:linear-gradient(135deg,#0f4c81,#2563eb);
-        color:#fff;
-        padding:22px 24px;
+    .culling-table tbody tr:hover {
+        background: #f9fafb;
     }
 
-    .receive-title{
-        font-size:22px;
-        font-weight:700;
-        letter-spacing:.5px;
+    .culling-table .text-number {
+        text-align: right;
+        white-space: nowrap;
     }
 
-    .status-badge{
-        padding:7px 14px;
-        border-radius:50px;
-        font-size:12px;
-        font-weight:700;
+    .culling-table .text-center {
+        text-align: center;
     }
 
-    .status-open{
-        background:#fff3cd;
-        color:#856404;
+    .culling-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 16px 20px;
     }
 
-    .status-received{
-        background:#d1fae5;
-        color:#065f46;
+    #cul_pageInfo {
+        font-size: 13px;
+        color: #6b7280;
     }
 
-    .meta-grid{
-        display:grid;
-        grid-template-columns:1fr 1fr;
-        gap:10px 40px;
-        margin-top:18px;
-        font-size:14px;
+    #cul_pagination {
+        margin-left: auto;
     }
 
-    .meta-item{
-        display:flex;
-        gap:8px;
+    #cul_pagination ul {
+        margin-bottom: 0;
     }
 
-    .meta-label{
-        min-width:110px;
-        opacity:.85;
-        font-weight:600;
+    #culLoading {
+        padding: 35px;
+        text-align: center;
+        color: #6b7280;
     }
 
-    .meta-value{
-        flex:1;
-        font-weight:500;
-    }
-
-    .receive-body{
-        padding:10px;
-    }
-
-    .attach-badge{
-        display:inline-block;
-        padding:4px 10px;
-        border-radius:50px;
-        font-size:12px;
-        font-weight:700;
-        background:#e0f2fe;
-        color:#075985;
-    }
-
-    .table-detail{
-        margin:0;
-        font-size:14px;
-    }
-
-    .table-detail thead th{
-        background:#f8fafc;
-        border-color:#e5e7eb;
-        font-size:12px;
-        text-transform:uppercase;
-        letter-spacing:.4px;
-    }
-
-    .table-detail td{
-        border-color:#edf2f7;
-        vertical-align:middle;
-    }
-
-    .subtotal-row{
-        background:#f8fafc;
-        font-weight:700;
-    }
-
-    @media(max-width:768px){
-        .meta-grid{
-            grid-template-columns:1fr;
-            gap:8px;
+    @media(max-width: 768px) {
+        .culling-filter-card {
+            padding: 15px;
         }
 
-        .receive-title{
-            font-size:18px;
-        }
-
-        .receive-head,
-        .receive-body{
-            padding:18px;
+        .culling-footer {
+            align-items: flex-start;
         }
     }
 </style>
 
+<div class="culling-report-wrap">
+
+    <!-- FILTER -->
+    <div class="culling-filter-card">
+
+        <div class="row g-3">
+
+            <div class="col-md-3">
+                <label for="cul_filter_plant" class="form-label">
+                    Plant
+                </label>
+
+                <select id="cul_filter_plant" class="form-select">
+                    <option value="">All Plant</option>
+
+                    <?php foreach (($plants ?? []) as $plant): ?>
+                        <?php if ($plant->CODE !== '*'): ?>
+                            <option value="<?= html_escape($plant->CODE); ?>">
+                                <?= html_escape($plant->CODE_NAME); ?>
+                            </option>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label for="cul_filter_class_out" class="form-label">
+                    Kategori
+                </label>
+
+                <select id="cul_filter_class_out" class="form-select">
+                    <option value="">-- Semua Kategori --</option>
+
+                    <?php foreach (($class_out ?? []) as $class): ?>
+                        <option value="<?= html_escape($class->CODE); ?>">
+                            <?= html_escape($class->CODE_NAME); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label for="cul_date_from" class="form-label">
+                    Date From
+                </label>
+
+                <input
+                    type="date"
+                    id="cul_date_from"
+                    class="form-control"
+                >
+            </div>
+
+            <div class="col-md-3">
+                <label for="cul_date_to" class="form-label">
+                    Date To
+                </label>
+
+                <input
+                    type="date"
+                    id="cul_date_to"
+                    class="form-control"
+                >
+            </div>
+
+            <div class="col-md-9">
+                <label for="cul_filter_search" class="form-label">
+                    Search
+                </label>
+
+                <input
+                    type="text"
+                    id="cul_filter_search"
+                    class="form-control"
+                    placeholder="Search remark or created by..."
+                >
+            </div>
+
+            <div class="col-md-2 d-flex align-items-end">
+                <button
+                    type="button"
+                    id="cul_btnFilter"
+                    class="btn btn-primary w-100"
+                >
+                    <i class="fas fa-search me-1"></i>
+                    Filter
+                </button>
+            </div>
+
+            <div class="col-md-1 d-flex align-items-end">
+
+                <div class="d-flex justify-content-end">
+                    <div class="dropdown">
+                        <button
+                            type="button"
+                            class="btn btn-success dropdown-toggle"
+                            id="cul_btnExport"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                        >
+                            <i class="fas fa-download me-1"></i>
+                            Export
+                        </button>
+
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="cul_btnExport">
+                            <li>
+                                <button
+                                    type="button"
+                                    class="dropdown-item"
+                                    id="cul_btnExcel"
+                                >
+                                    <i class="fas fa-file-excel text-success me-2"></i>
+                                    Export Excel
+                                </button>
+                            </li>
+
+                            <li>
+                                <button
+                                    type="button"
+                                    class="dropdown-item"
+                                    id="cul_btnPdf"
+                                >
+                                    <i class="fas fa-file-pdf text-danger me-2"></i>
+                                    Export PDF
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="culling-table-card">
+
+        <div id="culLoading" class="d-none">
+            <div class="spinner-border spinner-border-sm me-2"
+                 role="status"></div>
+            Loading data...
+        </div>
+
+        <div id="cullingReportWrapper" class="culling-table-scroll">
+
+            <table class="culling-table">
+                <thead>
+                    <tr>
+                        <th class="text-center">Date</th>
+                        <th class="text-center">Plant</th>
+                        <th class="text-center">Sales</th>
+                        <th class="text-center">Kategori</th>
+                        <th class="text-number text-center">Ekor</th>
+                        <th class="text-number text-center">Berat</th>
+                        <th class="text-number text-center">Harga</th>
+                        <th class="text-number text-center">Total</th>
+                        <th class="text-center">Remark</th>
+                    </tr>
+                </thead>
+
+                <tbody id="cul_tableBody">
+                    <tr>
+                        <td colspan="13" class="text-center py-5 text-muted">
+                            Memuat data...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+
+        <div class="culling-footer">
+            <div id="cul_pageInfo">Total data: 0</div>
+            <div id="cul_pagination"></div>
+        </div>
+
+    </div>
+</div>
+
 <script>
+window.CullingReport = {
 
-    window.CullingReport = {
+    loaded: false,
+    page: 1,
+    limit: 10,
 
-        loaded: false,
-        page: 1,
-        limit: 10,
-        searchTimer: null,
+    init() {
+        if (this.loaded) return;
 
-        /*
-        |--------------------------------------------------------------------------
-        | INIT
-        |--------------------------------------------------------------------------
-        */
+        this.loaded = true;
 
-        init()
-        {
-            if (this.loaded)
-                return;
+        this.initSelect2();
+        this.bind();
+        this.setDefault();
+        this.load();
+    },
 
-            this.loaded = true;
-
-            this.initSelect2();
-
-            this.bind();
-
-            this.bindExport();
-
-            this.setDefault();
-
-            this.load();
-        },
-
-        /*
-        |--------------------------------------------------------------------------
-        | SELECT2
-        |--------------------------------------------------------------------------
-        */
-
-        initSelect2()
-        {
-            $('#cl_filter_plant').select2({
-
-                theme: 'bootstrap-5',
+    initSelect2() {
+        if ($.fn.select2) {
+            $('#cul_filter_plant').select2({
                 width: '100%',
                 placeholder: 'Pilih Plant',
                 allowClear: true
-
             });
 
-            $('#cl_filter_class_out').select2({
-
-                theme: 'bootstrap-5',
+            $('#cul_filter_class_out').select2({
                 width: '100%',
                 placeholder: 'Pilih Class Out',
                 allowClear: true
-
             });
-        },
+        }
+    },
 
-        /*
-        |--------------------------------------------------------------------------
-        | DEFAULT
-        |--------------------------------------------------------------------------
-        */
+    setDefault() {
+        const now = new Date();
 
-        setDefault()
-        {
-            const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
 
-            const yyyy = now.getFullYear();
-            const mm = String(now.getMonth()+1).padStart(2,'0');
-            const dd = String(now.getDate()).padStart(2,'0');
+        $('#cul_date_from').val(`${yyyy}-${mm}-01`);
+        $('#cul_date_to').val(`${yyyy}-${mm}-${dd}`);
+    },
 
-            $('#cl_date_from').val(`${yyyy}-${mm}-01`);
-            $('#cl_date_to').val(`${yyyy}-${mm}-${dd}`);
-            
-        },
+    bind() {
+        let timer;
 
-        /*
-        |--------------------------------------------------------------------------
-        | QUERY
-        |--------------------------------------------------------------------------
-        */
+        $('#cul_btnFilter').on('click', () => {
+            this.page = 1;
+            this.load();
+        });
 
-        query()
-        {
-            return {
+        $('#cul_filter_search').on('keyup', () => {
+            clearTimeout(timer);
 
-                page:
-                    this.page,
+            timer = setTimeout(() => {
+                this.page = 1;
+                this.load();
+            }, 300);
+        });
 
-                limit:
-                    this.limit,
+        $(
+            '#cul_filter_plant, #cul_filter_class_out, ' +
+            '#cul_date_from, #cul_date_to'
+        ).on('change', () => {
+            this.page = 1;
+            this.load();
+        });
 
-                plant:
-                    $('#cl_filter_plant').val(),
+        $('#cul_btnExcel').on('click', () => {
+            this.exportReport('excel');
+        });
 
-                class_out:
-                    $('#cl_filter_class_out').val(),
+        $('#cul_btnPdf').on('click', () => {
+            this.exportReport('pdf');
+        });
 
-                search:
-                    $('#cl_filter_search').val(),
-
-                date_from:
-                    $('#cl_date_from').val(),
-
-                date_to:
-                    $('#cl_date_to').val()
-            };
-        },
-
-        /*
-        |--------------------------------------------------------------------------
-        | BIND
-        |--------------------------------------------------------------------------
-        */
-
-        bind()
-        {
-            const self = this;
-
-            /*
-            |--------------------------------------------------------------------------
-            | SEARCH
-            |--------------------------------------------------------------------------
-            */
-
-            $('#cl_filter_search')
-                .off('keyup')
-                .on(
-                    'keyup',
-                    function ()
-            {
-                clearTimeout(
-                    self.searchTimer
-                );
-
-                self.searchTimer =
-                    setTimeout(() => {
-
-                        self.page = 1;
-
-                        self.load();
-
-                    }, 500);
-            });
-
-            /*
-            |--------------------------------------------------------------------------
-            | FILTER
-            |--------------------------------------------------------------------------
-            */
-
-            $('#cl_filter_plant, #cl_filter_class_out')
-                .off('change')
-                .on(
-                    'change',
-                    function ()
-            {
-                self.page = 1;
-
-                self.load();
-            });
-
-            /*
-            |--------------------------------------------------------------------------
-            | DATE
-            |--------------------------------------------------------------------------
-            */
-
-            $('#cl_date_from, #cl_date_to')
-                .off('change')
-                .on(
-                    'change',
-                    function ()
-            {
-                self.page = 1;
-
-                self.load();
-            });
-
-        },
-
-        /*
-        |--------------------------------------------------------------------------
-        | EXPORT
-        |--------------------------------------------------------------------------
-        */
-
-        bindExport()
-        {
-            $('#cl_exportExcel')
-                .off('click')
-                .on(
-                    'click',
-                    (e)=>
-            {
+        $(document).on(
+            'click',
+            '#cul_pagination a',
+            (e) => {
                 e.preventDefault();
 
-                window.open(
+                const page = $(e.currentTarget).data('page');
 
-                    '<?= base_url("report-inventory/export_excel_culling"); ?>?'
-                    + $.param(
-                        this.query()
-                    ),
+                if (page) {
+                    this.load(page);
+                }
+            }
+        );
+    },
 
-                    '_blank'
-                );
-            });
+    exportReport(type) {
+        const filters = this.query();
 
-            $('#cl_exportPDF')
-                .off('click')
-                .on(
-                    'click',
-                    (e)=>
-            {
-                e.preventDefault();
+        delete filters.page;
+        delete filters.limit;
 
-                window.open(
+        const params = new URLSearchParams(filters).toString();
 
-                    '<?= base_url("report-inventory/export_pdf_culling"); ?>?'
-                    + $.param(
-                        this.query()
-                    ),
+        const baseUrl = type === 'excel'
+            ? '<?= base_url("report-inventory/export_excel_culling"); ?>'
+            : '<?= base_url("report-inventory/export_pdf_culling"); ?>';
 
-                    '_blank'
-                );
-            });
-        },
+        window.open(baseUrl + '?' + params, '_blank');
+    },
 
-        /*
-        |--------------------------------------------------------------------------
-        | LOADING
-        |--------------------------------------------------------------------------
-        */
+    query() {
+        return {
+            page: this.page,
+            limit: this.limit,
+            plant: $('#cul_filter_plant').val(),
+            class_out: $('#cul_filter_class_out').val(),
+            search: $('#cul_filter_search').val(),
+            date_from: $('#cul_date_from').val(),
+            date_to: $('#cul_date_to').val()
+        };
+    },
 
-        showLoading()
-        {
-            $('#clLoading')
-                .removeClass('d-none');
-        },
+    showLoading() {
+        $('#culLoading').removeClass('d-none');
+        $('#cullingReportWrapper').hide();
+    },
 
-        hideLoading()
-        {
-            $('#clLoading')
-                .addClass('d-none');
-        },
+    hideLoading() {
+        $('#culLoading').addClass('d-none');
+        $('#cullingReportWrapper').show();
+    },
 
-        /*
-        |--------------------------------------------------------------------------
-        | LOAD
-        |--------------------------------------------------------------------------
-        */
+    escape(value) {
+        return $('<div>').text(value ?? '').html();
+    },
 
-        load(page = null)
-        {
-            if (page) {
-                this.page = page;
+    formatNumber(value) {
+        const number = Number(value);
+
+        if (!Number.isFinite(number)) return '-';
+
+        return number.toLocaleString('id-ID', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2
+        });
+    },
+
+    formatDate(value) {
+        if (!value) return '-';
+
+        const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+        if (match) {
+            return `${match[3]}-${match[2]}-${match[1]}`;
+        }
+
+        return this.escape(value);
+    },
+
+    load(page = null) {
+        if (page !== null) {
+            this.page = page;
+        }
+
+        this.showLoading();
+
+        $.get(
+            '<?= base_url("report-inventory/load_culling"); ?>',
+            this.query()
+        )
+        .done((resp) => {
+            if (typeof resp === 'string') {
+                try {
+                    resp = JSON.parse(resp);
+                } catch (e) {
+                    this.render([]);
+                    $('#cul_pageInfo').text('Gagal membaca data laporan.');
+                    return;
+                }
             }
 
-            this.showLoading();
-
-            $.ajax({
-
-                url:
-                    '<?= base_url("report-inventory/load_culling"); ?>',
-
-                type:
-                    'GET',
-
-                data:
-                    this.query(),
-
-                dataType:
-                    'json',
-
-                success:
-                    (resp)=>
-                {
-                    this.renderSummary(
-                        resp.summary || {}
-                    );
-
-                    this.renderTable(
-                        resp.rows || []
-                    );
-
-                    $('#cl_pagination')
-                        .html(
-                            resp.pagination || ''
-                        );
-
-                    $('#cl_pageInfo')
-                        .html(
-
-                            `Total Data :
-                            ${resp.total || 0}`
-
-                        );
-                },
-
-                complete:
-                    ()=>
-                {
-                    this.hideLoading();
-                }
-
-            });
-        },
-
-        /*
-        |--------------------------------------------------------------------------
-        | RENDER TABLE
-        |--------------------------------------------------------------------------
-        */
-
-        renderTable(rows)
-        {
-            let html = '';
-
-            if (!rows.length)
-            {
-                html += `
-                    <tr>
-                        <td colspan="6"
-                            class="text-center">
-                            Data tidak ditemukan
-                        </td>
-                    </tr>
-                `;
-
-                $('#table-body').html(html);
-
+            if (!resp || resp.status !== true) {
+                this.render([]);
+                $('#cul_pageInfo').text('Gagal mengambil data laporan.');
                 return;
             }
 
-            rows.forEach((r)=>{
+            this.render(resp.rows || []);
 
-                html += `
-                    <tr>
-                        <td class="text-center fw-semibold" style="vertical-align: middle;">
-                            ${r.PLANT_NAME ?? '-'}
-                        </td>
-                        <td class="text-center" style="vertical-align: middle;">
-                            ${this.dateIndoLong(r.ymd)}
-                        </td>
-                        <td class="text-center" style="vertical-align: middle;">
-                            ${r.CLASS_OUT_NAME ?? '-'}
-                        </td>
-                        <td class="text-end" style="vertical-align: middle;">
-                            ${this.decimal(r.jumlah)}
-                        </td>
-                        <td class="text-end" style="vertical-align: middle;">
-                            ${this.decimal(r.berat)}
-                        </td>
-                        <td class="text-center" style="vertical-align: middle;">
-                            ${r.remark ?? '-'}
-                        </td>
-                    </tr>
-                `;
+            $('#cul_pagination').html(resp.pagination || '');
 
-            });
-
-            $('#table-body').html(html);
-        },
-
-        renderSummary(summary)
-        {
-            $('#sumCulling').text(
-                summary.TOTAL_CULLING || 0
+            $('#cul_pageInfo').text(
+                `Total data: ${resp.total || 0}`
             );
+        })
+        .fail((xhr) => {
+            this.render([]);
+            $('#cul_pageInfo').text('Terjadi kesalahan saat mengambil data.');
 
-            $('#sumCullingDipotong').text(
-                summary.TOTAL_DIPOTONG || 0
+            console.error(
+                'Load Culling error:',
+                xhr.responseText
             );
+        })
+        .always(() => {
+            this.hideLoading();
+        });
+    },
 
-            $('#sumCustomer').text(
-                summary.TOTAL_MATI || 0
-            );
+    render(rows) {
+        const body = $('#cul_tableBody');
 
-            $('#sumKuantitas').text(
-                this.decimal(summary.TOTAL_QTY || 0)
-            );
+        body.empty();
 
-            $('#sumBerat').text(
-                this.decimal(summary.TOTAL_BERAT || 0)
-            );
-        },
+        if (!rows || rows.length === 0) {
+            body.html(`
+                <tr>
+                    <td colspan="13"
+                        class="text-center py-5 text-muted">
+                        Data tidak ditemukan
+                    </td>
+                </tr>
+            `);
 
-        /*
-        |--------------------------------------------------------------------------
-        | DECIMAL
-        |--------------------------------------------------------------------------
-        */
-
-        decimal(val)
-        {
-            val =
-                parseFloat(
-                    val || 0
-                );
-
-            return val.toLocaleString(
-                'id-ID',
-                {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 6
-                }
-            );
-        },
-
-        /*
-        |--------------------------------------------------------------------------
-        | DATE INDONESIA
-        |--------------------------------------------------------------------------
-        */
-
-        dateIndoLong(date)
-        {
-            if (!date)
-                return '-';
-
-            const bulan = [
-
-                'Januari',
-                'Februari',
-                'Maret',
-                'April',
-                'Mei',
-                'Juni',
-                'Juli',
-                'Agustus',
-                'September',
-                'Oktober',
-                'November',
-                'Desember'
-            ];
-
-            let d =
-                new Date(date);
-
-            if (isNaN(d))
-                return date;
-
-            return (
-
-                d.getDate() +
-                ' ' +
-                bulan[
-                    d.getMonth()
-                ] +
-                ' ' +
-                d.getFullYear()
-
-            );
+            return;
         }
 
-    };
+        const start = (this.page - 1) * this.limit;
 
-    /*
-    |--------------------------------------------------------------------------
-    | PAGINATION
-    |--------------------------------------------------------------------------
-    */
+        let html = '';
 
-    function loadCullingPage(page)
-    {
-        if (
-            window.CullingReport
-        ) {
+        rows.forEach((r, index) => {
+            html += `
+                <tr>
+                    <td class="text-center">${this.formatDate(r.ymd)}</td>
+                    <td class="text-center">${this.escape(r.PLANT_NAME || r.plant || '-')}</td>
+                    <td class="text-center">${this.escape(r.SALES || '-')}</td>
+                    <td class="text-center">${this.escape(r.CLASS_OUT_NAME || r.class_out || '-')}</td>
+                    <td class="text-number">${this.formatNumber(r.EKOR)}</td>
+                    <td class="text-number">${this.formatNumber(r.berat)}</td>
+                    <td class="text-number">${this.formatNumber(r.HARGA)}</td>
+                    <td class="text-number">${this.formatNumber(r.jumlah)}</td>
+                    <td class="text-center">${this.escape(r.remark || '-')}</td>
+                </tr>
+            `;
+        });
 
-            CullingReport.load(
-                page
-            );
-
-        }
+        body.html(html);
     }
-
+};
 </script>

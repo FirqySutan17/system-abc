@@ -918,6 +918,10 @@ class Po extends MY_Controller {
 
             'REMARK'  => $remark,
 
+            'PAID_AMOUNT'    => 0,
+            'REMAINING'      => $total,
+            'PAYMENT_STATUS' => 'UNPAID',
+
             'STATUS'  => 'OPEN',
 
             'CREATED_BY' => $this->session->userdata('username'),
@@ -1222,6 +1226,18 @@ class Po extends MY_Controller {
                 2
             );
 
+            $paidAmount = (float) ($current->PAID_AMOUNT ?? 0);
+
+            $remaining = max(0, (float) $total - $paidAmount);
+
+            if ($paidAmount <= 0) {
+                $paymentStatus = 'UNPAID';
+            } elseif ($paidAmount >= (float) $total) {
+                $paymentStatus = 'PAID';
+            } else {
+                $paymentStatus = 'PARTIAL';
+            }
+
             $detail = $this->input->post('DETAIL');
 
             /*
@@ -1495,6 +1511,10 @@ class Po extends MY_Controller {
                 'HARGA' => $harga,
 
                 'TOTAL' => $total,
+
+                'PAID_AMOUNT'    => $paidAmount,
+                'REMAINING'      => $remaining,
+                'PAYMENT_STATUS' => $paymentStatus,
 
                 /*
                 |--------------------------------------------------------------------------

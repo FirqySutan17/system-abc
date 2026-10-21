@@ -18,6 +18,14 @@
                         Report Receive
                     </a>
                 </li>
+
+                <li class="nav-item">
+                    <a class="nav-link"
+                    data-bs-toggle="tab"
+                    href="#tab-culling">
+                        Report Culling
+                    </a>
+                </li>
                 
             </ul>
 
@@ -32,6 +40,9 @@
                     <?php $this->load->view('admin/report_inventory/tab_receive'); ?>
                 </div>
 
+                <div class="tab-pane fade" id="tab-culling">
+                    <?php $this->load->view('admin/report_inventory/tab_culling'); ?>
+                </div>
 
             </div>
 
@@ -52,6 +63,12 @@ document.addEventListener('shown.bs.tab', function (event) {
         } else {
             console.warn('ReceiveReport belum tersedia');
             console.log('ReceiveReport global:', window.ReceiveReport);
+        }
+    }
+
+    if (target === '#tab-culling') {
+        if (window.CullingReport) {
+            CullingReport.init();
         }
     }
 });
