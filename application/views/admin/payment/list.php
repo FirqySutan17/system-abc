@@ -1,2551 +1,438 @@
 <div class="container-fluid">
-
-    <div class="card w-100">
-
-        <div class="card-body">
-
-            <h5 class="card-title fw-semibold mb-4">
-                PAYMENT - ACCOUNTING
-            </h5>
-
-            <!-- FILTER -->
-            <div class="row g-2 mb-3">
-
-                <!-- SEARCH -->
-                <div class="col-md-3">
-
-                    <input
-                        id="search"
-                        type="text"
-                        class="form-control"
-                        placeholder="Cari payment, slip, supplier...">
-
-                </div>
-
-                <!-- PAYMENT -->
-                <div class="col-md-2">
-
-                    <select
-                        id="filterPembayaran"
-                        class="form-control">
-
-                        <option value="">
-                            Semua Pembayaran
-                        </option>
-
-                        <option value="CASH">
-                            CASH
-                        </option>
-
-                        <option value="TRANSFER">
-                            TRANSFER
-                        </option>
-
-                    </select>
-
-                </div>
-
-                <!-- DATE FROM -->
-                <div class="col-md-2">
-
-                    <input
-                        type="date"
-                        id="dateFrom"
-                        class="form-control"
-                        value="<?= date('Y-m-01'); ?>">
-
-                </div>
-
-                <!-- DATE TO -->
-                <div class="col-md-2">
-
-                    <input
-                        type="date"
-                        id="dateTo"
-                        class="form-control"
-                        value="<?= date('Y-m-d'); ?>">
-
-                </div>
-
-                <!-- RESET -->
-                <div class="col-md-1">
-
-                    <button
-                        class="btn btn-light w-100"
-                        id="btnResetFilter">
-
-                        Atur Ulang
-
-                    </button>
-
-                </div>
-
-                <!-- ADD -->
-                <div class="col-md-2 text-end">
-
-                    <button
-                        id="btnAdd"
-                        class="btn btn-primary w-100"
-                        data-bs-toggle="modal"
-                        data-bs-target="#paymentAdd">
-
-                        <i class="ti ti-plus"></i>
-
-                        Tambah Payment
-
-                    </button>
-
-                </div>
-
-            </div>
-
-            <div class="table-box position-relative">
-
-                <!-- LOADING -->
-                <div id="tableLoading"
-                    class="table-loading d-none">
-
-                    <div class="loading-card">
-
-                        <div class="spinner-border text-primary"></div>
-
-                        <div class="mt-3 fw-semibold">
-                            Memuat data...
-                        </div>
-
-                        <small class="text-muted">
-                            Mohon tunggu, ini mungkin memerlukan waktu beberapa detik
-                        </small>
-
-                    </div>
-
-                </div>
-
-                <!-- TABLE -->
-                <div id="tableWrapper">
-
-                    <div class="table-responsive">
-
-                        <table
-                            class="table table-hover align-middle table-modern"
-                            id="mainTable">
-
-                            <thead>
-
-                                <tr>
-
-                                    <th class="text-center">
-                                        Plant
-                                    </th>
-
-                                    <th class="text-center">
-                                        Nomor Pembayaran
-                                    </th>
-
-                                    <th class="text-center">
-                                        Tanggal
-                                    </th>
-
-                                    <th class="text-center">
-                                        Supplier
-                                    </th>
-
-                                    <th class="text-center">
-                                        Tipe Pembayaran
-                                    </th>
-
-                                    <th class="text-center">
-                                        Slip
-                                    </th>
-
-                                    <th class="text-center">
-                                        Item
-                                    </th>
-
-                                    <th class="text-center">
-                                        Total
-                                    </th>
-
-                                    <th class="text-center">
-                                        Keterangan
-                                    </th>
-
-                                    <th class="text-center">
-                                        #
-                                    </th>
-
-                                </tr>
-
-                            </thead>
-
-                            <tbody id="table-body"></tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <!-- PAGINATION -->
-            <div class="d-flex justify-content-between mt-3">
-
-                <div id="info"></div>
-
-                <div id="pagination"></div>
-
-            </div>
-
+    <div class="card w-100"><div class="card-body">
+        <h5 class="card-title fw-semibold mb-4">PAYMENT PO</h5>
+        <div class="row g-2 mb-3">
+            <div class="col-md-4"><input id="searchPayment" class="form-control" placeholder="Cari payment, supplier, slip..."></div>
+            <div class="col-md-3"><select id="filterPlant" class="form-control"><option value="">Semua Plant</option></select></div>
+            <div class="col-md-2"><button id="btnResetFilter" class="btn btn-light w-100">Reset</button></div>
+            <div class="col-md-3"><button id="btnAddPayment" class="btn btn-primary w-100"><i class="ti ti-plus"></i> Tambah Payment</button></div>
         </div>
-
-    </div>
-
+        <div class="table-box position-relative">
+            <div id="tableLoading" class="table-loading d-none"><div class="loading-card">
+                <div class="spinner-border text-primary"></div><div class="mt-3 fw-semibold">Memuat data...</div>
+                <small class="text-muted">Mohon tunggu, proses ini mungkin memerlukan waktu beberapa detik.</small>
+            </div></div>
+            <div id="tableWrapper"><div class="table-responsive">
+                <table class="table table-hover align-middle table-modern" id="mainTable">
+                    <thead><tr>
+                        <th data-sort="PLANT_NAME">Plant</th><th data-sort="PAYMENT">Payment</th>
+                        <th data-sort="PAYMENT_DATE">Tanggal</th><th data-sort="SUPPLIER_NAME">Supplier</th>
+                        <th data-sort="PAYMENT_MODE">Mode Alokasi</th><th data-sort="PEMBAYARAN">Tipe Pembayaran</th>
+                        <th class="text-end" data-sort="TOTAL">Total</th><th data-sort="STATUS">Status</th>
+                        <th>Keterangan</th><th class="text-center">#</th>
+                    </tr></thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+            </div></div>
+        </div>
+        <div class="d-flex justify-content-between mt-3 align-items-center"><div id="info" class="small text-muted"></div><div id="pagination"></div></div>
+    </div></div>
 </div>
 
 <style>
-    .table-modern td,
-    .table-modern th{
-        white-space: nowrap;
-        vertical-align: middle;
-    }
-
-    .table-box{
-        min-height:300px;
-    }
-
-    .table-loading{
-        position:absolute;
-        inset:0;
-        z-index:10;
-        background:rgba(255,255,255,.82);
-        backdrop-filter:blur(2px);
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        border-radius:12px;
-    }
-
-    .loading-card{
-        text-align:center;
-        padding:28px 40px;
-        background:#fff;
-        border-radius:18px;
-        box-shadow:0 10px 30px rgba(0,0,0,.08);
-    }
-
-    .loading-hide{
-        opacity:.35;
-        pointer-events:none;
-    }
-
-    .flex-inline {
-        padding: 2px 10px;
-        margin-bottom: 5px;
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        align-content: center;
-        flex-wrap: nowrap;
-        flex-direction: row;
-    }
-
-    label {
-        width: 35%;
-    }
-
-    .space-line {
-        border-bottom: 5px double black;
-        margin-bottom: 10px
-    }
-
-    .select2-container--open {
-        z-index: 999999 !important;
-    }
-
-    .select2-dropdown {
-        position: absolute !important;
-    }
+#mainTable thead th[data-sort]{cursor:pointer;user-select:none;position:relative}
+#mainTable thead th[data-sort]:hover{background:#f8f9fa}
+#mainTable td,#mainTable th{white-space:nowrap;vertical-align:middle}
+.table-box{min-height:300px}
+.table-loading{position:absolute;inset:0;z-index:10;background:rgba(255,255,255,.82);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;border-radius:12px}
+.loading-card{text-align:center;padding:28px 40px;background:#fff;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+.loading-hide{opacity:.35;pointer-events:none}
+.modal-body{max-height:75vh;overflow-y:auto}
+.modal-xl{--bs-modal-width:90%}
+.flex-inline{padding:2px 10px;margin-bottom:5px;display:flex;align-items:center;gap:12px}
+.flex-inline>label{width:30%;min-width:125px;margin-bottom:0}
+.select2-container--open{z-index:999999!important}
+.select2-dropdown{position:absolute!important}
+.mode-wrapper{display:flex;gap:16px;flex-wrap:wrap}
+.mode-card{flex:1;min-width:260px;border:2px solid #e5e7eb;border-radius:16px;padding:20px;cursor:pointer;transition:.2s;position:relative;background:#fff}
+.mode-card:hover{border-color:#2563eb}
+.mode-card:has(input:checked){border-color:#2563eb;background:#eff6ff}
+.mode-card input{position:absolute;opacity:0}
+.mode-card input:checked+.mode-content{color:#2563eb}
+.mode-title{font-weight:700;font-size:16px}
+.mode-sub{margin-top:5px;font-size:13px;color:#6b7280}
+.summary-card{border-radius:18px;padding:18px;color:white;box-shadow:0 10px 25px rgba(0,0,0,.08);height:100%}
+.summary-label{font-size:13px;opacity:.9;margin-bottom:10px}
+.summary-value{font-size:clamp(18px,2vw,24px);font-weight:bold;overflow-wrap:anywhere}
+.summary-blue{background:linear-gradient(135deg,#2563eb,#1d4ed8)}
+.summary-green{background:linear-gradient(135deg,#10b981,#059669)}
+.summary-orange{background:linear-gradient(135deg,#f59e0b,#d97706)}
+.summary-red{background:linear-gradient(135deg,#64748b,#334155)}
+@media(max-width:767px){.flex-inline{display:block}.flex-inline>label{display:block;width:100%;margin-bottom:6px}.summary-card{padding:14px}}
 </style>
 
-<!-- ================= MODAL ADD ================= -->
-<div class="modal fade" id="paymentAdd" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <form id="fPaymentAdd">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">PAYMENT - TAMBAH</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-
-                <div class="modal-body">
-
-                    <!-- HEADER -->
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-6 flex-inline">
-                            <label class="form-label">Plant *</label>
-                            <select name="PLANT" id="plantAdd" class="form-control" required></select>
-                        </div>
-
-                        <div class="col-md-6 flex-inline">
-                            <label class="form-label">No. Pembayaran</label>
-                            <input class="form-control" readonly placeholder="Auto Generate" style="background:#efefef">
-                        </div>
-
-                        <div class="col-md-6 flex-inline">
-                            <label class="form-label">Tanggal *</label>
-                            <input name="PAYMENT_DATE" type="date" class="form-control" required>
-                        </div>
-
-                        <div class="col-md-6 flex-inline">
-                            <label class="form-label">Tipe Pembayaran *</label>
-                            <div style="width:100%">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="PEMBAYARAN" value="CASH">
-                                    <label class="form-check-label">CASH</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="PEMBAYARAN" value="TRANSFER">
-                                    <label class="form-check-label">TRANSFER</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6 flex-inline">
-                            <label class="form-label">No. Slip</label>
-                            <input name="SLIP_NO" class="form-control" readonly placeholder="Auto Generate" style="background:#efefef">
-                        </div>
-
-                        <div class="col-md-6 flex-inline">
-                            <label class="form-label">Supplier</label>
-                            <select id="supplierAdd" class="form-control"></select>
-                            <input type="hidden" name="SUPPLIER" id="hiddensupplierAdd">
-                        </div>
-
-                        <div class="col-md-12 flex-inline">
-                            <label style="width: 14.5%" class="form-label">Keterangan</label>
-                            <input name="REMARK" class="form-control" placeholder="Keterangan..">
-                        </div>
-                    </div>
-
-                    <!-- DETAIL -->
-                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 style="margin-bottom: 0px">
-                            PO
-                        </h5>
-                        <div>
-                            <button type="button" class="btn btn-success btn-sm" id="addRow">Pilih PO</button>
-                        </div>
-                    </div>
-
-                    <div class="table-responsive">
-                        <table class="table table-bordered" id="detailTable">
-                            <thead>
-                                <tr>
-                                    <th style="width:15%">PO No</th>
-                                    <th style="width:20%">Material</th>
-                                    <th style="text-align: center">Berat</th>
-                                    <th style="text-align: center">Jumlah ( QTY )</th>
-                                    <th style="text-align: center">Harga</th>
-                                    <th style="text-align: center">Total</th>
-                                    <th>Remark</th>
-                                    <th style="width:5%">#</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
-
-                        <div class="row" style="width: 100%;">
-                            <div class="col-md-6"></div>
-                            <div class="col-md-6">
-                                <div class="input-group">
-                                    <span class="input-group-text fw-bold">Grand Total</span>
-                                    <input type="text"
-                                        id="grandTotal"
-                                        class="form-control text-end fw-bold"
-                                        readonly style="background: #efefef">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button class="btn btn-primary" type="submit">Simpan</button>
-                </div>
-
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- ================= MODAL EDIT ================= -->
-<div class="modal fade" id="paymentEdit" tabindex="-1" aria-hidden="true">
-
-    <div class="modal-dialog modal-xl">
-
-        <form id="fPaymentEdit">
-
-            <div class="modal-content">
-
-                <!-- HEADER -->
-                <div class="modal-header">
-
-                    <h5 class="modal-title">
-                        PAYMENT - UBAH
-                    </h5>
-
-                    <button
-                        type="button"
-                        class="btn-close"
-                        data-bs-dismiss="modal">
-                    </button>
-
-                </div>
-
-                <!-- BODY -->
-                <div class="modal-body">
-
-                    <!-- HIDDEN -->
-                    <input
-                        type="hidden"
-                        name="PAYMENT">
-
-                    <!-- HEADER -->
-                    <div class="row g-2 mb-3">
-
-                        <!-- PLANT -->
-                        <div class="col-md-6 flex-inline">
-
-                            <label class="form-label">
-                                Plant *
-                            </label>
-
-                            <select
-                                name="PLANT"
-                                id="plantEdit"
-                                class="form-control"
-                                required>
-
-                            </select>
-
-                        </div>
-
-                        <!-- PAYMENT -->
-                        <div class="col-md-6 flex-inline">
-
-                            <label class="form-label">
-                                No. Pembayaran
-                            </label>
-
-                            <input
-                                id="paymentNoEdit"
-                                class="form-control"
-                                readonly
-                                style="background:#efefef">
-
-                        </div>
-
-                        <!-- DATE -->
-                        <div class="col-md-6 flex-inline">
-
-                            <label class="form-label">
-                                Tanggal *
-                            </label>
-
-                            <input
-                                name="PAYMENT_DATE"
-                                type="date"
-                                class="form-control"
-                                required>
-
-                        </div>
-
-                        <!-- PEMBAYARAN -->
-                        <div class="col-md-6 flex-inline">
-
-                            <label class="form-label">
-                                Tipe Pembayaran *
-                            </label>
-
-                            <div style="width:100%">
-
-                                <div class="form-check form-check-inline">
-
-                                    <input
-                                        class="form-check-input"
-                                        type="radio"
-                                        name="PEMBAYARAN"
-                                        value="CASH">
-
-                                    <label class="form-check-label">
-                                        CASH
-                                    </label>
-
-                                </div>
-
-                                <div class="form-check form-check-inline">
-
-                                    <input
-                                        class="form-check-input"
-                                        type="radio"
-                                        name="PEMBAYARAN"
-                                        value="TRANSFER">
-
-                                    <label class="form-check-label">
-                                        TRANSFER
-                                    </label>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        <!-- SLIP -->
-                        <div class="col-md-6 flex-inline">
-
-                            <label class="form-label">
-                                No. Slip
-                            </label>
-
-                            <input
-                                name="SLIP_NO"
-                                class="form-control"
-                                readonly
-                                style="background:#efefef">
-
-                        </div>
-
-                        <!-- SUPPLIER -->
-                        <div class="col-md-6 flex-inline">
-
-                            <label class="form-label">
-                                Supplier
-                            </label>
-
-                            <select
-                                id="supplierEdit"
-                                class="form-control">
-
-                            </select>
-
-                            <input
-                                type="hidden"
-                                name="SUPPLIER"
-                                id="hiddensupplierEdit">
-
-                        </div>
-
-                        <!-- REMARK -->
-                        <div class="col-md-12 flex-inline">
-
-                            <label
-                                style="width:14.5%"
-                                class="form-label">
-
-                                Keterangan
-
-                            </label>
-
-                            <input
-                                name="REMARK"
-                                class="form-control"
-                                placeholder="Keterangan..">
-
-                        </div>
-
-                    </div>
-
-                    <!-- DETAIL -->
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-
-                        <h5 style="margin-bottom:0px">
-
-                            PO
-
-                        </h5>
-
-                        <div>
-
-                            <button
-                                type="button"
-                                class="btn btn-success btn-sm"
-                                id="addRowEdit">
-
-                                Pilih PO
-
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                    <!-- TABLE -->
-                    <div class="table-responsive">
-
-                        <table
-                            class="table table-bordered"
-                            id="detailTableEdit">
-
-                            <thead>
-
-                                <tr>
-
-                                    <th style="width:15%">
-                                        PO No
-                                    </th>
-
-                                    <th style="width:20%">
-                                        Material
-                                    </th>
-
-                                    <th style="text-align:center">
-                                        Berat
-                                    </th>
-
-                                    <th style="text-align:center">
-                                        Jumlah ( QTY )
-                                    </th>
-
-                                    <th style="text-align:center">
-                                        Harga
-                                    </th>
-
-                                    <th style="text-align:center">
-                                        Total
-                                    </th>
-
-                                    <th>
-                                        Keterangan
-                                    </th>
-
-                                    <th style="width:5%">
-                                        #
-                                    </th>
-
-                                </tr>
-
-                            </thead>
-
-                            <tbody>
-
-                            </tbody>
-
-                        </table>
-
-                        <!-- GRAND TOTAL -->
-                        <div class="row" style="width:100%;">
-
-                            <div class="col-md-6"></div>
-
-                            <div class="col-md-6">
-
-                                <div class="input-group">
-
-                                    <span class="input-group-text fw-bold">
-
-                                        Grand Total
-
-                                    </span>
-
-                                    <input
-                                        type="text"
-                                        id="grandTotalEdit"
-                                        class="form-control text-end fw-bold"
-                                        readonly
-                                        style="background:#efefef">
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <!-- FOOTER -->
-                <div class="modal-footer">
-
-                    <button
-                        type="button"
-                        class="btn btn-secondary"
-                        data-bs-dismiss="modal">
-
-                        Tutup
-
-                    </button>
-
-                    <button
-                        class="btn btn-primary"
-                        type="submit">
-
-                        Simpan
-
-                    </button>
-
-                </div>
-
-            </div>
-
-        </form>
-
-    </div>
-
-</div>
-
-<style>
-    #modalPO {
-        background: #000000c7;
-    }
-</style>
-
-<div class="modal fade"
-    id="modalPickPO"
-    tabindex="-1"
-    aria-hidden="true">
-
-    <div class="modal-dialog modal-xl">
-
-        <div class="modal-content">
-
-            <div class="modal-header">
-
-                <h5 class="modal-title">
-                    PILIH PO
-                </h5>
-
-                <button
-                    type="button"
-                    class="btn-close"
-                    data-bs-dismiss="modal">
-                </button>
-
-            </div>
-
-            <div class="modal-body">
-
-                <!-- SEARCH -->
-                <div class="row mb-3">
-
-                    <div class="col-md-6">
-
-                        <input
-                            type="text"
-                            id="searchPO"
-                            class="form-control"
-                            placeholder="Cari po / material / supplier...">
-
-                    </div>
-
-                </div>
-
-                <!-- TABLE -->
-                <div class="table-responsive">
-
-                    <table class="table table-bordered table-hover">
-
-                        <thead>
-
-                            <tr>
-
-                                <th width="5%">
-                                    #
-                                </th>
-
-                                <th>
-                                    PO
-                                </th>
-
-                                <th>
-                                    Supplier
-                                </th>
-
-                                <th>
-                                    Material
-                                </th>
-
-                                <th class="text-center">
-                                    Kuantitas
-                                </th>
-
-                                <th class="text-center">
-                                    Berat
-                                </th>
-
-                                <th class="text-end">
-                                    Harga
-                                </th>
-
-                                <th class="text-end">
-                                    Total
-                                </th>
-
-                            </tr>
-
-                        </thead>
-
-                        <tbody id="poListBody"></tbody>
-
-                    </table>
-
-                </div>
-
-            </div>
-
-            <div class="modal-footer">
-
-                <button
-                    class="btn btn-secondary"
-                    data-bs-dismiss="modal">
-
-                    Tutup
-
-                </button>
-
-                <button
-                    type="button"
-                    class="btn btn-primary"
-                    id="btnChoosePO">
-
-                    Pilih Data
-
-                </button>
-
-            </div>
-
+<!-- MODAL ADD / EDIT -->
+<div class="modal fade" id="PaymentModal" tabindex="-1" aria-hidden="true">
+<div class="modal-dialog modal-xl"><form id="fPayment"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title" id="paymentModalTitle">Payment PO - TAMBAH</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+        <input type="hidden" name="PAYMENT" id="paymentNo">
+        <div class="row g-2 mb-3">
+            <div class="col-md-6 flex-inline"><label>Plant *</label><select name="PLANT" id="paymentPlant" class="form-control" required style="width:100%"></select></div>
+            <div class="col-md-6 flex-inline"><label>No. Payment</label><input id="paymentNoDisplay" class="form-control" readonly placeholder="Auto Generate" style="background:#efefef"></div>
+            <div class="col-md-6 flex-inline"><label>Tanggal *</label><input type="date" name="PAYMENT_DATE" id="paymentDate" class="form-control" value="<?= date('Y-m-d'); ?>" required></div>
+            <div class="col-md-6 flex-inline"><label>Supplier *</label><select name="SUPPLIER" id="paymentSupplier" class="form-control" required style="width:100%"></select></div>
+            <div class="col-md-6 flex-inline"><label>Tipe Pembayaran *</label><div class="w-100 pt-1">
+                <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="PEMBAYARAN" value="CASH" required><label class="form-check-label">CASH</label></div>
+                <div class="form-check form-check-inline"><input class="form-check-input" type="radio" name="PEMBAYARAN" value="TRANSFER" required><label class="form-check-label">TRANSFER</label></div>
+            </div></div>
+            <div class="col-md-6 flex-inline"><label>Slip No.</label><input name="SLIP_NO" id="paymentSlip" class="form-control" placeholder="Nomor slip / bukti transfer"></div>
+            <div class="col-md-6 flex-inline"><label>Total Pembayaran *</label><input type="text" name="TOTAL_INPUT" id="paymentAmount" class="form-control text-end" placeholder="0" autocomplete="off" required></div>
+            <div class="col-md-6 flex-inline"><label>Keterangan</label><input name="REMARK" id="paymentRemark" class="form-control" placeholder="Keterangan..."></div>
         </div>
-
+        <div class="row mb-4"><div class="col-md-12"><div class="mode-wrapper">
+            <label class="mode-card"><input type="radio" name="PAYMENT_MODE" value="FIFO" checked><div class="mode-content"><div class="mode-title">FIFO AUTO</div><div class="mode-sub">Sistem mengalokasikan pembayaran ke PO tertua yang masih memiliki outstanding.</div></div></label>
+            <label class="mode-card"><input type="radio" name="PAYMENT_MODE" value="MANUAL"><div class="mode-content"><div class="mode-title">MANUAL</div><div class="mode-sub">Pilih PO yang ingin dibayar dan tentukan nominal alokasinya sendiri.</div></div></label>
+        </div></div></div>
+        <div class="row g-3 mb-4">
+            <div class="col-md-3"><div class="summary-card summary-blue"><div class="summary-label">TOTAL PAYMENT</div><div class="summary-value" id="summaryTotalInput">Rp 0</div></div></div>
+            <div class="col-md-3"><div class="summary-card summary-green"><div class="summary-label">TOTAL ALOKASI</div><div class="summary-value" id="summaryAllocated">Rp 0</div></div></div>
+            <div class="col-md-3"><div class="summary-card summary-orange"><div class="summary-label">SISA ALOKASI</div><div class="summary-value" id="summaryRemaining">Rp 0</div></div></div>
+            <div class="col-md-3"><div class="summary-card summary-red"><div class="summary-label">SELISIH</div><div class="summary-value" id="summaryDifference">Rp 0</div></div></div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2"><h6 class="mb-0">Detail Alokasi PO</h6><button type="button" class="btn btn-success btn-sm" id="btnPickPO"><i class="ti ti-list-check"></i> Pilih PO</button></div>
+        <div class="table-responsive"><table class="table table-bordered align-middle table-modern" id="paymentDetailTable">
+            <thead class="table-light"><tr><th>No. PO</th><th>Tanggal PO</th><th>Material</th><th class="text-end">Total PO</th><th class="text-end">Outstanding</th><th class="text-end">Alokasi</th><th class="text-end">Sisa Setelah Bayar</th><th class="text-center">Status</th><th class="text-center">#</th></tr></thead>
+            <tbody><tr class="empty-row"><td colspan="9" class="text-center text-muted py-5">Pilih plant dan supplier terlebih dahulu.</td></tr></tbody>
+        </table></div>
+        <div class="row mt-3"><div class="col-md-6"></div><div class="col-md-6"><div class="input-group"><span class="input-group-text fw-bold">Grand Total Alokasi</span><input type="text" id="grandTotal" class="form-control text-end fw-bold" readonly value="0" style="background:#efefef"></div></div></div>
     </div>
+    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button><button type="submit" id="btnSavePayment" class="btn btn-primary">Simpan Payment</button></div>
+</div></form></div></div>
 
-</div>
+<!-- PICKER PO -->
+<div class="modal fade" id="modalPickPO" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">PILIH PO UNTUK DIBAYAR</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><div class="row mb-3"><div class="col-md-5"><input type="text" id="searchPO" class="form-control" placeholder="Cari nomor PO / material..."></div></div>
+        <div class="table-responsive"><table class="table table-bordered table-hover align-middle"><thead class="table-light"><tr><th>#</th><th>No. PO</th><th>Tanggal</th><th>Material</th><th class="text-end">Total PO</th><th class="text-end">Sudah Dibayar</th><th class="text-end">Outstanding</th></tr></thead><tbody id="poPickerBody"></tbody></table></div>
+    </div>
+    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button><button type="button" class="btn btn-primary" id="btnChoosePO">Pilih PO</button></div>
+</div></div></div>
+
+<!-- DETAIL PAYMENT -->
+<div class="modal fade" id="PaymentDetailModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">DETAIL PAYMENT PO</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="paymentDetailContent"></div>
+</div></div></div>
 
 <script>
-    let state = {
-        page  : 1,
-        limit : 10,
-        order : 'PAYMENT_DATE',
-        dir   : 'DESC'
-    };
-    let detailIndex = 0;
+(function($) {
+    'use strict';
+    const base = '<?= base_url("payment/"); ?>';
+    const state = {page:1, limit:10, order:'PAYMENT_DATE', dir:'DESC'};
+    let detailRows = [], pickerRows = [], editing = false, activePayment = '', searchTimer = null, amountTimer = null;
 
-    let searchTimer;
+    function esc(v){return String(v ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
+    function num(v){
+        if(v===null||v===undefined||v==='') return 0;
+        if(typeof v==='number') return Number.isFinite(v)?v:0;
 
-    $('#search').on('keyup', function(){
+        let s=String(v).trim().replace(/\s/g,'').replace(/Rp/gi,'');
+        if(!s) return 0;
 
-        clearTimeout(searchTimer);
-
-        searchTimer = setTimeout(function(){
-
-            loadPage(1);
-
-        }, 400);
-
-    });
-
-    $('#filterPembayaran').change(function(){
-
-        loadPage(1);
-
-    });
-
-    $('#dateFrom').change(function(){
-
-        loadPage(1);
-
-    });
-
-    $('#dateTo').change(function(){
-
-        loadPage(1);
-
-    });
-
-    /*
-    |--------------------------------------------------------------------------
-    | RESET
-    |--------------------------------------------------------------------------
-    */
-
-    $('#btnResetFilter').click(function(){
-
-        $('#search').val('');
-
-        $('#filterPembayaran').val('');
-
-        $('#dateFrom')
-            .val('<?= date('Y-m-01'); ?>');
-
-        $('#dateTo')
-            .val('<?= date('Y-m-d'); ?>');
-
-        loadPage(1);
-
-    });
-
-    function formatDate(dateString){
-        if(!dateString) return '-';
-        const d = new Date(dateString);
-        if(isNaN(d)) return dateString;
-
-        const day = String(d.getDate()).padStart(2,'0');
-        const months = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
-        return `${day} ${months[d.getMonth()]} ${d.getFullYear()}`;
-    }
-
-    let ajaxListRequest = null;
-
-    function showTableLoading()
-    {
-        $('#tableLoading')
-            .removeClass('d-none');
-
-        $('#tableWrapper')
-            .addClass('loading-hide');
-    }
-
-    function hideTableLoading()
-    {
-        $('#tableLoading')
-            .addClass('d-none');
-
-        $('#tableWrapper')
-            .removeClass('loading-hide');
-    }
-
-    function loadPage(page = 1)
-    {
-        showTableLoading();
-
-        state.page = page;
-
-        /*
-        |--------------------------------------------------------------------------
-        | ABORT PREVIOUS
-        |--------------------------------------------------------------------------
-        */
-
-        if (ajaxListRequest) {
-
-            ajaxListRequest.abort();
-
+        // Format Indonesia, misalnya 217.500.000,00 -> 217500000.00
+        if(s.includes(',')) {
+            s=s.replace(/\./g,'').replace(',', '.');
+        } else {
+            // Angka dari DB, misalnya 217500000.000000, harus tetap desimal.
+            // Titik berulang biasanya format ribuan, misalnya 217.500.000.
+            const dots=(s.match(/\./g)||[]).length;
+            if(dots>1) s=s.replace(/\./g,'');
         }
 
-        ajaxListRequest = $.get(
-
-            '<?= base_url("payment/load_data"); ?>',
-
-            {
-
-                page : state.page,
-
-                limit : state.limit,
-
-                search : $('#search').val(),
-
-                pembayaran : $('#filterPembayaran').val(),
-
-                date_from : $('#dateFrom').val(),
-
-                date_to : $('#dateTo').val(),
-
-                order : state.order,
-
-                dir : state.dir
-
-            },
-
-            function(resp){
-
-                ajaxListRequest = null;
-
-                resp = typeof resp === 'string'
-                    ? JSON.parse(resp)
-                    : resp;
-
-                let tbody = $('#table-body');
-
-                tbody.empty();
-
-                /*
-                |--------------------------------------------------------------------------
-                | EMPTY
-                |--------------------------------------------------------------------------
-                */
-
-                if(resp.rows.length === 0){
-
-                    tbody.html(`
-
-                        <tr>
-
-                            <td colspan="10"
-                                class="text-center text-muted py-4">
-
-                                Data tidak ditemukan
-
-                            </td>
-
-                        </tr>
-
-                    `);
-
-                    return;
-                }
-
-                /*
-                |--------------------------------------------------------------------------
-                | LOOP
-                |--------------------------------------------------------------------------
-                */
-
-                resp.rows.forEach(function(row){
-
-                    let tr = `
-
-                        <tr>
-
-                            <!-- PLANT -->
-                            <td class="text-center align-middle">
-
-                                <div class="fw-semibold">
-
-                                    ${row.PLANT_NAME || '-'}
-
-                                </div>
-
-                            </td>
-
-                            <!-- PAYMENT -->
-                            <td class="text-center align-middle">
-
-                                <div class="fw-bold text-primary">
-
-                                    #${row.PAYMENT}
-
-                                </div>
-
-                            </td>
-
-                            <!-- DATE -->
-                            <td class="text-center align-middle">
-
-                                ${formatDate(row.PAYMENT_DATE)}
-
-                            </td>
-
-                            <!-- SUPPLIER -->
-                            <td class="align-middle">
-
-                                <div class="fw-semibold">
-
-                                    ${row.SUPPLIER_NAME || '-'}
-
-                                </div>
-
-                            </td>
-
-                            <!-- PAYMENT TYPE -->
-                            <td class="text-center align-middle">
-
-                                <span class="
-                                    badge
-                                    ${row.PEMBAYARAN === 'CASH'
-                                        ? 'bg-primary'
-                                        : 'bg-success'}
-                                ">
-
-                                    ${row.PEMBAYARAN || '-'}
-
-                                </span>
-
-                            </td>
-
-                            <!-- SLIP -->
-                            <td class="text-center align-middle">
-
-                                ${row.SLIP_NO || '-'}
-
-                            </td>
-
-                            <!-- ITEM -->
-                            <td class="text-center align-middle">
-
-                                <div>
-
-                                    <span class="badge bg-primary">
-
-                                        ${row.TOTAL_ITEM || 0}
-                                        Item
-
-                                    </span>
-
-                                </div>
-
-                                <div class="mt-1">
-
-                                    <small class="text-muted">
-
-                                        Berat :
-                                        ${numberFormat(row.TOTAL_BERAT || 0)}
-
-                                    </small>
-
-                                </div>
-
-                            </td>
-
-                            <!-- TOTAL -->
-                            <td class="text-end align-middle">
-
-                                <div class="fw-bold text-success">
-
-                                    Rp
-                                    ${numberFormat(row.GRAND_TOTAL || 0)}
-
-                                </div>
-
-                            </td>
-
-                            <!-- REMARK -->
-                            <td class="align-middle">
-
-                                ${row.REMARK || '-'}
-
-                            </td>
-
-                            <!-- ACTION -->
-                            <td class="text-center align-middle">
-
-                                <div class="btn-group btn-group-sm">
-
-                                    <!-- PDF -->
-                                    <button
-                                        class="btn btn-outline-primary btnPdf"
-                                        data-payment="${row.PAYMENT}"
-                                        data-plant="${row.PLANT}">
-
-                                        Slip
-
-                                    </button>
-
-                                    <!-- EDIT -->
-                                    <button
-                                        class="btn btn-outline-warning btnEdit"
-                                        data-payment="${row.PAYMENT}"
-                                        data-plant="${row.PLANT}">
-
-                                        Ubah
-
-                                    </button>
-
-                                    <!-- DELETE -->
-                                    <button
-                                        class="btn btn-outline-danger btnDelete"
-                                        data-payment="${row.PAYMENT}"
-                                        data-plant="${row.PLANT}">
-
-                                        Hapus
-
-                                    </button>
-
-                                </div>
-
-                            </td>
-
-                        </tr>
-
-                    `;
-
-                    tbody.append(tr);
-
-                });
-
-                /*
-                |--------------------------------------------------------------------------
-                | PAGINATION
-                |--------------------------------------------------------------------------
-                */
-
-                $('#pagination')
-                    .html(resp.pagination);
-
-                /*
-                |--------------------------------------------------------------------------
-                | INFO
-                |--------------------------------------------------------------------------
-                */
-
-                $('#info').text(
-
-                    `Menampilkan halaman ${resp.page} dari ${Math.ceil(resp.total/state.limit)} (Total ${resp.total} data)`
-
-                );
-
-            },
-
-            'json'
-
-        ).always(function(){
-
-            hideTableLoading();
-
-        });
+        const n=Number(s);
+        return Number.isFinite(n)?n:0;
     }
+    function round(v){return Math.round((num(v)+Number.EPSILON)*100)/100;}
+    function money(v){return round(v).toLocaleString('id-ID',{minimumFractionDigits:0,maximumFractionDigits:2});}
+    function rupiah(v){return 'Rp '+money(v);}
+    function dateFmt(v){if(!v)return '-';const p=String(v).substring(0,10).split('-');if(p.length!==3)return String(v);const m=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];return `${p[2]} ${m[Number(p[1])-1]||p[1]} ${p[0]}`;}
+    function alertMsg(msg,type='info'){if(window.Swal)Swal.fire({icon:type,text:msg});else alert(msg);}
+    function showModal(id){if(window.bootstrap?.Modal)bootstrap.Modal.getOrCreateInstance(document.getElementById(id)).show();else $('#'+id).modal('show');}
+    function hideModal(id){if(window.bootstrap?.Modal)bootstrap.Modal.getOrCreateInstance(document.getElementById(id)).hide();else $('#'+id).modal('hide');}
+    function loading(on){$('#tableLoading').toggleClass('d-none',!on);$('#tableWrapper').toggleClass('loading-hide',on);}
+    function mode(){return $('input[name="PAYMENT_MODE"]:checked').val()||'FIFO';}
+    function paymentAmount(){return round($('#paymentAmount').val());}
 
-    $(document).on(
-        'click',
-        '.btnPdf',
-        function(){
-
-            let payment =
-                $(this).data('payment');
-
-            let plant =
-                $(this).data('plant');
-
-            window.open(
-
-                '<?= base_url("payment/print_pdf"); ?>'
-                +
-                '?payment=' + payment
-                +
-                '&plant=' + plant,
-
-                '_blank'
-
-            );
-
-        }
-    );
-
-    $(document).on(
-        'click',
-        '#detailTableEdit .removeDetail',
-        function(){
-
-            $(this)
-                .closest('tr')
-                .remove();
-
-            updateGrandTotalEdit();
-
-        }
-    );
-
-    function updateGrandTotal(){
-
-        let grandTotal = 0;
-
-        $('#detailTable tbody tr').each(function(){
-
-            let totalText =
-                $(this)
-                .find('.total-cell')
-                .text()
-                .replace(/[^\d]/g,'');
-
-            grandTotal +=
-                parseFloat(totalText || 0);
-        });
-
-        $('#grandTotal').val(
-
-            currencyFormat(grandTotal)
-        );
-    }
-
-    function updateGrandTotalEdit()
-    {
-        let grand = 0;
-
-        $('#detailTableEdit tbody tr').each(function(){
-
-            let total =
-                parseFloat(
-                    $(this)
-                    .find('input[name$="[TOTAL]"]')
-                    .val()
-                ) || 0;
-
-            grand += total;
-
-        });
-
-        $('#grandTotalEdit').val(
-            'Rp ' + numberFormat(grand)
-        );
-    }
-
-    $('#btnChoosePO').click(function(){
-
-            let detailIndex = $('#detailTable tbody tr').length;
-
-            $('.pickPO:checked').each(function(){
-
-            let id = $(this).data('id');
-
-            let po = $(this).data('po');
-
-            let material = $(this).data('material');
-
-            /*
-            |--------------------------------------------------------------------------
-            | PREVENT DUPLICATE
-            |--------------------------------------------------------------------------
-            */
-
-            let exists = false;
-
-            $('#detailTable tbody tr').each(function(){
-
-                if (
-                    $(this).data('id') == id &&
-                    $(this).data('po') == po &&
-                    $(this).data('material') == material
-                ) {
-
-                    exists = true;
-                }
-            });
-
-            if (exists) {
-                return;
+    function loadPlants(){
+        $.getJSON(base+'get_plant').done(rows=>{
+            rows=Array.isArray(rows)?rows:[];
+            const opts='<option value="">-- Pilih Plant --</option>'+rows.map(r=>`<option value="${esc(r.id)}">${esc(r.text)}</option>`).join('');
+            $('#paymentPlant').html(opts);
+            $('#filterPlant').html('<option value="">Semua Plant</option>'+rows.map(r=>`<option value="${esc(r.id)}">${esc(r.text)}</option>`).join(''));
+            if($.fn.select2){
+                $('#filterPlant').select2({width:'100%',placeholder:'Semua plant',allowClear:true});
+                $('#paymentPlant').select2({width:'100%',dropdownParent:$('#PaymentModal'),placeholder:'Pilih plant'});
+                $('#paymentSupplier').select2({width:'100%',dropdownParent:$('#PaymentModal'),placeholder:'Pilih supplier'});
             }
+            if(rows.length===1)$('#paymentPlant').val(String(rows[0].id)).trigger('change.select2');
+            loadList(1);
+        }).fail(()=>alertMsg('Gagal memuat daftar plant.','error'));
+    }
 
-            let qty =
-                parseFloat($(this).data('qty')) || 0;
+    function loadSuppliers(selected=''){
+        const plant=$('#paymentPlant').val();
+        $('#paymentSupplier').html('<option value="">-- Pilih supplier --</option>');
+        if(!plant){$('#paymentSupplier').trigger('change.select2');return;}
+        $.getJSON(base+'get_supplier',{plant}).done(rows=>{
+            rows=Array.isArray(rows)?rows:[];
+            let opts='<option value="">-- Pilih supplier --</option>'+rows.map(r=>`<option value="${esc(r.id)}">${esc(r.text)}</option>`).join('');
+            if(selected&&!rows.some(r=>String(r.id)===String(selected)))opts+=`<option value="${esc(selected)}">${esc(selected)}</option>`;
+            $('#paymentSupplier').html(opts).val(selected||'').trigger('change.select2');
+        }).fail(()=>alertMsg('Gagal memuat supplier.','error'));
+    }
 
-            let harga =
-                parseFloat($(this).data('harga')) || 0;
+    function loadList(page=1){
+        state.page=page;loading(true);
+        $.getJSON(base+'load_data',{page,limit:state.limit,search:$('#searchPayment').val(),plant:$('#filterPlant').val()})
+        .done(resp=>{
+            if(!resp||!resp.status){$('#table-body').html(`<tr><td colspan="10" class="text-center text-danger py-4">${esc(resp?.message||'Gagal memuat data.')}</td></tr>`);return;}
+            let rows=Array.isArray(resp.rows)?resp.rows:[];
+            rows.sort((a,b)=>{let av=a[state.order]??'',bv=b[state.order]??'';let c=String(av).localeCompare(String(bv),'id',{numeric:true});return state.dir==='ASC'?c:-c;});
+            if(!rows.length)$('#table-body').html('<tr><td colspan="10" class="text-center text-muted py-5">Belum ada data Payment PO.</td></tr>');
+            else $('#table-body').html(rows.map(r=>{
+                const status=r.STATUS||'POSTED';
+                return `<tr>
+                    <td>${esc(r.PLANT_NAME||r.PLANT||'-')}</td><td><strong>${esc(r.PAYMENT||'-')}</strong></td><td>${esc(dateFmt(r.PAYMENT_DATE))}</td>
+                    <td>${esc(r.SUPPLIER_NAME||r.SUPPLIER||'-')}</td><td><span class="badge ${r.PAYMENT_MODE==='FIFO'?'bg-primary':'bg-info text-dark'}">${esc(r.PAYMENT_MODE||'-')}</span></td>
+                    <td>${esc(r.PEMBAYARAN||'-')}</td><td class="text-end fw-semibold">${rupiah(r.TOTAL)}</td>
+                    <td class="text-center"><span class="badge ${status==='POSTED'?'bg-success':'bg-secondary'}">${esc(status)}</span></td><td>${esc(r.REMARK||'-')}</td>
+                    <td class="text-center text-nowrap"><button type="button" class="btn btn-info btn-sm btn-view" data-payment="${esc(r.PAYMENT)}" data-plant="${esc(r.PLANT)}" title="Detail"><i class="ti ti-eye"></i></button>
+                    ${status==='POSTED'?` <button type="button" class="btn btn-warning btn-sm btn-edit" data-payment="${esc(r.PAYMENT)}" data-plant="${esc(r.PLANT)}" title="Ubah"><i class="ti ti-edit"></i></button> <button type="button" class="btn btn-danger btn-sm btn-void" data-payment="${esc(r.PAYMENT)}" data-plant="${esc(r.PLANT)}" title="Void"><i class="ti ti-trash"></i></button>`:''}</td>
+                </tr>`;
+            }).join(''));
+            renderPagination(Number(resp.page||page),Number(resp.pages||1));
+            $('#info').text(`Menampilkan ${rows.length} data pada halaman ${resp.page||page} dari total ${resp.total||0} transaksi.`);
+        }).fail(xhr=>{ $('#table-body').html('<tr><td colspan="10" class="text-center text-danger py-4">Gagal menghubungi server.</td></tr>');console.error(xhr.responseText);})
+        .always(()=>loading(false));
+    }
 
-            let berat =
-                parseFloat($(this).data('berat')) || 0;
+    function renderPagination(page,pages){
+        let h='<ul class="pagination pagination-sm mb-0">';
+        h+=`<li class="page-item ${page<=1?'disabled':''}"><a class="page-link" href="#" data-page="${page-1}">&laquo;</a></li>`;
+        for(let p=Math.max(1,page-2);p<=Math.min(pages,page+2);p++)h+=`<li class="page-item ${p===page?'active':''}"><a class="page-link" href="#" data-page="${p}">${p}</a></li>`;
+        h+=`<li class="page-item ${page>=pages?'disabled':''}"><a class="page-link" href="#" data-page="${page+1}">&raquo;</a></li></ul>`;
+        $('#pagination').html(h);
+    }
 
-            let total =
-                berat * harga;
+    function resetForm(){
+        editing=false;activePayment='';detailRows=[];pickerRows=[];
+        $('#fPayment')[0].reset();$('#paymentNo,#paymentNoDisplay').val('');
+        $('#paymentDate').val('<?= date('Y-m-d'); ?>');
+        $('input[name="PAYMENT_MODE"][value="FIFO"]').prop('checked',true);
+        $('input[name="PEMBAYARAN"]').prop('checked',false);
+        $('#paymentDetailTable tbody').html('<tr class="empty-row"><td colspan="9" class="text-center text-muted py-5">Pilih plant dan supplier terlebih dahulu.</td></tr>');
+        $('#summaryTotalInput,#summaryAllocated,#summaryRemaining,#summaryDifference').text('Rp 0');$('#grandTotal').val('0');
+        $('#paymentModalTitle').text('Payment PO - TAMBAH');$('#btnSavePayment').show().prop('disabled',false).text('Simpan Payment');$('#btnPickPO').show();
+        $('#paymentSupplier').html('<option value="">-- Pilih supplier --</option>').trigger('change.select2');
+        $('#fPayment :input').prop('disabled',false);
+    }
 
-            let row = `
+    function emptyDetail(msg){$('#paymentDetailTable tbody').html(`<tr class="empty-row"><td colspan="9" class="text-center text-muted py-5">${esc(msg)}</td></tr>`);}
+    function findDetail(po){return detailRows.find(r=>String(r.PO_NO)===String(po));}
+    function detailStatus(pay,out){pay=round(pay);out=round(out);if(pay<=0)return '<span class="badge bg-secondary">OPEN</span>';if(pay>=out)return '<span class="badge bg-success">PAID</span>';return '<span class="badge bg-warning text-dark">PARTIAL</span>';}
 
-            <tr
-                data-id="${id}"
-                data-po="${po}"
-                data-material="${material}">
+    function renderDetails(rows,editable=true){
+        detailRows=(rows||[]).map(r=>({
+            PO_NO:String(r.PO_NO??r.PO??''),PO_DATE:r.PO_DATE||'',MATERIAL:r.MATERIAL||'',MATERIAL_NAME:r.MATERIAL_NAME||'',
+            PO_TOTAL:round(r.PO_TOTAL??r.TOTAL??0),PAID_BEFORE:round(r.PAID_BEFORE??r.PAID_AMOUNT_CALC??0),
+            OUTSTANDING:round(r.OUTSTANDING??r.OUTSTANDING_BEFORE??r.REMAINING_AFTER??0),
+            AMOUNT_ALLOCATED:round(r.AMOUNT_ALLOCATED||0),REMARK:r.REMARK||''
+        })).filter(r=>r.PO_NO);
+        if(!detailRows.length){emptyDetail('Tidak ada PO outstanding untuk supplier ini.');updateSummary();return;}
+        $('#paymentDetailTable tbody').html(detailRows.map(r=>{
+            const rem=Math.max(0,round(r.OUTSTANDING-r.AMOUNT_ALLOCATED));
+            return `<tr data-po="${esc(r.PO_NO)}">
+                <td><strong>${esc(r.PO_NO)}</strong></td><td>${esc(dateFmt(r.PO_DATE))}</td><td>${esc(r.MATERIAL_NAME||r.MATERIAL||'-')}</td>
+                <td class="text-end">${rupiah(r.PO_TOTAL)}</td><td class="text-end">${rupiah(r.OUTSTANDING)}</td>
+                <td><input class="form-control form-control-sm text-end allocation-input" data-po="${esc(r.PO_NO)}" value="${r.AMOUNT_ALLOCATED?money(r.AMOUNT_ALLOCATED):''}" placeholder="0" ${editable&&mode()==='MANUAL'?'':'readonly'}></td>
+                <td class="text-end remain-cell">${rupiah(rem)}</td><td class="text-center status-cell">${detailStatus(r.AMOUNT_ALLOCATED,r.OUTSTANDING)}</td>
+                <td class="text-center">${editable&&mode()==='MANUAL'?`<button type="button" class="btn btn-danger btn-sm btn-remove-detail" data-po="${esc(r.PO_NO)}"><i class="ti ti-trash"></i></button>`:'-'}</td>
+            </tr>`;
+        }).join(''));
+        updateSummary();
+    }
 
-                <td>
+    function allocatedTotal(){let t=0;$('#paymentDetailTable .allocation-input').each(function(){t+=round($(this).val());});return round(t);}
+    function updateSummary(){
+        const total=paymentAmount(),allocated=allocatedTotal(),diff=round(total-allocated);
+        $('#summaryTotalInput').text(rupiah(total));$('#summaryAllocated').text(rupiah(allocated));
+        $('#summaryRemaining').text(rupiah(Math.max(0,diff)));$('#summaryDifference').text(rupiah(Math.abs(diff)<.01?0:diff));
+        $('#grandTotal').val(money(allocated));
+        const invalid=total<=0||allocated<=0||Math.abs(diff)>.009;
+        $('#btnSavePayment').prop('disabled',invalid||!$('#paymentPlant').val()||!$('#paymentSupplier').val());
+    }
 
-                    ${po}
+    function normalizePOs(rows){
+        return (Array.isArray(rows)?rows:[]).map(r=>({
+            PO_NO:String(r.PO||r.PO_NO||''),PO_DATE:r.PO_DATE||'',MATERIAL:r.MATERIAL||'',MATERIAL_NAME:r.MATERIAL_NAME||'',
+            PO_TOTAL:round(r.TOTAL??r.PO_TOTAL??0),PAID_BEFORE:round(r.PAID_AMOUNT_CALC??r.PAID_BEFORE??0),
+            OUTSTANDING:round(r.OUTSTANDING??0),AMOUNT_ALLOCATED:0,REMARK:''
+        })).filter(r=>r.PO_NO&&r.OUTSTANDING>0);
+    }
 
-                    <input
-                        type="hidden"
-                        name="DETAIL[${detailIndex}][PO_NO]"
-                        value="${po}">
-                </td>
-
-                <td>
-
-                    ${$(this).data('material-name')}
-
-                    <input
-                        type="hidden"
-                        name="DETAIL[${detailIndex}][MATERIAL]"
-                        value="${material}">
-                </td>
-
-                <td class="text-center">
-
-                    ${numberFormat($(this).data('berat'))}
-
-                    <input
-                        type="hidden"
-                        name="DETAIL[${detailIndex}][BERAT]"
-                        value="${$(this).data('berat')}">
-                </td>
-
-                <td class="text-center">
-
-                    ${numberFormat(qty)}
-
-                    <input
-                        type="hidden"
-                        name="DETAIL[${detailIndex}][JUMLAH]"
-                        value="${qty}">
-                </td>
-
-                <td class="text-end">
-
-                    ${currencyFormat(harga)}
-
-                    <input
-                        type="hidden"
-                        name="DETAIL[${detailIndex}][HARGA]"
-                        value="${harga}">
-                </td>
-
-                <td class="text-end total-cell">
-
-                    ${currencyFormat(total)}
-
-                </td>
-
-                <td>
-
-                    <input
-                        type="text"
-                        class="form-control"
-                        name="DETAIL[${detailIndex}][REMARK]">
-                </td>
-
-                <td class="text-center">
-
-                    <button
-                        type="button"
-                        class="btn btn-danger btn-sm removeDetail">
-
-                        X
-
-                    </button>
-
-                </td>
-
-            </tr>
-
-            `;
-
-            detailIndex++;
-
-            $('#detailTable tbody')
-                .append(row);
-
-            /*
-            |--------------------------------------------------------------------------
-            | AUTO SUPPLIER
-            |--------------------------------------------------------------------------
-            */
-
-            $('#hiddensupplierAdd')
-                .val($(this).data('supplier'));
-
-        });
-
-        updateGrandTotal();
-
-        $('#modalPickPO')
-            .modal('hide');
-
-    });
-
-    $(document).on(
-        'click',
-        '.removeDetail',
-        function(){
-
-            $(this)
-                .closest('tr')
-                .remove();
-
-            updateGrandTotal();
-        }
-    );
-
-    $(document).on("click", ".exportPdf", function () {
-        let payment    = $(this).data("payment");
-        let plant = $(this).data("plant");
-
-        window.open(
-            "<?= base_url('payment/print_pdf'); ?>?payment=" + payment + "&plant=" + plant,
-            "_blank"
-        );
-    });
-
-    /* =========================
-    SELECT2 SUPPLIER
-    ========================= */
-    function initSupplierSelect2(selector, modal){
-        $(selector).select2({
-            placeholder:'Pilih Supplier',
-            dropdownParent:$(modal),
-            width:'100%',
-            ajax:{
-                url:'<?= base_url("payment/get_supplier"); ?>',
-                dataType:'json',
-                delay:250,
-                data:p=>({q:p.term}),
-                processResults:d=>({results:d})
+    function loadOpenPO(){
+        const plant=$('#paymentPlant').val(),supplier=$('#paymentSupplier').val();
+        if(!plant||!supplier){detailRows=[];emptyDetail('Pilih plant dan supplier terlebih dahulu.');updateSummary();return;}
+        $.getJSON(base+'get_open_po',{plant,supplier,payment:editing?activePayment:''}).done(rows=>{
+            const pos=normalizePOs(rows);
+            if(mode()==='FIFO'){
+                let remaining=paymentAmount(),alloc=[];
+                pos.forEach(po=>{if(remaining<=0)return;const a=round(Math.min(remaining,po.OUTSTANDING));if(a<=0)return;alloc.push({...po,AMOUNT_ALLOCATED:a});remaining=round(remaining-a);});
+                renderDetails(alloc,false);
+                if(remaining>.009)alertMsg('Total pembayaran melebihi outstanding PO yang tersedia. Selisih tidak dapat dialokasikan.','warning');
+            }else{
+                pickerRows=pos;
+                emptyDetail('Klik "Pilih PO" untuk menentukan PO yang akan dibayar.');
+                updateSummary();
             }
-        }).on('select2:select', function(e){
-            $(this).closest('form')
-                .find('input[name="SUPPLIER"]')
-                .val(e.params.data.id);
+        }).fail(xhr=>{emptyDetail('Gagal memuat PO outstanding.');alertMsg('Gagal memuat PO outstanding.','error');console.error(xhr.responseText);});
+    }
+
+    function renderPicker(){
+        const q=String($('#searchPO').val()||'').toLowerCase().trim();
+        const selected=new Set(detailRows.map(r=>String(r.PO_NO)));
+        const rows=pickerRows.filter(r=>!q||`${r.PO_NO} ${r.MATERIAL} ${r.MATERIAL_NAME}`.toLowerCase().includes(q));
+        if(!rows.length){$('#poPickerBody').html('<tr><td colspan="7" class="text-center text-muted py-4">Tidak ada PO outstanding.</td></tr>');return;}
+        $('#poPickerBody').html(rows.map(r=>`<tr><td class="text-center"><input type="checkbox" class="pickPO" value="${esc(r.PO_NO)}" ${selected.has(r.PO_NO)?'checked':''} ${mode()==='FIFO'?'disabled':''}></td>
+            <td><strong>${esc(r.PO_NO)}</strong></td><td>${esc(dateFmt(r.PO_DATE))}</td><td>${esc(r.MATERIAL_NAME||r.MATERIAL||'-')}</td>
+            <td class="text-end">${rupiah(r.PO_TOTAL)}</td><td class="text-end">${rupiah(r.PAID_BEFORE)}</td><td class="text-end fw-semibold">${rupiah(r.OUTSTANDING)}</td></tr>`).join(''));
+        $('#btnChoosePO').prop('disabled',mode()==='FIFO');
+    }
+
+    function openPicker(){
+        if(!$('#paymentPlant').val()||!$('#paymentSupplier').val()){alertMsg('Pilih plant dan supplier terlebih dahulu.','warning');return;}
+        $.getJSON(base+'get_open_po',{plant:$('#paymentPlant').val(),supplier:$('#paymentSupplier').val(),payment:editing?activePayment:''})
+        .done(rows=>{pickerRows=normalizePOs(rows);$('#searchPO').val('');renderPicker();showModal('modalPickPO');})
+        .fail(xhr=>{alertMsg('Gagal memuat daftar PO.','error');console.error(xhr.responseText);});
+    }
+
+    function choosePOs(){
+        if(mode()!=='MANUAL'){hideModal('modalPickPO');return;}
+        const selected=[];$('#poPickerBody .pickPO:checked').each(function(){selected.push(String($(this).val()));});
+        const old=new Map(detailRows.map(r=>[String(r.PO_NO),r]));
+        const chosen=pickerRows.filter(r=>selected.includes(r.PO_NO)).map(r=>({...r,AMOUNT_ALLOCATED:old.get(r.PO_NO)?.AMOUNT_ALLOCATED||0,REMARK:old.get(r.PO_NO)?.REMARK||''}));
+        renderDetails(chosen,true);hideModal('modalPickPO');
+    }
+
+    function updateAllocation($input){
+        const row=findDetail(String($input.data('po')));if(!row)return;
+        let val=round($input.val());
+        if(val<0)val=0;
+        if(val>row.OUTSTANDING){val=row.OUTSTANDING;$input.val(money(val));alertMsg('Alokasi tidak boleh melebihi outstanding PO.','warning');}
+        row.AMOUNT_ALLOCATED=val;
+        const tr=$input.closest('tr');tr.find('.remain-cell').text(rupiah(Math.max(0,round(row.OUTSTANDING-val))));
+        tr.find('.status-cell').html(detailStatus(val,row.OUTSTANDING));updateSummary();
+    }
+
+    function collectDetails(){
+        const out=[];
+        $('#paymentDetailTable tbody tr[data-po]').each(function(){
+            const po=String($(this).attr('data-po')||''),r=findDetail(po);if(!r)return;
+            const amount=round($(this).find('.allocation-input').val());
+            if(amount>0)out.push({PO_NO:po,AMOUNT_ALLOCATED:amount,REMARK:r.REMARK||''});
         });
+        return out;
     }
 
-    function setDefaultSupplierCS000001() {
-        $.ajax({
-            url: '<?= base_url("payment/get_supplier"); ?>',
-            dataType: 'json',
-            data: { q: 'CS000001' },
-            success: function (data) {
-
-                if (!data || data.length === 0) return;
-
-                let supplier = data.find(s => s.id === 'CS000001');
-                if (!supplier) return;
-
-                let option = new Option(supplier.text, supplier.id, true, true);
-                $('#supplierAdd').append(option).trigger('change');
-
-                $('#hiddensupplierAdd').val(supplier.id);
-            }
-        });
+    function validate(){
+        const total=paymentAmount(),alloc=allocatedTotal();
+        if(!$('#paymentPlant').val()){alertMsg('Plant wajib dipilih.','warning');return false;}
+        if(!$('#paymentSupplier').val()){alertMsg('Supplier wajib dipilih.','warning');return false;}
+        if(!$('#paymentDate').val()){alertMsg('Tanggal pembayaran wajib diisi.','warning');return false;}
+        if(!$('input[name="PEMBAYARAN"]:checked').val()){alertMsg('Tipe pembayaran wajib dipilih.','warning');return false;}
+        if(total<=0){alertMsg('Total pembayaran harus lebih dari 0.','warning');return false;}
+        if(!collectDetails().length){alertMsg('Belum ada PO yang dialokasikan.','warning');return false;}
+        if(Math.abs(total-alloc)>.009){alertMsg(`Total alokasi (${rupiah(alloc)}) harus sama dengan total pembayaran (${rupiah(total)}).`,'warning');return false;}
+        return true;
     }
 
-
-    $('#supplierAdd').on('select2:select', function(e){
-        let supplierId = e.params.data.id;
-        $('#hiddensupplierAdd').val(supplierId);
-
-        // update semua row po select
-        $('#detailTable tbody tr').each(function(){
-            let $poSelect = $(this).find('.po-select');
-            $poSelect.empty().trigger('change');
-        });
-    });
-
-    $('#supplierEdit').on('select2:select', function(e){
-        let supplierId = e.params.data.id;
-        $('#hiddensupplierEdit').val(supplierId);
-
-        $('#detailTableEdit tbody tr').each(function(){
-            let $select = $(this).find('.po-select');
-            $select.empty().trigger('change');
-        });
-    });
-
-    $('#supplierAdd').on('change', function(){
-
-        $('#detailTable tbody')
-            .html('');
-    
-        updateGrandTotal();
-
-    });
-
-    $('#addRow').click(function(){
-
-        let supplier =
-            $('#hiddensupplierAdd').val();
-
-        if(!supplier){
-
-            alert(
-                'Pilih supplier terlebih dahulu'
-            );
-
-            return;
-        }
-
-        loadPOPicker();
-
-        $('#modalPickPO')
-            .modal('show');
-
-    });
-
-    
-    let searchPOTimer; $('#searchPO').on('keyup', function(){ clearTimeout(searchPOTimer); searchPOTimer = setTimeout(() => { loadPOPicker(); }, 400); });
-
-    function loadPOPicker() {
-
-    $.get(
-
-        '<?= base_url("payment/load_po_picker"); ?>',
-
-        {
-            plant :
-                $('#plantAdd').val(),
-
-            supplier :
-                $('#hiddensupplierAdd').val(),
-
-            search :
-                $('#searchPO').val()
-        },
-
-        function(rows)
-                {
-
-                    let tbody = $('#poListBody');
-
-                    tbody.html('');
-
-                    rows.forEach(function(r){
-
-                        let tr = `
-
-                            <tr>
-
-                                <td class="text-center">
-
-                                    <input
-                                        type="checkbox"
-                                        class="pickPO"
-
-                                        data-id="${r.ID}"
-
-                                        data-po="${r.PO}"
-
-                                        data-material="${r.MATERIAL}"
-
-                                        data-material-name="${r.MATERIAL_NAME}"
-
-                                        data-qty="${r.JUMLAH}"
-
-                                        data-berat="${r.BERAT}"
-
-                                        data-harga="${r.HARGA}"
-
-                                        data-total="${r.TOTAL}"
-
-                                        data-supplier="${r.SUPPLIER}"
-
-                                        data-supplier-name="${r.SUPPLIER_NAME}"
-                                    >
-
-                                </td>
-
-                                <td>
-                                    ${r.PO}
-                                </td>
-
-                                <td>
-                                    ${r.SUPPLIER_NAME || '-'}
-                                </td>
-
-                                <td>
-                                    ${r.MATERIAL_NAME || '-'}
-                                </td>
-
-                                <td class="text-center">
-
-                                    ${Number(r.JUMLAH)
-                                        .toLocaleString('id-ID')}
-
-                                </td>
-
-                                <td class="text-center">
-
-                                    ${Number(r.BERAT)
-                                        .toLocaleString('id-ID')}
-
-                                </td>
-
-                                <td class="text-end">
-
-                                    Rp
-                                    ${Number(r.HARGA)
-                                        .toLocaleString('id-ID')}
-
-                                </td>
-
-                                <td class="text-end">
-
-                                    Rp
-                                    ${Number(r.TOTAL)
-                                        .toLocaleString('id-ID')}
-
-                                </td>
-
-                            </tr>
-
-                        `;
-
-                        tbody.append(tr);
-
-                    });
-
-                },
-
-                'json'
-            );
-        }
-
-    $('#addRowEdit').on('click', function () {
-
-        let supplier = $('#hiddensupplierEdit').val();
-        let plant    = $('#plantEdit').val();
-
-        if (!plant) {
-            alert('Plant tidak valid');
-            return;
-        }
-
-        if (!supplier) {
-            alert('Pilih supplier terlebih dahulu');
-            return;
-        }
-
-        loadPOModal({
-            supplier: supplier,
-            plant: plant,
-            targetTable: '#detailTableEdit'
-        });
-    });
-
-    // Modal Edit
-    // $('#addRowEdit').off('click').on('click', function(){
-    //     let count = $('#detailTableEdit tbody tr').length;
-    //     addDetailRowEdit({}, count, $('#hiddensupplierEdit').val());
-    // });
-
-    $(document).on('click','.btn-choose-po',function(){
-        let supplier = $('#hiddensupplierAdd').val();
-        if(!supplier) return alert('Pilih supplier terlebih dahulu');
-        loadPOModal(supplier);
-    });
-
-    $(document).on('click', '.btn-select-po', function () {
-        const $btn = $(this);
-        if ($btn.data('locked')) return;
-        $btn.data('locked', true);
-
-        let table = normalizeTableSelector($btn.data('target'));
-
-        if (!table) {
-            alert('Target table tidak valid');
-            $btn.data('locked', false);
-            return;
-        }
-
-        let data = {
-            PLANT: $btn.data('plant'),
-            PO_NO: $btn.data('po'),
-            MATERIAL: $btn.data('material'),
-            MATERIAL_NAME: $btn.data('material-name'),
-            BERAT: Number($btn.data('berat')) || 0,
-            JUMLAH: Number($btn.data('qty')) || 0,
-            HARGA: Number($btn.data('harga')) || 0
-        };
-
-        if (isMaterialExist(data.PLANT, data.PO_NO, data.MATERIAL, table)) {
-            alert('Material ini sudah dipilih');
-            $btn.data('locked', false);
-            return;
-        }
-
-        addDetailRow(table, data);
-
-        $('#modalPO').modal('hide');
-
-        setTimeout(() => $btn.data('locked', false), 300);
-    });
-
-    function reindexDetail(form) {
-        $(form).find('tbody tr').each(function (i) {
-            $(this).find('input').each(function () {
-                this.name = this.name.replace(/DETAIL\[\d+\]/, `DETAIL[${i}]`);
-            });
-        });
+    function resetAndOpen(){
+        resetForm();showModal('PaymentModal');
+        if($('#paymentPlant option').length>1&&!$('#paymentPlant').val())$('#paymentPlant').val($('#paymentPlant option:eq(1)').val()).trigger('change.select2');
+        loadSuppliers();
     }
 
-    $(document).on('input','input[name$="[JUMLAH]"], input[name$="[HARGA]"]', calculateGrandTotal);
-
-    $(document).on('click', '.btn-remove', function () {
-        let table = '#' + $(this).closest('table').attr('id');
-        $(this).closest('tr').remove();
-        calculateGrandTotal(table);
-    });
-
-    function calculateGrandTotal(table) {
-        let total = 0;
-
-        $(`${table} tbody tr`).each(function () {
-            total += Number($(this).find('.total').val()) || 0;
-        });
-
-        const target = table === '#detailTableEdit'
-            ? '#grandTotalEdit'
-            : '#grandTotal';
-
-        $(target).val(numberFormat(total));
-    }
-
-    $(document).on('input', '.jumlah, .harga', function () {
-        let $row = $(this).closest('tr');
-
-        let jumlah = Number($row.find('.jumlah').val()) || 0;
-        let harga  = Number($row.find('.harga').val()) || 0;
-
-        let total = jumlah * harga;
-        $row.find('.total').val(total);
-
-        let table = '#' + $row.closest('table').attr('id');
-        calculateGrandTotal(table);
-    });
-
-    function isMaterialExist(plant, po, material, table){
-        let exist = false;
-
-        $(table+' tbody tr').each(function(){
-            const p = $(this).find('input[name$="[PLANT]"]').val();
-            const r = $(this).find('input[name$="[PO_NO]"]').val();
-            const m = $(this).find('input[name$="[MATERIAL]"]').val();
-
-            if (
-                String(p) === String(plant) &&
-                String(r) === String(po) &&
-                String(m) === String(material)
-            ) {
-                exist = true;
-                return false;
-            }
-        });
-
-        return exist;
-    }
-
-    function formatDateIndo(dateStr) {
-        if (!dateStr) return '';
-        const d = new Date(dateStr);
-        return d.toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric'
-        });
-    }
-
-    function rupiah(n){
-        n = Number(n) || 0;
-        return n.toLocaleString('id-ID');
-    }
-
-    function loadPOModal({ supplier, plant = null, targetTable }) {
-
-        if (!supplier) {
-            alert('Supplier tidak valid');
-            return;
-        }
-
-        $.get(
-            '<?= base_url("payment/load_po_modal"); ?>',
-            {
-                supplier: supplier,
-                plant: plant
-            },
-            function (res) {
-
-                let tbody = '';
-
-                if (!res || !res.length) {
-                    tbody = `
-                        <tr>
-                            <td colspan="10" class="text-center" style="vertical-align: middle">Tidak ada data</td>
-                        </tr>`;
-                } else {
-                    res.forEach(r => {
-                        tbody += `
-                            <tr>
-                                <td class="text-center" style="vertical-align: middle">${r.PLANT_NAME}</td>
-                                <td class="text-center" style="vertical-align: middle">${formatDateIndo(r.PO_DATE)}</td>
-                                <td class="text-center" style="vertical-align: middle">#${r.PO}</td>
-                                <td class="text-center" style="vertical-align: middle">
-                                    <b>(${r.SUPPLIER})</b><br>${r.SUPPLIER_NAME}
-                                </td>
-                                <td class="text-center" style="vertical-align: middle">
-                                    <b>(${r.MATERIAL})</b><br>${r.MATERIAL_NAME}
-                                </td>
-                                <td class="text-end" style="vertical-align: middle">${numberFormat(r.TOTAL_BERAT)}</td>
-                                <td class="text-end" style="vertical-align: middle">${numberFormat(r.TOTAL_QTY)}</td>
-                                <td class="text-end" style="vertical-align: middle">${numberFormat(r.HARGA)}</td>
-                                <td class="text-end" style="vertical-align: middle">${numberFormat(r.TOTAL)}</td>
-                                <td class="text-center" style="vertical-align: middle">
-                                    <button type="button"
-                                        class="btn btn-success btn-sm btn-select-po"
-                                        data-target="${targetTable}"
-                                        data-plant="${r.PLANT}"
-                                        data-po="${r.PO}"
-                                        data-material="${r.MATERIAL}"
-                                        data-material-name="${r.MATERIAL_NAME}"
-                                        data-berat="${r.TOTAL_BERAT}"
-                                        data-qty="${r.TOTAL_QTY}"
-                                        data-harga="${r.HARGA}">
-                                        Pilih
-                                    </button>
-                                </td>
-                            </tr>`;
-                    });
-                }
-
-                $('#tablePO tbody').html(tbody);
-                $('#modalPO').modal('show');
-            },
-            'json'
-        );
-    }
-
-    /* =========================
-    DETAIL ROW
-    ========================= */
-    function addDetailRow(table, data) {
-        table = normalizeTableSelector(table);
-        if (!table) return;
-
-        let idx = $(`${table} tbody tr`).length;
-
-        const berat  = Number(data.BERAT)  || 0;
-        const jumlah = Number(data.JUMLAH) || 0;
-        const harga  = Number(data.HARGA)  || 0;
-        const total  = berat * harga;
-
-        let row = `
-            <tr>
-                <td style="vertical-align: middle">
-                    #${data.PO_NO}
-                    <input type="hidden" name="DETAIL[${idx}][SEQ_NO]" value="${data.SEQ_NO}">
-                    <input type="hidden" name="DETAIL[${idx}][PLANT]" value="${data.PLANT}">
-                    <input type="hidden" name="DETAIL[${idx}][PO_NO]" value="${data.PO_NO}">
-                </td>
-                <td style="vertical-align: middle">
-                    ${data.MATERIAL} - ${data.MATERIAL_NAME}
-                    <input type="hidden" name="DETAIL[${idx}][MATERIAL]" value="${data.MATERIAL}">
-                </td>
-                <td>
-                    <input type="text"
-                        class="form-control text-end berat"
-                        value="${formatDecimal(berat)}" readonly>
-                    <input type="hidden" name="DETAIL[${idx}][BERAT]" value="${berat}">
-                </td>
-                <td>
-                    <input type="text"
-                        class="form-control text-end jumlah"
-                        value="${numberFormat(jumlah)}" readonly>
-                    <input type="hidden" name="DETAIL[${idx}][JUMLAH]" value="${jumlah}">
-                </td>
-                <td>
-                    <input type="text"
-                        class="form-control text-end harga"
-                        value="${numberFormat(harga)}" readonly>
-                    <input type="hidden" name="DETAIL[${idx}][HARGA]" value="${harga}">
-                </td>
-                <td>
-                    <input type="text"
-                        class="form-control text-end total"
-                        value="${numberFormat(total)}" readonly>
-                    <input type="hidden" name="DETAIL[${idx}][TOTAL]" value="${total}">
-                </td>
-                <td>
-                    <input name="DETAIL[${idx}][REMARK]" class="form-control" value="${data.REMARK || ''}" placeholder="Remark disini...">
-                </td>
-                <td class="text-center">
-                    <button type="button" class="btn btn-danger btn-sm btn-remove">×</button>
-                </td>
-            </tr>
-        `;
-
-        $(`${table} tbody`).append(row);
-        calculateGrandTotal(table);
-    }
-
-    function addDetailRowEdit(row)
-    {
-        let qty =
-            parseFloat(row.JUMLAH) || 0;
-
-        let berat =
-            parseFloat(row.BERAT) || 0;
-
-        let harga =
-            parseFloat(row.HARGA) || 0;
-
-        // TOTAL = BERAT X HARGA
-        let total =
-            berat * harga;
-
-        let index =
-            $('#detailTableEdit tbody tr').length;
-
-        let html = `
-
-            <tr
-                data-po="${row.PO_NO}"
-                data-material="${row.MATERIAL}">
-
-                <!-- PO -->
-                <td>
-
-                    ${row.PO_NO}
-
-                    <input
-                        type="hidden"
-                        name="DETAIL[${index}][PO_NO]"
-                        value="${row.PO_NO}">
-
-                </td>
-
-                <!-- MATERIAL -->
-                <td>
-
-                    ${row.MATERIAL_NAME || row.MATERIAL}
-
-                    <input
-                        type="hidden"
-                        name="DETAIL[${index}][MATERIAL]"
-                        value="${row.MATERIAL}">
-
-                </td>
-
-                <!-- BERAT -->
-                <td class="text-center">
-
-                    ${numberFormat(berat)}
-
-                    <input
-                        type="hidden"
-                        name="DETAIL[${index}][BERAT]"
-                        value="${berat}">
-
-                </td>
-
-                <!-- JUMLAH -->
-                <td class="text-center">
-
-                    ${numberFormat(qty)}
-
-                    <input
-                        type="hidden"
-                        name="DETAIL[${index}][JUMLAH]"
-                        value="${qty}">
-
-                </td>
-
-                <!-- HARGA -->
-                <td class="text-end">
-
-                    Rp ${numberFormat(harga)}
-
-                    <input
-                        type="hidden"
-                        name="DETAIL[${index}][HARGA]"
-                        value="${harga}">
-
-                </td>
-
-                <!-- TOTAL -->
-                <td class="text-end">
-
-                    Rp ${numberFormat(total)}
-
-                    <input
-                        type="hidden"
-                        class="total"
-                        name="DETAIL[${index}][TOTAL]"
-                        value="${total}">
-
-                </td>
-
-                <!-- REMARK -->
-                <td>
-
-                    <input
-                        type="text"
-                        class="form-control"
-                        name="DETAIL[${index}][REMARK]"
-                        value="${row.REMARK || ''}">
-
-                </td>
-
-                <!-- ACTION -->
-                <td class="text-center">
-
-                    <button
-                        type="button"
-                        class="btn btn-danger btn-sm btn-remove">
-
-                        ×
-
-                    </button>
-
-                </td>
-
-            </tr>
-
-        `;
-
-        $('#detailTableEdit tbody')
-            .append(html);
-
-        calculateGrandTotal('#detailTableEdit');
-    }
-
-    function normalizeTableSelector(table) {
-        if (!table) return null;
-        if (typeof table === 'string') return table;
-        if (table instanceof jQuery) return '#' + table.attr('id');
-        if (table.nodeType === 1) return '#' + table.id;
-        return null;
-    }
-
-    function numberFormat(value, digit = 0)
-    {
-        value = parseFloat(value || 0);
-
-        return value.toLocaleString('id-ID', {
-
-            minimumFractionDigits: digit,
-            maximumFractionDigits: digit
-
-        });
-    }
-
-    function currencyFormat(value)
-    {
-        return 'Rp ' + numberFormat(value, 0);
-    }
-
-    function initPOSelect2(selector, modal, supplier){
-        selector.select2({
-            placeholder: 'Pilih PO',
-            dropdownParent: $(modal),
-            width: '100%',
-            ajax: {
-                url: '<?= base_url("payment/get_po_by_supplier"); ?>',
-                dataType: 'json',
-                delay: 250,
-                data: function (params) {
-                    return {
-                        q: params.term,
-                        supplier: supplier
-                    };
-                },
-                processResults: function (data) {
-                    return {
-                        results: data.map(r => ({
-                            id: r.PO,
-                            text: `#${r.PO} | ${r.PLANT_NAME} | ${r.PO_DATE}`
-                        }))
-                    };
-                }
-            }
-        });
-    }
-
-    function initPlantSelect2(selector, modalId){
-
-        if ($(selector).hasClass("select2-hidden-accessible")) {
-
-            $(selector).select2('destroy');
-
-        }
-
-        $(selector).select2({
-
-            placeholder: "Pilih PLANT",
-
-            dropdownParent: $(modalId),
-
-            width: "100%",
-
-            multiple: false,
-
-            ajax: {
-
-                url: "<?= base_url('mcost/get_plant'); ?>",
-
-                dataType: "json",
-
-                delay: 250,
-
-                processResults: function (data) {
-
-                    return {
-
-                        results: data.map(p => ({
-
-                            id: p.id,
-
-                            text: p.text
-
-                        }))
-
-                    };
-
-                }
-
-            }
-
-        });
-
-        $(selector).on(
-            'select2:select',
-            function(e){
-
-                $('#PLANT_ADD').val(
-                    e.params.data.id
-                );
-            }
-        );
-
-        $.getJSON(
-            "<?= base_url('mcost/get_plant'); ?>",
-            function(data){
-
-                if(
-                    data &&
-                    data.length > 0
-                ){
-
-                    let first = data[0];
-
-                    let option = new Option(
-
-                        first.text,
-                        first.id,
-                        true,
-                        true
-
-                    );
-
-                    $(selector)
-                        .append(option)
-                        .trigger('change');
-
-                    $('#PLANT_ADD').val(
-                        first.id
-                    );
-                }
-
-            }
-        );
+    function loadPayment(payment,plant,edit){
+        $.getJSON(base+'detail',{payment,plant}).done(resp=>{
+            if(!resp||!resp.status){alertMsg(resp?.message||'Gagal memuat detail payment.','error');return;}
+            resetForm();editing=!!edit;activePayment=String(payment);
+            const h=resp.header||{};
+            $('#paymentNo').val(h.PAYMENT||payment);$('#paymentNoDisplay').val(h.PAYMENT||payment);
+            $('#paymentPlant').val(String(h.PLANT||plant)).trigger('change.select2');
+            $('#paymentDate').val(String(h.PAYMENT_DATE||'').substring(0,10));
+            $('#paymentSlip').val(h.SLIP_NO||'');$('#paymentRemark').val(h.REMARK||'');$('#paymentAmount').val(money(h.TOTAL||0));
+            $('input[name="PEMBAYARAN"]').prop('checked',false);
+            $(`input[name="PEMBAYARAN"][value="${h.PEMBAYARAN||''}"]`).prop('checked',true);
+            $('input[name="PAYMENT_MODE"]').prop('checked',false);
+            $(`input[name="PAYMENT_MODE"][value="${h.PAYMENT_MODE||'FIFO'}"]`).prop('checked',true);
+            $('#paymentModalTitle').text(edit?'Payment PO - UBAH':'Payment PO - DETAIL');
+            $('#btnSavePayment').toggle(!!edit);$('#btnPickPO').toggle(!!edit);
+            loadSuppliers(h.SUPPLIER);
+            const rows=(resp.detail||[]).map(d=>({
+                PO_NO:d.PO_NO,PO_DATE:d.PO_DATE,MATERIAL:d.MATERIAL,MATERIAL_NAME:d.MATERIAL_NAME,
+                PO_TOTAL:round(d.PO_TOTAL||d.CURRENT_PO_TOTAL||0),PAID_BEFORE:round(d.PAID_BEFORE||0),
+                OUTSTANDING:Math.max(0,round((d.PO_TOTAL||d.CURRENT_PO_TOTAL||0)-(d.PAID_BEFORE||0))),
+                AMOUNT_ALLOCATED:round(d.AMOUNT_ALLOCATED||0),REMARK:d.REMARK||''
+            }));
+            renderDetails(rows,!!edit);
+            if(!edit){$('#fPayment :input').prop('disabled',true);$('#PaymentModal .btn-close').prop('disabled',false);$('#btnSavePayment').hide();$('#btnPickPO').hide();}
+            showModal('PaymentModal');updateSummary();
+        }).fail(xhr=>{alertMsg('Gagal memuat payment.','error');console.error(xhr.responseText);});
     }
 
     $(function(){
+        loadPlants();
+        $('#btnAddPayment').on('click',resetAndOpen);
+        $('#searchPayment').on('input',function(){clearTimeout(searchTimer);searchTimer=setTimeout(()=>loadList(1),300);});
+        $('#filterPlant').on('change',()=>loadList(1));
+        $('#btnResetFilter').on('click',function(){$('#searchPayment').val('');$('#filterPlant').val('').trigger('change.select2');loadList(1);});
+        $('#pagination').on('click','a[data-page]',function(e){e.preventDefault();const p=Number($(this).data('page'));if(p>0)loadList(p);});
+        $('#mainTable').on('click','th[data-sort]',function(){const key=$(this).data('sort');state.dir=state.order===key&&state.dir==='ASC'?'DESC':'ASC';state.order=key;loadList(state.page);});
 
-        loadPage(1);
+        $('#paymentPlant').on('change',function(){
+            if(editing)return;
+            $('#paymentSupplier').val(null).trigger('change.select2');
+            detailRows=[];
+            emptyDetail('Pilih supplier terlebih dahulu.');
+            loadSuppliers();
+        });
+        $('#paymentSupplier').on('change',function(){if(!$(this).val()){detailRows=[];emptyDetail('Pilih plant dan supplier terlebih dahulu.');updateSummary();return;}if(mode()==='FIFO')loadOpenPO();else{detailRows=[];emptyDetail('Klik "Pilih PO" untuk menentukan PO yang akan dibayar.');updateSummary();}});
+        $('input[name="PAYMENT_MODE"]').on('change',function(){
+            if(mode()==='FIFO'){
+                $('#btnPickPO').html('<i class="ti ti-list-check"></i> Lihat PO');
+                loadOpenPO();
+            }else{
+                $('#btnPickPO').html('<i class="ti ti-list-check"></i> Pilih PO');
+                detailRows=[];
+                emptyDetail('Klik "Pilih PO" untuk menentukan PO yang akan dibayar.');
+                updateSummary();
+            }
+        });
+        $('#paymentAmount').on('input',function(){updateSummary();if(mode()==='FIFO'&&$('#paymentSupplier').val()){clearTimeout(amountTimer);amountTimer=setTimeout(loadOpenPO,250);}});
+        $('#btnPickPO').on('click',openPicker);$('#searchPO').on('input',renderPicker);$('#btnChoosePO').on('click',choosePOs);
+        $('#paymentDetailTable').on('input change','.allocation-input',function(){updateAllocation($(this));});
+        $('#paymentDetailTable').on('click','.btn-remove-detail',function(){const po=String($(this).data('po'));detailRows=detailRows.filter(r=>r.PO_NO!==po);renderDetails(detailRows,true);});
 
-        initSupplierSelect2('#supplierAdd','#paymentAdd');
-        setDefaultSupplierCS000001();
-        initSupplierSelect2('#supplierEdit','#paymentEdit');
-
-        initPlantSelect2('#plantAdd','#paymentAdd');
-        initPlantSelect2('#plantEdit','#paymentEdit');
-
-        $('#detailTable').on('click','.btn-remove', function(){ $(this).closest('tr').remove(); });
-
-        /* =========================
-        CREATE
-        ========================= */
-        $('#fPaymentAdd').submit(function(e){
-            e.preventDefault();
-
-            $.post('<?= base_url("payment/create"); ?>', $(this).serialize(), function(res){
-                res = typeof res==='string'?JSON.parse(res):res;
-                alert(res.message);
-                if(res.status){
-                    $('#paymentAdd').modal('hide');
-                    $('#fPaymentAdd')[0].reset();
-                    loadPage(state.page);
-                }
-            },'json');
+        $('#fPayment').on('submit',function(e){
+            e.preventDefault();if(!validate())return;
+            const fd=new FormData(this),details=collectDetails();
+            details.forEach((d,i)=>{fd.append(`DETAIL[${i}][PO_NO]`,d.PO_NO);fd.append(`DETAIL[${i}][AMOUNT_ALLOCATED]`,Number(d.AMOUNT_ALLOCATED).toFixed(2));fd.append(`DETAIL[${i}][REMARK]`,d.REMARK||'');});
+            $('#btnSavePayment').prop('disabled',true);
+            $.ajax({url:base+(editing?'update':'create'),method:'POST',data:fd,processData:false,contentType:false,dataType:'json'})
+            .done(resp=>{if(!resp||!resp.status){alertMsg(resp?.message||'Gagal menyimpan payment.','error');return;}hideModal('PaymentModal');alertMsg(resp.message||'Payment berhasil disimpan.','success');loadList(1);})
+            .fail(xhr=>{alertMsg(xhr.responseJSON?.message||'Terjadi kesalahan saat menyimpan payment.','error');console.error(xhr.responseText);})
+            .always(()=>$('#btnSavePayment').prop('disabled',false));
         });
 
-        $(document).on(
-            'click',
-            '.btnEdit',
-            function(){
-                $('#fPaymentEdit')[0].reset();
-
-                $('#detailTableEdit tbody').empty();
-
-                $('#grandTotalEdit').val('');
-
-                let payment =
-                    $(this).data('payment');
-
-                let plant =
-                    $(this).data('plant');
-
-                $.get(
-
-                    '<?= base_url("payment/edit"); ?>',
-
-                    {
-                        payment : payment,
-                        plant   : plant
-                    },
-
-                    function(res){
-
-                        if(typeof res === 'string'){
-
-                            res = JSON.parse(res);
-
-                        }
-
-                        if(!res.status){
-
-                            alert(res.message);
-
-                            return;
-
-                        }
-
-                        let d =
-                            res.data;
-
-                        let form =
-                            $('#fPaymentEdit');
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | RESET
-                        |--------------------------------------------------------------------------
-                        */
-
-                        $('#detailTableEdit tbody')
-                            .html('');
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | HEADER
-                        |--------------------------------------------------------------------------
-                        */
-
-                        form.find('[name="PAYMENT"]')
-                            .val(d.header.PAYMENT);
-
-                        $('#paymentNoEdit')
-                            .val(d.header.PAYMENT);
-
-                        let plantOption = new Option(
-                            d.header.PLANT_NAME || d.header.PLANT,
-                            d.header.PLANT,
-                            true,
-                            true
-                        );
-
-                        $('#plantEdit')
-                            .append(plantOption)
-                            .trigger('change');
-
-                        form.find('[name="PAYMENT_DATE"]')
-                            .val(
-                                d.header.PAYMENT_DATE.substr(0,10)
-                            );
-
-                        form.find('[name="SLIP_NO"]')
-                            .val(d.header.SLIP_NO);
-
-                        form.find('[name="REMARK"]')
-                            .val(d.header.REMARK);
-
-                        form.find(
-                            '[name="PEMBAYARAN"][value="'+
-                            d.header.PEMBAYARAN+
-                            '"]'
-                        ).prop('checked', true);
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | SUPPLIER
-                        |--------------------------------------------------------------------------
-                        */
-
-                        let supplierOption = new Option(
-                            d.header.SUPPLIER_NAME,
-                            d.header.SUPPLIER,
-                            true,
-                            true
-                        );
-
-                        $('#supplierEdit')
-                            .empty()
-                            .append(supplierOption);
-
-                        $('#hiddensupplierEdit')
-                            .val(d.header.SUPPLIER);
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | DETAIL
-                        |--------------------------------------------------------------------------
-                        */
-
-                        (d.detail || []).forEach(function(row){
-
-                            addDetailRowEdit({
-
-                                PO_NO :
-                                    row.PO_NO,
-
-                                MATERIAL :
-                                    row.MATERIAL,
-
-                                MATERIAL_NAME :
-                                    row.MATERIAL_NAME,
-
-                                BERAT :
-                                    row.BERAT,
-
-                                JUMLAH :
-                                    row.JUMLAH,
-
-                                HARGA :
-                                    row.HARGA,
-
-                                REMARK :
-                                    row.REMARK
-
-                            });
-
-                        });
-
-                        /*
-                        |--------------------------------------------------------------------------
-                        | SHOW
-                        |--------------------------------------------------------------------------
-                        */
-
-                        $('#paymentEdit')
-                            .modal('show');
-
-                    },
-
-                    'json'
-                );
-
-            }
-        );
-
-        $('#fPaymentEdit').submit(function(e){
-
-            e.preventDefault();
-
-            let btn =
-                $(this).find('button[type="submit"]');
-
-            btn.prop('disabled', true);
-
-            $.post(
-
-                '<?= base_url("payment/update"); ?>',
-
-                $(this).serialize(),
-
-                function(res){
-
-                    if(typeof res === 'string'){
-
-                        res = JSON.parse(res);
-
-                    }
-
-                    if(res.status){
-
-                        $('#paymentEdit')
-                            .modal('hide');
-
-                        loadPage(state.page);
-
-                        setTimeout(function(){
-
-                            alert(res.message);
-
-                        }, 300);
-
-                    } else {
-
-                        alert(res.message);
-
-                    }
-
-                },
-
-                'json'
-
-            ).always(function(){
-
-                btn.prop('disabled', false);
-
-            });
-
+        $('#table-body').on('click','.btn-view',function(){loadPayment($(this).data('payment'),$(this).data('plant'),false);});
+        $('#table-body').on('click','.btn-edit',function(){loadPayment($(this).data('payment'),$(this).data('plant'),true);});
+        $('#table-body').on('click','.btn-void',function(){
+            const payment=$(this).data('payment'),plant=$(this).data('plant');
+            const run=()=>$.post(base+'remove',{payment,plant},null,'json').done(resp=>{if(!resp||!resp.status){alertMsg(resp?.message||'Gagal membatalkan payment.','error');return;}alertMsg(resp.message||'Payment berhasil dibatalkan.','success');loadList(state.page);}).fail(xhr=>alertMsg(xhr.responseJSON?.message||'Gagal membatalkan payment.','error'));
+            if(window.Swal)Swal.fire({icon:'warning',title:'Batalkan Payment?',text:`Payment ${payment} akan di-void dan saldo PO dihitung ulang.`,showCancelButton:true,confirmButtonText:'Ya, batalkan',cancelButtonText:'Tidak'}).then(r=>{if(r.isConfirmed)run();});
+            else if(confirm(`Batalkan payment ${payment}? Saldo PO akan dihitung ulang.`))run();
         });
-
-    $(document).on(
-        'click',
-        '.btnDelete',
-        function(){
-
-            if(
-                !confirm(
-                    'Yakin hapus payment ini ?'
-                )
-            ){
-                return;
-            }
-
-            let payment =
-                $(this).data('payment');
-
-            let plant =
-                $(this).data('plant');
-
-            $.post(
-
-                '<?= base_url("payment/remove"); ?>',
-
-                {
-                    payment : payment,
-                    plant   : plant
-                },
-
-                function(res){
-
-                    if(typeof res === 'string'){
-
-                        res = JSON.parse(res);
-
-                    }
-
-                    alert(res.message);
-
-                    if(res.status){
-
-                        loadPage(state.page);
-
-                    }
-
-                },
-
-                'json'
-            );
-
-        }
-    );
-
+        $('#PaymentModal').on('hidden.bs.modal',function(){$('#fPayment :input').prop('disabled',false);});
     });
-    </script>
-
-    <script>
-        $('#paymentAdd').on('shown.bs.modal', function(){
-            $('#detailTable tbody').empty();
-            $('#grandTotal').val('');
-            let today = new Date().toISOString().split('T')[0];
-            $('input[name="PAYMENT_DATE"]').val(today).attr('min',today);
-            setDefaultSupplierCS000001();
-        });
-
-        $('#paymentEdit').on('hidden.bs.modal', function () {
-
-            $('body').removeClass('modal-open');
-
-            $('.modal-backdrop').remove();
-
-        });
+})(jQuery);
 </script>
-
-
